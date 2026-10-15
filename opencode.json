@@ -1,0 +1,48 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [
+    "docs/business-rules.md",
+    "docs/architecture.md",
+    "docs/conventions.md"
+  ],
+  "permission": {
+    "edit": {
+      "*": "allow",
+      "AGENTS.md": "ask",
+      "opencode.json": "ask",
+      ".opencode/**": "ask",
+      "backend/migrations/*": "ask",
+      "package-lock.json": "ask",
+      ".env": "deny",
+      ".env.*": "deny",
+      ".env.example": "allow"
+    },
+    "bash": {
+      "*": "ask",
+      "git status*": "allow",
+      "git diff*": "allow",
+      "git log*": "allow",
+      "git branch --show-current": "allow",
+      "git add*": "ask",
+      "git commit*": "ask",
+      "git push*": "deny",
+      "git merge*": "deny",
+      "git rebase*": "deny",
+      "git tag*": "deny",
+      "git reset --hard*": "deny",
+      "git branch -D*": "deny",
+      "git checkout main*": "deny",
+      "git checkout develop*": "deny",
+      "git switch main*": "deny",
+      "git switch develop*": "deny",
+      "rm -rf*": "deny",
+      "npm test*": "allow",
+      "npm run test*": "allow",
+      "npm run lint*": "allow",
+      "npm install*": "ask",
+      "npm uninstall*": "ask",
+      "docker compose*": "ask"
+    },
+    "webfetch": "ask"
+  }
+}
