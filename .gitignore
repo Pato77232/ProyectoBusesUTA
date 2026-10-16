@@ -1,0 +1,19 @@
+# Dependencias
+node_modules/
+
+# Variables de entorno (nunca se commitean valores reales)
+.env
+.env.*
+!.env.example
+
+# Cobertura y artefactos de pruebas
+coverage/
+
+# Registros
+*.log
+
+# Subidas (comprobantes de pago, futuras)
+uploads/
+
+# Sistema
+.DS_Store

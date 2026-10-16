@@ -1,6 +1,6 @@
 # ADR 0003: Stack tecnológico
 
-- **Estado:** Propuesta (pendiente de aprobación del equipo)
+- **Estado:** Aceptada (equipo, octubre 2026)
 - **Fecha:** 2026-10
 - **Decidido por:** equipo
 
@@ -8,10 +8,10 @@
 El equipo definió Node.js, Bootstrap y PostgreSQL, con todo containerizado en Docker. Falta concretar librerías y la forma del frontend.
 
 ## Decisión (propuesta)
-- **Backend:** Node.js LTS con Express, `pg` (node-postgres) sin ORM y una herramienta de migraciones SQL (por ejemplo `node-pg-migrate`). Validación de entrada con una librería de esquemas (por ejemplo Zod). JWT para autenticación y bcrypt o argon2 para contraseñas.
+- **Backend:** Node.js 24 LTS con Express, `pg` (node-postgres) sin ORM y `node-pg-migrate` para migraciones SQL. Validación de entrada con una librería de esquemas (por ejemplo Zod). JWT para autenticación y Argon2id para contraseñas (parámetros en ADR 0004).
 - **Pruebas:** Jest. **Calidad:** ESLint y Prettier.
-- **Frontend:** Bootstrap 5 con HTML y JavaScript (módulos ES), servido por su propio contenedor y consumiendo `/api/v1`.
-- **Base de datos:** PostgreSQL con versión fija en Docker Compose.
+- **Frontend:** Bootstrap 5 con HTML y JavaScript (módulos ES), servido por su propio contenedor y consumiendo `/api/v1` (contenedor incorporado en una tarea posterior al backend y la base de datos).
+- **Base de datos:** PostgreSQL 16 con versión fija en Docker Compose. Las versiones exactas de imágenes y del runtime se fijan al implementar; nunca se usa `latest`.
 
 ## Alternativas consideradas
 - **ORM (Prisma, Sequelize):** acelera el CRUD, pero tiende a filtrar el modelo de persistencia al dominio y dificulta mantener la arquitectura limpia.
