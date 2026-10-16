@@ -90,3 +90,17 @@ test('me rechaza sesión revocada, vencida y token firmado con otra clave',async
  const claims=jwt.decode(decodeURIComponent(saved));browser.cookies.set('access_token',jwt.sign(claims,'wrong-secret'));
  expect((await browser.request('/api/v1/auth/me')).status).toBe(401);
 });
+
+test('logout exige CSRF y revoca solo la sesión actual, incluso si se reutiliza el JWT',async()=>{
+ const first=new Browser();const second=new Browser();
+ await first.token();await first.login();await second.token();await second.login();
+ const oldToken=first.cookies.get('access_token');
+ expect((await first.request('/api/v1/auth/logout','POST',{})).status).toBe(403);
+ await first.token();expect((await first.request('/api/v1/auth/logout','POST',{})).status).toBe(204);
+ expect(first.cookies.get('access_token')).toBe('');
+ first.cookies.set('access_token',oldToken);
+ expect((await first.request('/api/v1/auth/me')).status).toBe(401);
+ expect((await second.request('/api/v1/auth/me')).status).toBe(200);
+ const result=await pool.query('SELECT count(*)::int AS count FROM auth_sessions WHERE revoked_at IS NOT NULL');
+ expect(result.rows[0].count).toBe(1);
+});
