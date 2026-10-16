@@ -1,6 +1,6 @@
 # ADR 0001: Arquitectura limpia en un monolito modular
 
-- **Estado:** Propuesta (pendiente de aprobación del equipo)
+- **Estado:** Aceptada (equipo, octubre 2026)
 - **Fecha:** 2026-10
 - **Decidido por:** equipo
 
