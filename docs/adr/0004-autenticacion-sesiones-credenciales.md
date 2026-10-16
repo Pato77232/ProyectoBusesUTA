@@ -22,6 +22,7 @@ La plataforma multi-tenant necesita autenticar a usuarios con distintos roles (R
 ### Protección CSRF
 - Mecanismo **double-submit**: `GET /api/v1/auth/csrf` entrega un token que el cliente devuelve en la cabecera `X-CSRF-Token` en el login y en **todas** las operaciones que modifican datos.
 - `SameSite=Lax` es una defensa adicional, **no** la única protección.
+- Precisión de implementación: double-submit firmado con HMAC-SHA256, vigencia de 600 segundos y vínculo al navegador y al sid; renovar tras login/logout. En producción, el nonce se guarda en `__Host-csrf_browser` y todas las cookies de autenticación son Secure.
 
 ### Credenciales
 - Identificador de acceso: **email**, normalizado (`trim` + minúsculas); unicidad sobre la forma normalizada. La cédula no se define como identificador en esta fase.

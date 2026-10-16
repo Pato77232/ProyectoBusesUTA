@@ -112,3 +112,6 @@ Poner en marcha el esqueleto mínimo del backend (`backend/`) y su base de datos
 - Docker de pruebas usa proyecto y volumen independientes; ningún proceso lee un .env existente. Los scripts aceptan variables exportadas por el usuario.
 - Dependencias de calidad: Jest, ESLint, Prettier y eslint-config-prettier. CommonJS exige no-restricted-modules además de no-restricted-imports.
 - No se aprueba un umbral de cobertura nuevo: el 70 % continúa como propuesta.
+
+## Cierre de infraestructura
+T1–T5 implementadas y verificadas. PostgreSQL 16.13, Node 24.21.0, migraciones reversibles, protección de base de pruebas, lint, Jest y Docker comprobados. Evidencia en `docs/autenticacion-ejecucion.md`. El frontend continúa fuera de alcance.

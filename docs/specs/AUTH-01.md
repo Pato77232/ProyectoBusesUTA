@@ -144,3 +144,6 @@ La columna queda **sin FK** en la migración de AUTH-01 porque la tabla `coopera
 - Login 200 sin cuerpo, registro 201 sin cuerpo. Configuración JWT_EXPIRES_IN acepta enteros con unidad s/m/h; no unidades implícitas.
 - La memoria de intentos contabiliza también verificaciones en curso para impedir eludir el límite mediante concurrencia. Libera el intento en éxito/error técnico; éxito reinicia fallos de la cuenta. Entradas vencidas se depuran y existe límite de capacidad para memoria.
 - Dependencias: pg/node-pg-migrate (persistencia/migraciones), argon2 (hash aprobado), jsonwebtoken (firma/verificación HS256), zod (validación HTTP). Versiones exactas en package-lock.json.
+
+## Cierre de implementación
+Implementada y verificada en esta rama. Evidencia y guía: `docs/autenticacion-ejecucion.md`. Sin defectos inducidos. La revisión humana del PR y su integración siguen pendientes.

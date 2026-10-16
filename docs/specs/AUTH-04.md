@@ -31,3 +31,6 @@ Reutiliza users y auth_sessions de AUTH-01; sin cambios de esquema adicionales. 
 
 ## Fuera de alcance
 Frontend, recuperación de contraseña, MFA, altas de personal y cooperativas (requieren sus specs). Sin defectos inducidos.
+
+## Cierre de implementación
+Implementada y verificada en esta rama. Evidencia y guía: `docs/autenticacion-ejecucion.md`. Sin defectos inducidos. La revisión humana del PR y su integración siguen pendientes.
