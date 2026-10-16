@@ -1,4 +1,6 @@
 const { randomUUID } = require('node:crypto');
+const createAuthenticate = require('./application/authenticate.use-case');
+const { authenticationMiddleware, authorize } = require('./interfaces/authenticate');
 const createLogin = require('./application/login.use-case');
 const PgAuthRepository = require('./infrastructure/pg-auth.repository');
 const { createHasher } = require('./infrastructure/password-hasher');
@@ -15,6 +17,16 @@ async function createAuthModule({ pool, env = process.env }) {
   const limiter = createLimiter(config);
   const login = createLogin({ repository, hasher, tokens, limiter, newId: randomUUID });
   const csrf = createCsrf(config.secret, tokens);
-  return { router: createRouter({login,csrf}) };
+  const authenticate = authenticationMiddleware(createAuthenticate({ repository, tokens }));
+  return {
+    router: createRouter({
+      login,
+      csrf,
+      authenticate,
+    }),
+    authenticate,
+    authorize,
+    csrfProtection: csrf.protect,
+  };
 }
 module.exports = { createAuthModule };

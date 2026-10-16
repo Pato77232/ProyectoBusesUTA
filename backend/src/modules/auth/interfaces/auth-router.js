@@ -2,7 +2,7 @@ const express = require('express');
 const { cookieOptions } = require('./cookies');
 const validateCredentials = require('./credentials');
 const authErrors = require('./auth-errors');
-function createRouter({ login, csrf }) {
+function createRouter({ login, csrf, authenticate }) {
   const router = express.Router();
   router.use((req, res, next) => {
     res.set('Cache-Control', 'no-store');
@@ -14,6 +14,7 @@ function createRouter({ login, csrf }) {
     res.cookie('access_token', result.token, { ...cookieOptions(req), expires: result.expiresAt });
     res.status(200).end();
   });
+  router.get('/me', authenticate, (req, res) => res.json({ user: req.auth.user }));
   router.use(authErrors);
   return router;
 }

@@ -72,3 +72,21 @@ test('bloquea la IP tras 20 fallos distribuidos entre cuentas',async()=>{
  expect((await browser.login()).status).toBe(429);
 });
 module.exports = {Browser};
+
+test('me exige sesión vigente y consulta datos actuales sin exponer hash',async()=>{
+ const browser=new Browser();expect((await browser.request('/api/v1/auth/me')).status).toBe(401);
+ await browser.token();await browser.login();const res=await browser.request('/api/v1/auth/me');
+ expect(res.status).toBe(200);expect(await res.json()).toEqual({user:{id:userId,email:'client@example.ec',role:'CUSTOMER',cooperative_id:null}});
+ await pool.query("UPDATE users SET role='SYSTEM_ADMIN' WHERE id=$1",[userId]);
+ expect((await browser.request('/api/v1/auth/me')).status).toBe(401);
+});
+test('me rechaza sesión revocada, vencida y token firmado con otra clave',async()=>{
+ const browser=new Browser();await browser.token();await browser.login();
+ const saved=browser.cookies.get('access_token');
+ await pool.query('UPDATE auth_sessions SET revoked_at=CURRENT_TIMESTAMP WHERE user_id=$1',[userId]);
+ expect((await browser.request('/api/v1/auth/me')).status).toBe(401);
+ await pool.query("UPDATE auth_sessions SET revoked_at=NULL,expires_at=CURRENT_TIMESTAMP-interval '1 minute' WHERE user_id=$1",[userId]);
+ expect((await browser.request('/api/v1/auth/me')).status).toBe(401);
+ const claims=jwt.decode(decodeURIComponent(saved));browser.cookies.set('access_token',jwt.sign(claims,'wrong-secret'));
+ expect((await browser.request('/api/v1/auth/me')).status).toBe(401);
+});
