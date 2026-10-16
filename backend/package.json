@@ -12,10 +12,27 @@
     "dev": "node --watch src/server.js",
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "jest tests/unit",
-    "test:integration": "jest tests/integration",
+    "test:integration": "NODE_ENV=test jest tests/integration --runInBand",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "migrate": "node-pg-migrate up",
-    "migrate:down": "node-pg-migrate down"
+    "migrate": "node scripts/migrate.js up",
+    "migrate:down": "node scripts/migrate.js down",
+    "format:check": "prettier --check \"src/**/*.js\" \"scripts/**/*.js\" \"migrations/**/*.js\"",
+    "format": "prettier --write \"src/**/*.js\" \"scripts/**/*.js\" \"migrations/**/*.js\""
+  },
+  "dependencies": {
+    "argon2": "^0.45.1",
+    "express": "^5.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "node-pg-migrate": "^9.0.0",
+    "pg": "^8.23.1",
+    "pino": "^10.4.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "eslint": "^10.12.0",
+    "eslint-config-prettier": "^10.1.8",
+    "jest": "^30.5.2",
+    "prettier": "^3.9.10"
   }
 }
