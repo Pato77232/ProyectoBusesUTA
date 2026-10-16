@@ -37,8 +37,8 @@ function errorHandler(error, req, res, next) {
     sendError(res, HTTP_STATUS_BAD_REQUEST, INVALID_JSON_CODE, INVALID_JSON_MESSAGE);
     return;
   }
-  // El detalle completo (stack) solo va al log, jamás al cliente.
-  logger.error({ err: error }, 'Error no controlado');
+  // No registrar mensajes ni detalles SQL que puedan incluir credenciales.
+  logger.error({ errorType: error.name }, 'Error no controlado');
   sendError(res, HTTP_STATUS_INTERNAL_ERROR, INTERNAL_ERROR_CODE, INTERNAL_ERROR_MESSAGE);
 }
 
