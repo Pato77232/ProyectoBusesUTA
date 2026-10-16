@@ -11,6 +11,7 @@ Node.js (LTS) + Express · PostgreSQL · Bootstrap 5 · Docker y Docker Compose 
 - `docs/conventions.md`: nombres, errores, pruebas, commits y ramas.
 - `docs/specs/<ID>.md`: la spec de la tarea actual. Si no existe spec, pide que se escriba antes de implementar.
 - `docs/adr/`: decisiones de arquitectura ya tomadas.
+- `docs/errores-inducidos.md`: protocolo obligatorio de defectos académicos para la primera revisión.
 
 ## Arquitectura (resumen)
 Arquitectura limpia por módulos: `backend/src/modules/<modulo>/{domain,application,infrastructure,interfaces}`.
@@ -35,6 +36,13 @@ Arquitectura limpia por módulos: `backend/src/modules/<modulo>/{domain,applicat
 3. Escribe pruebas junto con el código. Antes de terminar ejecuta `npm run lint` y `npm test` y reporta el resultado real.
 4. Código limpio: funciones cortas, nombres que expresan intención, sin números mágicos, errores de dominio explícitos.
 5. Sesiones cortas, una por tarea.
+
+## Primera revisión: 4 de noviembre de 2026
+- La entrega funcional en `main` debe contener errores inducidos a propósito, identificados y autorizados conforme a `docs/errores-inducidos.md`. No inventes defectos ni los corrijas incidentalmente.
+- La excepción académica solo cubre el comportamiento y la versión documentados en la spec; no cambia la regla de negocio esperada. Reporta todos los resultados reales y nunca debilites las pruebas.
+- Jira o GitHub Issues se decidirá e implementará después de esta revisión por petición del docente. Hasta entonces usa el ID de la spec como referencia local; no exijas tickets externos ni inventes sus claves.
+- Versionado SemVer exclusivamente `MAJOR.MINOR.PATCH`, sin cuarto componente ni sufijos de prerelease. Tags `vMAJOR.MINOR.PATCH`.
+- Commits atómicos con Conventional Commits: tipo en inglés; alcance y descripción en español, verbo en imperativo.
 
 ## Git
 - Trabajas solo en ramas `feature/*`, `bugfix/*` o `hotfix/*`. Nunca en `main` ni `develop`.

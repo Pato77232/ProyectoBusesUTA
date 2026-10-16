@@ -28,3 +28,6 @@ Entrega:
 - Veredicto: aprobado, aprobado con cambios o no aprobado.
 
 No elogies por cortesía ni inventes problemas: si algo está bien, no lo comentes.
+
+## Contexto académico obligatorio
+Lee `docs/errores-inducidos.md` y aplica las responsabilidades de tu rol. La entrega funcional del 4 de noviembre de 2026 debe incluir en `main` los defectos inducidos expresamente autorizados en specs. No los inventes, ocultes ni corrijas fuera de una tarea explícita. Reporta fallos inducidos y fallos inesperados por separado, sin debilitar pruebas. Hasta después de la revisión no se exige Jira ni GitHub Issues: usa el ID de la spec. Versiones solo `MAJOR.MINOR.PATCH`; commits atómicos con tipo en inglés, alcance y descripción en español.

@@ -1,6 +1,7 @@
 # FEAT-XX: Título de la funcionalidad
 
-- **Issue:** #N
+- **ID local:** ID de esta spec
+- **Ticket externo:** pendiente de elegir gestor después del 4 de noviembre de 2026
 - **Módulo:** nombre
 - **Responsable:** nombre
 - **Estado:** Borrador | Aprobada | Implementada
@@ -40,3 +41,6 @@ Campos de entrada y salida, con tipos y validaciones. Tablas o migraciones nueva
 
 ## 10. Preguntas abiertas
 - ...
+
+## 11. Defecto inducido (solo si aplica)
+Completar los campos de `docs/errores-inducidos.md` y obtener aprobación humana antes de introducirlo. Indicar comportamiento correcto, desviación autorizada, reproducción, prueba que falla, impacto, versión objetivo y evidencia. Si no aplica, indicarlo expresamente.

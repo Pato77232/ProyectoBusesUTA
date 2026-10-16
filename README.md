@@ -68,7 +68,7 @@ Aplicación web para la **gestión y venta de boletos de transporte interprovinc
 | Pruebas y calidad | Jest, ESLint, Prettier |
 | Convenciones de commit | commitlint + husky |
 | Contenedores | Docker y Docker Compose |
-| Gestión de cambios | GitHub + Jira Service Management |
+| Gestión de cambios | Git; gestor Jira o GitHub Issues pendiente después del 4 de noviembre de 2026 |
 
 ## ✅ Requisitos previos
 
@@ -158,9 +158,9 @@ Copia `.env.example` a `.env`. **Nunca subas `.env` al repositorio.**
 - **Control de versiones:** Gitflow (`main`, `develop`, `feature/*`, `release/*`, `hotfix/*`).
 - **Commits:** [Conventional Commits](https://www.conventionalcommits.org/es/v1.0.0/).
 - **Versionado:** [Versionamiento Semántico 2.0.0](https://semver.org/lang/es/).
-- **Gestión de cambios:** peticiones de cambio en Jira, evaluadas por el **comité de control de cambios (CCB)**.
+- **Gestión de cambios:** peticiones de cambio identificadas mediante specs locales hasta elegir Jira o GitHub Issues después de la primera revisión; evaluadas por el **comité de control de cambios (CCB)**.
 
-Todo el detalle está en [CONTRIBUTING.md](CONTRIBUTING.md).
+Todo el detalle está en [CONTRIBUTING.md](CONTRIBUTING.md). Versiones solo `MAJOR.MINOR.PATCH`. La entrega funcional del 4 de noviembre de 2026 incluirá en `main` los errores inducidos autorizados según [el protocolo académico](docs/errores-inducidos.md).
 
 ## 📚 Documentación del repositorio
 

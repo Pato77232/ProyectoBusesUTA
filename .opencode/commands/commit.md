@@ -15,7 +15,7 @@ Reglas (ver `docs/conventions.md`):
 - Formato: `tipo(alcance): descripción`.
 - Tipo en inglés: feat, fix, docs, refactor, test, chore, ci, build.
 - Alcance en español (módulo afectado) y descripción en español, con **verbo en imperativo** (agrega, corrige, implementa...), minúscula inicial, sin punto final, máximo 72 caracteres.
-- Si corresponde, agrega en el pie `Refs: #N` o `Closes: #N` con el número del Issue (puedes deducirlo del nombre de la rama).
+- Agrega en el pie `Refs: docs/specs/<ID>.md` cuando la spec esté identificada. Jira o GitHub Issues se elegirá después del 4 de noviembre de 2026: no inventes tickets ni deduzcas claves externas.
 - Si hay un cambio incompatible, usa `!` o `BREAKING CHANGE:` en el pie.
 
 Si no hay nada en staging, dilo y sugiere usar `git add -p`.

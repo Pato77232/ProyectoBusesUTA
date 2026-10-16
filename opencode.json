@@ -3,7 +3,8 @@
   "instructions": [
     "docs/business-rules.md",
     "docs/architecture.md",
-    "docs/conventions.md"
+    "docs/conventions.md",
+    "docs/errores-inducidos.md"
   ],
   "permission": {
     "edit": {

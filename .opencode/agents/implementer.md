@@ -23,3 +23,6 @@ Al terminar la tarea:
 2. Resume qué archivos cambiaste y qué decisiones tomaste.
 3. Sugiere el mensaje de commit (formato de `docs/conventions.md`) y, si el cambio es grande, cómo dividirlo en commits atómicos.
 4. No hagas commit, push ni merge: lo hace el humano.
+
+## Contexto académico obligatorio
+Lee `docs/errores-inducidos.md` y aplica las responsabilidades de tu rol. La entrega funcional del 4 de noviembre de 2026 debe incluir en `main` los defectos inducidos expresamente autorizados en specs. No los inventes, ocultes ni corrijas fuera de una tarea explícita. Reporta fallos inducidos y fallos inesperados por separado, sin debilitar pruebas. Hasta después de la revisión no se exige Jira ni GitHub Issues: usa el ID de la spec. Versiones solo `MAJOR.MINOR.PATCH`; commits atómicos con tipo en inglés, alcance y descripción en español.

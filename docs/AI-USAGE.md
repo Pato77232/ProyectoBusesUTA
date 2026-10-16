@@ -14,7 +14,7 @@ OpenCode (agente de IA en terminal), configurado en el repositorio: `AGENTS.md`,
 6. **La IA no debilita las pruebas** ni edita migraciones existentes.
 
 ## Flujo
-`Issue → spec → /new-feature (plan) → aprobación humana → /implement (tarea por tarea) → lint + pruebas → /review → commits atómicos (/commit sugiere el mensaje) → PR (/pr redacta la descripción) → revisión por otro integrante`
+`Spec identificada → /new-feature (plan) → aprobación humana → /implement (tarea por tarea) → lint + pruebas → /review → commits atómicos (/commit sugiere el mensaje) → PR (/pr redacta la descripción) → revisión por otro integrante`
 
 ## Agentes y comandos
 | Elemento | Para qué sirve |
@@ -27,9 +27,12 @@ OpenCode (agente de IA en terminal), configurado en el repositorio: `AGENTS.md`,
 | `/implement <ID> <n>` | Implementa la tarea n del plan |
 | `/commit` | Sugiere el mensaje de commit de lo que está en staging |
 | `/review` | Revisión previa al PR |
-| `/pr <n>` | Redacta la descripción del PR |
+| `/pr <ID-de-spec>` | Redacta la descripción del PR |
 
 ## Trazabilidad
 - Los PR indican si hubo asistencia de IA.
 - Opcionalmente, los commits asistidos llevan el pie `Asistido-por: OpenCode`.
 - Los prompts relevantes o decisiones importantes pueden documentarse en la spec o en un ADR.
+
+## Primera revisión
+El 4 de noviembre de 2026 se entrega una versión funcional en `main` con errores inducidos autorizados. Todos los agentes deben leer `docs/errores-inducidos.md`; no corregirlos incidentalmente ni ocultar sus pruebas fallidas. Jira o GitHub Issues se elegirá después de esta revisión; hasta entonces se referencia la spec local. Versiones solo `MAJOR.MINOR.PATCH` y commits atómicos en español con tipo Conventional Commits en inglés.

@@ -10,7 +10,7 @@ Gracias por colaborar. Este documento define **cómo trabajamos todos** para que
 4. [Nombres de ramas](#4-nombres-de-ramas)
 5. [Conventional Commits](#5-conventional-commits)
 6. [Versionamiento semántico](#6-versionamiento-semántico)
-7. [Control de cambios (Jira + CCB)](#7-control-de-cambios-jira--ccb)
+7. [Control de cambios (gestor pendiente + CCB)](#7-control-de-cambios-jira--ccb)
 8. [Ciclo completo de un cambio](#8-ciclo-completo-de-un-cambio)
 9. [Pull Requests y revisión de código](#9-pull-requests-y-revisión-de-código)
 10. [Hotfix (cambios de emergencia)](#10-hotfix-cambios-de-emergencia)
@@ -22,9 +22,16 @@ Gracias por colaborar. Este documento define **cómo trabajamos todos** para que
 
 ---
 
+## Acuerdos para la primera revisión (4 de noviembre de 2026)
+
+- Jira o GitHub Issues se decidirá e implementará **después** de la primera revisión, por petición del docente. Las referencias a tickets, claves, estados y dashboards de esta guía describen el proceso posterior; hasta entonces se registra cada tarea con una spec local identificada y su revisión humana. No se exige una cuenta ni un ticket externo.
+- La entrega funcional en `main` incluirá errores inducidos autorizados, con evidencia y aceptación explícita según `docs/errores-inducidos.md`. Esta excepción académica no oculta fallos ni permite debilitar pruebas.
+- Versiones exclusivamente `MAJOR.MINOR.PATCH`, sin sufijos ni cuarto componente.
+- `docs/conventions.md` define el formato único de commits: tipo en inglés, alcance y descripción en español, verbo en imperativo y un cambio lógico por commit.
+
 ## 1. Principios
 
-- **Todo cambio tiene un ticket** en Jira. Sin ticket, no hay rama, commit ni PR.
+- **Todo cambio tiene una referencia trazable**: una spec local hasta elegir el gestor después de la primera revisión; posteriormente, el ticket del gestor elegido.
 - **Nadie hace push directo** a `main` ni a `develop`.
 - **Todo cambio pasa por revisión** de al menos otro integrante.
 - **Cada integrante trabaja en su propia copia local** y con su propia identidad de Git.
@@ -75,7 +82,7 @@ feature        ●──●         ●────●
 
 ## 4. Nombres de ramas
 
-Formato: `tipo/CLAVE-JIRA-descripcion-corta-en-kebab-case`
+Formato inicial: `tipo/ID-SPEC-descripcion-corta-en-kebab-case`. Los ejemplos con claves MCS ilustran el formato futuro; no son tickets existentes.
 
 ```
 feature/MCS-12-busqueda-frecuencias
@@ -89,11 +96,11 @@ hotfix/MCS-40-fix-validacion-comprobante
 Formato:
 
 ```
-<tipo>(<alcance>): <descripción en imperativo> (CLAVE-JIRA)
+<tipo>(<alcance en español>): <descripción en español en imperativo>
 
 [cuerpo opcional: qué y por qué]
 
-[pie opcional: BREAKING CHANGE: ... / Refs: MCS-12]
+[pie: Refs: docs/specs/<ID>.md; BREAKING CHANGE: ... si aplica]
 ```
 
 ### Tipos permitidos
@@ -114,16 +121,16 @@ Formato:
 
 ### Alcances sugeridos
 
-`auth`, `cooperativas`, `buses`, `frecuencias`, `hojas-ruta`, `boletos`, `pagos`, `search`, `ui`, `db`, `docker`, `docs`.
+`autenticacion`, `cooperativas`, `flota`, `frecuencias`, `hojas-ruta`, `busqueda`, `reservas`, `pagos`, `boletos`, `infra`, `docs`.
 
 ### Ejemplos
 
 ```
-feat(buses): agregar plantillas de asientos por carrocería (MCS-18)
-fix(pagos): rechazar comprobantes mayores a 5 MB (MCS-31)
-docs(readme): documentar variables de entorno (MCS-5)
-refactor(boletos): extraer cálculo de descuentos a servicio (MCS-27)
-feat(api)!: cambiar formato de respuesta de frecuencias (MCS-33)
+feat(flota): agrega plantillas de asientos por carrocería (MCS-18)
+fix(pagos): rechaza comprobantes mayores a 5 MB (MCS-31)
+docs(docs): documenta variables de entorno (MCS-5)
+refactor(boletos): extrae cálculo de descuentos a servicio (MCS-27)
+feat(frecuencias)!: cambia formato de respuesta de frecuencias (MCS-33)
 
 BREAKING CHANGE: el campo `hora` ahora es ISO 8601.
 ```
@@ -132,7 +139,7 @@ BREAKING CHANGE: el campo `hora` ahora es ISO 8601.
 
 - Una idea por commit; commits pequeños y frecuentes.
 - Descripción en **minúsculas**, imperativo, sin punto final, máximo 72 caracteres.
-- Siempre incluir la clave de Jira al final del asunto.
+- Referenciar la spec en el pie hasta elegir el gestor. Después se acordará el identificador externo; no se exige una clave de Jira.
 - `!` o `BREAKING CHANGE:` solo para cambios incompatibles (suben la versión MAJOR).
 
 ## 6. Versionamiento semántico
@@ -152,7 +159,7 @@ git push origin v0.2.0
 
 Hasta la entrega final se usa `0.y.z` (desarrollo inicial); la entrega final es `1.0.0`. Cada release actualiza `CHANGELOG.md` (formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/)).
 
-## 7. Control de cambios (Jira + CCB)
+## 7. Control de cambios (gestor pendiente + CCB)
 
 ### 7.1 Comité de control de cambios (CCB)
 
@@ -182,7 +189,7 @@ Título, descripción, justificación, **tipo de cambio**, prioridad, solicitant
 
 ## 8. Ciclo completo de un cambio
 
-1. **Solicitud:** cualquier integrante crea el ticket en Jira (tipo *Change Request*).
+1. **Solicitud:** cualquier integrante crea el ticket en el registro acordado (spec local antes de elegir gestor; petición de cambio después).
 2. **Evaluación:** el CCB lo revisa y lo aprueba, rechaza o cancela (con motivo).
 3. **Asignación:** el CCB asigna responsable y prioridad.
 4. **Rama:** el responsable crea `feature/CLAVE-descripcion` desde `develop` y mueve el ticket a *En desarrollo*.
@@ -200,7 +207,7 @@ Título, descripción, justificación, **tipo de cambio**, prioridad, solicitant
 
 **Quien abre el PR:**
 
-- Título con formato Conventional Commit: `feat(buses): plantillas de asientos (MCS-18)`.
+- Título con formato Conventional Commit: `feat(flota): agrega plantillas de asientos`.
 - Completar la plantilla: qué cambia, por qué, cómo probarlo, evidencia (capturas) y ticket relacionado.
 - PR pequeño y enfocado; si supera ~400 líneas, dividirlo.
 - Asegurar que `lint`, `test` y la ejecución con Docker funcionan.
@@ -237,7 +244,7 @@ Título, descripción, justificación, **tipo de cambio**, prioridad, solicitant
 
 - ESLint y Prettier son obligatorios: `npm run lint` y `npm run format`.
 - Pruebas con Jest: `npm test`. Toda lógica de negocio (descuentos, disponibilidad de asientos, cálculo de tramos) debe tener pruebas.
-- Nombres de variables y funciones en español o inglés, pero **consistentes** en todo el proyecto.
+- Identificadores de código en inglés; comentarios, documentación y mensajes al usuario en español, según `docs/conventions.md`.
 - Nunca subir credenciales, `.env`, ni archivos de `uploads/`.
 - Antes de agregar una dependencia, verificar que su licencia sea compatible con GPLv3 (MIT, BSD, Apache-2.0 y similares lo son); registrarlo en el PR.
 
@@ -255,16 +262,16 @@ La IA está permitida y recomendada, con estas reglas:
 Un cambio está terminado cuando:
 
 - [ ] El código cumple lo descrito en el ticket.
-- [ ] Pasa `lint` y `test`.
+- [ ] Se ejecutaron `lint` y `test` y se reportaron sus resultados reales. Pasan salvo los fallos inducidos expresamente autorizados y aceptados para la entrega académica según `docs/errores-inducidos.md`.
 - [ ] Funciona con `docker compose up`.
 - [ ] La documentación afectada está actualizada.
 - [ ] El PR fue revisado y aprobado por otro integrante.
-- [ ] Está integrado en `develop` y el ticket de Jira está en *Cerrado*.
+- [ ] Está integrado en `develop` y el registro de cambio está en *Cerrado*.
 
 ## 15. Reglas que nunca se rompen
 
 1. ❌ Push directo a `main` o `develop`.
-2. ❌ Commits sin clave de Jira o sin formato convencional.
+2. ❌ Commits sin referencia trazable o sin formato convencional.
 3. ❌ Aprobar tu propio PR.
 4. ❌ Reescribir el historial compartido (`push --force` en ramas compartidas).
 5. ❌ Subir secretos al repositorio.
