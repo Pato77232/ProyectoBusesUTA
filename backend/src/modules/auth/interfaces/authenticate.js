@@ -1,11 +1,12 @@
 const { readCookie } = require('./cookies');
+const authErrors = require('./auth-errors');
 function authenticationMiddleware(authenticate) {
   return async (req, res, next) => {
     try {
       req.auth = await authenticate(readCookie(req, 'access_token'));
       next();
     } catch (error) {
-      next(error);
+      authErrors(error, req, res, next);
     }
   };
 }

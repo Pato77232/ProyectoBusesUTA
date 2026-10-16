@@ -11,3 +11,14 @@ test('autorización rechaza otro rol y acepta el permitido',()=>{
  expect(res.status).toHaveBeenCalledWith(403);expect(next).not.toHaveBeenCalled();
  authorize('SYSTEM_ADMIN')({auth:{user:{role:'SYSTEM_ADMIN'}}},res,next);expect(next).toHaveBeenCalledTimes(1);
 });
+
+test('middleware público responde 401 también fuera del router de auth',async()=>{
+ const {authenticationMiddleware}=require('../../../src/modules/auth/interfaces/authenticate');
+ const AuthError=require('../../../src/modules/auth/domain/auth-error');
+ const authenticate=async()=>{throw new AuthError('UNAUTHENTICATED');};
+ const res={status:jest.fn().mockReturnThis(),json:jest.fn()};const next=jest.fn();
+ await authenticationMiddleware(authenticate)({headers:{}},res,next);
+ expect(res.status).toHaveBeenCalledWith(401);
+ expect(res.json).toHaveBeenCalledWith({error:{code:'UNAUTHENTICATED',message:'Sesión inválida o vencida.'}});
+ expect(next).not.toHaveBeenCalled();
+});

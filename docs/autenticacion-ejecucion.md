@@ -81,7 +81,7 @@ Los contadores son locales a una instancia y se pierden al reiniciar; no despleg
 
 ## Evidencia de validación
 
-- 25 pruebas unitarias y 17 de integración aprobadas contra PostgreSQL 16.13.
+- 26 pruebas unitarias y 17 de integración aprobadas contra PostgreSQL 16.13.
 - Pruebas originales de T2 conservadas; sin desactivar ni debilitar pruebas.
 - Una prueba nueva de Argon2id se corrigió con autorización de Pablo para comparar los parámetros por nombre, conservando algoritmo, valores, sal, longitud y verificación de contraseña.
 - Lint y formato aprobados. Regla CommonJS de dominio comprobada contra un import prohibido de pg.
