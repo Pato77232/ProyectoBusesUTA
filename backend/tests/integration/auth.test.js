@@ -104,3 +104,23 @@ test('logout exige CSRF y revoca solo la sesión actual, incluso si se reutiliza
  const result=await pool.query('SELECT count(*)::int AS count FROM auth_sessions WHERE revoked_at IS NOT NULL');
  expect(result.rows[0].count).toBe(1);
 });
+
+test('registro crea CUSTOMER sin cooperativa ni login automático y permite iniciar sesión',async()=>{
+ const browser=new Browser();await browser.token();
+ const res=await browser.request('/api/v1/auth/register','POST',{email:' NEW@EXAMPLE.EC ',password});
+ expect(res.status).toBe(201);expect(await res.text()).toBe('');expect(browser.cookies.has('access_token')).toBe(false);
+ const result=await pool.query("SELECT * FROM users WHERE email='new@example.ec'");
+ expect(result.rows).toHaveLength(1);expect(result.rows[0].role).toBe('CUSTOMER');expect(result.rows[0].cooperative_id).toBeNull();
+ expect(result.rows[0].password_hash).not.toBe(password);expect(result.rows[0].password_hash).toContain('$argon2id$');
+ expect((await browser.login('new@example.ec')).status).toBe(200);
+});
+test('registro rechaza CSRF ausente, escalamiento y duplicados concurrentes',async()=>{
+ const browser=new Browser();const body={email:'new@example.ec',password};
+ expect((await browser.request('/api/v1/auth/register','POST',body)).status).toBe(403);
+ await browser.token();
+ expect((await browser.request('/api/v1/auth/register','POST',{...body,role:'SYSTEM_ADMIN'})).status).toBe(400);
+ expect((await browser.request('/api/v1/auth/register','POST',{...body,cooperative_id:randomUUID()})).status).toBe(400);
+ const results=await Promise.all([browser.request('/api/v1/auth/register','POST',body),browser.request('/api/v1/auth/register','POST',{...body,email:' NEW@EXAMPLE.EC '})]);
+ expect(results.map(r=>r.status).sort()).toEqual([201,409]);
+ expect((await pool.query("SELECT * FROM users WHERE email='new@example.ec'")).rows).toHaveLength(1);
+});

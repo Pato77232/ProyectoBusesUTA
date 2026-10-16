@@ -2,7 +2,7 @@ const express = require('express');
 const { cookieOptions } = require('./cookies');
 const validateCredentials = require('./credentials');
 const authErrors = require('./auth-errors');
-function createRouter({ login, csrf, authenticate, logout }) {
+function createRouter({ login, csrf, authenticate, logout, register }) {
   const router = express.Router();
   router.use((req, res, next) => {
     res.set('Cache-Control', 'no-store');
@@ -19,6 +19,10 @@ function createRouter({ login, csrf, authenticate, logout }) {
     await logout(req.auth);
     res.clearCookie('access_token', cookieOptions(req));
     res.status(204).end();
+  });
+  router.post('/register', csrf.protect, validateCredentials, async (req, res) => {
+    await register(req.credentials);
+    res.status(201).end();
   });
   router.use(authErrors);
   return router;

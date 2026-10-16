@@ -2,6 +2,7 @@ const { randomUUID } = require('node:crypto');
 const createAuthenticate = require('./application/authenticate.use-case');
 const { authenticationMiddleware, authorize } = require('./interfaces/authenticate');
 const createLogout = require('./application/logout.use-case');
+const createRegisterCustomer = require('./application/register-customer.use-case');
 const createLogin = require('./application/login.use-case');
 const PgAuthRepository = require('./infrastructure/pg-auth.repository');
 const { createHasher } = require('./infrastructure/password-hasher');
@@ -25,6 +26,7 @@ async function createAuthModule({ pool, env = process.env }) {
       csrf,
       authenticate,
       logout: createLogout({ repository }),
+      register: createRegisterCustomer({ repository, hasher }),
     }),
     authenticate,
     authorize,
