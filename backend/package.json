@@ -1,0 +1,21 @@
+{
+  "name": "busesuta-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Backend del sistema centralizado de gestión y venta de pasajes interprovinciales",
+  "license": "GPL-3.0-only",
+  "engines": {
+    "node": ">=24.0.0 <25"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "npm run test:unit && npm run test:integration",
+    "test:unit": "jest tests/unit",
+    "test:integration": "jest tests/integration",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "migrate": "node-pg-migrate up",
+    "migrate:down": "node-pg-migrate down"
+  }
+}
