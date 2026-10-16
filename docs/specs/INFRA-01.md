@@ -4,7 +4,7 @@
 - **Ticket externo:** pendiente de elegir gestor después del 4 de noviembre de 2026
 - **Módulo:** infra
 - **Responsable:** Pablo
-- **Estado:** Aprobada. **T1 autorizada para implementar** (octubre 2026); T2–T5 requieren autorización expresa aparte
+- **Estado:** Aprobada. T1 y T2 implementadas (octubre 2026); T3–T5 autorizadas por Pablo al solicitar completar el módulo en esta sesión
 
 > Decisiones §4 **aprobadas por el equipo** (octubre 2026) y reflejadas en ADR 0001 y ADR 0003 (estado *Aceptada*). La corrección del `README.md` (que contradice los ADR: Prisma, express-session, EJS) queda en una **tarea documental separada**, ya desbloqueada al estar los ADR aceptados.
 
@@ -40,13 +40,21 @@ Poner en marcha el esqueleto mínimo del backend (`backend/`) y su base de datos
 - Estructura de carpetas según `docs/architecture.md`: `src/modules/<modulo>/{domain,application,infrastructure,interfaces}`, `src/shared/`, `src/app.js`, `src/server.js`, `migrations/`, `tests/unit/`, `tests/integration/`. En T1 solo se crean directorios (con `.gitkeep`); `app.js` y `server.js` son T2.
 - `.gitignore` (incluye `.env`, `node_modules`), `.env.example` con placeholders (`PORT=3000`, `DATABASE_URL=postgresql://user:pass@localhost:5432/pasajes`, `JWT_SECRET=cambiar-en-despliegue`, `JWT_EXPIRES_IN=30m`).
 
-**Verificación esperada de T1:** los scripts de `npm run lint` y `npm test` **fallarán por dependencias no instaladas todavía** (T4); eso es *configuración pendiente*, no un fallo real. La verificación de T1 es: `package.json` válido, directorios creados y ausencia de secretos.
+**Verificación esperada de T1:** los scripts de `npm run lint` y `npm test` **fallarán por dependencias no instaladas todavía** (T4); eso es una ejecución fallida por configuración pendiente. La verificación de T1 es: `package.json` válido, directorios creados y ausencia de secretos.
 
-### T2 — Express y manejo de errores
-- `app.js`: Express, JSON body, rutas bajo `/api/v1`, health check `GET /api/v1/health`.
+### T2 — Express y manejo de errores *(autorizada e implementada)*
+- **Dependencias de la tarea (aprobadas e instaladas, octubre 2026):**
+  | Paquete | Versión | Justificación |
+  |---|---|---|
+  | `express` | `^5.3.0` | Framework HTTP decidido en el ADR 0003. Se toma la línea 5 (estable y mantenida); la versión exacta queda fijada por `package-lock.json`, que se incluye en el repositorio |
+  | `pino` | `^10.4.0` | Logger de `shared/logger` (ADR 0003 y convenios: prohibido `console.log`). Salida estructurada y de bajo costo; no se instala ningún transporte adicional |
+- `app.js`: `createApp()` con Express, JSON body, rutas bajo `/api/v1`, health check `GET /api/v1/health`.
 - Middleware de errores en un solo punto: los errores de dominio se traducen a HTTP con formato único `{ "error": { "code": "...", "message": "..." } }` (ADR/`architecture.md` §6).
-- Errores base en `shared/` (`DomainError` y amigos) para que los módulos los extiendan.
-- 404 y `INTERNAL_ERROR` (500) con el mismo formato. Sin stack trace al cliente.
+- Errores base en `shared/errors/`: `DomainError` (código + estado HTTP) y `NotFoundError`.
+- 404 (`NOT_FOUND`) y `INTERNAL_ERROR` (500) con el mismo formato. Sin stack trace al cliente; el detalle solo va al log.
+- Cuerpo JSON malformado → 400 `INVALID_JSON` (parte del manejo centralizado).
+- `server.js`: arranque Express escuchando en `PORT` (por defecto 3000) con log por `shared/logger`.
+- **Verificación:** las pruebas de T2 están escritas (`tests/unit/shared/error-handler.test.js`, `tests/integration/app.test.js`) pero **aún no se ejecutan** porque Jest y ESLint se configuran en T4. Eso es una ejecución fallida por configuración pendiente.
 
 ### T3 — PostgreSQL y migraciones
 - Herramienta `node-pg-migrate` conectada por `DATABASE_URL`.
@@ -98,3 +106,9 @@ Poner en marcha el esqueleto mínimo del backend (`backend/`) y su base de datos
 
 ## 11. Defecto inducido (solo si aplica)
 **No aplica.** INFRA-01 no introduce defectos académicos. Cualquier defecto inducido futuro requiere spec de defecto aprobada por separado (`docs/errores-inducidos.md`).
+
+## Precisiones de verificación
+- La guardia de pruebas parsea DATABASE_URL y exige que el nombre de base termine en _test y NODE_ENV=test (no compara el URL completo, que puede contener parámetros).
+- Docker de pruebas usa proyecto y volumen independientes; ningún proceso lee un .env existente. Los scripts aceptan variables exportadas por el usuario.
+- Dependencias de calidad: Jest, ESLint, Prettier y eslint-config-prettier. CommonJS exige no-restricted-modules además de no-restricted-imports.
+- No se aprueba un umbral de cobertura nuevo: el 70 % continúa como propuesta.

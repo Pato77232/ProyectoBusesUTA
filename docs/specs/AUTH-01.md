@@ -4,7 +4,7 @@
 - **Ticket externo:** pendiente de elegir gestor después del 4 de noviembre de 2026
 - **Módulo:** `auth`
 - **Responsable:** Pablo
-- **Estado:** Aprobada (especificación). **Implementación no autorizada todavía**
+- **Estado:** Aprobada (especificación). **Implementación autorizada por Pablo en esta sesión**
 
 > Decisiones **aprobadas por el equipo** (octubre 2026) y registradas en ADR 0004 (aceptada). La compra como **invitado** (RN-41) no es un login de invitado y queda **fuera** de estas specs de autenticación; su pregunta abierta se conserva en `docs/business-rules.md`.
 
@@ -137,3 +137,10 @@ La columna queda **sin FK** en la migración de AUTH-01 porque la tabla `coopera
 
 ## 15. Defecto inducido (solo si aplica)
 **No aplica.** AUTH-01 no introduce defectos académicos ni vulnerabilidades de autenticación. La entrega incluirá defectos inducidos definidos y autorizados por separado según `docs/errores-inducidos.md`.
+
+## Precisiones de implementación
+- Double-submit firmado con HMAC-SHA256, nonce de 32 bytes, vigencia de 600 segundos y comparación constante. Se liga a una cookie de navegador HttpOnly y al sid cuando existe JWT válido; obtener un nuevo CSRF después de login/logout. Se conserva la cookie csrf_token y la cabecera X-CSRF-Token. El formato firmado amplía el token aleatorio original; evita aceptar cookies arbitrarias coincidentes.
+- JWT HS256, cookie access_token con Path=/, sin Domain. JWT_SECRET exige al menos 32 caracteres. TRUST_PROXY solo habilita proxy de loopback explícito; no confiar globalmente en X-Forwarded-For.
+- Login 200 sin cuerpo, registro 201 sin cuerpo. Configuración JWT_EXPIRES_IN acepta enteros con unidad s/m/h; no unidades implícitas.
+- La memoria de intentos contabiliza también verificaciones en curso para impedir eludir el límite mediante concurrencia. Libera el intento en éxito/error técnico; éxito reinicia fallos de la cuenta. Entradas vencidas se depuran y existe límite de capacidad para memoria.
+- Dependencias: pg/node-pg-migrate (persistencia/migraciones), argon2 (hash aprobado), jsonwebtoken (firma/verificación HS256), zod (validación HTTP). Versiones exactas en package-lock.json.
