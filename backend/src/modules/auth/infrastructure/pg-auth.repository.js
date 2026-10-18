@@ -31,6 +31,21 @@ class PgAuthRepository {
       [sid, userId],
     );
   }
+  async createCooperativeAdmin({ cooperativeId, email, passwordHash }) {
+    try {
+      const { rows } = await this.pool.query(
+        `INSERT INTO users(email,password_hash,role,cooperative_id)
+         VALUES($1,$2,'COOPERATIVE_ADMIN',$3) RETURNING id,email,role,cooperative_id`,
+        [email, passwordHash, cooperativeId],
+      );
+      return rows[0];
+    } catch (error) {
+      if (error.code === '23505') throw new AuthError('REGISTRATION_CONFLICT');
+      if (error.code === '23503' && error.constraint === 'users_cooperative_id_fk')
+        throw new AuthError('COOPERATIVE_NOT_FOUND');
+      throw error;
+    }
+  }
   async createCustomer({ email, passwordHash }) {
     try {
       await this.pool.query(

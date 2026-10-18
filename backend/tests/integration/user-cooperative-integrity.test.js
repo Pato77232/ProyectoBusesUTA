@@ -7,6 +7,12 @@ async function insertUser(role,cooperative= null){
  const email=`${randomUUID()}@example.ec`;
  return pool.query('INSERT INTO users(email,password_hash,role,cooperative_id) VALUES($1,$2,$3,$4) RETURNING id',[email,'unused-test-hash',role,cooperative]);
 }
+async function revertThroughForeignKey(){
+ const {rows}=await pool.query('SELECT name FROM pgmigrations ORDER BY id DESC');
+ const target='1792280001000-user-cooperative-integrity';
+ expect(rows.map(row=>row.name)).toContain(target);
+ for(const row of rows){runMigration('down');if(row.name===target)break;}
+}
 beforeAll(()=>{runMigration();pool=testPool();});
 beforeEach(async()=>{
  await clean();const result=await pool.query("INSERT INTO cooperatives(name,ruc) VALUES('Fixture integridad','0012345678901') RETURNING id");cooperativeId=result.rows[0].id;
@@ -31,11 +37,11 @@ test('actualizaciones y borrado respetan integridad sin eliminar usuarios',async
 });
 test('down conserva datos y up reaplica las restricciones',async()=>{
  const {rows}=await insertUser('CLERK',cooperativeId);
- runMigration('down');expect((await pool.query('SELECT id FROM users')).rows).toEqual(rows);
+ await revertThroughForeignKey();expect((await pool.query('SELECT id FROM users')).rows).toEqual(rows);
  runMigration();await expect(insertUser('CLERK')).rejects.toMatchObject({code:'23514'});
 });
 test.each([null,'missing'])('datos previos incompatibles (%s) hacen fallar up sin pérdida ni restricciones parciales',async(reference)=>{
- runMigration('down');const {rows}=await insertUser('CLERK',reference===null?null:randomUUID());
+ await revertThroughForeignKey();const {rows}=await insertUser('CLERK',reference===null?null:randomUUID());
  expect(()=>runMigration()).toThrow();
  expect((await pool.query('SELECT id FROM users')).rows).toEqual(rows);
  const constraints=await pool.query("SELECT conname FROM pg_constraint WHERE conname IN ('users_cooperative_role_check','users_cooperative_id_fk')");
