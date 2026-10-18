@@ -2,6 +2,7 @@ const createApp = require('./app');
 const logger = require('./shared/logger');
 const { createPool } = require('./shared/database');
 const { createAuthModule } = require('./modules/auth');
+const { createTenantsModule } = require('./modules/tenants');
 async function start(env = process.env) {
   const port = env.PORT === undefined ? 3000 : Number(env.PORT);
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('PORT inválido.');
@@ -10,7 +11,8 @@ async function start(env = process.env) {
   try {
     await pool.query('SELECT 1');
     const auth = await createAuthModule({ pool, env });
-    const app = createApp({ auth, pool, trustProxy: env.TRUST_PROXY === 'loopback' });
+    const tenants = createTenantsModule({ pool, auth });
+    const app = createApp({ auth, tenants, pool, trustProxy: env.TRUST_PROXY === 'loopback' });
     server = await new Promise((resolve, reject) => {
       const listener = app.listen(port, () => resolve(listener));
       listener.once('error', reject);
