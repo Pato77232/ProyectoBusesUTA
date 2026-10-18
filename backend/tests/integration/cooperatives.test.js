@@ -4,12 +4,12 @@ const createApp=require('../../src/app');
 const {createAuthModule}=require('../../src/modules/auth');
 const {createTenantsModule}=require('../../src/modules/tenants');
 const {createHasher}=require('../../src/modules/auth/infrastructure/password-hasher');
-const {runMigration,testPool,clearAuth}=require('../helpers/database');
+const {runMigration,testPool}=require('../helpers/database');
 const {assertTestDatabase}=require('../../scripts/test-database');
 const PASSWORD='contraseña ficticia cooperativas';
 const env={JWT_SECRET:'test-only-cooperatives-secret-not-for-production-12345'};
 const payload={name:'Cooperativa de prueba',ruc:'0012345678901'};
-let pool,hash,server,url;
+let pool,hash,server,url,baselineCooperatives;
 class Browser {
  constructor(){this.cookies=new Map();this.csrf='';}
  async request(path,method='GET',body,csrf=this.csrf) {
@@ -30,9 +30,10 @@ class Browser {
 }
 beforeAll(async()=>{runMigration();pool=testPool();hash=await(await createHasher()).hash(PASSWORD);});
 beforeEach(async()=>{
- assertTestDatabase();await clearAuth(pool);await pool.query('TRUNCATE cooperatives');
+ assertTestDatabase();await pool.query('TRUNCATE auth_sessions, users, cooperatives');
+ baselineCooperatives=(await pool.query('INSERT INTO cooperatives(name,ruc) VALUES($1,$2) RETURNING *',['Cooperativa inicial','0099999999999'])).rows;
  for(const role of ['SYSTEM_ADMIN','CUSTOMER','COOPERATIVE_ADMIN','CLERK']){
-  const cooperativeId=['COOPERATIVE_ADMIN','CLERK'].includes(role)?randomUUID():null;
+  const cooperativeId=['COOPERATIVE_ADMIN','CLERK'].includes(role)?baselineCooperatives[0].id:null;
   await pool.query('INSERT INTO users(email,password_hash,role,cooperative_id) VALUES($1,$2,$3,$4)',[`${role.toLowerCase()}@example.ec`,hash,role,cooperativeId]);
  }
  const auth=await createAuthModule({pool,env});const tenants=createTenantsModule({pool,auth});
@@ -56,7 +57,7 @@ test('opcionales omitidos o vacíos se guardan como null',async()=>{
 });
 test.each(['CUSTOMER','COOPERATIVE_ADMIN','CLERK'])('%s recibe 403 y no escribe',async(role)=>{
  const browser=new Browser();await browser.signIn(role);expect((await browser.create()).status).toBe(403);
- expect((await pool.query('SELECT * FROM cooperatives')).rows).toHaveLength(0);
+ expect((await pool.query('SELECT * FROM cooperatives')).rows).toEqual(baselineCooperatives);
 });
 test('sesión ausente, revocada o vencida no permite crear',async()=>{
  const browser=new Browser();expect((await browser.create()).status).toBe(401);
@@ -64,19 +65,19 @@ test('sesión ausente, revocada o vencida no permite crear',async()=>{
  expect((await browser.create()).status).toBe(401);
  await pool.query("UPDATE auth_sessions SET revoked_at=NULL, expires_at=CURRENT_TIMESTAMP-interval '1 minute'");
  expect((await browser.create()).status).toBe(401);
- expect((await pool.query('SELECT * FROM cooperatives')).rows).toHaveLength(0);
+ expect((await pool.query('SELECT * FROM cooperatives')).rows).toEqual(baselineCooperatives);
 });
 test('CSRF ausente o manipulado bloquea el alta',async()=>{
  const browser=new Browser();await browser.signIn();
  expect((await browser.create(payload,'')).status).toBe(403);expect((await browser.create(payload,'fake')).status).toBe(403);
- expect((await pool.query('SELECT * FROM cooperatives')).rows).toHaveLength(0);
+ expect((await pool.query('SELECT * FROM cooperatives')).rows).toEqual(baselineCooperatives);
 });
 test('rechaza datos inválidos, id y permisos aportados en el cuerpo',async()=>{
  const browser=new Browser();await browser.signIn();
  for(const body of [{},{...payload,name:' '},{...payload,ruc:'123'},{...payload,ruc:1234567890123},{...payload,email:'bad'},{...payload,id:randomUUID()},{...payload,cooperative_id:randomUUID()},{...payload,role:'SYSTEM_ADMIN'}]){
   const res=await browser.create(body);expect(res.status).toBe(400);expect((await res.json()).error.code).toBe('VALIDATION_ERROR');
  }
- expect((await pool.query('SELECT * FROM cooperatives')).rows).toHaveLength(0);
+ expect((await pool.query('SELECT * FROM cooperatives')).rows).toEqual(baselineCooperatives);
 });
 test('RUC duplicado y solicitudes simultáneas producen una sola fila',async()=>{
  const browser=new Browser();await browser.signIn();
@@ -84,5 +85,7 @@ test('RUC duplicado y solicitudes simultáneas producen una sola fila',async()=>
  expect(results.map(res=>res.status).sort()).toEqual([201,409]);
  expect(await results.find(res=>res.status===409).json()).toEqual({error:{code:'COOPERATIVE_ALREADY_EXISTS',message:'Ya existe una cooperativa con ese RUC.'}});
  expect((await browser.create({...payload,ruc:` ${payload.ruc} `})).status).toBe(409);
- expect((await pool.query('SELECT * FROM cooperatives')).rows).toHaveLength(1);
+ expect((await pool.query('SELECT * FROM cooperatives')).rows).toHaveLength(baselineCooperatives.length+1);
+ expect((await pool.query('SELECT * FROM cooperatives WHERE id=$1',[baselineCooperatives[0].id])).rows).toEqual(baselineCooperatives);
+ expect((await pool.query('SELECT * FROM cooperatives WHERE ruc=$1',[payload.ruc])).rows).toHaveLength(1);
 });
