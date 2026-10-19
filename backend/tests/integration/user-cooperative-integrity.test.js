@@ -2,11 +2,23 @@ const {randomUUID}=require('node:crypto');
 const {runMigration,testPool}=require('../helpers/database');
 const {assertTestDatabase}=require('../../scripts/test-database');
 let pool,cooperativeId;
-async function clean(){assertTestDatabase();await pool.query('TRUNCATE auth_sessions, users, cooperatives');}
+// Las pruebas de migración pueden dejar revertidas las tablas de frecuencias: se limpian solo si existen.
+async function clean(){
+ assertTestDatabase();
+ const {rows}=await pool.query("SELECT to_regclass('frequencies') IS NOT NULL AS exists");
+ const tables=rows[0].exists
+  ?'auth_sessions, users, cooperatives, frequency_segment_prices, frequency_stops, frequencies'
+  :'auth_sessions, users, cooperatives';
+ await pool.query(`TRUNCATE ${tables}`);
+}
 async function insertUser(role,cooperative= null){
  const email=`${randomUUID()}@example.ec`;
  return pool.query('INSERT INTO users(email,password_hash,role,cooperative_id) VALUES($1,$2,$3,$4) RETURNING id',[email,'unused-test-hash',role,cooperative]);
 }
+// La migración de integridad dejó de ser la última: se revierten y reaplican también las posteriores.
+const MIGRATIONS_UNTIL_INTEGRITY=2;
+function migrateDownToIntegrity(){for(let step=0;step<MIGRATIONS_UNTIL_INTEGRITY;step+=1) runMigration('down');}
+function migrateUpAgain(){for(let step=0;step<MIGRATIONS_UNTIL_INTEGRITY;step+=1) runMigration();}
 beforeAll(()=>{runMigration();pool=testPool();});
 beforeEach(async()=>{
  await clean();const result=await pool.query("INSERT INTO cooperatives(name,ruc) VALUES('Fixture integridad','0012345678901') RETURNING id");cooperativeId=result.rows[0].id;
@@ -31,12 +43,12 @@ test('actualizaciones y borrado respetan integridad sin eliminar usuarios',async
 });
 test('down conserva datos y up reaplica las restricciones',async()=>{
  const {rows}=await insertUser('CLERK',cooperativeId);
- runMigration('down');expect((await pool.query('SELECT id FROM users')).rows).toEqual(rows);
- runMigration();await expect(insertUser('CLERK')).rejects.toMatchObject({code:'23514'});
+ migrateDownToIntegrity();expect((await pool.query('SELECT id FROM users')).rows).toEqual(rows);
+ migrateUpAgain();await expect(insertUser('CLERK')).rejects.toMatchObject({code:'23514'});
 });
 test.each([null,'missing'])('datos previos incompatibles (%s) hacen fallar up sin pérdida ni restricciones parciales',async(reference)=>{
- runMigration('down');const {rows}=await insertUser('CLERK',reference===null?null:randomUUID());
- expect(()=>runMigration()).toThrow();
+ migrateDownToIntegrity();const {rows}=await insertUser('CLERK',reference===null?null:randomUUID());
+ expect(()=>migrateUpAgain()).toThrow();
  expect((await pool.query('SELECT id FROM users')).rows).toEqual(rows);
  const constraints=await pool.query("SELECT conname FROM pg_constraint WHERE conname IN ('users_cooperative_role_check','users_cooperative_id_fk')");
  expect(constraints.rows).toHaveLength(0);
