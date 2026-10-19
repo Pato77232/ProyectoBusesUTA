@@ -16,7 +16,8 @@ async function insertUser(role,cooperative= null){
  return pool.query('INSERT INTO users(email,password_hash,role,cooperative_id) VALUES($1,$2,$3,$4) RETURNING id',[email,'unused-test-hash',role,cooperative]);
 }
 // La migración de integridad dejó de ser la última: se revierten y reaplican también las posteriores.
-const MIGRATIONS_UNTIL_INTEGRITY=2;
+// Se sube el número cada vez que se agrega una migración nueva después de la de integridad.
+const MIGRATIONS_UNTIL_INTEGRITY=3;
 function migrateDownToIntegrity(){for(let step=0;step<MIGRATIONS_UNTIL_INTEGRITY;step+=1) runMigration('down');}
 function migrateUpAgain(){for(let step=0;step<MIGRATIONS_UNTIL_INTEGRITY;step+=1) runMigration();}
 beforeAll(()=>{runMigration();pool=testPool();});

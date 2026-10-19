@@ -7,7 +7,7 @@
  * solo lectura y cruza cooperativas: se definirá como un puerto aparte en la tarea de la API pública.
  */
 class FrequencyRepository {
-  /** create(data) guarda la frecuencia con sus paradas y precios; devuelve la frecuencia persistida. */
+  /** create(cooperativeId, data) guarda la frecuencia con sus paradas y precios; devuelve la frecuencia persistida. */
   async create() {
     throw new Error('FrequencyRepository.create debe implementarse.');
   }
@@ -17,7 +17,7 @@ class FrequencyRepository {
     throw new Error('FrequencyRepository.findById debe implementarse.');
   }
 
-  /** list(cooperativeId, filters) devuelve las frecuencias de la cooperativa que cumplen los filtros. */
+  /** list(cooperativeId, filters) devuelve las frecuencias de la cooperativa que cumplen los filtros `status`, `origin` y `destination`. */
   async list() {
     throw new Error('FrequencyRepository.list debe implementarse.');
   }

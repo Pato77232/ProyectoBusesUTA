@@ -6,10 +6,7 @@ let pool;
 let cooperativeId;
 
 function anyRuc() {
-  return randomUUID()
-    .replace(/\D/g, '')
-    .slice(0, 13)
-    .padStart(13, '7');
+  return randomUUID().replace(/\D/g, '').slice(0, 13).padStart(13, '7');
 }
 
 async function clean() {
@@ -87,9 +84,9 @@ test('una misma ruta no se repite dentro de la cooperativa pero sí existe en ot
     code: '23505',
     constraint: 'frequencies_cooperative_route_unique',
   });
-  await expect(
-    insertFrequency({ cooperative_id: anotherCooperativeId }),
-  ).resolves.toMatchObject({ rowCount: 1 });
+  await expect(insertFrequency({ cooperative_id: anotherCooperativeId })).resolves.toMatchObject({
+    rowCount: 1,
+  });
 });
 
 test('la frecuencia exige una cooperativa existente', async () => {
@@ -110,9 +107,7 @@ test('rechaza estados fuera de ACTIVE e INACTIVE', async () => {
 
 test('exige resolución ANT y ruta no vacías, incluso con solo espacios', async () => {
   // Arrange / Act / Assert
-  await expect(
-    insertFrequency({ ant_resolution_number: '   ' }),
-  ).rejects.toMatchObject({
+  await expect(insertFrequency({ ant_resolution_number: '   ' })).rejects.toMatchObject({
     code: '23514',
     constraint: 'frequencies_ant_resolution_number_check',
   });
@@ -169,4 +164,31 @@ test('borrar la frecuencia elimina sus paradas y precios en cascada', async () =
   // Assert
   expect((await pool.query('SELECT * FROM frequency_stops')).rows).toHaveLength(0);
   expect((await pool.query('SELECT * FROM frequency_segment_prices')).rows).toHaveLength(0);
+});
+
+test('la columna de montos de tramo es numeric(10,2) (FREQ-01 §5)', async () => {
+  // Arrange / Act
+  const { rows } = await pool.query(
+    `SELECT numeric_precision, numeric_scale FROM information_schema.columns
+     WHERE table_name = 'frequency_segment_prices' AND column_name = 'amount'`,
+  );
+
+  // Assert
+  expect(rows).toEqual([{ numeric_precision: 10, numeric_scale: 2 }]);
+});
+
+test('los montos de tramo se redondean a dos decimales', async () => {
+  // Arrange
+  const { rows } = await insertFrequency();
+  const frequencyId = rows[0].id;
+
+  // Act
+  await insertSegmentPrice(frequencyId, 0, 1, '2.567');
+
+  // Assert
+  const stored = await pool.query(
+    'SELECT amount FROM frequency_segment_prices WHERE frequency_id = $1',
+    [frequencyId],
+  );
+  expect(stored.rows).toEqual([{ amount: '2.57' }]);
 });
