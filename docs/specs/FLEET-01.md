@@ -74,7 +74,7 @@ Tabla `bus_groups`:
 | category | TEXT | NOT NULL, CHECK en (`'LONG_ROUTE'`, `'CANTONAL'`, `'URBAN_RURAL'`) |
 | created_at / updated_at | timestamptz | NOT NULL |
 
-Restricción única: `(cooperative_id, name)` (`bus_groups_cooperative_name_unique`), para evitar duplicados dentro de la misma cooperativa. Índice sobre `cooperative_id` para el listado.
+Índice único funcional: `bus_groups_cooperative_name_unique` sobre `(cooperative_id, lower(name))`, para evitar duplicados dentro de la misma cooperativa sin distinguir mayúsculas. Índice adicional sobre `cooperative_id` para el listado.
 
 Nombre de migración con timestamp mayor a `1792460000000` (por ejemplo `1792470000000-create-bus-groups.js`). No se edita ninguna migración ya fusionada.
 
@@ -93,6 +93,7 @@ Nombre de migración con timestamp mayor a `1792460000000` (por ejemplo `1792470
 - Sin CSRF o con CSRF manipulado: 403 y ninguna inserción.
 - Datos inválidos o campos extra: 400.
 - Nombre duplicado dentro de la misma cooperativa, incluidas dos solicitudes concurrentes: una sola fila y conflicto 409.
+- "Rutas Largas" y "rutas largas" en la misma cooperativa se consideran el mismo nombre: devuelve 409 y deja una sola fila.
 - El `cooperative_id` no puede ser elegido ni modificado mediante el cuerpo.
 - El listado devuelve únicamente los grupos de la cooperativa del usuario autenticado, ordenados por nombre; no expone grupos de otras cooperativas.
 - Un usuario sin cooperativa asociada (rol interno inválido) no puede crear ni listar.
@@ -103,6 +104,7 @@ Nombre de migración con timestamp mayor a `1792460000000` (por ejemplo `1792470
 - Categoría fuera del conjunto acordado: 400.
 - Cuerpo vacío o con campos extra: 400.
 - Dos administradores de la misma cooperativa creando el mismo nombre simultáneamente: una respuesta 201 y otra 409; una sola fila.
+- "Rutas Largas" y "rutas largas" en la misma cooperativa: el segundo devuelve 409 y deja una sola fila.
 - Cooperativa sin grupos: listado 200 con arreglo vacío.
 - Intento de borrar o editar un grupo: fuera de alcance; no se implementan rutas para ello en esta spec.
 
@@ -114,9 +116,7 @@ Nombre de migración con timestamp mayor a `1792460000000` (por ejemplo `1792470
 
 ## 10. Preguntas abiertas
 
-- Confirmar con David que el grupo pertenece a la cooperativa y que la categoría es fija. Esto no bloquea la spec.
-- Varios grupos por categoría: con la restricción actual, una cooperativa podría tener dos grupos `LONG_ROUTE` con nombres distintos. Si en el modelo de negocio es un grupo por categoría, `name` sobra y la restricción debería ser `(cooperative_id, category)`. Para Putumayo, con 3 grupos, parece uno por categoría. Pregúntaselo a David junto con lo ya anotado.
-- Nombres que solo difieren en mayúsculas: "Rutas Largas" y "rutas largas" serían dos grupos distintos. Si quieres evitarlo, la unicidad sería sobre `lower(name)`. Es una decisión pequeña, pero hay que tomarla ahora porque la migración no se puede editar después.
+- David confirma pertenencia y varios grupos por categoría; no bloquea.
 
 ## 11. Defecto inducido
 
@@ -126,7 +126,7 @@ No aplica.
 
 - Decisiones confirmadas: `BusGroup` pertenece a la cooperativa (`cooperative_id` sale del token, nunca del cuerpo); campos `id`, `name` (obligatorio, único por cooperativa), `category` (`LONG_ROUTE | CANTONAL | URBAN_RURAL`), `created_at`, `updated_at`; endpoints `POST`/`GET /api/v1/bus-groups` con rol `COOPERATIVE_ADMIN` y CSRF en el POST; errores 400/401/403/409; tabla `bus_groups` con migración nueva de timestamp mayor a `1792460000000`.
 - Depende de `auth` (autenticación, autorización por rol y CSRF) y de `tenants` (tabla `cooperatives`).
-- Depende de `AUTH-FK-01`, ya integrada en `develop` (FK `users.cooperative_id` y CHECK por rol).
+- `AUTH-FK-01` ya está en `develop` (FK `users.cooperative_id` y CHECK por rol); no bloquea.
 - El módulo `fleet` no existe todavía; se crea en esta spec.
 
 ## 13. Arquitectura y plan (cuando se apruebe)
