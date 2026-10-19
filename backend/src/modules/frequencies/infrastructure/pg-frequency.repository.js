@@ -167,6 +167,16 @@ class PgFrequencyRepository extends FrequencyRepository {
     const [frequency] = await hydrate(this.pool, rows);
     return frequency;
   }
+
+  async listAllActiveByRoute(origin, destination) {
+    const { rows } = await this.pool.query(
+      `SELECT ${FREQUENCY_COLUMNS} FROM frequencies WHERE status = 'ACTIVE'
+       AND lower(btrim(origin)) = lower(btrim($1)) AND lower(btrim(destination)) = lower(btrim($2))
+       ORDER BY origin, destination, departure_time`,
+      [origin, destination],
+    );
+    return hydrate(this.pool, rows);
+  }
 }
 
 module.exports = PgFrequencyRepository;

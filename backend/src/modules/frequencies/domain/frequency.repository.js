@@ -4,7 +4,7 @@
  * ninguna implementación debe permitir leer o escribir datos de otra cooperativa.
  *
  * La consulta pública de frecuencias activas que consumirá la búsqueda (RN-02, RN-23) es de
- * solo lectura y cruza cooperativas: se definirá como un puerto aparte en la tarea de la API pública.
+ * solo lectura y cruza cooperativas.
  */
 class FrequencyRepository {
   /** create(cooperativeId, data) guarda la frecuencia con sus paradas y precios; devuelve la frecuencia persistida. */
@@ -25,6 +25,11 @@ class FrequencyRepository {
   /** updateStatus(cooperativeId, id, status) cambia el estado (RN-23) o lanza FrequencyNotFoundError. */
   async updateStatus() {
     throw new Error('FrequencyRepository.updateStatus debe implementarse.');
+  }
+
+  /** listAllActiveByRoute(origin, destination) devuelve frecuencias ACTIVAS de todas las cooperativas para la ruta dada (RN-02, RN-23). */
+  async listAllActiveByRoute() {
+    throw new Error('FrequencyRepository.listAllActiveByRoute debe implementarse.');
   }
 }
 
