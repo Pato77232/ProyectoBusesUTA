@@ -22,6 +22,9 @@ function createApp({ auth, tenants, frequencies, pool, trustProxy = false } = {}
 
   if (auth) app.use(`${API_PREFIX}/auth`, auth.router);
 
+  if (auth?.cooperativeAdminRouter)
+    app.use(`${API_PREFIX}/cooperatives`, auth.cooperativeAdminRouter);
+
   if (tenants) app.use(`${API_PREFIX}/cooperatives`, tenants.router);
 
   if (frequencies) app.use(`${API_PREFIX}/frequencies`, frequencies.router);

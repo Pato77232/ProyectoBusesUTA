@@ -1,3 +1,5 @@
+const createCooperativeAdmin = require('./application/create-cooperative-admin.use-case');
+const createAdminRouter = require('./interfaces/cooperative-admin-router');
 const { randomUUID } = require('node:crypto');
 const createAuthenticate = require('./application/authenticate.use-case');
 const { authenticationMiddleware, authorize } = require('./interfaces/authenticate');
@@ -21,6 +23,12 @@ async function createAuthModule({ pool, env = process.env }) {
   const csrf = createCsrf(config.secret, tokens);
   const authenticate = authenticationMiddleware(createAuthenticate({ repository, tokens }));
   return {
+    cooperativeAdminRouter: createAdminRouter({
+      authenticate,
+      authorize,
+      csrf,
+      createAdmin: createCooperativeAdmin({ repository, hasher }),
+    }),
     router: createRouter({
       login,
       csrf,
