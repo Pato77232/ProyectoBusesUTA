@@ -33,3 +33,9 @@ Verificación de esta rama documental en la carpeta original: lint y formato apr
 - Objeto mínimo inmutable; exige asiento y cédula como texto, conserva ceros y rechaza propiedades extra. No acredita documentos ni incorpora persistencia o formulario.
 - 25 pruebas nuevas; 232 unitarias aprobadas en total. Lint y formato de archivos nuevos aprobados.
 - npm test ejecutado: integración continúa sin base de pruebas; no es aceptación de producción.
+
+## BOOK-06 T1 — plazo configurable
+- Base: feature/BOOK-04-T1-pasajeros-dominio. Rama: feature/BOOK-06-T1-plazo-reserva.
+- Política pura sin configuración oculta: plazo explícito de 180 a 300 segundos, comparación en el límite y protección de comprobante en revisión.
+- 24 pruebas nuevas; 256 unitarias aprobadas en total. Lint y formato de archivos nuevos aprobados.
+- npm test ejecutado; integración sigue sin base de pruebas en esta ejecución. Aún no hay liberación persistida ni proceso periódico: T2/T3 dependen de BOOK-03 y pagos.
