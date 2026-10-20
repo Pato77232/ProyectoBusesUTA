@@ -30,7 +30,7 @@ class Browser {
 }
 beforeAll(async()=>{runMigration();pool=testPool();hash=await(await createHasher()).hash(PASSWORD);});
 beforeEach(async()=>{
- assertTestDatabase();await pool.query('TRUNCATE auth_sessions, users, cooperatives');
+ assertTestDatabase();await pool.query('TRUNCATE auth_sessions, users, cooperatives, frequency_segment_prices, frequency_stops, frequencies');
  baselineCooperatives=(await pool.query('INSERT INTO cooperatives(name,ruc) VALUES($1,$2) RETURNING *',['Cooperativa inicial','0099999999999'])).rows;
  for(const role of ['SYSTEM_ADMIN','CUSTOMER','COOPERATIVE_ADMIN','CLERK']){
   const cooperativeId=['COOPERATIVE_ADMIN','CLERK'].includes(role)?baselineCooperatives[0].id:null;
@@ -100,7 +100,10 @@ test('altas simultáneas y segunda alta preservan un único administrador',async
 });
 test('índice reversible conserva filas y rechaza duplicados previos sin borrarlos',async()=>{
  const before=await users();
- runMigration('down');
+ const applied=(await pool.query('SELECT name FROM pgmigrations ORDER BY id DESC')).rows;
+ const target='1792280002000-unique-cooperative-admin';
+ expect(applied.map(row=>row.name)).toContain(target);
+ for(const row of applied){runMigration('down');if(row.name===target)break;}
  expect(await users()).toEqual(before);
  const duplicate=(await pool.query("INSERT INTO users(email,password_hash,role,cooperative_id) VALUES($1,$2,'COOPERATIVE_ADMIN',$3) RETURNING id",['duplicado@example.ec',hash,baselineCooperatives[0].id])).rows[0];
  try {
