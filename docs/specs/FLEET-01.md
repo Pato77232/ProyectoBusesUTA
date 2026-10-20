@@ -6,7 +6,7 @@
 - **Alcance de commit:** `flota`
 - **Responsable:** Edwin
 - **Estado:** Implementada y verificada localmente (19 de octubre de 2026); revisión humana e integración pendientes.
-- **Base de trabajo:** rama `feature/FLEET-01-grupos-buses` desde `develop`, con `auth` y `tenants` integrados
+- **Base de trabajo:** rama `feature/FLEET-01-grupos-de-buses` desde `develop`, con `auth` y `tenants` integrados
 
 ## 1. Objetivo
 
