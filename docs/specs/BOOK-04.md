@@ -45,3 +45,5 @@ No aplica.
 
 ## Aclaración para revisión documental
 Las decisiones de producto de `docs/reservas-decisiones.md` fueron seleccionadas por autorización de Leslie y cierran las preguntas correspondientes de este borrador. No se atribuye aprobación a otros integrantes. Los contratos reales pendientes están en `docs/reservas-contratos.md`; esta rama no implementa código, endpoints, tablas ni pantallas. Los avances de dominio existentes se conservan en sus ramas de tarea separadas.
+## Avance
+T1 mínima implementada y probada. La validación ecuatoriana acordada en docs/reservas-decisiones.md se añadirá como tarea T1b independiente, antes de persistencia y formulario. No se presenta este objeto mínimo como cédula validada.

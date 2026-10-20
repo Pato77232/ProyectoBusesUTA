@@ -27,3 +27,9 @@ Verificación de esta rama documental en la carpeta original: lint y formato apr
 - 32 pruebas nuevas; 207 unitarias aprobadas en total. Lint y formato de archivos nuevos aprobados.
 - npm test: integración sigue fallida (81 pruebas) por la configuración de entorno ya descrita. Sin cambios en pruebas existentes.
 - No valida concurrencia de escritura: eso corresponde al bloqueo transaccional de BOOK-03.
+
+## BOOK-04 T1 — pasajero por asiento
+- Base: feature/BOOK-02-T1-disponibilidad-dominio. Rama: feature/BOOK-04-T1-pasajeros-dominio.
+- Objeto mínimo inmutable; exige asiento y cédula como texto, conserva ceros y rechaza propiedades extra. No acredita documentos ni incorpora persistencia o formulario.
+- 25 pruebas nuevas; 232 unitarias aprobadas en total. Lint y formato de archivos nuevos aprobados.
+- npm test ejecutado: integración continúa sin base de pruebas; no es aceptación de producción.
