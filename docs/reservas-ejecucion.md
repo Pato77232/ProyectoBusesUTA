@@ -45,3 +45,16 @@ Verificación de esta rama documental en la carpeta original: lint y formato apr
 - Validador independiente de estructura/módulo 10 con fuentes oficiales y datos sintéticos. No consulta identidad real ni modifica el objeto mínimo o pruebas de T1.
 - 15 pruebas nuevas; 271 unitarias aprobadas en total. Lint y formato de archivos nuevos aprobados. npm test ejecutado con integración sin base de pruebas.
 - Se intentó iniciar Docker en segundo plano, pero su motor siguió sin estar disponible. No se creó ni limpió ninguna base de datos existente.
+
+## BOOK-05 T2 — cotización individual
+- Base: feature/BOOK-04-T1b-valida-cedula. Rama: feature/BOOK-05-T2-calcula-descuentos.
+- Política de T1 registrada en reservas-decisiones.md; cálculo puro de tarifa por tramos en centavos, edad en salida, descuento único y redondeo por pasajero. No acredita identidad, no cobra ni obtiene tarifas del navegador.
+- 32 pruebas nuevas; 303 unitarias aprobadas en total, de las cuales 128 pertenecen a las tareas de reservas.
+- npm run lint y npm run format:check aprobados. Formato de todas las pruebas nuevas también aprobado.
+- Verificación final npm test fuera de la restricción de conexión local: 303 unitarias y 4 pruebas HTTP de infraestructura aprobadas; 77 pruebas de integración fallidas por falta de URL/base de pruebas. El comando completo sigue fallido. Docker continúa sin motor disponible incluso fuera del sandbox.
+- No se cambió ninguna prueba existente, migración, versión de dependencia ni configuración global de Git. Trabajo asistido por Codex siguiendo las convenciones y archivos de OpenCode, con autorización de Leslie para ramas y commits.
+
+## Próximo incremento y PR
+Recomendar ahora PR documental de feature/BOOK-01-especificaciones-reservas hacia develop para que Edwin revise alcance y decisiones. Los incrementos de código se pueden revisar en borrador contra su rama padre; no recomendar integrarlos como funcionalidad completa hasta verificar PostgreSQL y los contratos reales.
+
+El siguiente incremento ejecutable de extremo a extremo es BOOK-02 T2: acordar e implementar puertos/adaptadores de viaje y plantilla. BOOK-03 requiere esas fuentes y un contrato de comprador. BOOK-06 T2 y BOOK-07 requieren la operación atómica de reserva/comprobante de Shirley. BOOK-08 requiere una base frontend conectada. No se sustituyen con datos ficticios en producción ni se declara el módulo terminado.
