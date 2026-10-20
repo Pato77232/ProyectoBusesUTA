@@ -39,3 +39,9 @@ Verificación de esta rama documental en la carpeta original: lint y formato apr
 - Política pura sin configuración oculta: plazo explícito de 180 a 300 segundos, comparación en el límite y protección de comprobante en revisión.
 - 24 pruebas nuevas; 256 unitarias aprobadas en total. Lint y formato de archivos nuevos aprobados.
 - npm test ejecutado; integración sigue sin base de pruebas en esta ejecución. Aún no hay liberación persistida ni proceso periódico: T2/T3 dependen de BOOK-03 y pagos.
+
+## BOOK-04 T1b — comprobación local de cédula
+- Base: feature/BOOK-06-T1-plazo-reserva. Rama: feature/BOOK-04-T1b-valida-cedula.
+- Validador independiente de estructura/módulo 10 con fuentes oficiales y datos sintéticos. No consulta identidad real ni modifica el objeto mínimo o pruebas de T1.
+- 15 pruebas nuevas; 271 unitarias aprobadas en total. Lint y formato de archivos nuevos aprobados. npm test ejecutado con integración sin base de pruebas.
+- Se intentó iniciar Docker en segundo plano, pero su motor siguió sin estar disponible. No se creó ni limpió ninguna base de datos existente.
