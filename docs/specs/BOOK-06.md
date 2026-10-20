@@ -42,3 +42,6 @@ Instante exacto de inicio según método; protocolo atómico con comprobantes; t
 
 ## 11. Defecto inducido
 No aplica.
+
+## Aclaración para revisión documental
+Las decisiones de producto de `docs/reservas-decisiones.md` fueron seleccionadas por autorización de Leslie y cierran las preguntas correspondientes de este borrador. No se atribuye aprobación a otros integrantes. Los contratos reales pendientes están en `docs/reservas-contratos.md`; esta rama no implementa código, endpoints, tablas ni pantallas. Los avances de dominio existentes se conservan en sus ramas de tarea separadas.
