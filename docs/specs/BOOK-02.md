@@ -50,3 +50,6 @@ Contrato definitivo de viaje, plantilla, acceso público y comercialización por
 
 ## 11. Defecto inducido
 No aplica.
+
+## Avance
+T1 implementada y probada; evidencia en docs/reservas-ejecucion.md. T2–T4 continúan pendientes. No es todavía una consulta de producción.

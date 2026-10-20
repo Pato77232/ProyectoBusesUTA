@@ -21,3 +21,9 @@ Se aclararon las decisiones autorizadas por Leslie y los contratos todavía no c
 Se intentó iniciar Docker y su servicio; Windows denegó acceso al servicio y el motor siguió ausente. No se alteraron privilegios del sistema ni bases de datos existentes. Los resultados de pruebas históricos anteriores corresponden a sus ejecuciones; la verificación de esta rama se registra al finalizar.
 
 Verificación de esta rama documental en la carpeta original: lint y formato aprobados; npm test ejecutado con 175 unitarias y 4 HTTP aprobadas, 77 de integración fallidas por falta de URL/base de pruebas. El comando completo sigue fallido. No incluye las pruebas nuevas de dominio, que permanecen en sus ramas de código.
+## BOOK-02 T1 — disponibilidad de dominio
+- Base: feature/BOOK-01-especificaciones-reservas. Rama: feature/BOOK-02-T1-disponibilidad-dominio.
+- Implementada consulta pura por viaje, cooperativa, asiento y tramo; no hay endpoint, persistencia ni pantalla todavía.
+- 32 pruebas nuevas; 207 unitarias aprobadas en total. Lint y formato de archivos nuevos aprobados.
+- npm test: integración sigue fallida (81 pruebas) por la configuración de entorno ya descrita. Sin cambios en pruebas existentes.
+- No valida concurrencia de escritura: eso corresponde al bloqueo transaccional de BOOK-03.
