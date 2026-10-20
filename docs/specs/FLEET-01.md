@@ -5,7 +5,7 @@
 - **Módulo:** `fleet`
 - **Alcance de commit:** `flota`
 - **Responsable:** Edwin
-- **Estado:** Aprobada
+- **Estado:** Implementada y verificada localmente (19 de octubre de 2026); revisión humana e integración pendientes.
 - **Base de trabajo:** rama `feature/FLEET-01-grupos-buses` desde `develop`, con `auth` y `tenants` integrados
 
 ## 1. Objetivo
@@ -145,3 +145,55 @@ No aplica.
 - Las consultas SQL siempre incluyen `WHERE cooperative_id = $1` en el listado.
 - Los errores de dominio se traducen a HTTP en el middleware centralizado de errores.
 - Sin `console.log`; usar el logger de `shared`.
+
+## 15. Evidencia de implementación
+- Rama: `feature/FLEET-01-grupos-de-buses` (cambios locales; commits atómicos sugeridos en el plan, pendientes de ejecución).
+- Dominio: `bus-group.js`, `bus-group-error.js`, `bus-group.repository.js` (sin dependencias externas).
+- Aplicación: `create-bus-group.use-case.js`, `list-bus-groups.use-case.js`.
+- Infraestructura: `pg-bus-group.repository.js` (filtro obligatorio por `cooperative_id`, mapeo de duplicado a `BUS_GROUP_ALREADY_EXISTS`).
+- Interfaces: `bus-group-router.js` (rutas `/`, middlewares en el orden acordado, traducción de errores).
+- Módulo: `fleet/index.js` (`createFleetModule`).
+- Composición: `app.js` y `server.js` (montaje en `/api/v1/bus-groups`).
+- Migración nueva: `1792470000000-create-bus-groups.js` (tabla `bus_groups`, FK `ON DELETE RESTRICT`, índice único funcional case-insensitive `bus_groups_cooperative_name_unique`, índice `bus_groups_cooperative_id_idx`).
+- Pruebas: `tests/unit/fleet/bus-group.test.js`, `create-bus-group.test.js`, `list-bus-groups.test.js`; `tests/integration/fleet/bus-group.repository.test.js` y `bus-group.http.test.js`. Ajuste mínimo en pruebas existentes de integración por la nueva FK (`TRUNCATE ... CASCADE` y reversibilidad dinámica en `cooperative-admin.test.js`).
+- Resultado real: `npm run lint` limpio; `npm test` en verde (70 pruebas unitarias y 66 de integración, 136 en total). Sin defectos inducidos (la spec declara "No aplica").
+
+## 16. Uso del endpoint
+Obtener CSRF tras el login y enviar cookies y cabecera `X-CSRF-Token`.
+
+POST `/api/v1/bus-groups` (rol `COOPERATIVE_ADMIN`):
+```json
+{
+  "name": "Rutas largas",
+  "category": "LONG_ROUTE"
+}
+```
+Respuesta 201:
+```json
+{
+  "busGroup": {
+    "id": "uuid",
+    "name": "Rutas largas",
+    "category": "LONG_ROUTE",
+    "created_at": "timestamptz",
+    "updated_at": "timestamptz"
+  }
+}
+```
+
+GET `/api/v1/bus-groups` (rol `COOPERATIVE_ADMIN`):
+Respuesta 200:
+```json
+{
+  "busGroups": [
+    {
+      "id": "uuid",
+      "name": "Rutas largas",
+      "category": "LONG_ROUTE",
+      "created_at": "timestamptz",
+      "updated_at": "timestamptz"
+    }
+  ]
+}
+```
+Ninguna respuesta incluye `cooperative_id`. El nombre se recorta y la unicidad es case-insensitive dentro de la cooperativa.
