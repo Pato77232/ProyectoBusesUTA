@@ -2,7 +2,7 @@ const {randomUUID}=require('node:crypto');
 const {runMigration,testPool}=require('../helpers/database');
 const {assertTestDatabase}=require('../../scripts/test-database');
 let pool,cooperativeId;
-async function clean(){assertTestDatabase();await pool.query('TRUNCATE auth_sessions, users, cooperatives');}
+async function clean(){assertTestDatabase();await pool.query('TRUNCATE auth_sessions, users, cooperatives CASCADE');}
 async function insertUser(role,cooperative= null){
  const email=`${randomUUID()}@example.ec`;
  return pool.query('INSERT INTO users(email,password_hash,role,cooperative_id) VALUES($1,$2,$3,$4) RETURNING id',[email,'unused-test-hash',role,cooperative]);

@@ -30,7 +30,7 @@ class Browser {
 }
 beforeAll(async()=>{runMigration();pool=testPool();hash=await(await createHasher()).hash(PASSWORD);});
 beforeEach(async()=>{
- assertTestDatabase();await pool.query('TRUNCATE auth_sessions, users, cooperatives');
+ assertTestDatabase();await pool.query('TRUNCATE auth_sessions, users, cooperatives CASCADE');
  baselineCooperatives=(await pool.query('INSERT INTO cooperatives(name,ruc) VALUES($1,$2) RETURNING *',['Cooperativa inicial','0099999999999'])).rows;
  for(const role of ['SYSTEM_ADMIN','CUSTOMER','COOPERATIVE_ADMIN','CLERK']){
   const cooperativeId=['COOPERATIVE_ADMIN','CLERK'].includes(role)?baselineCooperatives[0].id:null;
@@ -48,6 +48,12 @@ afterAll(async()=>{if(pool)await pool.end();});
 const adminBody={email:'nuevo@example.ec',password:PASSWORD};
 async function create(browser,body=adminBody,id=targetId,csrf=browser.csrf){return browser.request(`/api/v1/cooperatives/${id}/admins`,'POST',body,csrf);}
 async function users(){return (await pool.query('SELECT * FROM users ORDER BY id')).rows;}
+async function revertThroughUniqueAdminIndex(){
+ const {rows}=await pool.query('SELECT name FROM pgmigrations ORDER BY id DESC');
+ const target='1792280002000-unique-cooperative-admin';
+ expect(rows.map(row=>row.name)).toContain(target);
+ for(const row of rows){runMigration('down');if(row.name===target)break;}
+}
 test('crea administrador, conserva sesión del operador y permite login con contexto correcto',async()=>{
  const browser=new Browser();await browser.signIn();
  const sessions=(await pool.query('SELECT * FROM auth_sessions')).rows;
@@ -100,8 +106,8 @@ test('altas simultáneas y segunda alta preservan un único administrador',async
 });
 test('índice reversible conserva filas y rechaza duplicados previos sin borrarlos',async()=>{
  const before=await users();
- runMigration('down');
- expect(await users()).toEqual(before);
+  await revertThroughUniqueAdminIndex();
+  expect(await users()).toEqual(before);
  const duplicate=(await pool.query("INSERT INTO users(email,password_hash,role,cooperative_id) VALUES($1,$2,'COOPERATIVE_ADMIN',$3) RETURNING id",['duplicado@example.ec',hash,baselineCooperatives[0].id])).rows[0];
  try {
   const incompatible=await users();

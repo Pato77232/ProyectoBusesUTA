@@ -30,7 +30,7 @@ class Browser {
 }
 beforeAll(async()=>{runMigration();pool=testPool();hash=await(await createHasher()).hash(PASSWORD);});
 beforeEach(async()=>{
- assertTestDatabase();await pool.query('TRUNCATE auth_sessions, users, cooperatives');
+ assertTestDatabase();await pool.query('TRUNCATE auth_sessions, users, cooperatives CASCADE');
  baselineCooperatives=(await pool.query('INSERT INTO cooperatives(name,ruc) VALUES($1,$2) RETURNING *',['Cooperativa inicial','0099999999999'])).rows;
  for(const role of ['SYSTEM_ADMIN','CUSTOMER','COOPERATIVE_ADMIN','CLERK']){
   const cooperativeId=['COOPERATIVE_ADMIN','CLERK'].includes(role)?baselineCooperatives[0].id:null;
