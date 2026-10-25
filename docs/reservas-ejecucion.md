@@ -63,3 +63,10 @@ El siguiente incremento ejecutable de extremo a extremo es BOOK-02 T2: acordar e
 Trabajo en la carpeta original el 25 de octubre de 2026. Base feature/BOOK-05-T2-calcula-descuentos (19fe2d8); rama feature/BOOK-04-T1c-datos-pasajero. Se compone el pasajero mínimo con validación local de cédula, nombre Unicode y nacimiento civil no futuro respecto de una fecha explícita de servidor. No se certifica identidad ni beneficios.
 
 65 pruebas nuevas; 368 unitarias aprobadas. Lint y formato aprobados. npm test completo fallido: 4 HTTP aprobadas y 77 pruebas de integración fallidas por ausencia de URL/base PostgreSQL. No se usó una base de datos existente. La rama documental del PR #12 se conserva sin cambios. Se conserva esta tarea en commit local por autorización de Leslie; no es una aceptación de integración.
+
+## BOOK-04 T1d — correspondencia entre pasajeros y selección
+Trabajo en la carpeta original el 25 de octubre de 2026. Base feature/BOOK-04-T1c-datos-pasajero (1dd0e6c); rama feature/BOOK-04-T1d-pasajeros-seleccion. Se exige exactamente un pasajero completo por asiento seleccionado y se conserva el orden de la selección. Se rechazan cantidades diferentes, asientos repetidos, pasajeros ajenos o inválidos y listas dispersas, sin modificar entradas. No se añade una prohibición de cédula repetida no acordada.
+
+38 pruebas nuevas; 406 unitarias aprobadas en total (103 nuevas en T1c/T1d). Lint y formato aprobados. npm test completo sigue fallido: 4 HTTP aprobadas y 77 pruebas de integración fallidas por falta de URL/base PostgreSQL. No se debilitó ninguna prueba anterior ni se usó una base existente.
+
+Las ramas T1c/T1d son incrementos apilados sobre el código previo de reservas, no sobre el develop actual que ya incorpora flota. El PR documental #12 permanece en c98db4d. No se hicieron push, merge ni rebase. El PR de estos incrementos debe comparar cada tarea con su rama padre para revisar solo su diferencia; antes de integrarlos hacia develop se deben revisar las dependencias previas, disponer de la base aislada y resolver los resultados de integración. No se presenta una reserva persistida ni una pantalla funcional.
