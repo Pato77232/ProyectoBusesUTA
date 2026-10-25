@@ -11,6 +11,10 @@ function createFleetModule({ pool, auth }) {
       listBusGroups: listBusGroups({ repository }),
       auth,
     }),
+    busGroupQueries: {
+      findByCooperativeId: (cooperativeId) => repository.listByCooperative(cooperativeId),
+      findById: (id, cooperativeId) => repository.findById(id, cooperativeId),
+    },
   };
 }
 
