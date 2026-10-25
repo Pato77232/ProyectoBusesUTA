@@ -80,3 +80,7 @@ Docker Compose con tres servicios: `backend`, `frontend` y `db` (PostgreSQL). Ve
 - **Unitarias** (dominio y casos de uso, con puertos simulados): rápidas, sin base de datos.
 - **Integración** (repositorios y endpoints) contra PostgreSQL de prueba.
 - Los flujos críticos (reserva, comprobante, emisión de boleto) tienen pruebas de extremo a extremo de la API.
+
+## 10. Calidad del diseño y de la interacción
+
+Aplicar SOLID de forma proporcional al cambio y tratar la usabilidad como característica verificable del sistema, según [calidad.md](calidad.md). Las nuevas specs incluyen los criterios relevantes y su evidencia. Esto no autoriza refactorizar módulos completos ni afirmar que interfaces todavía no implementadas ya cumplen los criterios.
