@@ -45,7 +45,7 @@ Campos de entrada y salida, con tipos y validaciones. Tablas o migraciones nueva
 
 ## 10. Preguntas abiertas
 - ...
-- Para decisiones compartidas: participantes, opciones, recomendación y registro de la respuesta humana. Seguir el protocolo de coordinación de `docs/flujo-codex.md` cuando esté disponible.
+- Para decisiones compartidas: participantes, opciones, recomendación y registro de la respuesta humana. Seguir el protocolo de coordinación de `docs/equipo-y-acuerdos.md`.
 
 ## 11. Defecto inducido (solo si aplica)
 Completar los campos de `docs/errores-inducidos.md` y obtener aprobación humana antes de introducirlo. Indicar comportamiento correcto, desviación autorizada, reproducción, prueba que falla, impacto, versión objetivo y evidencia. Si no aplica, indicarlo expresamente.
@@ -61,7 +61,7 @@ Completar los campos de `docs/errores-inducidos.md` y obtener aprobación humana
 - Pasos pequeños, resultado comprobable de cada uno y archivos compartidos que requieren coordinación.
 - Comandos ejecutados, entorno, fecha y resultados reales de lint, formato, pruebas y arranque. Separar errores inesperados, fallos inducidos autorizados y limitaciones del entorno.
 - Evidencia de revisión SOLID y de los escenarios de usabilidad aplicables.
-- Actualización de la fila propia en `docs/estado-proyecto.md` cuando esté disponible.
+- Actualización de la fila propia en `docs/estado-proyecto.md`.
 
 ## 14. Revisión y cierre
 

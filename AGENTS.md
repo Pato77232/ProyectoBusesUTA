@@ -12,11 +12,22 @@ Node.js (LTS) + Express · PostgreSQL · Bootstrap 5 · Docker y Docker Compose 
 - `docs/specs/<ID>.md`: la spec de la tarea actual. Si no existe spec, pide que se escriba antes de implementar.
 - `docs/adr/`: decisiones de arquitectura ya tomadas.
 - `docs/errores-inducidos.md`: protocolo obligatorio de defectos académicos para la primera revisión.
+- `docs/estado-proyecto.md`: fotografía comprobada, pendientes por integrante y dependencias; contrastarla con Git y la spec antes de orientar.
+- `docs/flujo-codex.md` y `docs/equipo-y-acuerdos.md`: guía para principiantes, roles de trabajo, trazabilidad y decisiones compartidas.
+- `docs/calidad.md`: criterios SOLID y de usabilidad para el alcance del cambio.
+
+## Codex como guía del equipo
+- Si alguien dice «Soy Pablo/Edwin/David/Leslie/Shirley, ¿qué hago ahora?», consulta el registro, la spec y la evidencia disponible; distingue tareas aprobadas de propuestas y trabajo local de integración verificada. Declara el commit y la fecha conocidos; no afirmes conocer cambios remotos sin comprobarlos.
+- Explica objetivo, motivo, conceptos técnicos necesarios, siguiente paso pequeño y forma de verificarlo. No supongas experiencia en backend/frontend ni entregues cambios que la persona no pueda entender.
+- Antes de recomendar una tarea nueva, comprueba si existe en una rama/spec/PR accesible. Si falta spec, ayuda a redactarla antes de implementar negocio. No inventes IDs externos, aprobaciones, compromisos ni asignaciones.
+- Para acuerdos entre integrantes, identifica participantes, opciones, recomendación e impacto y prepara la consulta según `docs/equipo-y-acuerdos.md`. Registra solo respuestas humanas reales; el silencio no es aprobación. Continúa trabajo independiente autorizado mientras se resuelve lo dependiente.
+- Usa los procedimientos de `.agents/skills/guia-proyecto/SKILL.md` cuando correspondan. Los roles son formas de trabajo; no implican lanzar subagentes. La revisión de IA no sustituye revisión humana.
+- OpenCode queda como legado: `opencode.json` y `.opencode/` no configuran Codex. Las instrucciones y skills no sustituyen los permisos técnicos del entorno; no instales permisos globales ni reduzcas protecciones para migrar.
 
 ## Arquitectura (resumen)
 Arquitectura limpia por módulos: `backend/src/modules/<modulo>/{domain,application,infrastructure,interfaces}`.
 - `domain` no depende de nada (ni de Express, ni de `pg`).
-- `application` depende solo de `domain`.
+- `application` puede depender de `domain` del mismo módulo y de `shared`, según `docs/architecture.md`; nunca de Express, pg ni adaptadores concretos.
 - `infrastructure` implementa las interfaces (puertos) definidas en `domain`.
 - `interfaces` (HTTP) solo traduce HTTP a casos de uso. **Sin lógica de negocio en controladores.**
 - Un módulo no importa las capas internas de otro; solo su API pública (`index.js`).
@@ -24,7 +35,7 @@ Arquitectura limpia por módulos: `backend/src/modules/<modulo>/{domain,applicat
 ## Reglas de dominio que nunca se violan
 - Frecuencia = origen + destino + hora de salida, **inmutable** una vez creada.
 - Toda frecuencia exige número de resolución ANT.
-- Multi-tenant: cada cooperativa solo ve y modifica sus datos. Todo acceso filtra por `cooperative_id`.
+- Multi-tenant: las operaciones internas filtran por el `cooperative_id` de la identidad autenticada y verificada, nunca elegido por el body. Las operaciones globales expresamente autorizadas por RN-03 y la búsqueda pública de solo lectura tienen contratos propios; no son una excepción general al aislamiento.
 - El plazo para subir el comprobante es de 3 a 5 minutos y es configurable, no un número fijo en el código.
 - Rechazar un comprobante exige justificación.
 - Descuentos automáticos: tercera edad, menor de edad y discapacidad.
@@ -33,9 +44,11 @@ Arquitectura limpia por módulos: `backend/src/modules/<modulo>/{domain,applicat
 ## Cómo trabajar
 1. Una tarea pequeña por vez (un caso de uso o un endpoint). No hagas módulos completos de una sola vez.
 2. Lee la spec y las reglas antes de escribir código. Si algo no está definido, **pregunta**; no inventes requisitos.
-3. Escribe pruebas junto con el código. Antes de terminar ejecuta `npm run lint` y `npm test` y reporta el resultado real.
+3. Escribe pruebas junto con el código. Desde `backend/`, ejecuta `npm run lint`, `npm run format:check` y `npm test` y reporta resultados reales. Para integración usa PostgreSQL aislado según `docs/testing-database.md`; no leas `.env`. Si cambia la composición, verifica el arranque real además de la app montada por las pruebas.
 4. Código limpio: funciones cortas, nombres que expresan intención, sin números mágicos, errores de dominio explícitos.
 5. Sesiones cortas, una por tarea.
+6. Aplica SOLID de forma proporcional y define criterios de usabilidad cuando corresponda, según `docs/calidad.md`. No refactorices otros módulos para adoptar estos criterios.
+7. Actualiza la fila y evidencia de la tarea en `docs/estado-proyecto.md` junto con la spec; no marques Integrada/Cerrada sin evidencia. Antes de confirmar cambios, revisa el diff completo y prepara commits por cambio lógico.
 
 ## Primera revisión: 4 de noviembre de 2026
 - La entrega funcional en `main` debe contener errores inducidos a propósito, identificados y autorizados conforme a `docs/errores-inducidos.md`. No inventes defectos ni los corrijas incidentalmente.

@@ -56,8 +56,8 @@ interfaces ─▶ application ─▶ domain ◀─ infrastructure
 
 ## 5. Multi-tenant (ver ADR 0002)
 - Estrategia: una base de datos compartida con `cooperative_id` en cada tabla de datos de cooperativa.
-- El `cooperative_id` sale del **token del usuario autenticado**, nunca del cuerpo de la petición.
-- Un middleware de tenant deja el contexto disponible y los repositorios **siempre** filtran por `cooperative_id`.
+- En operaciones internas, el `cooperative_id` sale de la identidad autenticada y verificada por el backend, nunca del cuerpo de la petición.
+- El contexto de tenant queda disponible para esas operaciones y los repositorios filtran por `cooperative_id`. Las operaciones globales autorizadas por RN-03, como asignar un administrador a una cooperativa objetivo, siguen su contrato explícito y validan el rol; no habilitan acceso global para usuarios internos.
 - La búsqueda pública es de solo lectura y consulta varias cooperativas explícitamente.
 
 ## 6. API

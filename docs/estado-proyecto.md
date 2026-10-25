@@ -33,7 +33,7 @@ Antes de orientar a alguien:
 | [FREQ-01](specs/FREQ-01.md) | David, según distribución; spec aún «por asignar» | Código integrado; conexión al arranque pendiente | Existe módulo y montaje opcional en app.js; server.js no lo instancia |
 | [ROUTE-SHEETS-01](specs/ROUTE-SHEETS-01.md) | David, según distribución; confirmar autor/responsable | Código integrado, PR #13; integración operativa pendiente | app.js admite routeSheets, pero server.js no lo instancia; la composición necesita contratos con fleet/frequencies/bookings |
 | [INFRA-02](specs/INFRA-02.md), [INFRA-03](specs/INFRA-03.md) | Shirley; revisor indicado Pablo | Cambios presentes; cierre documental pendiente | cross-env y .gitattributes presentes, lock actualizado en historial; no implica aprobación humana ni validación Windows actual |
-| [INFRA-04](specs/INFRA-04.md) | Pablo; revisora propuesta Shirley | En desarrollo en esta rama | Migración de guía y coordinación; PR e integración pendientes |
+| [INFRA-04](specs/INFRA-04.md) | Pablo; revisora propuesta Shirley | En desarrollo; implementación local preparada para revisión | Guía y coordinación documentadas; 346 pruebas aprobadas, formato preexistente fallido; PR e integración pendientes |
 | search, bookings, payments, tickets y frontend | Según propuesta inferior | Sin implementación en la base examinada | Confirmar ramas de los responsables antes de crear tareas |
 | CI | Pablo | Sin workflow versionado en la base | Proponer una spec propia; no afirmar protecciones remotas sin consultarlas |
 
