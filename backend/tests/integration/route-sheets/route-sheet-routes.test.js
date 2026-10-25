@@ -92,7 +92,11 @@ beforeAll(async () => {
   });
   const tenants = createTenantsModule({ pool, auth });
   const fleet = createFleetModule({ pool, auth });
-  const routeSheets = createRouteSheetsModule({ pool, auth });
+  const routeSheets = createRouteSheetsModule({
+    pool,
+    auth,
+    busGroupQueries: fleet.busGroupQueries,
+  });
   server = http.createServer(createApp({ auth, tenants, fleet, routeSheets, pool }));
   await new Promise((resolve) => server.listen(0, resolve));
   url = `http://localhost:${server.address().port}`;
@@ -101,7 +105,7 @@ beforeAll(async () => {
 beforeEach(async () => {
   assertTestDatabase();
   await pool.query(
-    'TRUNCATE route_sheet_modification_logs, route_sheet_cycles, route_sheet_rest_days, route_sheet_assignments, route_sheets, bus_groups, auth_sessions, users, cooperatives',
+    'TRUNCATE route_sheet_modification_logs, route_sheet_cycles, route_sheet_rest_days, route_sheet_assignments, route_sheets, bus_groups, auth_sessions, users, frequency_segment_prices, frequency_stops, frequencies, cooperatives',
   );
   cooperativeId = await createCooperative('Cooperativa de prueba');
   anotherCooperativeId = await createCooperative('Otra cooperativa');
@@ -137,7 +141,10 @@ test('no permite crear dos hojas para misma fecha y grupo', async () => {
   const browser = new Browser();
   await browser.signIn('coadmin@example.ec');
   await browser.request('/api/v1/route-sheets', 'POST', { busGroupId, routeDate: '2026-10-25' });
-  const res = await browser.request('/api/v1/route-sheets', 'POST', { busGroupId, routeDate: '2026-10-25' });
+  const res = await browser.request('/api/v1/route-sheets', 'POST', {
+    busGroupId,
+    routeDate: '2026-10-25',
+  });
   expect(res.status).toBe(409);
   const body = await res.json();
   expect(body.error.code).toBe('ROUTE_SHEET_ALREADY_EXISTS_FOR_DATE_AND_GROUP');
@@ -147,7 +154,10 @@ test('aislamiento multi-tenant: no puede acceder a hoja de otra cooperativa', as
   const busGroupId = await createBusGroup(cooperativeId);
   const browser = new Browser();
   await browser.signIn('coadmin@example.ec');
-  const createRes = await browser.request('/api/v1/route-sheets', 'POST', { busGroupId, routeDate: '2026-10-25' });
+  const createRes = await browser.request('/api/v1/route-sheets', 'POST', {
+    busGroupId,
+    routeDate: '2026-10-25',
+  });
   const { routeSheet } = await createRes.json();
 
   const browser2 = new Browser();

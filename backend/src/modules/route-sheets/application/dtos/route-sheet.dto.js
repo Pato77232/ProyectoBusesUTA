@@ -1,3 +1,5 @@
+const RouteDate = require('../../domain/value-objects/route-date');
+
 class RouteSheetDTO {
   constructor({
     id,
@@ -38,7 +40,7 @@ class RouteSheetDTO {
       id: entity.id,
       cooperativeId: entity.cooperativeId,
       busGroupId: entity.busGroupId,
-      routeDate: entity.routeDate,
+      routeDate: new RouteDate(entity.routeDate).toString(),
       status: entity.status?.toString ? entity.status.toString() : entity.status,
       isBase: entity.isBase,
       cycleLengthWeeks: entity.cycleLengthWeeks,

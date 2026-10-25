@@ -17,10 +17,7 @@ class PgBusGroupRepository extends BusGroupRepository {
       );
       return rows[0];
     } catch (error) {
-      if (
-        error.code === '23505' &&
-        error.constraint === 'bus_groups_cooperative_name_unique'
-      ) {
+      if (error.code === '23505' && error.constraint === 'bus_groups_cooperative_name_unique') {
         throw new BusGroupError('BUS_GROUP_ALREADY_EXISTS');
       }
       throw error;
@@ -36,6 +33,16 @@ class PgBusGroupRepository extends BusGroupRepository {
       [cooperativeId],
     );
     return rows;
+  }
+
+  async findById(id, cooperativeId) {
+    const { rows } = await this.pool.query(
+      `SELECT id, cooperative_id, name, category, created_at, updated_at
+       FROM bus_groups
+       WHERE id = $1 AND cooperative_id = $2`,
+      [id, cooperativeId],
+    );
+    return rows[0] ?? null;
   }
 }
 

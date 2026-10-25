@@ -1,26 +1,17 @@
 const BusGroupQueryPort = require('../../domain/ports/bus-group-query-port');
 
 class BusGroupQueryAdapter extends BusGroupQueryPort {
-  constructor({ busGroupRepository }) {
+  constructor({ busGroupQueries }) {
     super();
-    this.busGroupRepository = busGroupRepository;
+    this.busGroupQueries = busGroupQueries;
   }
 
   async findByCooperativeId(cooperativeId) {
-    if (this.busGroupRepository.listByCooperative) {
-      return this.busGroupRepository.listByCooperative(cooperativeId);
-    }
-    if (this.busGroupRepository.findByCooperativeId) {
-      return this.busGroupRepository.findByCooperativeId(cooperativeId);
-    }
-    return [];
+    return this.busGroupQueries.findByCooperativeId(cooperativeId);
   }
 
   async findById(id, cooperativeId) {
-    if (this.busGroupRepository.findById) {
-      return this.busGroupRepository.findById(id, cooperativeId);
-    }
-    return null;
+    return this.busGroupQueries.findById(id, cooperativeId);
   }
 }
 
