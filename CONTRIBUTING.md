@@ -28,6 +28,7 @@ Gracias por colaborar. Este documento define **cómo trabajamos todos** para que
 - La entrega funcional en `main` incluirá errores inducidos autorizados, con evidencia y aceptación explícita según `docs/errores-inducidos.md`. Esta excepción académica no oculta fallos ni permite debilitar pruebas.
 - Versiones exclusivamente `MAJOR.MINOR.PATCH`, sin sufijos ni cuarto componente.
 - `docs/conventions.md` define el formato único de commits: tipo en inglés, alcance y descripción en español, verbo en imperativo y un cambio lógico por commit.
+- El flujo actual de asistencia es Codex, documentado en `docs/flujo-codex.md`. Consultar `docs/estado-proyecto.md` para orientar tareas por integrante y `docs/equipo-y-acuerdos.md` para decisiones compartidas. Las asignaciones propuestas no son aprobaciones colectivas.
 
 ## 1. Principios
 
@@ -252,8 +253,10 @@ Título, descripción, justificación, **tipo de cambio**, prioridad, solicitant
 
 La IA está permitida y recomendada, con estas reglas:
 
-- **Cada integrante usa su propia herramienta** y hace sus propios commits con su identidad; un agente no commitea en nombre de otros.
+- **Cada integrante conserva su identidad Git y responde por sus cambios.** Codex solo ejecuta commits con petición humana explícita y nunca suplanta a otro integrante; sin esa petición, propone los mensajes.
 - El contexto compartido (convenciones, estructura, stack) está en `AGENTS.md`, para que cualquier asistente trabaje con las mismas reglas.
+- Codex es la herramienta principal del flujo INFRA-04; la configuración de OpenCode queda como legado según `docs/AI-USAGE.md`. La skill compartida es `.agents/skills/guia-proyecto/SKILL.md` y los roles no implican delegación automática.
+- Mantener el estado de la tarea y los acuerdos con evidencia versionada. Aplicar SOLID y criterios de usabilidad de `docs/calidad.md` a su alcance, sin declarar conformidad del sistema existente.
 - **El código generado se revisa y se entiende antes de commitear.** Quien abre el PR responde por él.
 - No pegar credenciales ni datos reales de usuarios en la IA.
 

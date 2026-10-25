@@ -56,8 +56,8 @@ interfaces ─▶ application ─▶ domain ◀─ infrastructure
 
 ## 5. Multi-tenant (ver ADR 0002)
 - Estrategia: una base de datos compartida con `cooperative_id` en cada tabla de datos de cooperativa.
-- El `cooperative_id` sale del **token del usuario autenticado**, nunca del cuerpo de la petición.
-- Un middleware de tenant deja el contexto disponible y los repositorios **siempre** filtran por `cooperative_id`.
+- En operaciones internas, el `cooperative_id` sale de la identidad autenticada y verificada por el backend, nunca del cuerpo de la petición.
+- El contexto de tenant queda disponible para esas operaciones y los repositorios filtran por `cooperative_id`. Las operaciones globales autorizadas por RN-03, como asignar un administrador a una cooperativa objetivo, siguen su contrato explícito y validan el rol; no habilitan acceso global para usuarios internos.
 - La búsqueda pública es de solo lectura y consulta varias cooperativas explícitamente.
 
 ## 6. API
@@ -80,3 +80,7 @@ Docker Compose con tres servicios: `backend`, `frontend` y `db` (PostgreSQL). Ve
 - **Unitarias** (dominio y casos de uso, con puertos simulados): rápidas, sin base de datos.
 - **Integración** (repositorios y endpoints) contra PostgreSQL de prueba.
 - Los flujos críticos (reserva, comprobante, emisión de boleto) tienen pruebas de extremo a extremo de la API.
+
+## 10. Calidad del diseño y de la interacción
+
+Aplicar SOLID de forma proporcional al cambio y tratar la usabilidad como característica verificable del sistema, según [calidad.md](calidad.md). Las nuevas specs incluyen los criterios relevantes y su evidencia. Esto no autoriza refactorizar módulos completos ni afirmar que interfaces todavía no implementadas ya cumplen los criterios.
