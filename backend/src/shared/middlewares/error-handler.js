@@ -19,6 +19,17 @@ function sendError(res, httpStatus, code, message) {
   res.status(httpStatus).json({ error: { code, message } });
 }
 
+function isDomainError(error) {
+  return (
+    error instanceof DomainError ||
+    (error instanceof Error &&
+      typeof error.code === 'string' &&
+      Number.isInteger(error.httpStatus) &&
+      error.httpStatus >= HTTP_STATUS_BAD_REQUEST &&
+      error.httpStatus < 600)
+  );
+}
+
 /**
  * Middleware central de errores (único punto de traducción a HTTP).
  * Formato: { "error": { "code": "...", "message": "..." } }.
@@ -29,7 +40,7 @@ function errorHandler(error, req, res, next) {
     next(error);
     return;
   }
-  if (error instanceof DomainError) {
+  if (isDomainError(error)) {
     sendError(res, error.httpStatus, error.code, error.message);
     return;
   }
