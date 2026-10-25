@@ -70,3 +70,29 @@ Trabajo en la carpeta original el 25 de octubre de 2026. Base feature/BOOK-04-T1
 38 pruebas nuevas; 406 unitarias aprobadas en total (103 nuevas en T1c/T1d). Lint y formato aprobados. npm test completo sigue fallido: 4 HTTP aprobadas y 77 pruebas de integración fallidas por falta de URL/base PostgreSQL. No se debilitó ninguna prueba anterior ni se usó una base existente.
 
 Las ramas T1c/T1d son incrementos apilados sobre el código previo de reservas, no sobre el develop actual que ya incorpora flota. El PR documental #12 permanece en c98db4d. No se hicieron push, merge ni rebase. El PR de estos incrementos debe comparar cada tarea con su rama padre para revisar solo su diferencia; antes de integrarlos hacia develop se deben revisar las dependencias previas, disponer de la base aislada y resolver los resultados de integración. No se presenta una reserva persistida ni una pantalla funcional.
+
+## BOOK-01 T2 — base actualizada en la carpeta original
+
+Fecha: 25 de octubre de 2026. Rama feature/BOOK-01-T2-actualiza-base-reservas, creada desde origin/develop 67ee38d947058be53e17a0479f4404b1d3c42bf6. Se trasladaron con cherry-pick -x los dos commits documentales y los siete incrementos de código, conservando autoría y referencias de origen. Se conservaron ambas notas históricas cuando coincidían sus posiciones en las specs BOOK-04/05/06 y en este registro; no hubo conflictos de código.
+
+Las ramas anteriores siguen en sus commits originales; feature/BOOK-04-T1d-pasajeros-seleccion conserva f62742d y la rama del PR #12 conserva c98db4d. Los archivos de código y pruebas de bookings son idénticos a los de f62742d. No hay diferencias de código ajeno, migraciones, dependencias o pruebas ajenas respecto de la nueva base. No se ejecutaron merge, rebase, push ni tags.
+
+Validación real: lint aprobado; 470 pruebas unitarias aprobadas en 34 suites. npm test completo fallido: 4 pruebas HTTP aprobadas y 103 de integración fallidas porque no hay DATABASE_URL/base PostgreSQL de pruebas disponible en esta ejecución. Se eliminó DATABASE_URL solo del entorno temporal de la ejecución para no utilizar una base existente. No se leyeron archivos .env ni se cambiaron las pruebas.
+
+Formato global fallido en 26 archivos ya presentes e idénticos a origin/develop, ajenos a reservas; formato del código y pruebas de bookings aprobado. No se reformatea código del equipo incidentalmente.
+
+Docker Desktop está instalado; se intentó iniciarlo en segundo plano. El motor sigue ausente y com.docker.service está detenido. Se solicitó a Leslie abrir Docker Desktop e informar el estado del motor. No se creó, limpió ni conectó ninguna base existente. El Compose de pruebas del equipo ya define busesuta_test en localhost:55433, con almacenamiento efímero y credenciales exclusivas de pruebas; se utilizará cuando el motor esté disponible.
+
+PabloToapanta aprobó el PR documental #12 sobre c98db4d el 25 de octubre. El PR sigue siendo independiente de esta rama. Se recomienda integrar la documentación conforme a las comprobaciones de GitHub; esta preparación no ejecuta ese merge ni declara aprobados los incrementos de código.
+
+Se revisaron las APIs reales y se añadió el estado actual en reservas-contratos.md. Aún faltan viaje comercializable y plantilla de asientos; no se puede acreditar una reserva persistida ni la compra completa.
+
+## BOOK-01 T2 — verificación con PostgreSQL operativo
+
+Fecha: 25 de octubre de 2026. Leslie abrió Docker Desktop; el motor respondió correctamente. Se comprobó que el puerto 55433 estaba libre y se creó el proyecto Compose exclusivo busesuta-leslie-tests mediante docker-compose.test.yml. Antes de ejecutar la suite se verificaron la base busesuta_test, el usuario test_user y cero tablas de aplicación. No se usaron los contenedores de otros proyectos.
+
+La URL del contenedor se configuró únicamente para la ejecución; no se leyeron ni editaron archivos .env. npm run lint aprobado. npm test completo aprobado: 470 pruebas unitarias en 34 suites y 107 de integración en 12 suites; 577 pruebas aprobadas, sin fallos. Las migraciones y recorridos de integración se verificaron contra PostgreSQL 16.13 del contenedor nuevo. No se cambiaron pruebas, código, migraciones ni dependencias para obtener este resultado.
+
+Esta ejecución sustituye la limitación de PostgreSQL de la ejecución anterior, cuyo resultado histórico se conserva. El formato global sigue pendiente por los 26 archivos preexistentes ya identificados; el formato de bookings está aprobado. Las 577 pruebas no incluyen un flujo de compra de reservas de extremo a extremo, todavía no implementado.
+
+Al terminar se detiene y elimina únicamente el proyecto Compose temporal busesuta-leslie-tests; su almacenamiento es efímero. Para repetir la comprobación: docker compose -p busesuta-leslie-tests -f docker-compose.test.yml up -d --wait; configurar la URL de pruebas del proyecto en la terminal y ejecutar npm test desde backend. Consultar docs/testing-database.md. No se publicó la rama ni se integró el PR #12.
