@@ -58,3 +58,8 @@ Verificación de esta rama documental en la carpeta original: lint y formato apr
 Recomendar ahora PR documental de feature/BOOK-01-especificaciones-reservas hacia develop para que Edwin revise alcance y decisiones. Los incrementos de código se pueden revisar en borrador contra su rama padre; no recomendar integrarlos como funcionalidad completa hasta verificar PostgreSQL y los contratos reales.
 
 El siguiente incremento ejecutable de extremo a extremo es BOOK-02 T2: acordar e implementar puertos/adaptadores de viaje y plantilla. BOOK-03 requiere esas fuentes y un contrato de comprador. BOOK-06 T2 y BOOK-07 requieren la operación atómica de reserva/comprobante de Shirley. BOOK-08 requiere una base frontend conectada. No se sustituyen con datos ficticios en producción ni se declara el módulo terminado.
+
+## BOOK-04 T1c — datos completos del pasajero
+Trabajo en la carpeta original el 25 de octubre de 2026. Base feature/BOOK-05-T2-calcula-descuentos (19fe2d8); rama feature/BOOK-04-T1c-datos-pasajero. Se compone el pasajero mínimo con validación local de cédula, nombre Unicode y nacimiento civil no futuro respecto de una fecha explícita de servidor. No se certifica identidad ni beneficios.
+
+65 pruebas nuevas; 368 unitarias aprobadas. Lint y formato aprobados. npm test completo fallido: 4 HTTP aprobadas y 77 pruebas de integración fallidas por ausencia de URL/base PostgreSQL. No se usó una base de datos existente. La rama documental del PR #12 se conserva sin cambios. Se conserva esta tarea en commit local por autorización de Leslie; no es una aceptación de integración.
