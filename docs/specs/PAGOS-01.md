@@ -8,25 +8,25 @@
 - **Revisor:** Pablo
 - **Estado:** Borrador
 
-> Propuesta pendiente de revisión. Las decisiones marcadas como preguntas abiertas deben acordarse antes de implementar los puntos que afectan.
+> Propuesta pendiente de revisión. Las decisiones pendientes de confirmación deben resolverse antes de implementar los puntos que afectan.
 
 ## 1. Objetivo
 
-Permitir que un cliente envíe el comprobante de depósito o transferencia de su reserva dentro del plazo configurable. Si el plazo vence sin comprobante, registrar el estado `Expirado` y coordinar con `bookings` la expiración de la reserva y liberación de sus asientos.
+Permitir que un cliente envíe el comprobante de depósito o transferencia de su reserva dentro del plazo configurable. Si vence sin comprobante, el coordinador de `bookings` expira la reserva y libera los asientos; `payments` registra `EXPIRED` cuando recibe el aviso de reservas.
 
 ## 2. Reglas de negocio involucradas
 
 - **RN-02:** los datos de cada cooperativa permanecen aislados. Para este flujo, `cooperative_id` se obtiene de la reserva consultada mediante el puerto de `payments`; nunca se toma del token ni del cuerpo HTTP.
-- **RN-50:** el cliente dispone de un plazo configurable de 3 a 5 minutos para subir el comprobante de depósito o transferencia. La duración no se fija en código.
+- **RN-50:** el plazo configurable para subir el comprobante es de 180 a 300 segundos. BOOK-06 §2 y §4 concretan la unidad/rango, el cálculo a partir de un instante de inicio explícito y que no hay valor por defecto oculto.
 - **RN-51:** vencido el plazo sin comprobante, la reserva expira y sus asientos vuelven a estar disponibles. La transición de reserva y liberación de asientos se coordina con `bookings`.
 
-Las tres reglas citadas existen en `docs/business-rules.md` (RN-02, §2; RN-50 y RN-51, §7). No se cita RN-52, RN-53 ni RN-54 porque la bandeja, aprobación/rechazo y emisión de boleto quedan fuera de esta spec.
+Las tres reglas citadas existen en `docs/business-rules.md` (RN-02, §2; RN-50 y RN-51, §7). BOOK-06 §2 aclara que un comprobante en revisión no equivale a ausencia; `docs/reservas-decisiones.md`, “Reserva y pago”, especifica que los asientos se mantienen reservados mientras se revisa. La carrera entre recepción del comprobante y expiración debe comprobarse con la verificación de contrato de `docs/reservas-contratos.md`. PAGOS-01 no cubre bandeja, aprobación/rechazo ni emisión de boleto.
 
 ## 3. Alcance
 
-**Incluye:** carga de un archivo de comprobante asociado a una reserva; validación de que la reserva pertenece al cliente autenticado, está vigente y admite el envío; persistencia de metadatos y ubicación del archivo; lectura del plazo único mantenido por `bookings`; estado `EXPIRED` y coordinación con `bookings` para expirar la reserva y liberar asientos.
+**Incluye:** carga de un archivo de comprobante asociado a una reserva; validación de que la reserva pertenece al cliente autenticado, está vigente y admite el envío; persistencia de metadatos y ubicación del archivo; lectura del plazo y total mantenidos por `bookings`; estado `EXPIRED` tras aviso del coordinador de reservas.
 
-**No incluye:** pago con tarjeta; revisión, aprobación o rechazo del comprobante; emisión de boleto/QR; venta en caja; compra como invitado mientras no se resuelva la pregunta 8 del negocio; gestión de la bandeja del oficinista. Estas funcionalidades corresponden a PAGOS-02, PAGOS-03, BOLETOS-01/02 y una spec aparte para venta física.
+**No incluye:** pago con tarjeta; revisión, aprobación o rechazo del comprobante; emisión de boleto/QR; venta en caja; ni gestión de bandeja. El aviso de aprobación de pago a `bookings` y la confirmación de venta pertenecen a PAGOS-02, coordinado con BOOK-07; PAGOS-01 solo cubre recepción del archivo. La compra como invitado está definida en `docs/reservas-decisiones.md`, “Pasajeros e invitados”; si PAGOS-01 se limita a `CUSTOMER`, eso es una propuesta de acceso que debe confirmarse y no una decisión pendiente sobre los datos/recuperación de invitado.
 
 ### Autenticación y autorización
 
@@ -38,17 +38,18 @@ La spec puede dividirse después en specs independientes para carga y expiració
 
 ### T1. Subir comprobante
 
-1. Al abrir la ventana de pago de una reserva, `payments` mantiene un comprobante en estado `AWAITING_UPLOAD`, sin archivo asociado. Su plazo y `payment_deadline_at` pertenecen a la reserva y son establecidos por `bookings`.
+1. Al abrir la ventana de pago de una reserva, `payments` mantiene un comprobante en estado `AWAITING_UPLOAD`, sin archivo asociado. El plazo pertenece a `bookings` y `payments` lo obtiene mediante `BookingReader`.
 2. El cliente autenticado solicita la carga enviando el ID de reserva y un único archivo, con CSRF válido.
 3. El caso de uso consulta la reserva mediante `BookingReader` (puerto de `payments/domain`) y comprueba propietario, estado vigente, cooperativa derivada de la reserva y fecha límite leída de esa misma reserva.
 4. Si la reserva sigue dentro del plazo, el caso de uso guarda el archivo mediante el puerto de almacenamiento sustituible, actualiza metadatos y cambia el comprobante a `UPLOADED` (archivo recibido, a la espera de PAGOS-02).
-5. Una carga recibida cuando `now >= payment_deadline_at` se rechaza; no modifica el plazo ni revierte un estado `EXPIRED`.
+5. Payments envía el **aviso de comprobante recibido (`hasPaymentProof`)** a `bookings`. BOOK-06/07 todavía no especifican nombre ni firma; esos detalles deben acordarse en su contrato. `markPaymentProofReceived` queda únicamente como nombre candidato. BOOK-06 §2 exige que un comprobante en revisión no se interprete como ausencia.
+6. `BookingReader` devuelve el vencimiento `expiresAt` calculado por reservas a partir del inicio explícito y el plazo en segundos. Payments compara ese valor con un instante de reloj explícito; se admite la carga solo si `now < expiresAt`, pues al llegar al límite ya venció (BOOK-06 §4).
 
-### T2. Expirar reserva y comprobante
+### T2. Registrar expiración del comprobante
 
-1. El proceso coordinado detecta las reservas con plazo vencido que siguen en `AWAITING_UPLOAD`.
-2. Cambia el comprobante a `EXPIRED` y solicita a `bookings` expirar la reserva y liberar sus asientos conforme a RN-51.
-3. La operación es idempotente. T2 depende del contrato con Leslie para consultar el plazo y efectuar la transición/liberación en `bookings`.
+1. El coordinador único de expiración de `bookings` (BOOK-06 §3, T2/T3) detecta y expira las reservas cuyo plazo venció sin comprobante, y libera sus asientos conforme a RN-51.
+2. Cuando `bookings` notifica a `payments` que esa reserva expiró, `payments` actualiza el comprobante de `AWAITING_UPLOAD` a `EXPIRED`.
+3. `payments` no ejecuta, programa ni duplica la expiración de reservas. T2 depende del aviso de reservas; BOOK-06/07 todavía no define el nombre ni firma del aviso de expiración a `payments`.
 
 ## 5. Datos
 
@@ -56,27 +57,27 @@ La spec puede dividirse después en specs independientes para carga y expiració
 
 | Dato | Tipo | Validación / origen |
 |---|---|---|
-| `bookingId` | UUID | Identificador de ruta; debe corresponder a una reserva del cliente autenticado. Nombre/tipo final sujeto al contrato de `bookings` con Leslie. |
-| Archivo | binario multipart | Obligatorio en la carga; un archivo por solicitud. Tipos MIME y tamaño máximo están pendientes de decisión; propuesta inicial: PDF, JPEG o PNG, máximo 5 MiB, validando contenido además del `Content-Type`. |
+| `bookingId` | UUID | Obligatorio en el multipart; identifica una reserva del cliente autenticado. El tipo/representación se confirma al cerrar el contrato. |
+| `file` | binario multipart | Obligatorio en la carga; propuesta: PDF, JPEG o PNG, máximo 5 MiB, validando contenido además del `Content-Type`. |
 | `customerId` | UUID | Solo del principal autenticado (`authenticate`); no se acepta en el cuerpo. |
 | `cooperative_id` | UUID | Se deriva de la reserva devuelta por `BookingReader`; no se acepta del token ni del cuerpo. |
-| Respuesta | JSON | Identificador del comprobante, estado y fecha límite leída desde la reserva; nunca devuelve ruta física ni URL interna del archivo. |
+| Respuesta | JSON | Identificador del comprobante, estado y vencimiento `expiresAt` leído desde la reserva; el total validado también proviene de reservas cuando PAGOS-02 lo necesite. No devuelve ruta física ni URL interna del archivo. |
 
 ### Puerto de dominio
 
-Definir en `payments/domain` un puerto de lectura, propuesto como `BookingReader`, con una operación equivalente a `findForPayment(bookingId)`. Devuelve solo los datos necesarios: identificador de reserva, identificador del cliente/propietario, `cooperative_id`, estado y `payment_deadline_at` de la reserva. El plazo tiene una sola fuente: la reserva. `payments` lo lee con `BookingReader` y no lo recalcula ni mantiene una copia en `payment_proofs`. El puerto no expone tablas ni importa código interno de `bookings`. La implementación/adaptador se conecta mediante la API pública de `bookings` o el punto de composición.
+Definir en `payments/domain` un puerto de lectura, propuesto como `BookingReader`, que consulte una reserva por `bookingId`. Devuelve solo los datos necesarios: identificador de reserva, comprador, cooperativa, estado, instante de inicio explícito, plazo en segundos, `expiresAt` y total guardados/calculados por `bookings`. El dominio de reservas aplica BOOK-06 §4: plazo entero entre 180 y 300 segundos, inicio explícito, reloj inyectado y cálculo de vencimiento sin valor por defecto oculto. `payments` consulta esos valores y no los recalcula ni mantiene copias en `payment_proofs`. BOOK-01/03/05/06/07 no documentan nombre/firma de la función pública de consulta ni nombres reales de las columnas; esos detalles se acuerdan en BOOK-06/07. El puerto no expone capas internas de `bookings`.
 
-**Contrato de bookings pendiente de contrato con Leslie:** nombre real de tabla, columnas, clave primaria, columna de cliente/propietario, columna `cooperative_id`, estado y fecha de expiración; cardinalidad y FK desde pagos; cómo se inicia/consulta/cambia el plazo; operación pública e idempotente para expirar la reserva y liberar asientos; y garantías transaccionales/concurrencia. Esta spec no fija ni presupone esos nombres o FKs.
+**Contrato según las specs de reservas:** BOOK-03 nombra la tabla `bookings` y una tabla/relación de ocupaciones sin definir su nombre ni esquema; indica que columnas y FKs con módulos ajenos están por definir. BOOK-06/07 describen plazo, expiración y confirmación, pero no dan nombres de funciones públicas, firmas, columnas, IDs o FKs. La tabla `payment_proofs`, sus columnas y su FK a `bookings` son propuestas de PAGOS-01, no identificadores fijados por Leslie. La integración usará la API pública de `bookings` cuando se concrete.
 
 ### Migración propuesta
 
-Tabla nueva `payment_proofs` (nombre propuesto sujeto a convenciones y revisión), plural y `snake_case`. Los campos de vínculo a `bookings` y sus FKs quedan **pendientes de contrato con Leslie**. No se propone alterar migraciones existentes.
+Tabla nueva `payment_proofs` (nombre propuesto por PAGOS-01, sujeto a convenciones y revisión), plural y `snake_case`. BOOK-03 sí nombra la tabla `bookings`, pero no define sus columnas, IDs ni FKs con pagos; esos elementos del vínculo se deben precisar en el contrato técnico. No se propone alterar migraciones existentes.
 
 | Campo | Tipo propuesto | Restricción / propósito |
 |---|---|---|
 | `id` | UUID | PK, generado por la base |
-| `booking_id` | UUID | NOT NULL; FK/columna **pendiente de contrato con Leslie**; unicidad/cardinalidad con reserva por acordar |
-| `cooperative_id` | UUID | NOT NULL; valor copiado de la reserva por el caso de uso; FK/tabla de cooperativas **pendiente de contrato con Leslie** |
+| `booking_id` | UUID | NOT NULL; referencia propuesta a `bookings` (tabla nombrada por BOOK-03); BOOK-03 no especifica la columna ID, FK ni cardinalidad |
+| `cooperative_id` | UUID | NOT NULL; valor copiado de la reserva; columna/FK/tabla destino no especificadas en BOOK-03 |
 | `status` | TEXT | NOT NULL; CHECK en `AWAITING_UPLOAD` (ventana abierta sin archivo), `UPLOADED` (archivo subido, a la espera de PAGOS-02), `EXPIRED` (Expirado) |
 | `file_key` | TEXT | NULL mientras no se haya cargado; clave opaca del almacenamiento, nunca ruta recibida del cliente |
 | `original_file_name` | TEXT | NULL antes de carga; nombre saneado solo como metadato |
@@ -86,17 +87,15 @@ Tabla nueva `payment_proofs` (nombre propuesto sujeto a convenciones y revisión
 | `expired_at` | TIMESTAMPTZ | NULL hasta expiración |
 | `created_at` / `updated_at` | TIMESTAMPTZ | NOT NULL |
 
-Índice propuesto para encontrar comprobantes que esperan carga: `(status, booking_id)`. La fecha límite vive únicamente en la reserva y se obtiene a través de `BookingReader`. La retención y el borrado del archivo son decisiones abiertas. **Propuesta de almacenamiento:** disco local privado, fuera del directorio público; en BD solo `file_key` y metadatos. Definir un puerto de almacenamiento en payments y un adaptador local sustituible. No guardar bytes en PostgreSQL ni aceptar una URL/ruta suministrada por el cliente.
+Índice propuesto para encontrar comprobantes que esperan carga: `(status, booking_id)`. Plazo y total viven únicamente en la reserva y se obtienen a través de `BookingReader`; no se duplican en `payment_proofs`. La retención y el borrado del archivo son decisiones abiertas. **Propuesta de almacenamiento:** disco local privado, fuera del directorio público; en BD solo `file_key` y metadatos. Definir un puerto de almacenamiento en payments y un adaptador local sustituible. No guardar bytes en PostgreSQL ni aceptar una URL/ruta suministrada por el cliente.
 
 ## 6. Endpoints
 
 | Método | Ruta | Roles | Respuestas |
 |---|---|---|---|
-| POST | `/api/v1/bookings/{bookingId}/payment-proof` | `CUSTOMER`; `authenticate`, `authorize('CUSTOMER')`, `csrfProtection` | 201, 400, 401, 403, 404, 409, 413, 415, 422, 500 |
+| POST | `/api/v1/payment-proofs` | `CUSTOMER`; `authenticate`, `authorize('CUSTOMER')`, `csrfProtection` | 201, 400, 401, 403, 404, 409, 413, 415, 422, 500 |
 
-La solicitud usa `multipart/form-data`, campo de archivo propuesto `file`. Respuesta `201`: `{ "paymentProof": { "id": "…", "status": "UPLOADED", "paymentDeadlineAt": "…" } }`; la fecha se obtiene de la reserva. Para reserva inexistente o que no pertenece al cliente, propuesta: misma respuesta 404 para no revelar existencia de reservas ajenas. `403` incluye `CSRF_TOKEN_INVALID` cuando el CSRF falta o no coincide. Códigos de error funcionales restantes se definirán en el diseño de implementación conforme al formato único de arquitectura (`{ "error": { "code", "message" } }`). No se crea endpoint de aprobación/rechazo ni de boletos.
-
-La ruta REST se considera propuesta: confirmar con el equipo si se anida bajo `/bookings` o se expone como recurso `/payment-proofs`; esta decisión no cambia que el acceso al booking sea mediante el puerto de dominio.
+La solicitud usa `multipart/form-data` con `bookingId` y `file`. Respuesta `201` propuesta: `{ "paymentProof": { "id": "…", "status": "UPLOADED", "expiresAt": "…" } }`; `expiresAt` se lee de la reserva. El total se obtiene de la reserva cuando lo requiera el flujo posterior. Para reserva inexistente o que no pertenece al cliente, propuesta: misma respuesta 404 para no revelar existencia de reservas ajenas. `403` incluye `CSRF_TOKEN_INVALID` cuando el CSRF falta o no coincide. Códigos de error funcionales restantes se definirán en el diseño de implementación conforme al formato único de arquitectura (`{ "error": { "code", "message" } }`). No se crea endpoint de aprobación/rechazo ni de boletos. La ruta, el nombre multipart `bookingId` y la operación notificada a bookings son propuestas de PAGOS-01: BOOK-01/03/06/07 no las define.
 
 ## 7. Criterios de aceptación
 
@@ -105,50 +104,93 @@ La ruta REST se considera propuesta: confirmar con el equipo si se anida bajo `/
 - [ ] **Dado** un cliente que no es propietario de la reserva, **cuando** intenta cargar un archivo, **entonces** la operación no revela ni modifica la reserva ajena y responde 404 según la propuesta.
 - [ ] **Dado** una solicitud sin sesión válida, **cuando** intenta cargar un comprobante, **entonces** `authenticate` la rechaza según el contrato existente de auth.
 - [ ] **Dado** un `CUSTOMER` autenticado sin CSRF válido, **cuando** envía la carga, **entonces** `csrfProtection` responde 403 `CSRF_TOKEN_INVALID` y no se persiste archivo ni metadatos.
-- [ ] **Dada** una reserva con plazo dentro del rango configurable de RN-50, **cuando** `payments` consulta `BookingReader`, **entonces** utiliza el plazo de la reserva como única fuente y no calcula ni persiste una fecha límite propia.
-- [ ] **Dada** una reserva con ventana vencida sin archivo, **cuando** corre T2, **entonces** el comprobante pasa de `AWAITING_UPLOAD` a `EXPIRED` y se coordina con `bookings` la expiración de la reserva y liberación de asientos conforme RN-51.
-- [ ] **Dada** una expiración ya aplicada, **cuando** se reintenta el proceso, **entonces** el efecto es idempotente y no falla ni libera recursos de otra reserva.
+- [ ] **Dado** un comprobante cargado correctamente dentro del plazo, **cuando** pasa a `UPLOADED`, **entonces** payments notifica la recepción a reservas por la operación propuesta `markPaymentProofReceived`; el nombre y contrato final deben acordarse.
+- [ ] **Dado** un precio total asociado a la reserva, **cuando** payments recibe y guarda el comprobante, **entonces** conserva el total de `BookingReader` sin recalcularlo ni persistir una copia en `payment_proofs`.
+- [ ] **Dada** una reserva con plazo configurable de 180 a 300 segundos y un inicio explícito, **cuando** `payments` consulta `BookingReader`, **entonces** usa el `expiresAt` de reservas, no calcula ni persiste vencimiento propio y no recurre a valores por defecto ocultos.
+- [ ] **Dado** un comprobante recibido dentro del plazo y en revisión, **cuando** el coordinador de reservas evalúa la ausencia de comprobante, **entonces** no expira la reserva: un comprobante en revisión no equivale a ausencia (BOOK-06 §2).
+- [ ] **Dada** una reserva con ventana vencida sin archivo, **cuando** el coordinador de `bookings` aplica RN-51 y avisa a payments, **entonces** payments cambia el comprobante de `AWAITING_UPLOAD` a `EXPIRED` sin expirar de nuevo la reserva.
+- [ ] **Dada** una notificación de expiración ya aplicada, **cuando** bookings la reintenta, **entonces** la actualización en payments es idempotente y no altera otra reserva ni un comprobante `UPLOADED`.
 - [ ] **Dada** una solicitud de carga a la hora límite o después, **cuando** se evalúa, **entonces** no se acepta como `UPLOADED`, no extiende el plazo y la reserva sigue el flujo de expiración.
 - [ ] **Dado** un archivo ausente, vacío, demasiado grande o de tipo/contenido no permitido, **cuando** se valida la solicitud, **entonces** se rechaza con el error HTTP acordado sin dejar archivo huérfano ni registro parcialmente actualizado.
-- [ ] **Dado** un comprobante en estado `UPLOADED`, **cuando** T2 busca comprobantes sin archivo, **entonces** no lo cambia a `EXPIRED`; su revisión corresponde a PAGOS-02.
+- [ ] **Dado** un comprobante en estado `UPLOADED`, **cuando** el coordinador de reservas evalúa qué reservas expirar, **entonces** no expira esa reserva; la revisión corresponde a PAGOS-02.
 
 ## 8. Casos borde y errores
 
-- Dos cargas concurrentes para la misma reserva: solo una puede completar; la cardinalidad y estrategia de bloqueo/índice dependen del contrato con Leslie.
-- Carrera entre carga y expiración en el instante límite: definir un único criterio temporal (propuesta: aceptar solo si `now < payment_deadline_at` leído de la reserva; al llegar exactamente al límite ya venció) y transacción/orden idempotente coordinado con `bookings`.
+- Dos cargas concurrentes para la misma reserva: solo una puede completar; BOOK-03 nombra `bookings` y ocupaciones, pero no define tabla de ocupaciones, esquema, cardinalidad ni bloqueo.
+- Carrera entre carga y expiración en el instante límite: aceptar solo si `now < expiresAt` leído de la reserva; al llegar exactamente al límite ya venció (BOOK-06 §4). La resolución atómica corresponde al coordinador de `bookings`; BOOK-06 §10 y BOOK-07 §10 dejan el protocolo intermodular por acordar.
 - Reserva ya cancelada, expirada o en estado que no admita pago: rechazar sin guardar archivo. Estados y códigos concretos dependen del contrato con Leslie.
 - Reserva no encontrada y reserva de otro cliente: respuesta indistinguible según propuesta 404.
-- Reserva sin `payment_deadline_at` o con plazo fuera del rango de RN-50: fallo de contrato/configuración explícito; payments no suple el dato con un valor propio.
-- Fallo de almacenamiento local, de base de datos o del adaptador `bookings`: limpiar archivo temporal si no se confirmó la operación; reintentar expiración sin duplicar efectos.
+- Reserva sin instante de inicio, plazo explícito o `expiresAt`, o con plazo fuera de 180–300 segundos: fallo de contrato explícito; payments no aplica un valor por defecto.
+- Fallo de almacenamiento local, de base de datos o de notificación entre módulos: limpiar archivo temporal si no se confirmó la operación; reintentar el aviso idempotente sin ejecutar expiración desde `payments`.
 - El archivo no puede servirse públicamente ni ejecutarse desde el servidor; nombre original, extensión o MIME enviados por el cliente no se consideran confiables.
-- Si la reserva expiró pero T2 no se ejecutó aún, una solicitud posterior debe disparar/permitir su expiración idempotente y no revivirla.
+- Si la reserva expiró pero su aviso a `payments` aún no llegó, una carga posterior no debe revivirla; payments consulta el estado con `BookingReader` y acepta el aviso idempotente de `bookings`.
 
 ## 9. Pruebas esperadas
 
-- **Unitarias (`backend/tests/unit/payments/`):** carga válida; propietario correcto/incorrecto; cooperativa siempre derivada de reserva; estados de reserva no elegibles; fecha antes/en/después del plazo leído con `BookingReader`; transición `AWAITING_UPLOAD` → `UPLOADED` y expiración a `EXPIRED`; aceptación de tipos/tamaño acordados; rechazo de archivos; expiración con reserva sin archivo; idempotencia; puertos de almacenamiento y `BookingReader` simulados.
-- **Integración (`backend/tests/integration/payments/`):** ruta protegida con auth existente; 401 sin sesión, 403 por CSRF inválido y rechazo de rol distinto de `CUSTOMER`; multipart válido; persistencia y filtrado por cooperativa derivada de reserva; aislamiento de reservas ajenas; errores de tamaño/tipo; migración/índice; T2 que cambia el comprobante y la reserva y libera los asientos a través del contrato público de `bookings`.
-- **Concurrencia/flujo:** carrera carga-expiración, duplicado simultáneo y reintento del proceso de expiración. Los dobles de prueba no deben sustituir la prueba de integración del contrato una vez acordado con Leslie.
+- **Unitarias (`backend/tests/unit/payments/`):** carga válida; propietario correcto/incorrecto; cooperativa, plazo, `expiresAt` y total derivados de reserva mediante `BookingReader`; reloj explícito; límites 180/300 y valores fuera de rango; ausencia de valor por defecto; comprobante en revisión impide tratar la reserva como carente de comprobante; transiciones `AWAITING_UPLOAD` → `UPLOADED` y `AWAITING_UPLOAD` → `EXPIRED` tras aviso de reservas; tipos/tamaño; puertos de almacenamiento y lectura simulados.
+- **Integración (`backend/tests/integration/payments/`):** ruta propuesta protegida con auth; 401 sin sesión, 403 por CSRF inválido y rechazo de rol distinto de `CUSTOMER`; multipart con `bookingId` y `file`; aislamiento de reserva; persistencia sin columnas de plazo ni total en `payment_proofs`; límite/formato; migración/índice; recepción idempotente del aviso de expiración de `bookings`. La expiración y liberación se verifican mediante el coordinador de reservas y su contrato integrado.
+- **Concurrencia/flujo:** carrera entre carga y aviso de expiración, duplicación de avisos y confirmación idempotente de venta a través de la API pública de reservas; verificar que payments no expira ni confirma venta por sí mismo.
 
-## 10. Preguntas abiertas
+## 10. Decisiones
 
-- **P3 de `business-rules.md` (tarjeta):** queda fuera de PAGOS-01. **Propuesta:** mantener tarjeta totalmente fuera del flujo y de su esquema; resolverla en una spec de pagos posterior.
-- **P4 (precio por frecuencia o tramo):** fuera de esta carga. **Propuesta:** el comprobante referencia el total ya fijado en la reserva y no recalcula precios; confirmar con negocio antes de PAGOS-02/03.
-- **P7 (venta física directa por oficinista):** fuera de alcance. **Propuesta:** especificarla por separado después de la revisión; PAGOS-01 no crea reservas de caja ni permite saltar el flujo de reserva.
-- **P8 (datos y recuperación de compra como invitado):** afecta autorización del dueño de la reserva. **Propuesta:** esta primera versión exige usuario autenticado con rol `CUSTOMER`; añadir invitado solo con mecanismo explícito de propiedad/recuperación aprobado en spec, sin tratar el ID de reserva como credencial.
-- **Contrato con Leslie (`bookings`):** confirmar tablas, columnas, IDs, FKs, propietario, `cooperative_id`, estados, fecha límite, cardinalidad, creación de la ventana, API pública para expiración/liberación y transacción/concurrencia. **Propuesta:** reservar una fila `payment_proofs` por reserva al iniciar su ventana, con campos de archivo nulos; `BookingReader` solo expone datos mínimos y un puerto de expiración coordina la transición sin importar internals de `bookings`.
-- **Inicio de ventana y registro del comprobante:** confirmar si `bookings` notifica la apertura o si `payments` crea/localiza el comprobante en ese momento. **Propuesta:** al abrir la ventana, `payments` crea o localiza una fila `AWAITING_UPLOAD`; `bookings` sigue siendo dueño del plazo.
-- **Plazo configurable:** confirmar el nombre de la configuración, unidad y módulo responsable de validarla. **Propuesta:** `bookings` mantiene una única configuración en minutos (entero de 3 a 5), calcula y guarda el plazo en la reserva; `BookingReader` expone `payment_deadline_at` y `payments` solo lo lee, sin duplicarlo en `payment_proofs`.
-- **Archivo: tipos, tamaño y almacenamiento:** **Propuesta:** PDF/JPEG/PNG de máximo 5 MiB, inspección del contenido real, una carga por reserva y almacenamiento en disco local privado fuera del directorio público; en PostgreSQL solo guardar `file_key` y metadatos. Usar un puerto de almacenamiento en payments con adaptador local sustituible. Confirmar también política de retención, reemplazo/reintento y borrado tras expiración.
-- **Trabajo periódico de expiración:** frecuencia y mecanismo de ejecución. **Propuesta:** tarea periódica idempotente coordinada con el ciclo existente de expiración de `bookings`, evitando un segundo mecanismo competidor; frecuencia objetivo por acordar.
-- **Ruta y cardinalidad del recurso:** confirmar ruta anidada y si se admiten reintentos/reemplazo. **Propuesta:** una fila por reserva y un solo archivo final; reintento permitido solo si una falla no llegó a persistir.
+### Acordado con Leslie
 
-## 11. Dependencias
+| Tema | Decisión documentada | Fuente |
+|---|---|---|
+| Plazo | Reservas es dueña del plazo: configuración explícita en segundos entre 180 y 300; el caso de uso determina el instante inicial y el dominio calcula `expiresAt` con reloj explícito, sin valor por defecto oculto. | [BOOK-06 §2–5](BOOK-06.md); [reservas-decisiones.md, “Reserva y pago”](../reservas-decisiones.md) |
+| Total | El cálculo se determina en servidor; el resumen de reserva registra base, descuento y total. Los nombres de las columnas no constan en estas specs. | [BOOK-03 §4–7](BOOK-03.md); [reservas-decisiones.md, “Tarifas y acreditación”](../reservas-decisiones.md) |
+| Comprobante en revisión | La regla de reserva es que un comprobante recibido a tiempo mantiene los asientos reservados durante la revisión y no es ausencia de comprobante. | [BOOK-06 §2, §7](BOOK-06.md); [reservas-decisiones.md, “Reserva y pago”](../reservas-decisiones.md) |
+| Expiración y liberación | BOOK-06 asigna a reservas T2 (expiración atómica e idempotente) y T3 (ejecución periódica); la expiración por RN-51 libera asientos transaccionalmente. | [BOOK-06 §3, §7](BOOK-06.md); [reservas-decisiones.md, “Reserva y pago”](../reservas-decisiones.md) |
+| Confirmación de venta | BOOK-07 requiere que la conversión a vendido sea transaccional e idempotente. | [BOOK-07 §1, §3, §7](BOOK-07.md). T1 debe acordar el puerto público; no hay nombre ni firma especificados. |
+
+### Propuesto, pendiente de confirmación
+
+| Tema | Propuesta | Diferencia / estado frente a las specs de Leslie |
+|---|---|---|
+| Consultar reserva | `BookingReader` expone a payments una lectura de reserva propia y autorizada, con la información mínima necesaria. | BOOK-08 §3/5 plantea consulta autorizada; sus rutas GET de §6 son propuestas, no un contrato público confirmado. BOOK-01 §5 exige integrar por API pública, pero no nombra esta función ni la declara idempotente. |
+| P3 — tarjeta | Dejar tarjeta fuera de PAGOS-01. | Fuera de alcance de esta spec. |
+| P4 — precio | Usar el total guardado en la reserva; payments no lo recalcula. | Basado en el resumen del servidor y total/desglose decidido en BOOK-03 §4 y reservas-decisiones.md, “Tarifas y acreditación”; BOOK-05 no define campo ni contrato con pagos. |
+| P7 — venta en caja | Definirla en una spec aparte. | No está dentro de BOOK-03/06/07. |
+| Invitado (P8) | La política de invitado definida en reservas-decisiones.md se conserva. Para este endpoint, el acceso solo `CUSTOMER` queda como propuesta hasta confirmar cómo se autoriza al invitado. | El endpoint de reserva BOOK-03 §6 mantiene identidad/propiedad invitada pendiente; la decisión de producto de invitado está en reservas-decisiones.md, “Pasajeros e invitados”. Limitar carga a `CUSTOMER` no está resuelto por esas fuentes. |
+| Endpoint de carga | `POST /api/v1/payment-proofs`, multipart con campos `bookingId` y `file`. | BOOK-03 §6 propone `POST /api/v1/bookings` para crear reservas, pero no define endpoint de pagos; esta ruta y sus campos son propuestas de PAGOS-01. |
+| Archivo | PDF/JPEG/PNG, máximo 5 MiB, validando contenido; disco local privado fuera del directorio público, con puerto de almacenamiento y adaptador local sustituible. | No definido en BOOK-01/03/06/07. |
+| Aviso de comprobante recibido | Payments envía a reservas el aviso de comprobante recibido (`hasPaymentProof`); `markPaymentProofReceived` queda como nombre candidato. | BOOK-06 §5 usa `hasPaymentProof` como entrada de la política y BOOK-07 §3 pide acordar el puerto público; ninguno especifica el nombre ni firma de la operación. No se atribuye este nombre a Leslie. |
+| Aviso de expiración hacia payments | Propuesta: reservas notifica la expiración y payments registra `EXPIRED`; payments no ejecuta ni programa la tarea de expiración. | BOOK-06 §3/6 no define la notificación entrante ni su función/firma; es una coordinación técnica por concretar en BOOK-06/07. |
+| Coordinación de aprobación | El aviso de aprobación desde payments a reservas, incluida la llamada a la operación pública que confirme la venta, pertenece a PAGOS-02; PAGOS-01 solo notifica recepción. | BOOK-07 §1/3 define confirmación desde pagos como integración posterior, sin nombrar el puerto ni su función. `confirmSale` es solo candidato, no nombre de Leslie. |
+| Tablas y referencias | `bookings` es el nombre indicado en BOOK-03; mantener `payment_proofs` como tabla propuesta por PAGOS-01. | BOOK-03 §5 deja las columnas/FKs por definir y solo nombra “ocupaciones” sin nombre de tabla/relación ni esquema. Las columnas, IDs, FK y cardinalidad desde payments no están documentados; `releaseBooking` no aparece como función en BOOK-01/03/06/07. |
+| Registro inicial | Crear/localizar `AWAITING_UPLOAD` al abrir la ventana; plazo e importe siguen en la reserva. | BOOK-03/06 no especifica qué módulo crea el registro ni su cardinalidad. |
+
+### Resuelto en `reservas-decisiones.md`, fuera del alcance de PAGOS-01
+
+- **Invitado:** se definieron nombre, correo de contacto y recuperación por enlace secreto, sin cuenta automática ni acceso solo por cédula/UUID. Fuente: [“Pasajeros e invitados”](../reservas-decisiones.md). La política está resuelta como decisión de producto; autenticación y contrato del endpoint siguen aparte.
+- **Rechazo:** exige justificación, finaliza la reserva como rechazada y libera asientos atómicamente; un nuevo intento requiere reserva nueva. Fuente: [“Reserva y pago”](../reservas-decisiones.md). La operación de rechazo pertenece a otra spec de pagos, no a PAGOS-01.
+- **Comprobante en revisión:** si llega dentro del plazo, se mantienen los asientos reservados; no se venden antes de aprobación y no vence como ausencia de comprobante. Fuentes: [BOOK-06 §2](BOOK-06.md) y [“Reserva y pago”](../reservas-decisiones.md).
+
+### Pendiente fuera de PAGOS-01
+
+- **Carga tardía:** la política de producto indica no reactivar reservas vencidas, responder conflicto y orientar a atención de personal si hubo transferencia real, sin prometer devolución automática. Fuente: [“Reserva y pago”](../reservas-decisiones.md); BOOK-06 §8 y BOOK-07 §10 dejan por acordar el manejo integrado/reintentos. No se implementa aquí.
+- **Tiempo de revisión:** no se define un plazo automático para rechazo o fin de revisión; corresponde al proceso operativo. Fuente: [“Reserva y pago”](../reservas-decisiones.md). No agregar expiración automática de comprobantes `UPLOADED` en PAGOS-01.
+- **Atomicidad intermodular:** la regla requiere que aprobación y expiración compitan bajo una condición transaccional común, y que una respuesta repetida de pagos no duplique venta ni libere una reserva confirmada. Fuente: [“Reserva y pago”](../reservas-decisiones.md) y [“Verificación que se necesita para aceptar el contrato”](../reservas-contratos.md). BOOK-07 §3/5/10 deja el puerto, límites transaccionales, reintentos y recuperación por acordar. Corresponde a PAGOS-02/BOOK-07, no a PAGOS-01.
+## 11. Verificación de contrato
+
+Comprobaciones de `docs/reservas-contratos.md`, “Verificación que se necesita para aceptar el contrato”, aplicables al flujo de pagos:
+
+- [ ] Una reserva/viaje no comercializable o inexistente se rechaza sin filtrar datos internos; no se cruzan cooperativas ni datos de otra reserva.
+- [ ] Un tramo inválido se rechaza antes de consultar ocupaciones; el comprobante no elude la validación del tramo.
+- [ ] No se cruzan cooperativas ni datos personales entre reservas.
+- [ ] La liberación respeta ocupaciones por tramo: asientos en tramos adyacentes no colisionan; tramos superpuestos sí.
+- [ ] La disponibilidad es informativa; BOOK-03 revalida y bloquea los asientos de la reserva en una sola transacción. La carga del comprobante no sustituye esa validación.
+- [ ] El comprobante y la expiración compiten por la misma reserva de forma atómica.
+- [ ] Una respuesta repetida de pagos no duplica ventas ni libera una reserva confirmada.
+- [ ] Solo reservas ejecuta el proceso de expiración/liberación; payments recibe el resultado y registra el estado correspondiente.
+
+## 12. Dependencias
 
 - **Requiere:** AUTH-01/AUTH-02 y la API pública existente de `auth/index.js` para autenticación, autorización y CSRF; INFRA-01 y migraciones/BD disponibles.
-- **Requiere coordinación previa con `bookings`:** contrato público para leer una reserva (`BookingReader` definido en `payments/domain`) y contrato idempotente para expirar la reserva/liberar asientos; columnas y FKs quedan pendientes de contrato con Leslie.
-- **Requiere configuración compartida:** valor de plazo validado según RN-50 y mecanismo de expiración que no compita con `bookings`.
+- **Requiere coordinación con `bookings`:** contrato público idempotente de consulta, expiración/liberación, confirmación de venta y aviso de comprobante recibido; BOOK-01/03/06/07 todavía no documentan nombres ni firmas.
+- **Requiere la tarea de reservas BOOK-06:** un único coordinador de expiración; payments procesa el aviso y no programa su propio proceso.
 - **Propone para etapa posterior:** PAGOS-02 consume comprobantes `UPLOADED`; PAGOS-03 y BOLETOS-01/02 dependen de la aprobación que corresponda; la venta en caja necesita una spec separada.
 
-## 12. Defecto inducido
+## 13. Defecto inducido
 
 **No aplica.**
