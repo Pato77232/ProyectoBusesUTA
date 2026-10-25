@@ -4,20 +4,9 @@ const { assertTestDatabase } = require('../../scripts/test-database');
 
 let pool, cooperativeId;
 
-// Limpia las tablas, incluso cuando las migraciones de frecuencias
-// han sido revertidas.
 async function clean() {
   assertTestDatabase();
-
-  const { rows } = await pool.query(
-    "SELECT to_regclass('frequencies') IS NOT NULL AS exists"
-  );
-
-  const tables = rows[0].exists
-    ? 'auth_sessions, users, cooperatives, frequency_segment_prices, frequency_stops, frequencies'
-    : 'auth_sessions, users, cooperatives';
-
-  await pool.query(`TRUNCATE ${tables}`);
+  await pool.query('TRUNCATE auth_sessions, users, cooperatives CASCADE');
 }
 
 async function insertUser(role, cooperative = null) {
