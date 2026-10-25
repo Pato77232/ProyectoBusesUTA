@@ -96,3 +96,13 @@ La URL del contenedor se configuró únicamente para la ejecución; no se leyero
 Esta ejecución sustituye la limitación de PostgreSQL de la ejecución anterior, cuyo resultado histórico se conserva. El formato global sigue pendiente por los 26 archivos preexistentes ya identificados; el formato de bookings está aprobado. Las 577 pruebas no incluyen un flujo de compra de reservas de extremo a extremo, todavía no implementado.
 
 Al terminar se detiene y elimina únicamente el proyecto Compose temporal busesuta-leslie-tests; su almacenamiento es efímero. Para repetir la comprobación: docker compose -p busesuta-leslie-tests -f docker-compose.test.yml up -d --wait; configurar la URL de pruebas del proyecto en la terminal y ejecutar npm test desde backend. Consultar docs/testing-database.md. No se publicó la rama ni se integró el PR #12.
+
+## BOOK-02 T2a — caso de uso de disponibilidad
+
+25 de octubre de 2026, carpeta original. Rama feature/BOOK-02-T2a-consulta-disponibilidad, base feature/BOOK-01-T2-actualiza-base-reservas en 20c7915. Se escribió primero la spec BOOK-02-T2a y se implementaron el caso de uso, la validación de consulta/snapshot, el error de viaje no disponible y los contratos internos de lectura. Se reutiliza sin cambios el cálculo de solapamiento de T1.
+
+Se rechazan campos extra del cliente y se obtiene cooperativa e inventario del catálogo. Se valida identidad del viaje y límite de ruta antes de leer ocupaciones; errores de proveedores se propagan sin ofrecer asientos ficticios. El resultado conserva el orden de plantilla, es inmutable y solo expone seatId/status. Los dobles se encuentran exclusivamente en pruebas; no hay adaptador ni endpoint de producción todavía.
+
+53 pruebas nuevas aprobadas. Verificación completa: 523 unitarias y 107 de integración, 630 aprobadas sin fallos. Lint y formato de reservas aprobados; formato global fallido en los mismos 26 archivos preexistentes del equipo. Sin cambios en pruebas anteriores, migraciones, dependencias o módulos ajenos. Base temporal nueva busesuta_test con cero tablas antes de ejecutar, proyecto Compose busesuta-leslie-book02 retirado al terminar. No se tocaron bases de otros proyectos.
+
+El PR documental #12 ya fue integrado por Leslie en develop (b58d072). Esta rama mantiene los incrementos locales previos; al preparar un PR debe revisarse su alcance acumulado o compararse la tarea con su padre 20c7915. No se publica ni integra en esta tarea. Pendiente: acordar catálogo de viaje comercializable y plantilla con David/Edwin e implementar los adaptadores a través de sus APIs públicas.
