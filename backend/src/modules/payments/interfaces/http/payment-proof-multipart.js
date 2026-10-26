@@ -1,8 +1,9 @@
-const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+const { MAX_FILE_SIZE_BYTES } = require('../../domain/payment-proof-constraints');
 const MAX_MULTIPART_OVERHEAD_BYTES = 64 * 1024;
 const MAX_HEADER_BYTES = 8 * 1024;
 const CRLF = Buffer.from('\r\n');
 const HEADER_SEPARATOR = Buffer.from('\r\n\r\n');
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 class MultipartRequestError extends Error {
   constructor(code, httpStatus, message) {
@@ -69,7 +70,8 @@ function parseMultipartBody(body, boundary) {
     const content = body.subarray(contentStart, partEnd);
 
     if (name === 'bookingId' && fileName === undefined && !Object.hasOwn(fields, name)) {
-      fields.bookingId = content.toString('utf8');
+      fields.bookingId = content.toString('utf8').trim();
+      if (!UUID_PATTERN.test(fields.bookingId)) throw invalidMultipart();
     } else if (name === 'file' && typeof fileName === 'string' && !fields.file) {
       if (content.length > MAX_FILE_SIZE_BYTES) {
         throw new MultipartRequestError(

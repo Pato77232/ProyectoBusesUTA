@@ -6,6 +6,7 @@ const {
   createPaymentProof,
   uploadPaymentProof,
 } = require('../../../src/modules/payments/domain/payment-proof');
+const { PaymentProofAlreadyUploadedError } = require('../../../src/modules/payments/domain/payment-proof-error');
 
 let pool;
 let repository;
@@ -123,6 +124,72 @@ test('la migración crea payment_proofs sin duplicar plazo ni total', async () =
   expect(bookingForeignKeys).toHaveLength(0);
 });
 
+test('persiste el aviso en outbox junto al comprobante y permite completar el reintento', async () => {
+  // Arrange
+  const proof = createUploaded();
+
+  // Act
+  const saved = await repository.saveWithPendingNotification(proof);
+  await repository.markNotificationAttempted(proof.booking_id);
+  const { rows: pending } = await pool.query(
+    `SELECT payment_proof_id, booking_id, status, attempt_count, delivered_at
+     FROM payment_proof_notification_outbox WHERE booking_id = $1`,
+    [proof.booking_id],
+  );
+  await repository.markNotificationDelivered(proof.booking_id);
+  const { rows: delivered } = await pool.query(
+    'SELECT status, attempt_count, delivered_at FROM payment_proof_notification_outbox WHERE booking_id = $1',
+    [proof.booking_id],
+  );
+
+  // Assert
+  expect(saved.id).toEqual(pending[0].payment_proof_id);
+  expect(pending[0]).toMatchObject({
+    booking_id: proof.booking_id,
+    status: 'PENDING',
+    attempt_count: 1,
+    delivered_at: null,
+  });
+  expect(delivered[0]).toMatchObject({ status: 'DELIVERED', attempt_count: 1 });
+  expect(delivered[0].delivered_at).toBeInstanceOf(Date);
+
+  await repository.deleteByBookingId(proof.booking_id);
+  const { rows: removed } = await pool.query(
+    'SELECT count(*)::integer AS total FROM payment_proof_notification_outbox WHERE booking_id = $1',
+    [proof.booking_id],
+  );
+  expect(removed[0].total).toBe(0);
+});
+
+test('solo una carga concurrente crea el comprobante y el outbox de una reserva', async () => {
+  // Arrange
+  const bookingId = randomUUID();
+  const firstProof = createUploaded(bookingId, 'private/first-proof');
+  const secondProof = createUploaded(bookingId, 'private/second-proof');
+
+  // Act
+  const results = await Promise.allSettled([
+    repository.saveWithPendingNotification(firstProof),
+    repository.saveWithPendingNotification(secondProof),
+  ]);
+  const { rows: proofRows } = await pool.query(
+    'SELECT count(*)::integer AS total FROM payment_proofs WHERE booking_id = $1',
+    [bookingId],
+  );
+  const { rows: outboxRows } = await pool.query(
+    'SELECT count(*)::integer AS total FROM payment_proof_notification_outbox WHERE booking_id = $1',
+    [bookingId],
+  );
+
+  // Assert
+  expect(results.filter(({ status }) => status === 'fulfilled')).toHaveLength(1);
+  expect(results.find(({ status }) => status === 'rejected').reason).toBeInstanceOf(
+    PaymentProofAlreadyUploadedError,
+  );
+  expect(proofRows[0].total).toBe(1);
+  expect(outboxRows[0].total).toBe(1);
+});
+
 test('los CHECK rechazan estados con metadatos incoherentes', async () => {
   // Arrange / Act / Assert
   await expect(insertRawProof({ status: 'UPLOADED' })).rejects.toMatchObject({
@@ -205,6 +272,15 @@ test('save actualiza el comprobante existente de la misma reserva', async () => 
 test('la migración se revierte y puede aplicarse otra vez', async () => {
   // Arrange / Act
   runMigration('down');
+  const { rows: removedOutbox } = await pool.query(
+    "SELECT to_regclass('public.payment_proof_notification_outbox') AS table_name",
+  );
+
+  // Assert
+  expect(removedOutbox[0].table_name).toBeNull();
+
+  // Act
+  runMigration('down');
   const { rows: removed } = await pool.query(
     "SELECT to_regclass('public.payment_proofs') AS table_name",
   );
@@ -218,4 +294,8 @@ test('la migración se revierte y puede aplicarse otra vez', async () => {
     "SELECT to_regclass('public.payment_proofs') AS table_name",
   );
   expect(restored[0].table_name).toBe('payment_proofs');
+  const { rows: restoredOutbox } = await pool.query(
+    "SELECT to_regclass('public.payment_proof_notification_outbox') AS table_name",
+  );
+  expect(restoredOutbox[0].table_name).toBe('payment_proof_notification_outbox');
 });

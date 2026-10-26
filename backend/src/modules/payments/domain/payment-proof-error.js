@@ -82,6 +82,17 @@ class BookingNotificationUncertainError extends PaymentProofError {
   }
 }
 
+class PaymentProofPersistenceUncertainError extends PaymentProofError {
+  constructor() {
+    super(
+      'PAYMENT_PROOF_PERSISTENCE_UNCERTAIN',
+      503,
+      'No se pudo confirmar el guardado; el comprobante queda disponible para reintento.',
+    );
+    this.name = 'PaymentProofPersistenceUncertainError';
+  }
+}
+
 module.exports = {
   PaymentProofError,
   PaymentProofValidationError,
@@ -93,4 +104,5 @@ module.exports = {
   BookingNotPayableError,
   BookingPaymentProofRejectedError,
   BookingNotificationUncertainError,
+  PaymentProofPersistenceUncertainError,
 };

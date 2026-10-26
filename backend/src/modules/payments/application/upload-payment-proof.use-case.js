@@ -6,9 +6,10 @@ const {
   BookingPaymentProofRejectedError,
   PaymentProofUploadDeadlineExpiredError,
   BookingNotificationUncertainError,
+  PaymentProofPersistenceUncertainError,
 } = require('../domain/payment-proof-error');
+const { MAX_FILE_SIZE_BYTES } = require('../domain/payment-proof-constraints');
 
-const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_MEDIA_TYPES = Object.freeze(['application/pdf', 'image/jpeg', 'image/png']);
 
 function identifyMediaType(buffer) {
@@ -84,6 +85,21 @@ class UploadPaymentProof {
     this.bookingPaymentProofNotifier = bookingPaymentProofNotifier;
   }
 
+  async notifyBooking(bookingId, fileKey) {
+    try {
+      await this.paymentProofRepository.markNotificationAttempted(bookingId);
+      await this.bookingPaymentProofNotifier.markPaymentProofReceived(bookingId);
+      await this.paymentProofRepository.markNotificationDelivered(bookingId);
+    } catch (error) {
+      if (isDefinitiveBookingRejection(error)) {
+        await this.paymentProofRepository.deleteByBookingId(bookingId);
+        await this.fileStorage.delete(fileKey);
+        throw error;
+      }
+      throw new BookingNotificationUncertainError();
+    }
+  }
+
   async execute(input) {
     validateInput(input);
     const { bookingId, customerId, file, now } = input;
@@ -96,16 +112,7 @@ class UploadPaymentProof {
     const fileMetadata = validateFile(file);
     const existingProof = await this.paymentProofRepository.findByBookingId(booking.bookingId);
     if (existingProof?.status === 'UPLOADED') {
-      try {
-        await this.bookingPaymentProofNotifier.markPaymentProofReceived(booking.bookingId);
-      } catch (error) {
-        if (isDefinitiveBookingRejection(error)) {
-          await this.paymentProofRepository.deleteByBookingId(booking.bookingId);
-          await this.fileStorage.delete(existingProof.file_key);
-          throw error;
-        }
-        throw new BookingNotificationUncertainError();
-      }
+      await this.notifyBooking(booking.bookingId, existingProof.file_key);
       return { paymentProof: existingProof, expiresAt: booking.expiresAt, total: booking.total };
     }
     if (booking.acceptsPaymentProof !== true) throw new BookingNotPayableError();
@@ -136,22 +143,15 @@ class UploadPaymentProof {
         booking.expiresAt,
         now,
       );
-      savedProof = await this.paymentProofRepository.save(uploadedProof);
+      savedProof = await this.paymentProofRepository.saveWithPendingNotification(uploadedProof);
     } catch (error) {
-      await this.fileStorage.delete(fileKey);
+      if (!(error instanceof PaymentProofPersistenceUncertainError)) {
+        await this.fileStorage.delete(fileKey);
+      }
       throw error;
     }
 
-    try {
-      await this.bookingPaymentProofNotifier.markPaymentProofReceived(booking.bookingId);
-    } catch (error) {
-      if (isDefinitiveBookingRejection(error)) {
-        await this.paymentProofRepository.deleteByBookingId(booking.bookingId);
-        await this.fileStorage.delete(fileKey);
-        throw error;
-      }
-      throw new BookingNotificationUncertainError();
-    }
+    await this.notifyBooking(booking.bookingId, fileKey);
 
     return { paymentProof: savedProof, expiresAt: booking.expiresAt, total: booking.total };
   }

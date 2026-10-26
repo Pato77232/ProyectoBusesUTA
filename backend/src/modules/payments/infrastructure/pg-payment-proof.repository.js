@@ -1,5 +1,9 @@
 const PaymentProofRepository = require('../domain/payment-proof.repository');
 const {
+  PaymentProofAlreadyUploadedError,
+  PaymentProofPersistenceUncertainError,
+} = require('../domain/payment-proof-error');
+const {
   createPaymentProof,
   uploadPaymentProof,
   expirePaymentProof,
@@ -95,6 +99,81 @@ class PgPaymentProofRepository extends PaymentProofRepository {
       ],
     );
     return toPaymentProof(rows[0]);
+  }
+
+  async saveWithPendingNotification(paymentProof) {
+    const client = await this.pool.connect();
+    let committing = false;
+    try {
+      await client.query('BEGIN');
+      const { rows } = await client.query(
+        `INSERT INTO payment_proofs(
+          booking_id, cooperative_id, status, file_key, original_file_name,
+          media_type, file_size_bytes, uploaded_at, expired_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        ON CONFLICT (booking_id) DO UPDATE SET
+          cooperative_id = EXCLUDED.cooperative_id,
+          status = EXCLUDED.status,
+          file_key = EXCLUDED.file_key,
+          original_file_name = EXCLUDED.original_file_name,
+          media_type = EXCLUDED.media_type,
+          file_size_bytes = EXCLUDED.file_size_bytes,
+          uploaded_at = EXCLUDED.uploaded_at,
+          expired_at = EXCLUDED.expired_at,
+          updated_at = CURRENT_TIMESTAMP
+        WHERE payment_proofs.status = 'AWAITING_UPLOAD'
+        RETURNING ${PAYMENT_PROOF_COLUMNS}`,
+        [
+          paymentProof.booking_id,
+          paymentProof.cooperative_id,
+          paymentProof.status,
+          paymentProof.file_key,
+          paymentProof.original_file_name,
+          paymentProof.media_type,
+          paymentProof.file_size_bytes,
+          paymentProof.uploaded_at,
+          paymentProof.expired_at,
+        ],
+      );
+      if (rows.length === 0) throw new PaymentProofAlreadyUploadedError();
+      const savedProof = toPaymentProof(rows[0]);
+      await client.query(
+        `INSERT INTO payment_proof_notification_outbox(payment_proof_id, booking_id)
+         VALUES ($1, $2)
+         ON CONFLICT (payment_proof_id) DO NOTHING`,
+        [savedProof.id, savedProof.booking_id],
+      );
+      committing = true;
+      await client.query('COMMIT');
+      return savedProof;
+    } catch (error) {
+      await client.query('ROLLBACK').catch(() => {});
+      if (committing) throw new PaymentProofPersistenceUncertainError();
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  async markNotificationAttempted(bookingId) {
+    const { rowCount } = await this.pool.query(
+      `UPDATE payment_proof_notification_outbox
+       SET attempt_count = attempt_count + 1, updated_at = CURRENT_TIMESTAMP
+       WHERE booking_id = $1`,
+      [bookingId],
+    );
+    if (rowCount === 0) throw new Error('No existe el aviso pendiente del comprobante.');
+  }
+
+  async markNotificationDelivered(bookingId) {
+    const { rowCount } = await this.pool.query(
+      `UPDATE payment_proof_notification_outbox
+       SET status = 'DELIVERED', delivered_at = COALESCE(delivered_at, CURRENT_TIMESTAMP),
+           updated_at = CURRENT_TIMESTAMP
+       WHERE booking_id = $1`,
+      [bookingId],
+    );
+    if (rowCount === 0) throw new Error('No existe el aviso pendiente del comprobante.');
   }
 
   async deleteByBookingId(bookingId) {

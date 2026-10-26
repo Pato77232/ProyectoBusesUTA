@@ -1,6 +1,7 @@
 const { once } = require('node:events');
 const createApp = require('../../../src/app');
 const createPaymentProofRouter = require('../../../src/modules/payments/interfaces/http/payment-proof.routes');
+const BOOKING_ID = 'a80a2c4d-8aa8-4a1f-b7b0-e8d0f002bc42';
 
 describe('POST /api/v1/payment-proofs', () => {
   let server;
@@ -62,7 +63,7 @@ describe('POST /api/v1/payment-proofs', () => {
   test('autentica, autoriza CUSTOMER, valida CSRF y responde sin exponer la clave privada', async () => {
     // Arrange
     const form = new globalThis.FormData();
-    form.set('bookingId', 'booking-1');
+    form.set('bookingId', BOOKING_ID);
     form.set(
       'file',
       new globalThis.Blob([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])], {
@@ -92,7 +93,7 @@ describe('POST /api/v1/payment-proofs', () => {
     expect(middlewareCalls).toEqual(['authenticate', 'authorize:CUSTOMER', 'csrfProtection']);
     expect(uploadPaymentProof.execute).toHaveBeenCalledWith(
       expect.objectContaining({
-        bookingId: 'booking-1',
+        bookingId: BOOKING_ID,
         customerId: 'customer-1',
         file: expect.objectContaining({ originalFileName: 'comprobante.png' }),
         now: expect.any(Date),

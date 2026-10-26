@@ -5,6 +5,7 @@ const {
   PaymentProofValidationError,
   PaymentProofUploadDeadlineExpiredError,
   BookingNotificationUncertainError,
+  PaymentProofPersistenceUncertainError,
 } = require('../../../src/modules/payments/domain/payment-proof-error');
 
 const NOW = new Date('2026-10-25T12:04:00.000Z');
@@ -20,9 +21,18 @@ const BOOKING = Object.freeze({
 const PNG_BUFFER = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x01]);
 const FILE = { buffer: PNG_BUFFER, originalFileName: 'comprobante.png' };
 
-function createHarness({ booking = BOOKING, proof = null, saveError, notifyError } = {}) {
+function createHarness({
+  booking = BOOKING,
+  proof = null,
+  saveError,
+  saveUncertainError,
+  notifyError,
+} = {}) {
   const files = new Map();
   const proofs = new Map(proof ? [[booking.bookingId, proof]] : []);
+  const outbox = new Map(
+    proof ? [[booking.bookingId, { status: 'PENDING', attemptCount: 0 }]] : [],
+  );
   const bookingReader = {
     findForPayment: jest.fn(async () => booking),
   };
@@ -34,14 +44,31 @@ function createHarness({ booking = BOOKING, proof = null, saveError, notifyError
     }),
     delete: jest.fn(async (key) => files.delete(key)),
   };
+  const persistProof = async (paymentProof) => {
+    if (saveError) throw saveError;
+    proofs.set(paymentProof.booking_id, paymentProof);
+    outbox.set(paymentProof.booking_id, { status: 'PENDING', attemptCount: 0 });
+    if (saveUncertainError) throw saveUncertainError;
+    return paymentProof;
+  };
   const paymentProofRepository = {
     findByBookingId: jest.fn(async (bookingId) => proofs.get(bookingId) || null),
-    save: jest.fn(async (paymentProof) => {
-      if (saveError) throw saveError;
-      proofs.set(paymentProof.booking_id, paymentProof);
-      return paymentProof;
+    save: jest.fn(persistProof),
+    saveWithPendingNotification: jest.fn(persistProof),
+    markNotificationAttempted: jest.fn(async (bookingId) => {
+      const entry = outbox.get(bookingId);
+      if (!entry) throw new Error('No existe el aviso pendiente.');
+      entry.attemptCount += 1;
     }),
-    deleteByBookingId: jest.fn(async (bookingId) => proofs.delete(bookingId)),
+    markNotificationDelivered: jest.fn(async (bookingId) => {
+      const entry = outbox.get(bookingId);
+      if (!entry) throw new Error('No existe el aviso pendiente.');
+      entry.status = 'DELIVERED';
+    }),
+    deleteByBookingId: jest.fn(async (bookingId) => {
+      outbox.delete(bookingId);
+      return proofs.delete(bookingId);
+    }),
   };
   const bookingPaymentProofNotifier = {
     markPaymentProofReceived: jest.fn(async () => {
@@ -55,7 +82,16 @@ function createHarness({ booking = BOOKING, proof = null, saveError, notifyError
     bookingPaymentProofNotifier,
   });
 
-  return { useCase, files, proofs, bookingReader, fileStorage, paymentProofRepository, bookingPaymentProofNotifier };
+  return {
+    useCase,
+    files,
+    proofs,
+    outbox,
+    bookingReader,
+    fileStorage,
+    paymentProofRepository,
+    bookingPaymentProofNotifier,
+  };
 }
 
 function createInput(overrides = {}) {
@@ -84,10 +120,13 @@ test('carga el comprobante usando la cooperativa, fecha límite y total de la re
   expect(harness.bookingPaymentProofNotifier.markPaymentProofReceived).toHaveBeenCalledWith(
     BOOKING.bookingId,
   );
-  expect(harness.paymentProofRepository.save.mock.invocationCallOrder[0]).toBeLessThan(
+  expect(
+    harness.paymentProofRepository.saveWithPendingNotification.mock.invocationCallOrder[0],
+  ).toBeLessThan(
     harness.bookingPaymentProofNotifier.markPaymentProofReceived.mock.invocationCallOrder[0],
   );
   expect(harness.files.size).toBe(1);
+  expect(harness.outbox.get(BOOKING.bookingId).status).toBe('DELIVERED');
 });
 
 test.each([
@@ -131,8 +170,14 @@ test('rechaza reservas cuando bookings indica que no admiten comprobante', async
 
 test.each([
   ['sin contenido', { ...FILE, buffer: Buffer.alloc(0) }],
-  ['mayor a 5 MiB', { ...FILE, buffer: Buffer.concat([Buffer.from('%PDF-'), Buffer.alloc(5 * 1024 * 1024)]) }],
-  ['contenido que no es PDF, JPEG ni PNG', { ...FILE, buffer: Buffer.from('no es un archivo permitido') }],
+  [
+    'mayor a 5 MiB',
+    { ...FILE, buffer: Buffer.concat([Buffer.from('%PDF-'), Buffer.alloc(5 * 1024 * 1024)]) },
+  ],
+  [
+    'contenido que no es PDF, JPEG ni PNG',
+    { ...FILE, buffer: Buffer.from('no es un archivo permitido') },
+  ],
   ['sin nombre original', { buffer: PNG_BUFFER }],
 ])('rechaza un archivo %s antes de guardarlo', async (description, file) => {
   // Arrange
@@ -162,10 +207,11 @@ test('si reservas rechaza definitivamente por plazo vencido compensa el comproba
 
   // Act / Assert
   await expect(harness.useCase.execute(createInput())).rejects.toBe(deadlineError);
-  expect(harness.paymentProofRepository.save).toHaveBeenCalledTimes(1);
+  expect(harness.paymentProofRepository.saveWithPendingNotification).toHaveBeenCalledTimes(1);
   expect(harness.paymentProofRepository.deleteByBookingId).toHaveBeenCalledWith(BOOKING.bookingId);
   expect(harness.fileStorage.delete).toHaveBeenCalledWith('opaque-1');
   expect(harness.proofs.size).toBe(0);
+  expect(harness.outbox.has(BOOKING.bookingId)).toBe(false);
   expect(harness.files.size).toBe(0);
 });
 
@@ -185,10 +231,27 @@ test('conserva una carga ante resultado incierto y reintenta el aviso sin duplic
 
   // Assert
   expect(result.paymentProof.status).toBe('UPLOADED');
-  expect(harness.paymentProofRepository.save).toHaveBeenCalledTimes(1);
+  expect(harness.paymentProofRepository.saveWithPendingNotification).toHaveBeenCalledTimes(1);
   expect(harness.fileStorage.save).toHaveBeenCalledTimes(1);
   expect(harness.fileStorage.delete).not.toHaveBeenCalled();
   expect(harness.bookingPaymentProofNotifier.markPaymentProofReceived).toHaveBeenCalledTimes(2);
+  expect(harness.outbox.get(BOOKING.bookingId)).toEqual({ status: 'DELIVERED', attemptCount: 2 });
+});
+
+test('conserva el archivo si no se conoce el resultado del commit y reintenta desde el registro', async () => {
+  // Arrange
+  const persistenceError = new PaymentProofPersistenceUncertainError();
+  const harness = createHarness({ saveUncertainError: persistenceError });
+
+  // Act
+  await expect(harness.useCase.execute(createInput())).rejects.toBe(persistenceError);
+  const result = await harness.useCase.execute(createInput());
+
+  // Assert
+  expect(result.paymentProof.status).toBe('UPLOADED');
+  expect(harness.fileStorage.save).toHaveBeenCalledTimes(1);
+  expect(harness.fileStorage.delete).not.toHaveBeenCalled();
+  expect(harness.bookingPaymentProofNotifier.markPaymentProofReceived).toHaveBeenCalledTimes(1);
 });
 
 test('exige un reloj explícito', async () => {
