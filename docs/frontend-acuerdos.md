@@ -69,3 +69,9 @@ Pablo pidió continuar con el empaquetado. Imagen Nginx fijada por versión/dige
 ## Guardado de T2.1 y continuidad recomendada
 
 Pablo autorizó commits atómicos: plan en 2815747 y empaquetado/pruebas/estado en el commit de implementación que incluye esta constancia. Comprobada PR #16 abierta y sin revisiones registradas; develop sigue en c89b1b9. Codex recomienda esperar el resultado de T1 antes de ampliar T2.2, conservando la revisión por incrementos. Esta recomendación no inventa aprobación del equipo ni cierra/bloquea técnicamente FRONT-01. No se hace push.
+
+## Integración de T1 y continuación con T2.2
+
+El 26 de octubre de 2026 se comprobó la aprobación de Shirley y merge de PR #16 en eebfe75, conservando 3285695. Pablo autorizó implementar T2.2. La recomendación anterior de esperar queda superada por esa integración; se mantiene la rama actual sin merge/rebase.
+
+T2.2 conecta frontend y API mediante un Compose local aislado con datos/credenciales efímeros, manteniendo el modo estático de T2.1. Arranque, migraciones, health, errores y cambio real de IP comprobados; evidencia en FRONT-01, sección 21. Cookies de navegador/cabeceras falsificadas quedan para T2.3. No cambia la confianza de IP ni la producción. Sin commit/push; no equivale a aprobación humana del proxy o cierre de FRONT-01.

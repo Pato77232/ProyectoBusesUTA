@@ -3,6 +3,8 @@ FROM nginx:1.30.6-alpine3.24-slim@sha256:dede8895648b461178c3bc604f7eed4423efe52
 
 RUN rm /etc/nginx/conf.d/default.conf /usr/share/nginx/html/50x.html
 COPY nginx.conf /etc/nginx/nginx.conf
+COPY nginx-proxy.conf /etc/nginx/nginx-proxy.conf
+COPY proxy-api.conf /etc/nginx/proxy-api.conf
 COPY index.html /usr/share/nginx/html/index.html
 COPY src/styles/app.css /usr/share/nginx/html/src/styles/app.css
 COPY assets /usr/share/nginx/html/assets

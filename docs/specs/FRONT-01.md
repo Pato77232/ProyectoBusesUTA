@@ -3,7 +3,7 @@
 - **ID local:** FRONT-01
 - **Responsable:** Pablo
 - **Revisora propuesta:** Shirley; confirmación pendiente.
-- **Estado:** En desarrollo: T1 autorizada por Pablo al solicitar guardar la documentación y comenzar su implementación. T2.1 autorizado e implementado localmente; T2.2–T2.4 y T3–T4 pendientes.
+- **Estado:** En desarrollo: T1 autorizada por Pablo al solicitar guardar la documentación y comenzar su implementación. T1 integrada, T2.1 versionado y T2.2 autorizado e implementado localmente; T2.3/T2.4 y T3–T4 pendientes.
 - **Fecha / base comprobada:** 25 de octubre de 2026; origin/develop en `c89b1b9`.
 - **Rama:** `feature/FRONT-01-base-compartida`.
 - **Prioridad propuesta:** Alta, para desbloquear las pantallas de los cinco integrantes.
@@ -269,3 +269,43 @@ Comprobación remota: PR #16 abierta, sin integrar, solicitud a Shirley y lista 
 Al llegar la revisión: atender sus observaciones y comprobar el método/commit real de integración (incluido posible squash); después preparar la continuación de T2.2 sobre el historial acordado. No ejecutar merge/rebase ni asumir que un squash conserva los commits originales.
 
 Verificación previa al guardado: contenedor Nginx y navegador aprobados; formato propio, sintaxis y enlaces/diff aprobados; lint aprobado. npm test contra PostgreSQL temporal `busesuta-front01-t21-commits`: 346 aprobadas (239 unitarias y 107 integración); contenedor y red retirados al terminar. Formato global del backend conserva los 26 archivos preexistentes; no se modificaron. No se leen .env ni datos reales.
+
+## 21. T1 integrada y T2.2 — entorno local y proxy real
+
+Fecha: 26 de octubre de 2026. Pablo autorizó implementar T2.2 tras el análisis de integración. Shirley aprobó PR #16 y esta se fusionó en develop mediante `eebfe7550a869018211088530a6160261b95f8f5`, con padres c89b1b9 y 3285695. El árbol de ese merge coincide con T1. La rama `feature/FRONT-01-T2-proxy` sigue válida y su diferencia contiene T2. Las recomendaciones anteriores de esperar quedan superadas; no se ejecutaron merge, rebase o cambios a develop.
+
+### Cambio acotado
+
+- Compose local independiente: PostgreSQL efímero en tmpfs, migración con script existente, backend NODE_ENV=development/TRUST_PROXY=false y frontend. Solo el frontend publica en loopback; no se comparten volúmenes o datos existentes.
+- Lanzador Node up/status/down: credenciales aleatorias en memoria y env-file vacío temporal para impedir carga implícita de .env; configuración validada sin imprimir valores. Rechaza reutilizar un proyecto ya existente antes de generar otro arranque con nuevas credenciales. Limpieza del entorno propio en fallo.
+- Imagen frontend con configuración adicional nginx-proxy.conf y proxy-api.conf. El modo sin Compose conserva nginx.conf/503 de T2.1; las pruebas previas no se debilitan. Configuración adicional excluida del contenido público.
+- Upstream real backend:3000 con zona compartida y resolución dinámica del DNS Docker; prefijo API preservado, caché de proxy desactivada, cabeceras de red sobrescritas/eliminadas, sin interceptar errores o repetir mutaciones automáticamente. Tiempos de conexión/lectura/escritura acotados.
+- Sin cambios de aplicación backend, migraciones, reglas de negocio, Compose de producción, TLS, login o cliente HTTP. No se amplía confianza de proxy/IP.
+
+### Verificación real de T2.2
+
+| Comprobación | Resultado |
+|---|---|
+| node frontend/tests/proxy-smoke.cjs | Aprobado con stack Docker real y proyecto QA propio |
+| Frontend antes de existir backend/DNS | Portada 200, API con error 502/503/504, sin falso health |
+| DB, migraciones y server.js reales | Servicios saludables, migración exitosa, health 200 JSON por /api/v1 con query |
+| Errores y rutas | 404 JSON real de API inexistente y /api/v1; 401 JSON de auth/me; /api/v10/documentación/scripts ausentes sin fallback HTML |
+| Aislamiento local | Solo puerto frontend en loopback; DB/backend sin puertos publicados y sin volúmenes persistentes de datos; development:false comprobado |
+| Backend detenido y reiniciado | Portada disponible, API con error acotado, recuperación posterior |
+| Backend recreado con IP distinta | Dirección anterior ocupada temporalmente por contenedor auxiliar, cambio real exigido; health recuperado sin recrear ni reiniciar Nginx |
+| Navegador sobre el proxy | 1280/360 px y ampliación CSS 200 %, recursos locales, teclado/foco/salto/preguntas sin desbordamiento; no certifica zoom nativo |
+| Regresión node frontend/tests/container-smoke.cjs | Aprobada; modo estático y todas sus aserciones conservados |
+| Lanzador up/status/down | Probado en Linux en 127.0.0.1:8081, portada y health 200; nginx -t -c /etc/nginx/nginx-proxy.conf aprobado; entorno retirado |
+| Prettier/sintaxis propios y diff | Aprobados |
+| Backend lint / npm test | Aprobados, 346 pruebas: 239 unitarias y 107 integración |
+| Backend format:check | Fallido en los mismos 26 archivos preexistentes, sin cambios en ellos |
+
+QA genera credenciales sin imprimirlas y retira contenedores, auxiliar, red y archivo temporal en finally. La suite backend usó PostgreSQL separado `busesuta-front01-t22`; entorno de lanzador y contenedores de regresión también retirados. Las imágenes quedan en caché local. No se leyeron .env ni datos reales, ni se agregaron dependencias de proyecto; se construyeron las imágenes con los Dockerfiles/dependencias ya existentes.
+
+T2.2 implementado localmente, sin commit ni push. T2.3 verificará cookies/CSRF del navegador y cabeceras manipuladas; no se deduce su aprobación de health o del 401. El proxy sigue agrupando la IP de los clientes: no se declara validado rate limiting individual, HTTPS o autenticación completa. T2.4 y T3/T4 siguen pendientes. Guía de ejecución en frontend/README.md.
+
+## 22. Guardado autorizado de T2.2
+
+Pablo solicitó explícitamente un commit atómico de T2.2 y continuar después con T2.3. El commit que contiene esta constancia guarda el entorno local, proxy, lanzador, pruebas y documentación bajo `feat(infra): conecta el frontend con la API en el entorno local`, con referencia FRONT-01 y asistencia de Codex. Las constancias anteriores «sin commit» describen sus sesiones; no hubo nuevos cambios de producto después de la verificación completa de la sección 21 y antes de este guardado.
+
+T2.2 queda versionado en la rama actual. T2.3 queda autorizado para comprobar cookies/CSRF reales y cabeceras manipuladas; no incluye formularios, login completo ni ampliación de confianza de proxy. Sin push.

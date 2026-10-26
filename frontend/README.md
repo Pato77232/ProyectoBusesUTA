@@ -1,6 +1,6 @@
 # transViaje — Frontend compartido, FRONT-01 T1
 
-Base estática en HTML y CSS. Incluye Bootstrap 5.3.8 local, navegación por secciones, enlace para saltar al contenido y preguntas con details/summary nativos. No necesita JavaScript para funcionar. Aún no incluye búsqueda, compra, login ni conexión a la API.
+Base estática en HTML y CSS. Incluye Bootstrap 5.3.8 local, navegación por secciones, enlace para saltar al contenido y preguntas con details/summary nativos. No necesita JavaScript para funcionar. Aún no incluye búsqueda, compra, login ni cliente HTTP de la portada. El entorno local de T2.2 conecta las rutas API reales mediante Nginx.
 
 Guía visual y trazabilidad: [DESIGN.md](DESIGN.md). La referencia original y la adaptación están separadas. Pablo confirmó nombre transViaje, logo definitivo y paleta blanco/negro/violeta; la revisión humana de la implementación sigue pendiente.
 
@@ -78,3 +78,50 @@ Requiere Docker, Node 24 y Chrome. Construye la imagen, ejecuta nginx -t, compru
 `QA_BASE_URL` permite que smoke.cjs compruebe un servidor HTTP existente en 127.0.0.1; sin esa variable conserva el servidor estático temporal de T1. La prueba del contenedor configura esa variable automáticamente. Las capturas siguen usando QA_OUTPUT_DIR o el directorio temporal habitual.
 
 Resultados y límites en [FRONT-01](../docs/specs/FRONT-01.md), sección 19. El [plan T2](../docs/frontend-t2-plan.md) conserva pendientes proxy, cookies reales con backend y confianza de IP; no declarar T2 completo por empaquetar T1.
+
+## Entorno local conectado — FRONT-01 T2.2
+
+Requiere Node 24 y Docker con Compose. Desde la raíz, el mismo lanzador funciona con sintaxis POSIX y PowerShell:
+
+```sh
+node frontend/scripts/dev.cjs up
+node frontend/scripts/dev.cjs status
+node frontend/scripts/dev.cjs down
+```
+
+`up` construye las imágenes, espera PostgreSQL, aplica las migraciones existentes y espera backend/frontend saludables. Abre http://127.0.0.1:8081/; http://127.0.0.1:8081/api/v1/health debe devolver JSON real con status ok. La portada sigue siendo informativa: tener la API conectada no implementa formularios o compras.
+
+`down` retira únicamente el proyecto `transviaje-frontend-dev` y descarta sus datos efímeros. Las imágenes quedan en caché local. No usar este entorno para datos que quieras conservar. Si ya existe, `up` pide usar status o down primero: genera credenciales nuevas por arranque y no debe mezclarlas con una instancia anterior.
+
+El lanzador crea contraseña de DB y JWT aleatorios en memoria, y usa un env-file vacío temporal para que Compose no cargue .env implícitamente. No solicita, lee, imprime ni guarda credenciales reales en archivos del repositorio. Solo frontend publica puerto en loopback; backend y PostgreSQL quedan en una red propia, sin reutilizar el volumen de producción. La base usa tmpfs. Durante la ejecución, Docker conserva las variables necesarias en sus contenedores; no compartas inspecciones completas o configuraciones renderizadas con esos valores.
+
+Puerto alternativo, antes de up:
+
+```sh
+FRONTEND_DEV_PORT=8082 node frontend/scripts/dev.cjs up
+```
+
+En PowerShell:
+
+```powershell
+$env:FRONTEND_DEV_PORT = '8082'
+node frontend/scripts/dev.cjs up
+```
+
+Se comprobó el lanzador en Linux con puerto 8081 y la prueba automatizada con puerto aleatorio 0. No se ejecutó Windows/Docker Desktop; la sintaxis del lanzador no equivale a esa validación.
+
+La imagen conserva dos modos explícitos. Dockerfile sin Compose utiliza nginx.conf (estático T2.1, API 503). El Compose local selecciona nginx-proxy.conf y proxy-api.conf para rutas reales. No se monta configuración del host ni se modifica el modo de producción. Las pruebas originales de T2.1 conservan sus aserciones.
+
+El proxy mantiene el prefijo /api/v1 y no convierte errores del backend en HTML de éxito. Si cae el backend, la portada continúa funcionando y la API devuelve un error HTTP, posiblemente HTML de Nginx. DNS dinámico permite recuperar una nueva IP sin reiniciar frontend. Con NODE_ENV=development y confianza de proxy desactivada, el backend verá la IP de Nginx; no se considera validado el rate limiting por cliente ni el despliegue HTTPS.
+
+### Prueba de la conexión real
+
+```sh
+node frontend/tests/proxy-smoke.cjs
+```
+
+Construye los Dockerfiles reales y usa un proyecto QA exclusivo, base efímera y credenciales aleatorias. Comprueba portada sin backend, migraciones, health por proxy, errores 404/401, ausencia de puertos DB/backend y volúmenes de datos, y navegador con las expectativas de T1. Después detiene y reinicia backend, y fuerza un cambio real de IP ocupando temporalmente la dirección anterior con un contenedor auxiliar; exige recuperación sin recrear o reiniciar Nginx. Finalmente retira contenedores, auxiliar, red y archivo vacío temporal, incluso ante fallo.
+
+T2.3 comprobará cookies/CSRF en navegador y cabeceras manipuladas; esta prueba no acredita autenticación completa. No introduce usuarios, contraseñas de acceso, pantalla de login ni un cliente API. Resultados y límites en FRONT-01, sección 21.
+
+El uso de upstream con zona compartida y resolve sigue la [documentación de Nginx](https://nginx.org/en/docs/http/ngx_http_upstream_module.html#resolve). El orden DB/migración/backend usa [condiciones de dependencia de Compose](https://docs.docker.com/compose/how-tos/startup-order/), sin asumir que iniciar un proceso equivale a estar listo.
