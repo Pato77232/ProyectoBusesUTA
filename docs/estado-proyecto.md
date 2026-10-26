@@ -4,7 +4,7 @@
 
 - **Fecha de comprobación:** 26 de octubre de 2026, America/Guayaquil.
 - **Base integrada examinada:** `origin/develop` en `c8bb5d3`; contiene INFRA-04 y documentación inicial de reservas.
-- **Cambio local actual:** `feature/PAGOS-01-subir-comprobante` parte de `c8bb5d3` y figura 11 commits adelante de `origin/feature/PAGOS-01-subir-comprobante`. T3 de pagos está en archivos locales sin commit; se actualizan PAGOS-01/BOOK-06/BOOK-07 y se crea el borrador PAGOS-03. Revisión humana, publicación e integración pendientes.
+- **Cambio local actual:** `feature/PAGOS-01-subir-comprobante` parte de `c8bb5d3`; T3 y los acuerdos documentales están en commits locales `df27d44` y `72887bd`. No hay PR registrado; revisión humana, publicación e integración pendientes.
 - **Fuentes:** árbol y composición de esa base, specs versionadas y distribución de referencia en [equipo-y-acuerdos.md](equipo-y-acuerdos.md). No se inspeccionaron todas las ramas remotas ni se certifica el trabajo privado de otros integrantes.
 
 Este archivo orienta; la spec es la fuente del alcance y business-rules.md la de reglas funcionales. Si el código y la spec difieren, mostrar ambas evidencias y pedir resolver el conflicto, sin inventar acuerdos.
@@ -35,9 +35,9 @@ Antes de orientar a alguien:
 | [INFRA-02](specs/INFRA-02.md), [INFRA-03](specs/INFRA-03.md) | Shirley; revisor indicado Pablo | Cambios presentes; cierre documental pendiente | cross-env y .gitattributes presentes, lock actualizado en historial; no implica aprobación humana ni validación Windows actual |
 | [INFRA-04](specs/INFRA-04.md) | Pablo; revisora propuesta Shirley | Integrada: su código documental está contenido en c89b1b9 | La presencia en develop está comprobada; no se inventa evidencia de revisión humana/cierre |
 | [FRONT-01](specs/FRONT-01.md) | Pablo; revisora propuesta Shirley | En desarrollo: T1 local, pendiente de revisión | Página estática, Bootstrap 5.3.8 y tipografía locales; rediseño solicitado por Pablo con trazabilidad en frontend/DESIGN.md. Pablo confirmó marca transViaje, logo definitivo y paleta; originales y catálogo orientativo en docs/design. Portada local con transViaje, logo definitivo y favicon derivado; revisión e integración pendientes. Pruebas de navegador en la spec. T2–T4 y pantallas de negocio pendientes; evidencia en la spec |
-| [PAGOS-01](specs/PAGOS-01.md) | Shirley; revisor propuesto Pablo | En desarrollo en rama local; T3 pendiente de verificación completa | Migración, repositorio PostgreSQL y pruebas locales de integración presentes; se detectó que las limpiezas de otras suites deben incluir la nueva tabla cooperativa hija. Contrato recepción/expiración documentado; firma y contexto siguen pendientes. No integrado |
+| [PAGOS-01](specs/PAGOS-01.md) | Shirley; revisor propuesto Pablo | T3 verificada localmente; conexión con reservas pendiente | Migración, repositorio y pruebas integradas; lint pasó, unitarias 29/29 suites (266), integración 13/13 suites (114), Prettier de los dos archivos nuevos pasó. `format:check` global reportó advertencias en 51 archivos; no se aplicó formato masivo. Contrato recepción/expiración documentado; firma y contexto siguen pendientes. No integrado |
 | [PAGOS-03](specs/PAGOS-03.md) | Shirley; revisor propuesto Pablo | Borrador | Regla de rechazo justificado y liberación confirmada por Leslie; autorización y recuperación idempotente pendientes del contrato técnico |
-| search, bookings, payments, tickets y frontend | Según propuesta inferior | Sin implementación en la base examinada | Confirmar ramas de los responsables antes de crear tareas |
+| search, bookings y tickets | Según propuesta inferior | Sin implementación funcional en la base examinada | Confirmar ramas de los responsables antes de crear tareas |
 | CI | Pablo | Sin workflow versionado en la base | Proponer una spec propia; no afirmar protecciones remotas sin consultarlas |
 
 ## Próximos pasos por integrante
