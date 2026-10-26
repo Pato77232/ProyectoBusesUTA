@@ -2,9 +2,9 @@
 
 ## Alcance y frescura de esta fotografía
 
-- **Fecha de comprobación:** 25 de octubre de 2026, America/Guayaquil.
-- **Base integrada examinada:** `origin/develop` en `c89b1b9`, después de `git fetch origin develop`; contiene INFRA-04 y documentación inicial de reservas.
-- **Cambio local actual:** FRONT-01 T1 en `feature/FRONT-01-base-compartida`; acuerdos guardados en `50dac78` y T1 guardada en commits atómicos por petición de Pablo. Revisión humana, publicación e integración pendientes.
+- **Fecha de comprobación:** 26 de octubre de 2026, America/Guayaquil.
+- **Base integrada examinada:** `origin/develop` en `c8bb5d3`; contiene INFRA-04 y documentación inicial de reservas.
+- **Cambio local actual:** `feature/PAGOS-01-subir-comprobante` parte de `c8bb5d3` y figura 11 commits adelante de `origin/feature/PAGOS-01-subir-comprobante`. T3 de pagos está en archivos locales sin commit; se actualizan PAGOS-01/BOOK-06/BOOK-07 y se crea el borrador PAGOS-03. Revisión humana, publicación e integración pendientes.
 - **Fuentes:** árbol y composición de esa base, specs versionadas y distribución de referencia en [equipo-y-acuerdos.md](equipo-y-acuerdos.md). No se inspeccionaron todas las ramas remotas ni se certifica el trabajo privado de otros integrantes.
 
 Este archivo orienta; la spec es la fuente del alcance y business-rules.md la de reglas funcionales. Si el código y la spec difieren, mostrar ambas evidencias y pedir resolver el conflicto, sin inventar acuerdos.
@@ -35,6 +35,8 @@ Antes de orientar a alguien:
 | [INFRA-02](specs/INFRA-02.md), [INFRA-03](specs/INFRA-03.md) | Shirley; revisor indicado Pablo | Cambios presentes; cierre documental pendiente | cross-env y .gitattributes presentes, lock actualizado en historial; no implica aprobación humana ni validación Windows actual |
 | [INFRA-04](specs/INFRA-04.md) | Pablo; revisora propuesta Shirley | Integrada: su código documental está contenido en c89b1b9 | La presencia en develop está comprobada; no se inventa evidencia de revisión humana/cierre |
 | [FRONT-01](specs/FRONT-01.md) | Pablo; revisora propuesta Shirley | En desarrollo: T1 local, pendiente de revisión | Página estática, Bootstrap 5.3.8 y tipografía locales; rediseño solicitado por Pablo con trazabilidad en frontend/DESIGN.md. Pablo confirmó marca transViaje, logo definitivo y paleta; originales y catálogo orientativo en docs/design. Portada local con transViaje, logo definitivo y favicon derivado; revisión e integración pendientes. Pruebas de navegador en la spec. T2–T4 y pantallas de negocio pendientes; evidencia en la spec |
+| [PAGOS-01](specs/PAGOS-01.md) | Shirley; revisor propuesto Pablo | En desarrollo en rama local; T3 pendiente de verificación completa | Migración, repositorio PostgreSQL y pruebas locales de integración presentes; se detectó que las limpiezas de otras suites deben incluir la nueva tabla cooperativa hija. Contrato recepción/expiración documentado; firma y contexto siguen pendientes. No integrado |
+| [PAGOS-03](specs/PAGOS-03.md) | Shirley; revisor propuesto Pablo | Borrador | Regla de rechazo justificado y liberación confirmada por Leslie; autorización y recuperación idempotente pendientes del contrato técnico |
 | search, bookings, payments, tickets y frontend | Según propuesta inferior | Sin implementación en la base examinada | Confirmar ramas de los responsables antes de crear tareas |
 | CI | Pablo | Sin workflow versionado en la base | Proponer una spec propia; no afirmar protecciones remotas sin consultarlas |
 
@@ -61,9 +63,9 @@ Orden recomendado para discutir con el equipo. Cada fila es **Propuesta sin spec
 | Leslie | 2. Registrar pasajeros y calcular descuentos, en tareas separadas | Resolver porcentajes, edades y validación de cédula de RN-43 con el equipo |
 | Leslie | 3. Reservar asientos con control de concurrencia | Viaje/asiento definidos; prueba de dos reservas simultáneas RN-40 |
 | Leslie | 4. Expirar reservas y luego pantalla de selección | Acordar plazo/comprobante con Shirley; RN-50/51; base frontend para pantalla |
-| Shirley | 1. Acordar ciclo reserva–comprobante con Leslie | Inicio del plazo, transición y límites; no fijar duración en el código |
-| Shirley | 2. Subir comprobante y luego listar pendientes, en tareas separadas | Contrato de reserva, archivos y cuenta CLERK operativa |
-| Shirley | 3. Aprobar y rechazar comprobante, en tareas separadas | RN-52/53, aislamiento y concurrencia; rechazo exige justificación |
+| Shirley | 1. Cerrar el contrato de recepción–expiración con Leslie | Coordinación transaccional por reserva ya acordada; definir firma, parámetros y contexto autorizado antes de conectar |
+| Shirley | 2. Completar PAGOS-01 y luego listar pendientes, en tareas separadas | Outbox durable, contrato público de reservas y cuenta CLERK operativa; no marcar integrada sin pruebas PostgreSQL |
+| Shirley | 3. Aprobar y rechazar comprobantes, en tareas separadas | PAGOS-03 documenta rechazo con justificación; cerrar autorización y contrato de liberación; RN-52/53, aislamiento y concurrencia |
 | Shirley | 4. Emitir boleto QR y luego consultar historial, en tareas separadas | Aprobación, asiento vendido e identidad cliente/invitado acordados |
 | Shirley | 5. Pantallas de comprobante y bandeja, una por tarea | Endpoints y base frontend |
 
@@ -76,7 +78,7 @@ Búsqueda consolidada todavía requiere asignación confirmada. La propuesta ori
 | Buses/grupos/frecuencias para hojas de ruta | Edwin, David y Pablo para composición | Contratos públicos concretos y prueba del arranque real |
 | Precio y ciclos | David, Leslie y responsable de búsqueda por confirmar | FREQ-01 decide precio por tramo, pero business-rules.md aún lo pregunta; ROUTE-SHEETS-01 agrega ciclos/ventana; reconciliar fuentes sin inventar otra regla |
 | Descuentos y cédula | Leslie y equipo | Porcentajes, edades y forma de validación aprobados |
-| Plazo y comprobante | Leslie y Shirley | Inicio del plazo, límites, transiciones y comportamiento concurrente |
+| Plazo y comprobante | Leslie y Shirley | Coordinación de recepción/expiración y sus resultados confirmados; faltan firma, parámetros, contexto autorizado y verificación integrada |
 | Invitado, tarjeta y venta física | Leslie, Shirley y equipo | Resolver preguntas abiertas de business-rules.md antes de implementar lo afectado |
 | Frontend compartido | Pablo y autores de pantallas | Contratos de navegación, origen, mensajes y criterios de usabilidad |
 
