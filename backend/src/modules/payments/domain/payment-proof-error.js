@@ -41,6 +41,20 @@ class PaymentProofCannotExpireError extends PaymentProofError {
   }
 }
 
+class BookingNotFoundOrNotOwnedError extends PaymentProofError {
+  constructor() {
+    super('BOOKING_NOT_FOUND');
+    this.name = 'BookingNotFoundOrNotOwnedError';
+  }
+}
+
+class BookingNotPayableError extends PaymentProofError {
+  constructor() {
+    super('BOOKING_NOT_PAYABLE');
+    this.name = 'BookingNotPayableError';
+  }
+}
+
 module.exports = {
   PaymentProofError,
   PaymentProofValidationError,
@@ -48,4 +62,6 @@ module.exports = {
   PaymentProofAlreadyUploadedError,
   PaymentProofExpiredError,
   PaymentProofCannotExpireError,
+  BookingNotFoundOrNotOwnedError,
+  BookingNotPayableError,
 };
