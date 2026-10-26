@@ -4,6 +4,7 @@ const {
   BookingNotPayableError,
   PaymentProofValidationError,
   PaymentProofUploadDeadlineExpiredError,
+  BookingNotificationUncertainError,
 } = require('../../../src/modules/payments/domain/payment-proof-error');
 
 const NOW = new Date('2026-10-25T12:04:00.000Z');
@@ -171,13 +172,15 @@ test('si reservas rechaza definitivamente por plazo vencido compensa el comproba
 test('conserva una carga ante resultado incierto y reintenta el aviso sin duplicar archivo', async () => {
   // Arrange
   const harness = createHarness();
-  const transportError = new Error('resultado incierto');
+  const transportError = new BookingNotificationUncertainError();
   harness.bookingPaymentProofNotifier.markPaymentProofReceived
     .mockRejectedValueOnce(transportError)
     .mockResolvedValueOnce(undefined);
 
   // Act
-  await expect(harness.useCase.execute(createInput())).rejects.toBe(transportError);
+  await expect(harness.useCase.execute(createInput())).rejects.toBeInstanceOf(
+    BookingNotificationUncertainError,
+  );
   const result = await harness.useCase.execute(createInput());
 
   // Assert

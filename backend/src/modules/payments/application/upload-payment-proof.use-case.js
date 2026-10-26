@@ -5,6 +5,7 @@ const {
   PaymentProofValidationError,
   BookingPaymentProofRejectedError,
   PaymentProofUploadDeadlineExpiredError,
+  BookingNotificationUncertainError,
 } = require('../domain/payment-proof-error');
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
@@ -101,8 +102,9 @@ class UploadPaymentProof {
         if (isDefinitiveBookingRejection(error)) {
           await this.paymentProofRepository.deleteByBookingId(booking.bookingId);
           await this.fileStorage.delete(existingProof.file_key);
+          throw error;
         }
-        throw error;
+        throw new BookingNotificationUncertainError();
       }
       return { paymentProof: existingProof, expiresAt: booking.expiresAt, total: booking.total };
     }
@@ -146,8 +148,9 @@ class UploadPaymentProof {
       if (isDefinitiveBookingRejection(error)) {
         await this.paymentProofRepository.deleteByBookingId(booking.bookingId);
         await this.fileStorage.delete(fileKey);
+        throw error;
       }
-      throw error;
+      throw new BookingNotificationUncertainError();
     }
 
     return { paymentProof: savedProof, expiresAt: booking.expiresAt, total: booking.total };
