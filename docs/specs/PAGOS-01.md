@@ -6,7 +6,7 @@
 - **Alcance de commit:** `pagos`
 - **Responsable:** Shirley
 - **Revisor:** Pablo
-- **Estado:** En desarrollo; T3 de migración/repositorio verificada localmente, conexión con `bookings` pendiente del contrato público.
+- **Estado:** Borrador; T3 de migración/repositorio verificada localmente. Esta especificación no registra aprobaciones.
 
 > Propuesta pendiente de revisión. Las decisiones pendientes de confirmación deben resolverse antes de implementar los puntos que afectan.
 
@@ -41,8 +41,8 @@ La spec puede dividirse después en specs independientes para carga y expiració
 1. Al abrir la ventana de pago de una reserva, `payments` mantiene un comprobante en estado `AWAITING_UPLOAD`, sin archivo asociado. El plazo pertenece a `bookings` y `payments` lo obtiene mediante `findForPayment`.
 2. El cliente autenticado solicita la carga enviando el ID de reserva y un único archivo, con CSRF válido.
 3. El caso de uso consulta la reserva mediante `findForPayment` (API pública de `bookings`) y comprueba propietario, estado vigente, cooperativa derivada de la reserva y fecha límite leída de esa misma reserva.
-4. Si `now < expiresAt`, `payments` guarda el archivo y sus metadatos como `UPLOADED`, junto con un aviso pendiente persistente en un outbox, dentro de una transacción local. Si falla la persistencia, no notifica a `bookings` y limpia cualquier archivo temporal.
-5. Un proceso reintentable entrega el aviso mediante la operación pública que se acuerde con `bookings` (nombre propuesto: `markPaymentProofReceived`). La repetición usa la misma identidad idempotente. Los nombres de parámetros y el contexto autorizado siguen pendientes del contrato técnico.
+4. Si `now < expiresAt`, `payments` guarda primero el archivo y sus metadatos como `UPLOADED`, junto con un aviso pendiente persistente en un outbox, dentro de una transacción local. Si falla la persistencia, no notifica a `bookings` y limpia cualquier archivo temporal.
+5. Después de confirmar esa persistencia, un proceso reintentable entrega el aviso mediante la operación pública que se acuerde con `bookings` (nombre propuesto: `markPaymentProofReceived`). La repetición usa la misma identidad idempotente. Los nombres de parámetros y el contexto autorizado siguen pendientes del contrato técnico.
 6. `bookings` serializa por reserva la recepción y la expiración en su coordinación transaccional. Si acepta antes del vencimiento, conserva los asientos durante la revisión. Si la reserva ya expiró o el plazo venció antes de aceptar, responde con rechazo definitivo.
 7. Ante timeout o resultado incierto, `payments` conserva el comprobante y el outbox, y reintenta la misma operación; no compensa. Si la primera llamada ya fue aceptada, el reintento devuelve ese resultado aceptado aunque llegue después del vencimiento.
 8. Solo ante rechazo definitivo `payments` compensa el archivo y el estado persistido. La decisión de compensar no se deriva de un timeout.
@@ -162,6 +162,15 @@ La solicitud usa `multipart/form-data` con `bookingId` y `file`. Respuesta `201`
 | Persistencia del aviso | El aviso pendiente se guarda en un outbox durable junto con `UPLOADED`, en la misma transacción local, para sobrevivir reinicios y reintentarse con identidad estable. | Respuesta de Leslie compartida por Shirley, 26 de octubre de 2026. |
 | Operaciones públicas de reservas para pagos | Nombres propuestos: `findForPayment`, `markPaymentProofReceived`, `confirmSale` y `releaseBooking`; las operaciones deben validar contexto autorizado y cooperativa. `findForPayment` devuelve el total en centavos enteros. Los parámetros y contexto se cierran en el contrato entre módulos. | Mensaje de Leslie, 25 de octubre de 2026, y coordinación posterior del 26 de octubre de 2026. |
 | Confirmación de venta | La conversión a vendido por `confirmSale` es transaccional e idempotente. | [BOOK-07 §1, §3, §7](BOOK-07.md); mensaje de Leslie, 25 de octubre de 2026. |
+
+### Supuestos de implementación T4
+
+- **Idempotencia local:** se permite un solo comprobante por reserva, acorde con la restricción única propuesta sobre `booking_id`; los reintentos reutilizan la identidad de reserva/comprobante existente y nunca reemplazan el archivo ya persistido.
+- **Resultado incierto:** un timeout o error de transporte después de persistir deja `UPLOADED` y el aviso pendiente para reintento; no se borra el archivo ni el comprobante.
+- **Rechazo definitivo:** el adaptador de reservas representa explícitamente este resultado como rechazo tipado. Solo ese resultado permite compensar la persistencia local y borrar el archivo.
+- **Contrato simulado:** hasta que BOOKINGS publique las firmas y el contexto autorizado, T4 prueba `BookingReader` y `BookingPaymentProofNotifier` con adaptadores simulados de `payments`, sin cambiar `bookings` ni afirmar una integración real.
+
+Estos son supuestos técnicos para completar PAGOS-01; no cambian BOOK-06/07 ni constituyen aprobación de la spec.
 
 ### Propuesto, pendiente de confirmación
 
