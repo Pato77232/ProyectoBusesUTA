@@ -55,3 +55,17 @@ Pablo confirmó en este chat el nombre **transViaje**, el logo adjunto como defi
 ## Guardado del avance
 
 Pablo solicitó los commits atómicos. Recursos en `152f5a2`, documentación visual en `98d20bd` y portada/pruebas/estado en el commit de implementación que incluye esta constancia, todos con referencia FRONT-01. T1 sigue pendiente de revisión humana, publicación e integración; registrar commits no cierra la tarea ni autoriza T2.
+
+## Preparación de T2 autorizada
+
+Pablo autorizó preparar el siguiente incremento mientras T1 está en la PR #16. [Plan](frontend-t2-plan.md): Nginx con versión exacta propuesta, puerto loopback 8081 configurable y composición local independiente para no heredar NODE_ENV=production o datos existentes. Son detalles del enfoque F-A1–F-A4 ya confirmado, no una nueva votación del stack.
+
+Solo se preparan documentos en `feature/FRONT-01-T2-proxy`; implementación y comprobaciones reales pendientes. La política de confianza de proxy/IP queda delimitada explícitamente antes de login integrado o despliegue. No se cambian reglas, autenticación ni criterios de aprobación humana.
+
+## T2.1 autorizado e implementado localmente
+
+Pablo pidió continuar con el empaquetado. Imagen Nginx fijada por versión/digest, portada servida sin root y prueba real del contenedor aprobada, sin añadir paquetes. Backend/API siguen sin conectar: 503 explícito en `/api/v1`; no se atribuyen pruebas de cookies o autenticación al servidor estático. Evidencia en FRONT-01, sección 19; próximo incremento propuesto T2.2. Sin commit/push y sin modificar la PR de T1.
+
+## Guardado de T2.1 y continuidad recomendada
+
+Pablo autorizó commits atómicos: plan en 2815747 y empaquetado/pruebas/estado en el commit de implementación que incluye esta constancia. Comprobada PR #16 abierta y sin revisiones registradas; develop sigue en c89b1b9. Codex recomienda esperar el resultado de T1 antes de ampliar T2.2, conservando la revisión por incrementos. Esta recomendación no inventa aprobación del equipo ni cierra/bloquea técnicamente FRONT-01. No se hace push.

@@ -3,7 +3,7 @@
 - **ID local:** FRONT-01
 - **Responsable:** Pablo
 - **Revisora propuesta:** Shirley; confirmación pendiente.
-- **Estado:** En desarrollo: T1 autorizada por Pablo al solicitar guardar la documentación y comenzar su implementación. T2–T4 siguen pendientes.
+- **Estado:** En desarrollo: T1 autorizada por Pablo al solicitar guardar la documentación y comenzar su implementación. T2.1 autorizado e implementado localmente; T2.2–T2.4 y T3–T4 pendientes.
 - **Fecha / base comprobada:** 25 de octubre de 2026; origin/develop en `c89b1b9`.
 - **Rama:** `feature/FRONT-01-base-compartida`.
 - **Prioridad propuesta:** Alta, para desbloquear las pantallas de los cinco integrantes.
@@ -228,3 +228,44 @@ Todos referencian FRONT-01 y declaran asistencia de Codex. Los textos anteriores
 Validación previa a los commits: prueba de navegador aprobada en escritorio/móvil/CSS zoom 200 %, Prettier propio y `npm run lint` aprobados; `npm test` con 346 aprobadas (239 unitarias, 107 de integración). PostgreSQL aislado en `busesuta-front01-commits`, sin .env ni datos reales; retirado al terminar. `npm run format:check` falla en los mismos 26 archivos preexistentes del backend, sin cambios en ellos.
 
 Al revisar archivos añadidos, `git diff --cached --check` detectó un espacio final en `frontend/assets/vendor/plus-jakarta-sans/OFL.txt:21`. Se conserva el archivo de licencia original y su SHA-256, sin reformatearlo; no se oculta la observación ni se debilita una prueba. Las comprobaciones anteriores de diff solo cubrían archivos rastreados en ese momento. El resto de los cambios propios pasa la comprobación de espacios; integridad de Bootstrap, fuente y referencias verificada.
+
+## 18. Preparación documental de T2
+
+Pablo autorizó preparar T2 mientras espera la revisión de T1. [Plan acotado de servidor/proxy](../frontend-t2-plan.md): versión fija propuesta de Nginx, puerto local 8081 configurable, Compose local independiente, política HTTP de desarrollo sin cambiar producción, contrato de rutas/caché/errores y matriz de pruebas reales.
+
+PR de T1 [#16](https://github.com/Pato77232/ProyectoBusesUTA/pull/16) comprobada abierta y sin integrar, head `3285695`, base develop `c89b1b9`, revisión solicitada a Shirley. Preparación separada en `feature/FRONT-01-T2-proxy`, basada en el head de T1 para no modificar su PR. No se afirma aprobación humana ni se publica otra PR antes de revisar la dependencia.
+
+Se conserva TRUST_PROXY desactivado en el alcance local: el backend verá la IP de Nginx. La confianza en un proxy de otro contenedor necesita una tarea acotada y pruebas antes del login integrado/rate limiting por cliente o despliegue. T2 cubre transporte de lectura, cookies CSRF y preservación de errores, no cliente HTTP o pantallas de autenticación.
+
+Estado real: solo documentación, no Dockerfile/configuración/Compose nuevos ni dependencias instaladas. Imagen, arranque real, cookies, fallos y recuperación del upstream pendientes de ejecución. No se ejecutaron otra vez las pruebas de producto por no cambiar código/configuración; no se atribuyen resultados de T1 al proxy. Enlaces locales y diff de la preparación comprobados. Sin commit ni push en esta sesión.
+
+## 19. T2.1 — empaquetado estático con Nginx
+
+Pablo autorizó continuar después de proponer T2.1. Se incorporan `frontend/Dockerfile`, `.dockerignore` y `nginx.conf`: imagen oficial Nginx 1.30.6 alpine3.24-slim fijada por versión/digest, servidor en 8080 como usuario nginx no root y rutas temporales en /tmp. El runtime se comprobó con raíz de solo lectura, tmpfs y capacidades retiradas.
+
+Se copia solo portada, CSS y assets; no se incluye documentación/tests/provenance.json y se conservan licencias. Estáticos reales, 404 sin fallback, listado desactivado y logs sin query/cookies. API todavía no conectada: `/api/v1` y subrutas responden 503 JSON `API_NOT_CONNECTED` con no-store. No es un upstream funcional ni se declara T2 completo.
+
+Prueba nueva `node frontend/tests/container-smoke.cjs`, junto con soporte QA_BASE_URL en smoke.cjs para reutilizar sus expectativas sobre Nginx en loopback. No se cambian aserciones existentes ni se instalan paquetes. Comandos de ejecución y procedencia en [frontend/README.md](../../frontend/README.md).
+
+### Resultados reales
+
+- Imagen descargada: digest `sha256:dede8895648b461178c3bc604f7eed4423efe5220b2c4d839f5eb3d34ac3f8f7`; `nginx -v` confirma 1.30.6 y `nginx -t` aprobado. Usuario efectivo UID/GID 101, licencia Nginx conservada en la imagen final.
+- La primera prueba falló porque TTF se servía como application/octet-stream. Se corrigió nginx.conf con font/ttf; no se cambió la expectativa. Ejecución final completa aprobada.
+- Verificados HTTP 200 y MIME de HTML/CSS/PNG/SVG/TTF, 404 de archivos ausentes y documentación excluida, 403 de directorio sin índice y 503/no-store/JSON explícito de API pendiente.
+- Pruebas de navegador aprobadas sobre el contenedor: 1280/360 px, ampliación CSS 200 %, logo/fuente/Bootstrap locales, Tab/Enter, foco, salto, preguntas y ausencia de desbordamiento/recursos externos. Capturas en `/tmp/busesuta-front01-qa`. No certifica zoom nativo ni accesibilidad completa; la identidad visual no cambió.
+- Prettier de pruebas propias, sintaxis Node y diff: aprobados. `npm run lint`: aprobado. `npm test`: 346 aprobadas, 239 unitarias y 107 integración.
+- `npm run format:check`: fallido en los mismos 26 archivos preexistentes del backend, sin cambios en ellos.
+
+PostgreSQL temporal `busesuta-front01-t21`, sin cargar .env ni datos reales; contenedor/red retirados. El contenedor de prueba Nginx se retiró en finally; la imagen queda en caché local. Backend, Compose existente y migraciones sin modificaciones. T2.2 (conexión), T2.3 (errores/cookies con backend) y T2.4 siguen pendientes, igual que la resolución de confianza de IP antes de login integrado. Sin commit, push o cambios en la PR #16 en esta sesión.
+
+## 20. Guardado de T2.1 y decisión de continuidad
+
+Pablo solicitó commits atómicos y decidir si continuar o esperar. Plan guardado en `2815747` (`docs(infra): define el plan del proxy local del frontend`). El commit de implementación que contiene esta constancia (`feat(infra): empaqueta la portada con Nginx`) guarda Dockerfile, exclusiones, configuración, pruebas y evidencia/estado relacionados. Ambos referencian FRONT-01 y declaran asistencia de Codex. Sin push ni cambios en la PR #16.
+
+Comprobación remota: PR #16 abierta, sin integrar, solicitud a Shirley y lista de revisiones vacía; develop sigue en `c89b1b9` después de fetch. No se confunde el merge commit provisional que informa GitHub con una integración real.
+
+**Decisión recomendada por Codex:** esperar el resultado de la revisión de T1 antes de ampliar T2 con T2.2. T2.1 ya ofrece un incremento comprobable y depende de la portada pendiente; recibir primero las observaciones reduce cambios simultáneos sobre esa base y conserva la revisión por incrementos. Es una recomendación de coordinación, no una aprobación del equipo ni un bloqueo técnico inventado. No se declara T2 integrada/cerrada y no se crea una PR que duplique T1.
+
+Al llegar la revisión: atender sus observaciones y comprobar el método/commit real de integración (incluido posible squash); después preparar la continuación de T2.2 sobre el historial acordado. No ejecutar merge/rebase ni asumir que un squash conserva los commits originales.
+
+Verificación previa al guardado: contenedor Nginx y navegador aprobados; formato propio, sintaxis y enlaces/diff aprobados; lint aprobado. npm test contra PostgreSQL temporal `busesuta-front01-t21-commits`: 346 aprobadas (239 unitarias y 107 integración); contenedor y red retirados al terminar. Formato global del backend conserva los 26 archivos preexistentes; no se modificaron. No se leen .env ni datos reales.

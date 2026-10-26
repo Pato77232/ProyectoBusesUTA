@@ -45,3 +45,36 @@ backend/node_modules/.bin/prettier --config backend/.prettierrc.json --check fro
 ```
 
 No reformatear el recurso de terceros: debe conservar su integridad. Las verificaciones del backend siguen ejecutándose desde backend según AGENTS.md.
+
+## Ejecutar el contenedor — FRONT-01 T2.1
+
+T2.1 empaqueta únicamente la portada de T1. Usa Nginx 1.30.6, variante alpine3.24-slim, fijada por digest en Dockerfile:
+
+`sha256:dede8895648b461178c3bc604f7eed4423efe5220b2c4d839f5eb3d34ac3f8f7`.
+
+Procedencia: [Docker Official Images](https://github.com/docker-library/official-images/blob/master/library/nginx), vinculada al [Dockerfile del mantenedor](https://github.com/nginx/docker-nginx/blob/4b9f658be76820b24e4ef4605413a5c08707a512/stable/alpine-slim/Dockerfile). La imagen final conserva `/usr/share/licenses/nginx/COPYRIGHT`, además de las licencias Bootstrap y OFL. Las dependencias de Alpine tienen sus propios avisos; no atribuirles una licencia única.
+
+Con Docker disponible, desde la raíz (cada comando en una línea, también válido como sintaxis de PowerShell):
+
+```sh
+docker build -t busesuta-frontend:t2.1 frontend
+docker run --rm --name transviaje-frontend --read-only --tmpfs /tmp:rw,noexec,nosuid,size=16m,mode=1777 --cap-drop=ALL --security-opt=no-new-privileges:true -p 127.0.0.1:8081:8080 busesuta-frontend:t2.1
+```
+
+Abrir http://127.0.0.1:8081. Puede sustituirse 8081 por otro puerto libre; 8080 después de los dos puntos es el puerto interno. Detener con Ctrl+C o `docker stop transviaje-frontend` en otra terminal; `--rm` retira el contenedor. La imagen de construcción queda local para reutilizarla. No se levantan backend o base de datos con estos comandos. Verificado en Linux; no se ejecutó en Windows/Docker Desktop.
+
+La portada y recursos reales responden 200, los archivos inexistentes 404 y los directorios sin índice 403. No se publica documentación, tests ni provenance.json; se conservan las licencias de los recursos. El contexto se limita mediante .dockerignore y las copias del Dockerfile.
+
+**API aún sin conectar:** `/api/v1` y sus rutas responden 503 JSON con código `API_NOT_CONNECTED`, no la portada con 200. Esto es un estado explícito de empaquetado T2.1, no una prueba de salud ni un proxy implementado. T2.2 lo sustituirá por la conexión real con backend.
+
+### Prueba real del contenedor
+
+```sh
+node frontend/tests/container-smoke.cjs
+```
+
+Requiere Docker, Node 24 y Chrome. Construye la imagen, ejecuta nginx -t, comprueba usuario no root, archivos incluidos/excluidos, MIME, HTTP 404/503 y ausencia de listado. Inicia un contenedor temporal con puerto loopback libre y ejecuta sobre él las mismas pruebas de navegador de T1, sin cambiar sus expectativas. Retira el contenedor incluso ante un fallo; la imagen queda en caché local. No lee .env ni necesita PostgreSQL.
+
+`QA_BASE_URL` permite que smoke.cjs compruebe un servidor HTTP existente en 127.0.0.1; sin esa variable conserva el servidor estático temporal de T1. La prueba del contenedor configura esa variable automáticamente. Las capturas siguen usando QA_OUTPUT_DIR o el directorio temporal habitual.
+
+Resultados y límites en [FRONT-01](../docs/specs/FRONT-01.md), sección 19. El [plan T2](../docs/frontend-t2-plan.md) conserva pendientes proxy, cookies reales con backend y confianza de IP; no declarar T2 completo por empaquetar T1.

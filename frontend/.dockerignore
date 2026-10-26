@@ -1,0 +1,12 @@
+# Lista de inclusión: solo configuración y recursos usados por T1.
+**
+!Dockerfile
+!nginx.conf
+!index.html
+!src/
+!src/styles/
+!src/styles/app.css
+!assets/
+!assets/**
+**/*.md
+**/provenance.json
