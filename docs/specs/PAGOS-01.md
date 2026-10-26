@@ -166,6 +166,7 @@ La solicitud usa `multipart/form-data` con `bookingId` y `file`. Respuesta `201`
 ### Supuestos de implementación T4
 
 - **Idempotencia local:** se permite un solo comprobante por reserva, acorde con la restricción única propuesta sobre `booking_id`; los reintentos reutilizan la identidad de reserva/comprobante existente y nunca reemplazan el archivo ya persistido.
+- **Outbox local:** el aviso pendiente se almacena en `payment_proof_notification_outbox`, con vínculo a `payment_proofs` y borrado en cascada; sus estados iniciales son `PENDING` y `DELIVERED`. Un reintento vuelve a invocar la operación idempotente usando el mismo `bookingId`.
 - **Resultado incierto:** un timeout o error de transporte después de persistir deja `UPLOADED` y el aviso pendiente para reintento; no se borra el archivo ni el comprobante.
 - **Rechazo definitivo:** el adaptador de reservas representa explícitamente este resultado como rechazo tipado. Solo ese resultado permite compensar la persistencia local y borrar el archivo.
 - **Contrato simulado:** hasta que BOOKINGS publique las firmas y el contexto autorizado, T4 prueba `BookingReader` y `BookingPaymentProofNotifier` con adaptadores simulados de `payments`, sin cambiar `bookings` ni afirmar una integración real.
