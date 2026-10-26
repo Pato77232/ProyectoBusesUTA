@@ -1,7 +1,7 @@
 # FRONT-01 T2: plan de servidor y proxy local
 
 - Responsable: Pablo. Revisora de T1 solicitada: Shirley (`shirley6126`); no se infiere aceptación de T2.
-- Estado: **T2.1 versionado; T2.2 implementado y comprobado localmente. T2.3/T2.4 pendientes**.
+- Estado: **T2.1/T2.2 versionados; T2.3 implementado como verificación real local. T2.4 pendiente**.
 - Base: `3285695`, última implementación de T1. Rama de preparación: `feature/FRONT-01-T2-proxy`, creada desde ese commit.
 - Dependencia resuelta: [PR #16 de T1](https://github.com/Pato77232/ProyectoBusesUTA/pull/16), aprobada por Shirley e integrada el 26 de octubre de 2026 en `eebfe75`; conserva `3285695` como padre, sin squash. La rama actual se conserva; no se ejecutó merge/rebase.
 - Referencias: [FRONT-01](specs/FRONT-01.md), [ADR 0003](adr/0003-stack-tecnologico.md), [ADR 0004](adr/0004-autenticacion-sesiones-credenciales.md) y [acuerdos](frontend-acuerdos.md).
@@ -96,10 +96,10 @@ Las casillas marcadas tienen evidencia de T2.1 en FRONT-01, sección 19. Las dem
 - [x] Archivos inexistentes devuelven 404; no se publican README, DESIGN, pruebas ni fuentes documentales.
 - [x] `/api/v1/health` responde 200 y JSON real del backend con PostgreSQL accesible; URL con query probada y prefijo conservado en configuración, sin fallback HTML.
 - [x] Ruta API inexistente conserva 404 y el contrato JSON del backend; `/api/v1` y `/api/v10` no reciben la portada con 200.
-- [ ] CSRF por proxy conserva 200, no-store y dos Set-Cookie; el navegador almacena y reenvía cookies de mismo origen. No registrar token o valores de cookies.
-- [ ] Mutación sin token conserva 403 CSRF y no genera efectos. No se construye formulario de login ni se declara autenticación end-to-end.
+- [x] CSRF por proxy conserva 200, no-store y dos Set-Cookie; el navegador almacena y reenvía cookies de mismo origen. Sin valores de tokens/cookies en evidencia.
+- [x] Mutación sin token conserva 403 CSRF y no genera efectos; variantes de token inválido y positivo con datos inválidos comprobadas. Sin formulario/login end-to-end.
 - [x] Backend detenido: la portada continúa cargando y la API falla en tiempo acotado con status de error. Recuperación tras reinicio/recreación del backend comprobada.
-- [ ] Cabeceras X-Forwarded-* manipuladas no alteran confianza/protocolo del backend; se documenta IP agrupada en el proxy, sin afirmar separación de clientes.
+- [x] Cabeceras definidas en proxy-api.conf sobrescritas/eliminadas, observadas por receptor QA separado; protocolo falso comprobado sobre cookies del backend real. IP agrupada y limitación de rate limiting conservadas.
 - [x] Compose de producción y políticas Secure/__Host permanecen sin cambios; configuración local no reutiliza datos/volúmenes existentes ni expone servicios adicionales.
 - [x] Backend: lint, formato y npm test ejecutados con DB aislada, más arranque real. Lint y 346 pruebas aprobados; formato fallido en 26 archivos preexistentes (no equivale a formato aprobado).
 - [x] Arranque/limpieza documentados mediante lanzador Node con sintaxis POSIX/PowerShell. Verificado en Linux; Windows no probado.
@@ -132,3 +132,10 @@ La comprobación posterior de la PR #16 la mantiene abierta y sin integrar, con 
 Pablo pidió implementar T2.2 tras comprobar la integración de T1. La recomendación anterior de esperar quedó superada por la aprobación de Shirley y merge eebfe75. La comparación con develop contiene solo el trabajo de T2; no hace falta rehacer la rama o duplicar T1. No se declara cerrada toda FRONT-01.
 
 Se añade Compose independiente y lanzador de credenciales efímeras, configuración de proxy separada del modo estático de T2.1 y prueba con backend/DB/migraciones reales. Se verifican health, 404/401, arranque sin backend y recuperación con cambio real de IP sin reiniciar Nginx. Evidencia en FRONT-01, sección 21. Cookies/CSRF en navegador y cabeceras falsificadas siguen pendientes de T2.3; la confianza de IP continúa desactivada. Backend, Compose existente, migraciones y políticas de producción no se modificaron. Sin commits ni push.
+
+
+## 13. T2.2 guardado y T2.3 autorizado
+
+T2.2 guardado en 4d37295 por petición de Pablo. Posteriormente se autorizaron las comprobaciones de cookies, CSRF y cabeceras: frontend/tests/csrf-smoke.cjs y helper de Chrome exclusivo de pruebas, sin modificar código productivo o expectativas previas. La aprobación del backend real y la observación del receptor de transporte se distinguen expresamente.
+
+Dos perfiles aislados comprueban HttpOnly, reenvío, no-store, tokens ausentes/alterados/rotados/de otro vínculo y validación posterior a CSRF válido sin crear usuarios/sesiones. Otra instancia QA del backend real conserva flags de producción; esto no acredita TLS. Detalle de ejecución en FRONT-01, sección 23. T2.4, confianza de proxy y autenticación completa siguen pendientes; sin push ni commit de T2.3 en esta sesión.

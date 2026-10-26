@@ -122,6 +122,29 @@ node frontend/tests/proxy-smoke.cjs
 
 Construye los Dockerfiles reales y usa un proyecto QA exclusivo, base efímera y credenciales aleatorias. Comprueba portada sin backend, migraciones, health por proxy, errores 404/401, ausencia de puertos DB/backend y volúmenes de datos, y navegador con las expectativas de T1. Después detiene y reinicia backend, y fuerza un cambio real de IP ocupando temporalmente la dirección anterior con un contenedor auxiliar; exige recuperación sin recrear o reiniciar Nginx. Finalmente retira contenedores, auxiliar, red y archivo vacío temporal, incluso ante fallo.
 
-T2.3 comprobará cookies/CSRF en navegador y cabeceras manipuladas; esta prueba no acredita autenticación completa. No introduce usuarios, contraseñas de acceso, pantalla de login ni un cliente API. Resultados y límites en FRONT-01, sección 21.
+La prueba de T2.3 descrita abajo comprueba cookies/CSRF en navegador y cabeceras manipuladas; esta prueba de T2.2 no acredita autenticación completa. No introduce usuarios, contraseñas de acceso, pantalla de login ni un cliente API. Resultados y límites en FRONT-01, sección 21.
 
 El uso de upstream con zona compartida y resolve sigue la [documentación de Nginx](https://nginx.org/en/docs/http/ngx_http_upstream_module.html#resolve). El orden DB/migración/backend usa [condiciones de dependencia de Compose](https://docs.docker.com/compose/how-tos/startup-order/), sin asumir que iniciar un proceso equivale a estar listo.
+
+## Cookies y cabeceras — FRONT-01 T2.3
+
+```sh
+node frontend/tests/csrf-smoke.cjs
+```
+
+Requiere Docker, Node 24 y Chrome. Crea otro proyecto QA con PostgreSQL y backend reales, credenciales aleatorias y dos perfiles temporales de Chrome. No necesita ni utiliza cuentas existentes, y no modifica el proyecto interactivo de dev.cjs.
+
+Comprobaciones:
+
+- GET CSRF devuelve 200/no-store y dos Set-Cookie reales. El navegador almacena csrf_browser como HttpOnly y csrf_token legible; SameSite=Lax, Path=/ y cookies host-only. En HTTP development no llevan Secure.
+- El navegador reenvía las cookies: un token válido llega a validación de datos y devuelve 400 VALIDATION_ERROR al enviar `{}`. Esta ruta positiva comprueba CSRF sin registrar una cuenta.
+- Sin cabecera, token alterado, cookies omitidas, token antiguo tras rotación y token de otro perfil devuelven 403 CSRF_TOKEN_INVALID. Copiar también la cookie legible a otro perfil sigue fallando con su nonce HttpOnly distinto.
+- Cabeceras de HTTPS falsificadas no alteran el modo HTTP real del backend de desarrollo. Se verifica que no hubo usuarios o sesiones creados.
+- Se recrea solo el backend QA con NODE_ENV=production, usando una configuración temporal sin secretos. La respuesta real conserva Secure y __Host-csrf_browser, HttpOnly/Path=/ y ausencia de Domain. Es lectura de Set-Cookie por HTTP; no acredita TLS o aceptación de cookies por un navegador sobre HTTPS.
+- Al final se reemplaza el backend QA por un receptor HTTP de diagnóstico efímero: observa que Nginx preserva POST, URI, query y cuerpo; elimina Forwarded y sobrescribe las cabeceras de red definidas en proxy-api.conf. Esta evidencia de transporte no se presenta como una prueba del backend o de autorización.
+
+La prueba conserva tokens/cookies únicamente en memoria, no los imprime ni guarda perfiles o respuestas sensibles. Los resultados usan códigos/atributos sin valores. Retira contenedores, receptor de diagnóstico, redes, perfiles y configuración temporal aun ante error; las imágenes quedan en caché. No se agregan endpoints de diagnóstico al backend ni se publica el receptor en un puerto del host.
+
+La confianza de IP sigue desactivada: los clientes comparten la IP del proxy para el backend. No valida separación de rate limiting por cliente, login/logout completos, renovación ligada a sesión autenticada, TLS, otros navegadores ni Windows. Los criterios de autenticación restantes se comprobarán en T3/T4 y la tarea específica de confianza de proxy. Esta verificación no añade UI ni altera la identidad visual.
+
+Commit T2.2: 4d37295. Evidencia de T2.3 en FRONT-01, sección 23; revisión humana e integración de T2 pendientes.

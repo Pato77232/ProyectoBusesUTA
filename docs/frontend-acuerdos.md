@@ -75,3 +75,7 @@ Pablo autorizó commits atómicos: plan en 2815747 y empaquetado/pruebas/estado 
 El 26 de octubre de 2026 se comprobó la aprobación de Shirley y merge de PR #16 en eebfe75, conservando 3285695. Pablo autorizó implementar T2.2. La recomendación anterior de esperar queda superada por esa integración; se mantiene la rama actual sin merge/rebase.
 
 T2.2 conecta frontend y API mediante un Compose local aislado con datos/credenciales efímeros, manteniendo el modo estático de T2.1. Arranque, migraciones, health, errores y cambio real de IP comprobados; evidencia en FRONT-01, sección 21. Cookies de navegador/cabeceras falsificadas quedan para T2.3. No cambia la confianza de IP ni la producción. Sin commit/push; no equivale a aprobación humana del proxy o cierre de FRONT-01.
+
+## T2.2 guardado y T2.3 autorizado
+
+Pablo solicitó commit atómico y continuar con T2.3. T2.2 queda guardado en 4d37295; T2.3 añade verificación de Chrome/backend reales y receptor de transporte QA, sin usuarios/sesiones ni cambios de producción. Las observaciones de cabeceras del receptor no equivalen a una autenticación real; las cookies Secure de NODE_ENV=production no acreditan TLS. Evidencia en FRONT-01, sección 23. Sin commit de T2.3 ni push; revisión humana de T2 y T2.4 pendientes.

@@ -2,10 +2,10 @@
 
 - **ID local:** FRONT-01
 - **Responsable:** Pablo
-- **Revisora propuesta:** Shirley; confirmación pendiente.
-- **Estado:** En desarrollo: T1 autorizada por Pablo al solicitar guardar la documentación y comenzar su implementación. T1 integrada, T2.1 versionado y T2.2 autorizado e implementado localmente; T2.3/T2.4 y T3–T4 pendientes.
-- **Fecha / base comprobada:** 25 de octubre de 2026; origin/develop en `c89b1b9`.
-- **Rama:** `feature/FRONT-01-base-compartida`.
+- **Revisión:** T1 aprobada por Shirley e integrada; revisión humana de T2 pendiente de confirmar.
+- **Estado:** T1 integrada, T2.1/T2.2 versionados; T2.3 autorizado y verificado localmente, pendiente de commit/revisión. T2.4 y T3–T4 pendientes.
+- **Fecha / base comprobada:** 26 de octubre de 2026; origin/develop en `eebfe75` (integra T1).
+- **Ramas:** T1 `feature/FRONT-01-base-compartida` integrada en PR #16; T2 actual `feature/FRONT-01-T2-proxy`.
 - **Prioridad propuesta:** Alta, para desbloquear las pantallas de los cinco integrantes.
 - **Dependencias:** ADR 0003/0004, INFRA-01 y contratos de autenticación existentes. El enfoque de [frontend-acuerdos.md](../frontend-acuerdos.md) está confirmado por reporte humano; completar los detalles técnicos de cada paso antes de ejecutarlo, sin volver a pedir el mismo acuerdo general.
 
@@ -309,3 +309,38 @@ T2.2 implementado localmente, sin commit ni push. T2.3 verificará cookies/CSRF 
 Pablo solicitó explícitamente un commit atómico de T2.2 y continuar después con T2.3. El commit que contiene esta constancia guarda el entorno local, proxy, lanzador, pruebas y documentación bajo `feat(infra): conecta el frontend con la API en el entorno local`, con referencia FRONT-01 y asistencia de Codex. Las constancias anteriores «sin commit» describen sus sesiones; no hubo nuevos cambios de producto después de la verificación completa de la sección 21 y antes de este guardado.
 
 T2.2 queda versionado en la rama actual. T2.3 queda autorizado para comprobar cookies/CSRF reales y cabeceras manipuladas; no incluye formularios, login completo ni ampliación de confianza de proxy. Sin push.
+
+## 23. T2.3 autorizado — cookies/CSRF y cabeceras
+
+Pablo autorizó continuar después del commit de T2.2 `4d37295`. Alcance: pruebas del navegador sobre backend/DB/proxy reales, cookies HTTP de desarrollo, CSRF ausente/alterado/antiguo/con otro vínculo y ruta positiva hasta validación de datos sin crear usuarios o sesiones. Comprobar no-store, separación HttpOnly y retransmisión real; no exponer valores de cookies/tokens en logs o evidencia.
+
+Para cabeceras, separar dos evidencias: comportamiento de cookies del backend real con X-Forwarded-Proto falsificado, y transporte observado por un receptor HTTP de diagnóstico efímero que reemplaza al backend únicamente al final de la prueba. El receptor no acredita autenticación, pero permite observar eliminación/sobrescritura de cabeceras y preservación de método/URI/query/cuerpo sin añadir endpoints de diagnóstico a la aplicación.
+
+Verificar además las banderas de cookies del backend real en una instancia QA con NODE_ENV=production, conservando configuración de seguridad; esta lectura de Set-Cookie por HTTP no acredita TLS ni almacenamiento por navegador HTTPS. Mantener TRUST_PROXY=false y no ampliar permisos. Usar bases/proyectos exclusivos, comprobar ausencia de usuarios/sesiones creados y retirar perfiles/configuraciones auxiliares al terminar. No implementar login, UI, cliente HTTP o nuevas dependencias. Resultado de la ejecución final: aprobado, incluida la comprobación de copiar token y cookie legible entre perfiles con distinto nonce HttpOnly.
+
+### Evidencia de T2.3 — 26 de octubre de 2026
+
+| Comprobación | Resultado real |
+|---|---|
+| node frontend/tests/csrf-smoke.cjs | Aprobado sobre Chrome y backend/DB/proxy reales en proyecto QA exclusivo |
+| Cookies y respuesta CSRF | 200/no-store y dos Set-Cookie observados por CDP; cookies almacenadas con HttpOnly diferencial, SameSite=Lax, Path=/ y Secure ausente en HTTP development |
+| Lectura JavaScript y reenvío | Cookie de vínculo HttpOnly no visible en document.cookie; token válido alcanza 400 VALIDATION_ERROR con cuerpo vacío de datos, probando reenvío sin registrar cuenta |
+| Rechazos 403/no-store | Sin cabecera, token alterado, cookies omitidas, token previo tras rotación, token de otro perfil y token/cookie legible copiados con otro nonce |
+| Perfil independiente y rotación | Dos perfiles efímeros, casos positivos propios y token renovado verificados, sin recursos externos |
+| X-Forwarded-Proto falso sobre backend real | No convierte las cookies de desarrollo HTTP en Secure ni __Host; confianza no ampliada |
+| NODE_ENV=production en backend QA real | Dos Set-Cookie con Secure/SameSite=Lax/Path=/ y sin Domain; nonce __Host-csrf_browser HttpOnly y csrf_token legible. Lectura HTTP, no TLS ni prueba de aceptación en navegador HTTPS |
+| Receptor de transporte separado | POST, URI, query y cuerpo preservados; Forwarded eliminado y X-Real-IP/X-Forwarded-For/Proto/Host/Port sobrescritos según proxy-api.conf. No acredita autenticación ni separación por IP |
+| Efectos de las pruebas | Cero usuarios y cero sesiones antes/después de los casos sobre backend real |
+| Prettier/sintaxis propios, enlaces y diff | Aprobados |
+| npm run lint / npm test | Aprobados, 346 pruebas: 239 unitarias y 107 integración |
+| npm run format:check | Fallido en los mismos 26 archivos preexistentes del backend, sin modificarlos |
+
+Solo se añadieron pruebas y documentación; el código productivo/Compose/proxy de T2.2 y las pruebas anteriores permanecen sin cambios. No se agregaron dependencias. Tokens/cookies se mantienen en memoria y no se incluyen en mensajes de aserción, archivos o evidencia; los perfiles, configuración temporal, receptor y contenedores se retiran en finally. La suite backend usa PostgreSQL aislado busesuta-front01-t23; contenedor/red retirados al terminar. Las imágenes quedan en caché local.
+
+No se valida login/logout end-to-end, renovación CSRF ligada a una sesión autenticada, vencimiento tras esperar 600 segundos en navegador, TLS, Windows/otros navegadores o rate limiting individual; la IP sigue agrupada en Nginx. T2.4, tarea de confianza del proxy y T3/T4 pendientes. T2.3 permanece local sin commit/push y sin aprobación humana; únicamente T2.2 se guardó en el commit solicitado 4d37295.
+
+## 24. Guardado autorizado de T2.3
+
+Pablo solicitó guardar T2.3 en commit(s) atómicos y continuar con T2.4. Las pruebas de cookies/CSRF, su helper de Chrome y su documentación forman un único cambio lógico: `test(infra): verifica cookies y CSRF del proxy en navegador`. El commit que contiene esta constancia conserva la verificación completa de la sección 23; no hay cambios de producto desde esa ejecución. Referencia FRONT-01 y asistencia de Codex. Sin push.
+
+T2.3 queda versionado; T2.4 autorizado para consolidar la guía, los criterios y el material de revisión, sin publicar una PR ni implementar T3.
