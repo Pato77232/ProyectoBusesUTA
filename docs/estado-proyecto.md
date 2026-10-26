@@ -4,7 +4,7 @@
 
 - **Fecha de comprobación:** 25 de octubre de 2026, America/Guayaquil.
 - **Base integrada examinada:** `origin/develop` en `c89b1b9`, después de `git fetch origin develop`; contiene INFRA-04 y documentación inicial de reservas.
-- **Cambio local actual:** FRONT-01 en `feature/FRONT-01-base-compartida`; spec y acuerdos documentados. Pablo reportó aceptación de F-A1–F-A6 por comunicación directa; la implementación aún no comenzó.
+- **Cambio local actual:** FRONT-01 T1 en `feature/FRONT-01-base-compartida`; acuerdos guardados en `50dac78` y T1 guardada en commits atómicos por petición de Pablo. Revisión humana, publicación e integración pendientes.
 - **Fuentes:** árbol y composición de esa base, specs versionadas y distribución de referencia en [equipo-y-acuerdos.md](equipo-y-acuerdos.md). No se inspeccionaron todas las ramas remotas ni se certifica el trabajo privado de otros integrantes.
 
 Este archivo orienta; la spec es la fuente del alcance y business-rules.md la de reglas funcionales. Si el código y la spec difieren, mostrar ambas evidencias y pedir resolver el conflicto, sin inventar acuerdos.
@@ -34,7 +34,7 @@ Antes de orientar a alguien:
 | [ROUTE-SHEETS-01](specs/ROUTE-SHEETS-01.md) | David, según distribución; confirmar autor/responsable | Código integrado, PR #13; integración operativa pendiente | app.js admite routeSheets, pero server.js no lo instancia; la composición necesita contratos con fleet/frequencies/bookings |
 | [INFRA-02](specs/INFRA-02.md), [INFRA-03](specs/INFRA-03.md) | Shirley; revisor indicado Pablo | Cambios presentes; cierre documental pendiente | cross-env y .gitattributes presentes, lock actualizado en historial; no implica aprobación humana ni validación Windows actual |
 | [INFRA-04](specs/INFRA-04.md) | Pablo; revisora propuesta Shirley | Integrada: su código documental está contenido en c89b1b9 | La presencia en develop está comprobada; no se inventa evidencia de revisión humana/cierre |
-| [FRONT-01](specs/FRONT-01.md) | Pablo; revisora propuesta Shirley | Borrador técnico; enfoque confirmado por reporte de Pablo | [Constancia de F-A1–F-A6](frontend-acuerdos.md); siguiente T1: esqueleto accesible y Bootstrap local. Sin código frontend ni revisión humana del incremento |
+| [FRONT-01](specs/FRONT-01.md) | Pablo; revisora propuesta Shirley | En desarrollo: T1 local, pendiente de revisión | Página estática, Bootstrap 5.3.8 y tipografía locales; rediseño solicitado por Pablo con trazabilidad en frontend/DESIGN.md. Pablo confirmó marca transViaje, logo definitivo y paleta; originales y catálogo orientativo en docs/design. Portada local con transViaje, logo definitivo y favicon derivado; revisión e integración pendientes. Pruebas de navegador en la spec. T2–T4 y pantallas de negocio pendientes; evidencia en la spec |
 | search, bookings, payments, tickets y frontend | Según propuesta inferior | Sin implementación en la base examinada | Confirmar ramas de los responsables antes de crear tareas |
 | CI | Pablo | Sin workflow versionado en la base | Proponer una spec propia; no afirmar protecciones remotas sin consultarlas |
 
@@ -46,7 +46,7 @@ Orden recomendado para discutir con el equipo. Cada fila es **Propuesta sin spec
 |---|---|---|
 | Pablo | 1. Registrar la revisión/cierre de INFRA-04 cuando exista evidencia humana | Su contenido ya está en develop; no repetir implementación ni autoaprobar |
 | Pablo | 2. Preparar publicación/revisión de AUTH-BOOTSTRAP-01 | Corrección local verificada en 9b65e9f; comprobar integración con develop antes de cerrarla |
-| Pablo | 3. FRONT-01: preparar T1 de esqueleto y recursos | Enfoque acordado según reporte de Pablo; seleccionar versión fija de Bootstrap y registrar procedencia al iniciar el código; no repetir la consulta general |
+| Pablo | 3. FRONT-01: revisar T1 antes de comenzar T2 | Enfoque acordado; T1 local con Bootstrap fijado y procedencia registrada. Próximo incremento propuesto: contenedor/proxy y entorno local; sin adelantarlo en esta tarea |
 | Pablo | 4. Crear endpoint de alta de oficinista | Acordar quién lo autoriza y alcance con Shirley; no inferir permisos |
 | Pablo | 5. Preparar CI y luego pantallas de acceso/cooperativas, una por tarea | Specs separadas; CI depende del entorno de integración, pantallas de la base frontend |
 | Edwin | 1. Registrar un bus con los datos RN-10 | Spec y acuerdo de fotografías/almacenamiento; grupo de buses existente |

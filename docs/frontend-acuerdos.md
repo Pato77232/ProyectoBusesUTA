@@ -1,6 +1,6 @@
 # Acuerdos para el frontend compartido
 
-Referencia: [FRONT-01](specs/FRONT-01.md). Fecha de registro: 25 de octubre de 2026. Estado: **Recomendaciones F-A1–F-A6 acordadas, según confirmación reportada por Pablo**. La implementación aún no comenzó.
+Referencia: [FRONT-01](specs/FRONT-01.md). Fecha de registro: 25 de octubre de 2026. Estado: **Recomendaciones F-A1–F-A6 acordadas, según confirmación reportada por Pablo**. Pablo autorizó posteriormente implementar solo T1; T2–T4 siguen pendientes.
 
 ## Constancia de la confirmación
 
@@ -40,6 +40,18 @@ En la spec o este documento, añadir por cada decisión: estado, fecha, particip
 
 ## Próxima acción de Pablo
 
-La confirmación ya está registrada: no repetir la consulta original. Conservar esta constancia junto con la spec y el estado mediante el próximo commit autorizado; al publicar la tarea, referenciar FRONT-01 en su PR para que el equipo pueda revisarla.
+La confirmación está guardada junto con la spec y el estado en el commit documental `50dac78`: no repetir la consulta original. Al publicar la tarea, referenciar FRONT-01 en su PR para que el equipo pueda revisarla.
 
-El siguiente incremento es **T1: esqueleto HTML accesible y recursos locales**. Pablo seleccionará una versión fija de Bootstrap 5 y documentará procedencia/licencia antes de incorporarla. Se propone comprobar una página mínima con teclado y tamaños de pantalla, sin formularios de negocio ni proxy todavía. T2 conectará el contenedor y la API, con su política local de cookies, después de revisar el resultado de T1. La implementación de T1 requiere la instrucción de continuar con código, porque la autorización anterior se limitaba a preparar la spec y los acuerdos.
+El incremento actual es **T1: esqueleto HTML accesible y recursos locales**, autorizado al solicitar guardar el commit documental y comenzar el código. Se eligió Bootstrap 5.3.8, con CSS local, licencia MIT y huella publicada comprobada; procedencia en frontend/assets/vendor/bootstrap-5.3.8/README.md. La verificación y los límites de T1 se registran en la spec. T2 conectará el contenedor y la API, con su política local de cookies, después de revisar el resultado de T1. No se vuelven a pedir los acuerdos generales ya reportados.
+
+## Referencia visual posterior — FRONT-01 T1
+
+Pablo solicitó cambiar el diseño con el contenido adjunto de DESIGN.md. La adaptación local y sus decisiones están en [frontend/DESIGN.md](../frontend/DESIGN.md); el original se conserva separado. Mantiene Bootstrap, recursos locales y el alcance T1. Los acuerdos F-A1–F-A6 anteriores no acreditan aceptación de esta nueva dirección visual por cada integrante. Se implementa como propuesta local para revisión; adopción general y revisión humana del diseño pendientes.
+
+## Identidad confirmada posteriormente por Pablo
+
+Pablo confirmó en este chat el nombre **transViaje**, el logo adjunto como definitivo y blanco/negro/violeta. Aclaró que los mockups son solo guía y delegó decidir su incorporación. Se conservaron los originales para trazabilidad, sin convertirlos en requisitos. [Constancia y fuentes](design/README.md), [catálogo orientativo](design/pantallas.md). La revisión de la aplicación y las futuras pantallas sigue pendiente; no es una aceptación individual atribuida al equipo. Pablo autorizó después adaptar la identidad visible: portada, metadatos, logo y favicon ya implementados localmente; revisión humana e integración pendientes.
+
+## Guardado del avance
+
+Pablo solicitó los commits atómicos. Recursos en `152f5a2`, documentación visual en `98d20bd` y portada/pruebas/estado en el commit de implementación que incluye esta constancia, todos con referencia FRONT-01. T1 sigue pendiente de revisión humana, publicación e integración; registrar commits no cierra la tarea ni autoriza T2.
