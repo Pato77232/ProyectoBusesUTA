@@ -40,6 +40,7 @@ function createHarness({ booking = BOOKING, proof = null, saveError, notifyError
       proofs.set(paymentProof.booking_id, paymentProof);
       return paymentProof;
     }),
+    deleteByBookingId: jest.fn(async (bookingId) => proofs.delete(bookingId)),
   };
   const bookingPaymentProofNotifier = {
     markPaymentProofReceived: jest.fn(async () => {
@@ -82,9 +83,9 @@ test('carga el comprobante usando la cooperativa, fecha límite y total de la re
   expect(harness.bookingPaymentProofNotifier.markPaymentProofReceived).toHaveBeenCalledWith(
     BOOKING.bookingId,
   );
-  expect(
+  expect(harness.paymentProofRepository.save.mock.invocationCallOrder[0]).toBeLessThan(
     harness.bookingPaymentProofNotifier.markPaymentProofReceived.mock.invocationCallOrder[0],
-  ).toBeLessThan(harness.paymentProofRepository.save.mock.invocationCallOrder[0]);
+  );
   expect(harness.files.size).toBe(1);
 });
 
@@ -153,16 +154,38 @@ test('elimina el archivo si falla la persistencia del comprobante', async () => 
   expect(harness.files.size).toBe(0);
 });
 
-test('si reservas rechaza el aviso por plazo vencido no persiste y elimina el archivo', async () => {
+test('si reservas rechaza definitivamente por plazo vencido compensa el comprobante y el archivo', async () => {
   // Arrange
   const deadlineError = new PaymentProofUploadDeadlineExpiredError();
   const harness = createHarness({ notifyError: deadlineError });
 
   // Act / Assert
   await expect(harness.useCase.execute(createInput())).rejects.toBe(deadlineError);
-  expect(harness.paymentProofRepository.save).not.toHaveBeenCalled();
+  expect(harness.paymentProofRepository.save).toHaveBeenCalledTimes(1);
+  expect(harness.paymentProofRepository.deleteByBookingId).toHaveBeenCalledWith(BOOKING.bookingId);
   expect(harness.fileStorage.delete).toHaveBeenCalledWith('opaque-1');
+  expect(harness.proofs.size).toBe(0);
   expect(harness.files.size).toBe(0);
+});
+
+test('conserva una carga ante resultado incierto y reintenta el aviso sin duplicar archivo', async () => {
+  // Arrange
+  const harness = createHarness();
+  const transportError = new Error('resultado incierto');
+  harness.bookingPaymentProofNotifier.markPaymentProofReceived
+    .mockRejectedValueOnce(transportError)
+    .mockResolvedValueOnce(undefined);
+
+  // Act
+  await expect(harness.useCase.execute(createInput())).rejects.toBe(transportError);
+  const result = await harness.useCase.execute(createInput());
+
+  // Assert
+  expect(result.paymentProof.status).toBe('UPLOADED');
+  expect(harness.paymentProofRepository.save).toHaveBeenCalledTimes(1);
+  expect(harness.fileStorage.save).toHaveBeenCalledTimes(1);
+  expect(harness.fileStorage.delete).not.toHaveBeenCalled();
+  expect(harness.bookingPaymentProofNotifier.markPaymentProofReceived).toHaveBeenCalledTimes(2);
 });
 
 test('exige un reloj explícito', async () => {

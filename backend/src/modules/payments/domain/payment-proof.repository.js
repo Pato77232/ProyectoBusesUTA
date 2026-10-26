@@ -9,6 +9,11 @@ class PaymentProofRepository {
   async save() {
     throw new Error('PaymentProofRepository.save debe implementarse.');
   }
+
+  /** deleteByBookingId(bookingId) elimina el registro compensado. */
+  async deleteByBookingId() {
+    throw new Error('PaymentProofRepository.deleteByBookingId debe implementarse.');
+  }
 }
 
 module.exports = PaymentProofRepository;

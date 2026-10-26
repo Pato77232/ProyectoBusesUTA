@@ -3,6 +3,8 @@ const {
   BookingNotFoundOrNotOwnedError,
   BookingNotPayableError,
   PaymentProofValidationError,
+  BookingPaymentProofRejectedError,
+  PaymentProofUploadDeadlineExpiredError,
 } = require('../domain/payment-proof-error');
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
@@ -11,7 +13,8 @@ const ALLOWED_MEDIA_TYPES = Object.freeze(['application/pdf', 'image/jpeg', 'ima
 function identifyMediaType(buffer) {
   if (buffer.subarray(0, 5).toString('ascii') === '%PDF-') return 'application/pdf';
 
-  const isJpeg = buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+  const isJpeg =
+    buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
   if (isJpeg) return 'image/jpeg';
 
   const pngSignature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
@@ -40,12 +43,10 @@ function validateFile(file) {
 
   const mediaType = identifyMediaType(buffer);
   const originalFileName =
-    typeof file.originalFileName === 'string' ? sanitizeOriginalFileName(file.originalFileName) : '';
-  if (
-    !mediaType ||
-    !ALLOWED_MEDIA_TYPES.includes(mediaType) ||
-    !originalFileName
-  ) {
+    typeof file.originalFileName === 'string'
+      ? sanitizeOriginalFileName(file.originalFileName)
+      : '';
+  if (!mediaType || !ALLOWED_MEDIA_TYPES.includes(mediaType) || !originalFileName) {
     throw new PaymentProofValidationError();
   }
 
@@ -67,6 +68,13 @@ function validateInput(input) {
   }
 }
 
+function isDefinitiveBookingRejection(error) {
+  return (
+    error instanceof BookingPaymentProofRejectedError ||
+    error instanceof PaymentProofUploadDeadlineExpiredError
+  );
+}
+
 class UploadPaymentProof {
   constructor({ bookingReader, fileStorage, paymentProofRepository, bookingPaymentProofNotifier }) {
     this.bookingReader = bookingReader;
@@ -83,10 +91,23 @@ class UploadPaymentProof {
     if (!booking || booking.ownerId !== customerId.trim()) {
       throw new BookingNotFoundOrNotOwnedError();
     }
-    if (booking.acceptsPaymentProof !== true) throw new BookingNotPayableError();
 
     const fileMetadata = validateFile(file);
     const existingProof = await this.paymentProofRepository.findByBookingId(booking.bookingId);
+    if (existingProof?.status === 'UPLOADED') {
+      try {
+        await this.bookingPaymentProofNotifier.markPaymentProofReceived(booking.bookingId);
+      } catch (error) {
+        if (isDefinitiveBookingRejection(error)) {
+          await this.paymentProofRepository.deleteByBookingId(booking.bookingId);
+          await this.fileStorage.delete(existingProof.file_key);
+        }
+        throw error;
+      }
+      return { paymentProof: existingProof, expiresAt: booking.expiresAt, total: booking.total };
+    }
+    if (booking.acceptsPaymentProof !== true) throw new BookingNotPayableError();
+
     const paymentProof =
       existingProof ||
       createPaymentProof({
@@ -95,12 +116,14 @@ class UploadPaymentProof {
       });
 
     const fileKey = await this.fileStorage.save(file);
+    let uploadedProof;
+    let savedProof;
     try {
       if (typeof fileKey !== 'string' || !fileKey.trim()) {
         throw new PaymentProofValidationError();
       }
 
-      const uploadedProof = uploadPaymentProof(
+      uploadedProof = uploadPaymentProof(
         paymentProof,
         {
           file_key: fileKey,
@@ -111,13 +134,23 @@ class UploadPaymentProof {
         booking.expiresAt,
         now,
       );
-      await this.bookingPaymentProofNotifier.markPaymentProofReceived(booking.bookingId);
-      const savedProof = await this.paymentProofRepository.save(uploadedProof);
-      return { paymentProof: savedProof, expiresAt: booking.expiresAt, total: booking.total };
+      savedProof = await this.paymentProofRepository.save(uploadedProof);
     } catch (error) {
       await this.fileStorage.delete(fileKey);
       throw error;
     }
+
+    try {
+      await this.bookingPaymentProofNotifier.markPaymentProofReceived(booking.bookingId);
+    } catch (error) {
+      if (isDefinitiveBookingRejection(error)) {
+        await this.paymentProofRepository.deleteByBookingId(booking.bookingId);
+        await this.fileStorage.delete(fileKey);
+      }
+      throw error;
+    }
+
+    return { paymentProof: savedProof, expiresAt: booking.expiresAt, total: booking.total };
   }
 }
 

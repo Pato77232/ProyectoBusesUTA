@@ -96,6 +96,10 @@ class PgPaymentProofRepository extends PaymentProofRepository {
     );
     return toPaymentProof(rows[0]);
   }
+
+  async deleteByBookingId(bookingId) {
+    await this.pool.query('DELETE FROM payment_proofs WHERE booking_id = $1', [bookingId]);
+  }
 }
 
 module.exports = PgPaymentProofRepository;

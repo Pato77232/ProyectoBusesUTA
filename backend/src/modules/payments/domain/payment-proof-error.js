@@ -55,6 +55,13 @@ class BookingNotPayableError extends PaymentProofError {
   }
 }
 
+class BookingPaymentProofRejectedError extends PaymentProofError {
+  constructor() {
+    super('BOOKING_PAYMENT_PROOF_REJECTED');
+    this.name = 'BookingPaymentProofRejectedError';
+  }
+}
+
 module.exports = {
   PaymentProofError,
   PaymentProofValidationError,
@@ -64,4 +71,5 @@ module.exports = {
   PaymentProofCannotExpireError,
   BookingNotFoundOrNotOwnedError,
   BookingNotPayableError,
+  BookingPaymentProofRejectedError,
 };
