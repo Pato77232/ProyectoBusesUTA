@@ -91,6 +91,14 @@ test('listado vacío cuando la cooperativa no tiene grupos', async () => {
 
 test('migración sube, baja y vuelve a subir', async () => {
   runMigration('down');
+  const gonePaymentProofs = await pool.query(
+    "SELECT to_regclass('public.payment_proofs') AS table_name",
+  );
+  expect(gonePaymentProofs.rows[0].table_name).toBeNull();
+  const routeSheets = await pool.query("SELECT to_regclass('public.route_sheets') AS table_name");
+  expect(routeSheets.rows[0].table_name).toBe('route_sheets');
+
+  runMigration('down');
   const gone = await pool.query("SELECT to_regclass('public.route_sheets') AS table_name");
   expect(gone.rows[0].table_name).toBeNull();
   const busGroups = await pool.query("SELECT to_regclass('public.bus_groups') AS table_name");
