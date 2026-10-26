@@ -1,9 +1,9 @@
 # BOOK-06: Plazo y vencimiento de reservas
 
 - **Responsable:** Leslie
-- **Revisor:** Edwin
+- **Revisor propuesto por Leslie:** PabloToapanta; revisión conjunta del contrato con Shirley pendiente.
 - **Módulo:** bookings
-- **Estado:** T1 autorizada para política pura RN-50/51; integración pendiente.
+- **Estado:** Contrato de recepción/expiración documentado; persistencia, coordinación y pruebas reales pendientes. La política pura T1 pertenece al PR #15, todavía sin integrar en esta base.
 - **Dependencias:** BOOK-01; BOOK-03 y Shirley para T2/T3.
 
 ## 1. Objetivo
@@ -38,10 +38,27 @@ Reloj inválido, Date fuera de rango, plazo ausente y comprobante concurrente. N
 Unitarias de T1 con fechas fijas. T2: carreras reales contra carga/aprobación, doble ejecución y liberación en PostgreSQL. T3: ejecución automática y visualización sin extender el plazo.
 
 ## 10. Preguntas abiertas
-Instante exacto de inicio según método; protocolo atómico con comprobantes; tratamiento de carga tardía, rechazo y revisión. El caso de uso no se implementa antes del acuerdo.
+El inicio para depósito/transferencia consta en reservas-decisiones.md. El comportamiento coordinado de recepción/expiración está documentado en reservas-contratos.md; quedan firmas, esquema, autorización y recuperación de avisos pendientes de revisión conjunta antes de implementar.
 
 ## 11. Defecto inducido
 No aplica.
 
 ## Aclaración para revisión documental
 Las decisiones de producto de `docs/reservas-decisiones.md` fueron seleccionadas por autorización de Leslie y cierran las preguntas correspondientes de este borrador. No se atribuye aprobación a otros integrantes. Los contratos reales pendientes están en `docs/reservas-contratos.md`; esta rama no implementa código, endpoints, tablas ni pantallas. Los avances de dominio existentes se conservan en sus ramas de tarea separadas.
+
+## 12. Coordinación con pagos — actualización del 26 de octubre de 2026
+Fuente vigente para T2/T3: [recepción frente a expiración](../reservas-contratos.md#coordinación-de-reservas-y-comprobantes--26-de-octubre-de-2026). El párrafo de revisión documental anterior corresponde a la entrega histórica; esta actualización documenta comportamiento y pruebas futuras, no una operación disponible.
+
+- Recepción y expiración se serializan por reserva; estado, decisión de recepción y ocupaciones se confirman de forma coherente y durable.
+- Una recepción nueva solo se acepta antes del límite, con hora del servidor tomada después de obtener la coordinación. En el límite se rechaza; guardar el archivo no extiende el plazo.
+- Si ya se aceptó la misma operación, un reintento autorizado devuelve esa aceptación aunque llegue después del plazo. Timeout no permite borrar el comprobante.
+- El coordinador solo expira pendientes sin recepción aceptada, libera de forma atómica e idempotente y respeta revisiones y ventas.
+- Queda un único coordinador en bookings. Payments mantiene avisos persistentes y procesa resultados; no programa un mecanismo competidor de expiración.
+
+### Aceptación adicional, pendiente de pruebas ejecutables
+- [ ] Probar ambas carreras en PostgreSQL, con conexiones independientes y sincronización controlada; no demostrar la carrera solo con mocks o demoras arbitrarias.
+- [ ] Probar instante exacto, espera del bloqueo que cruza el plazo y reintento tras aceptación cuya respuesta se perdió.
+- [ ] Verificar una única liberación y ninguna ocupación liberada de una revisión/venta confirmada.
+- [ ] Verificar comprobante guardado antes del plazo con primer aviso tardío: rechazo sin reactivar.
+
+No aplica interfaz en esta tarea. La matriz completa y los detalles pendientes están en el contrato. No hay migración, proceso periódico ni prueba de carrera implementados por esta entrega documental.

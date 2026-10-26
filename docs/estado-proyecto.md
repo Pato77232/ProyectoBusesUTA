@@ -38,6 +38,16 @@ Antes de orientar a alguien:
 | search, bookings, payments, tickets y frontend | Según propuesta inferior | Sin implementación en la base examinada | Confirmar ramas de los responsables antes de crear tareas |
 | CI | Pablo | Sin workflow versionado en la base | Proponer una spec propia; no afirmar protecciones remotas sin consultarlas |
 
+## Actualización parcial de reservas — 26 de octubre de 2026
+
+Esta sección actualiza únicamente las tareas de Leslie. La fotografía general superior y las filas ajenas conservan su fecha histórica. Base comprobada: origin/develop c8bb5d334d77b42f7e6d6aef7840f84b06c59d15, con documentación inicial de reservas y avances de payments. No implica revisión completa de todos los módulos.
+
+| Spec / área | Responsable | Estado comprobado | Evidencia y próximo paso |
+| --- | --- | --- | --- |
+| BOOK-02/04/05/06, incrementos de dominio y disponibilidad | Leslie | En revisión, PR #15 abierto y aprobado por Pablo | Head d9bbe47, sin integrar en develop al comprobarlo; no rehacer esos incrementos ni declarar sus 630 pruebas históricas como ejecución de esta rama. |
+| BOOK-07 T1, coordinación con pagos | Leslie; Shirley para la frontera payments | Documentación lista en rama local feature/BOOK-07-T1-contrato-pagos; revisión pendiente | Acuerdo base comunicado por Shirley a través de Leslie; BOOK-06/07 y reservas-contratos.md actualizados. Redacción técnica y firmas pendientes de revisión conjunta. No hay API persistida de reservas todavía. |
+
+La rama documental parte de c8bb5d3 y no modifica la rama aprobada del PR #15. Las pruebas de carreras, el aviso persistente de payments y las transiciones de reserva son implementación futura; no se presentan como disponibles por documentar el acuerdo.
 ## Próximos pasos por integrante
 
 Orden recomendado para discutir con el equipo. Cada fila es **Propuesta sin spec**, salvo la referencia a una tarea existente. Confirmar asignación y disponibilidad; las prioridades no son fechas comprometidas. Las pantallas se separan cuando su contrato está listo.
@@ -57,10 +67,10 @@ Orden recomendado para discutir con el equipo. Cada fila es **Propuesta sin spec
 | David | 2. Exponer consulta de viajes por fecha | Acordar Trip, ventana de compra y fuente del bus con búsqueda/reservas |
 | David | 3. Pantalla de creación de frecuencia y luego listado/estado | Backend conectado y base frontend; specs separadas |
 | David | 4. Pantalla de hoja de ruta manual | Contratos y pruebas de integración operativa resueltos |
-| Leslie | 1. Acordar disponibilidad e identidad del asiento por viaje | Edwin y David; definir contrato antes de implementar consulta |
-| Leslie | 2. Registrar pasajeros y calcular descuentos, en tareas separadas | Resolver porcentajes, edades y validación de cédula de RN-43 con el equipo |
+| Leslie | 1. Cerrar las fuentes reales de viaje y plantilla | Edwin y David; la consulta contra puertos ya está en PR #15, todavía sin integrar; no rehacerla |
+| Leslie | 2. Completar revisión/integración de los incrementos de dominio | Pasajeros, cédula, descuentos y plazo están en PR #15 aprobado por Pablo, aún abierto; integración humana pendiente |
 | Leslie | 3. Reservar asientos con control de concurrencia | Viaje/asiento definidos; prueba de dos reservas simultáneas RN-40 |
-| Leslie | 4. Expirar reservas y luego pantalla de selección | Acordar plazo/comprobante con Shirley; RN-50/51; base frontend para pantalla |
+| Leslie | 4. Revisar BOOK-07 T1 y después implementar expiración coordinada | Comportamiento base acordado con Shirley y documentado; firmas/persistencia pendientes. Pantalla posterior a contratos reales |
 | Shirley | 1. Acordar ciclo reserva–comprobante con Leslie | Inicio del plazo, transición y límites; no fijar duración en el código |
 | Shirley | 2. Subir comprobante y luego listar pendientes, en tareas separadas | Contrato de reserva, archivos y cuenta CLERK operativa |
 | Shirley | 3. Aprobar y rechazar comprobante, en tareas separadas | RN-52/53, aislamiento y concurrencia; rechazo exige justificación |
