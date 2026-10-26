@@ -1,8 +1,10 @@
-# transViaje — Frontend compartido, FRONT-01 T1
+# transViaje — Frontend compartido, FRONT-01 T1/T2
 
 Base estática en HTML y CSS. Incluye Bootstrap 5.3.8 local, navegación por secciones, enlace para saltar al contenido y preguntas con details/summary nativos. No necesita JavaScript para funcionar. Aún no incluye búsqueda, compra, login ni cliente HTTP de la portada. El entorno local de T2.2 conecta las rutas API reales mediante Nginx.
 
-Guía visual y trazabilidad: [DESIGN.md](DESIGN.md). La referencia original y la adaptación están separadas. Pablo confirmó nombre transViaje, logo definitivo y paleta blanco/negro/violeta; la revisión humana de la implementación sigue pendiente.
+Para levantar la base y preparar futuras pantallas, consultar [GUIA-INTEGRACION.md](GUIA-INTEGRACION.md). Matriz y material de revisión en [revisión de T2](../docs/revision-FRONT-01-T2.md).
+
+Guía visual y trazabilidad: [DESIGN.md](DESIGN.md). La referencia original y la adaptación están separadas. Pablo confirmó nombre transViaje, logo definitivo y paleta blanco/negro/violeta; T1 fue aprobada por Shirley e integrada en PR #16; la revisión humana de T2 sigue pendiente.
 
 ## Ver la página
 

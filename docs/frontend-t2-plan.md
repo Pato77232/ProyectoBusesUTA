@@ -1,7 +1,7 @@
 # FRONT-01 T2: plan de servidor y proxy local
 
 - Responsable: Pablo. Revisora de T1 solicitada: Shirley (`shirley6126`); no se infiere aceptación de T2.
-- Estado: **T2.1/T2.2 versionados; T2.3 implementado como verificación real local. T2.4 pendiente**.
+- Estado: **T2.1–T2.3 versionados; T2.4 documentado y comprobado localmente, pendiente de guardado/revisión humana**.
 - Base: `3285695`, última implementación de T1. Rama de preparación: `feature/FRONT-01-T2-proxy`, creada desde ese commit.
 - Dependencia resuelta: [PR #16 de T1](https://github.com/Pato77232/ProyectoBusesUTA/pull/16), aprobada por Shirley e integrada el 26 de octubre de 2026 en `eebfe75`; conserva `3285695` como padre, sin squash. La rama actual se conserva; no se ejecutó merge/rebase.
 - Referencias: [FRONT-01](specs/FRONT-01.md), [ADR 0003](adr/0003-stack-tecnologico.md), [ADR 0004](adr/0004-autenticacion-sesiones-credenciales.md) y [acuerdos](frontend-acuerdos.md).
@@ -89,7 +89,7 @@ Los pasos son el desglose de T2, no autorización de cuatro tareas adicionales. 
 
 ## 8. Criterios de aceptación de T2
 
-Las casillas marcadas tienen evidencia de T2.1 en FRONT-01, sección 19. Las demás permanecen pendientes; no se deducen del servidor estático.
+Las casillas marcadas tienen evidencia específica de T2.1–T2.3 en FRONT-01, secciones 19–23, y repetición consolidada de T2.4 en la revisión. Se limitan a lo que cada fila declara; no cierran los criterios generales de T3/T4 ni equivalen a aceptación humana.
 
 - [x] Construir imagen y comprobar versión/digest, licencia/procedencia y nginx -t.
 - [x] Desde 127.0.0.1:8081 cargar portada y recursos locales sin errores ni red externa; repetir navegación/lectura en 360/1280 px. Confirmar que el puerto es configurable y solo loopback.
@@ -139,3 +139,10 @@ Se añade Compose independiente y lanzador de credenciales efímeras, configurac
 T2.2 guardado en 4d37295 por petición de Pablo. Posteriormente se autorizaron las comprobaciones de cookies, CSRF y cabeceras: frontend/tests/csrf-smoke.cjs y helper de Chrome exclusivo de pruebas, sin modificar código productivo o expectativas previas. La aprobación del backend real y la observación del receptor de transporte se distinguen expresamente.
 
 Dos perfiles aislados comprueban HttpOnly, reenvío, no-store, tokens ausentes/alterados/rotados/de otro vínculo y validación posterior a CSRF válido sin crear usuarios/sesiones. Otra instancia QA del backend real conserva flags de producción; esto no acredita TLS. Detalle de ejecución en FRONT-01, sección 23. T2.4, confianza de proxy y autenticación completa siguen pendientes; sin push ni commit de T2.3 en esta sesión.
+
+
+## 14. T2.3 guardado y T2.4 documentado
+
+Pablo solicitó guardar T2.3 y continuar con T2.4. Commit cddbe34: pruebas de navegador/cookies/CSRF y documentación, un único cambio lógico. T2.4 añade [guía para integrantes](../frontend/GUIA-INTEGRACION.md) y [matriz/material de revisión](revision-FRONT-01-T2.md); no agrega código de producto ni T3.
+
+Se repitieron las tres pruebas reales de frontend, lint y 346 pruebas de backend de la rama; aprobadas salvo el formato global conocido en 26 archivos preexistentes. Develop avanzó a c8bb5d3 con archivos de pagos no solapados; esa combinación aún no fue integrada o probada. No se ejecuta merge/rebase, push o creación de PR. T2 queda preparado para revisión, no integrado/cerrado; T3/T4, confianza de IP y pendientes manuales conservan su estado.

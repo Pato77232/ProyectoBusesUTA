@@ -3,8 +3,9 @@
 ## Alcance y frescura de esta fotografía
 
 - **Fecha de comprobación:** 26 de octubre de 2026, America/Guayaquil.
-- **Base integrada examinada:** `origin/develop` en `eebfe75`, comprobado tras fetch; integra T1 de FRONT-01 en PR #16. Su árbol coincide con 3285695; las observaciones de backend anteriores no cambian por esa integración.
-- **Cambio local actual:** FRONT-01 T2.2 implementado localmente en `feature/FRONT-01-T2-proxy`; T2.1 guardado en 2815747/19e8e0d, entorno/proxy T2.2 guardado en 4d37295; T2.3 guardado con pruebas y documentación por petición de Pablo. T1 aprobada por Shirley e integrada en PR #16; T2.4 y revisión humana del proxy pendientes.
+- **Base funcional examinada anteriormente:** commit `eebfe75`; integra T1 de FRONT-01 en PR #16. Su árbol coincide con 3285695; las observaciones de backend anteriores no cambian por esa integración.
+- **Cambio local actual:** FRONT-01 T2 en `feature/FRONT-01-T2-proxy`; T2.1–T2.3 guardados hasta cddbe34, T2.4 guardado por petición de Pablo, con publicación de rama autorizada. T1 aprobada por Shirley e integrada; T2 preparado para PR/revisión humana; publicación autorizada, integración pendiente.
+- **Remoto contrastado para T2:** origin/develop c8bb5d3 (añade PAGOS-01 sin solaparse con T2). Las pruebas actuales pertenecen a cddbe34 y no validan todavía la combinación con ese cambio; las demás filas conservan el alcance de la base examinada anterior.
 - **Fuentes:** árbol y composición de esa base, specs versionadas y distribución de referencia en [equipo-y-acuerdos.md](equipo-y-acuerdos.md). No se inspeccionaron todas las ramas remotas ni se certifica el trabajo privado de otros integrantes.
 
 Este archivo orienta; la spec es la fuente del alcance y business-rules.md la de reglas funcionales. Si el código y la spec difieren, mostrar ambas evidencias y pedir resolver el conflicto, sin inventar acuerdos.
@@ -34,8 +35,8 @@ Antes de orientar a alguien:
 | [ROUTE-SHEETS-01](specs/ROUTE-SHEETS-01.md) | David, según distribución; confirmar autor/responsable | Código integrado, PR #13; integración operativa pendiente | app.js admite routeSheets, pero server.js no lo instancia; la composición necesita contratos con fleet/frequencies/bookings |
 | [INFRA-02](specs/INFRA-02.md), [INFRA-03](specs/INFRA-03.md) | Shirley; revisor indicado Pablo | Cambios presentes; cierre documental pendiente | cross-env y .gitattributes presentes, lock actualizado en historial; no implica aprobación humana ni validación Windows actual |
 | [INFRA-04](specs/INFRA-04.md) | Pablo; revisora propuesta Shirley | Integrada: su código documental está contenido en c89b1b9 | La presencia en develop está comprobada; no se inventa evidencia de revisión humana/cierre |
-| [FRONT-01](specs/FRONT-01.md) | Pablo; T1 aprobada por Shirley | T1 integrada; T2.1–T2.3 versionados y comprobados | PR #16 fusionada en eebfe75. T2.1 versionado; [plan T2](frontend-t2-plan.md) actualizado: entorno aislado y proxy real con migraciones/health/errores y cambio de IP aprobados. T2.3 con Chrome/backend reales, protección CSRF y transporte observado con receptor QA; sin usuarios/sesiones creados. T2.4 y aprobación humana del proxy pendientes |
-| search, bookings, payments, tickets y frontend | Según propuesta inferior | Sin implementación en la base examinada | Confirmar ramas de los responsables antes de crear tareas |
+| [FRONT-01](specs/FRONT-01.md) | Pablo; revisión de T2 por confirmar | T1 integrada; T2.1–T2.3 versionados y T2.4 documentado | T1 en PR #16/eebfe75; T2 con guía y [matriz de revisión](revision-FRONT-01-T2.md), tres pruebas frontend/lint/346 pruebas backend aprobadas en la rama. Formato global fallido en 26 archivos previos. T2 sin publicación/integración y FRONT-01 completa pendiente de T3/T4 |
+| search, bookings, payments y tickets | Según propuesta inferior | Sin implementación en la base examinada | Confirmar ramas de los responsables antes de crear tareas |
 | CI | Pablo | Sin workflow versionado en la base | Proponer una spec propia; no afirmar protecciones remotas sin consultarlas |
 
 ## Próximos pasos por integrante
@@ -46,7 +47,7 @@ Orden recomendado para discutir con el equipo. Cada fila es **Propuesta sin spec
 |---|---|---|
 | Pablo | 1. Registrar la revisión/cierre de INFRA-04 cuando exista evidencia humana | Su contenido ya está en develop; no repetir implementación ni autoaprobar |
 | Pablo | 2. Preparar publicación/revisión de AUTH-BOOTSTRAP-01 | Corrección local verificada en 9b65e9f; comprobar integración con develop antes de cerrarla |
-| Pablo | 3. FRONT-01: revisar/guardar T2.3 y preparar T2.4 | T1 integrada; T2.2 en 4d37295, T2.3 verificado localmente. Siguiente incremento: revisar evidencia/guía de integración, sin declarar login o rate limiting individual resueltos. Confirmar revisión humana de T2 |
+| Pablo | 3. FRONT-01: revisar/guardar T2.4 y preparar revisión de T2 | T2.3 en cddbe34; guía/material de PR locales. Confirmar revisor y validación de la combinación con develop antes de integrar. Mantener límites de formato, IP y autenticación visibles; T3/T4 aún pendientes |
 | Pablo | 4. Crear endpoint de alta de oficinista | Acordar quién lo autoriza y alcance con Shirley; no inferir permisos |
 | Pablo | 5. Preparar CI y luego pantallas de acceso/cooperativas, una por tarea | Specs separadas; CI depende del entorno de integración, pantallas de la base frontend |
 | Edwin | 1. Registrar un bus con los datos RN-10 | Spec y acuerdo de fotografías/almacenamiento; grupo de buses existente |

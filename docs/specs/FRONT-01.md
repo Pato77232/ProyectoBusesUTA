@@ -3,8 +3,8 @@
 - **ID local:** FRONT-01
 - **Responsable:** Pablo
 - **Revisión:** T1 aprobada por Shirley e integrada; revisión humana de T2 pendiente de confirmar.
-- **Estado:** T1 integrada, T2.1/T2.2 versionados; T2.3 autorizado y verificado localmente, pendiente de commit/revisión. T2.4 y T3–T4 pendientes.
-- **Fecha / base comprobada:** 26 de octubre de 2026; origin/develop en `eebfe75` (integra T1).
+- **Estado:** T1 integrada; T2.1–T2.3 versionados, T2.4 documentado/verificado localmente. T2 pendiente de revisión humana/integración; T3–T4 pendientes.
+- **Fecha / base comprobada:** 26 de octubre de 2026; T1 integrada en eebfe75, remoto contrastado c8bb5d3. Pruebas de T2 sobre cddbe34, sin integrar todavía el cambio posterior de pagos.
 - **Ramas:** T1 `feature/FRONT-01-base-compartida` integrada en PR #16; T2 actual `feature/FRONT-01-T2-proxy`.
 - **Prioridad propuesta:** Alta, para desbloquear las pantallas de los cinco integrantes.
 - **Dependencias:** ADR 0003/0004, INFRA-01 y contratos de autenticación existentes. El enfoque de [frontend-acuerdos.md](../frontend-acuerdos.md) está confirmado por reporte humano; completar los detalles técnicos de cada paso antes de ejecutarlo, sin volver a pedir el mismo acuerdo general.
@@ -344,3 +344,29 @@ No se valida login/logout end-to-end, renovación CSRF ligada a una sesión aute
 Pablo solicitó guardar T2.3 en commit(s) atómicos y continuar con T2.4. Las pruebas de cookies/CSRF, su helper de Chrome y su documentación forman un único cambio lógico: `test(infra): verifica cookies y CSRF del proxy en navegador`. El commit que contiene esta constancia conserva la verificación completa de la sección 23; no hay cambios de producto desde esa ejecución. Referencia FRONT-01 y asistencia de Codex. Sin push.
 
 T2.3 queda versionado; T2.4 autorizado para consolidar la guía, los criterios y el material de revisión, sin publicar una PR ni implementar T3.
+
+## 25. T2.4 — guía y preparación de revisión
+
+Pablo autorizó continuar después de guardar T2.3 en `cddbe34`. Se añade [GUIA-INTEGRACION.md](../../frontend/GUIA-INTEGRACION.md) para los integrantes: arranque/limpieza, modos de prueba, diagnóstico, preparación de la primera pantalla y límites. No se implementan pantallas de ejemplo, módulos vacíos, cliente HTTP o T3.
+
+La guía señala que Dockerfile/.dockerignore incluyen rutas concretas: una futura página/módulo ES deberá ampliar esas listas dentro de su propia tarea, con prueba desde la imagen real. No copiar todo el repositorio ni dar por disponible un cliente HTTP aún inexistente. Reglas de negocio/roles permanecen en backend y se coordina navegación/recursos compartidos con Pablo.
+
+La [matriz de revisión de T2](../revision-FRONT-01-T2.md) contrasta todos los criterios generales de FRONT-01: transporte/CSRF anónimo comprobados, cliente HTTP y recorridos autenticados pendientes de T3/T4. Incluye comandos, evidencia, material de PR y límites reales. No se declara aprobada toda FRONT-01 por marcar las pruebas específicas de T2.
+
+### Auditoría final de T2.4 — 26 de octubre de 2026
+
+- Sobre cddbe34: container-smoke, proxy-smoke y csrf-smoke ejecutados secuencialmente, aprobados; código de producto/pruebas previas no modificado por T2.4.
+- Backend: lint aprobado; 346 pruebas aprobadas (239 unitarias, 107 integración). PostgreSQL temporal aparte busesuta-front01-t24, sin .env ni datos reales; contenedor y red retirados. Proyectos QA, receptor, perfiles y configuraciones temporales también retirados por las pruebas. Imágenes conservadas en caché.
+- Formato propio, sintaxis, enlaces locales y diff aprobados. Formato global backend fallido en los 26 archivos preexistentes; no se modifican ni se declara una excepción académica inexistente.
+- Linux, Node 24.21.0, Chrome 153.0.8010.36 y Docker Compose 5.6.1. No acredita Windows, zoom nativo, ayudas técnicas, TLS, sesión autenticada o rate limiting individual.
+- Fetch actualizó origin/develop a c8bb5d3: incorpora PAGOS-01 y archivos nuevos de pagos, sin solaparse con T2 ni modificar server.js/app.js/Compose. Los resultados corresponden a nuestra rama, no a una combinación integrada con ese cambio. Comprobar diff y validación de la combinación antes de aceptar la PR; no se ejecutó merge/rebase.
+
+T2.4 queda documentado/verificado localmente y preparado para revisión, sin commit nuevo, push o PR creada. Revisor de T2 y aprobación humana pendientes. Antes de integrar debe resolverse/reportarse el fallo global de formato según las reglas del equipo, sin ocultarlo o clasificarlo como inducido. T2 no está integrado/cerrado y T3/T4 siguen pendientes. La siguiente acción es revisar/guardar la documentación final de T2 y preparar su publicación/revisión con autorización humana.
+
+## 26. Guardado y publicación autorizados de T2.4
+
+Pablo solicitó guardar T2.4, publicar la rama y entregar contenido de PR y recomendación de revisor. El commit documental que contiene esta constancia consolida guía, matriz de revisión y estado bajo `docs(infra): consolida la guía y la revisión del proxy local`. No hay cambios de producto o pruebas desde la auditoría de T2.4; se verifican enlaces y diff de los documentos antes del guardado.
+
+Publicación autorizada de feature/FRONT-01-T2-proxy, sin force-push, creación de PR, asignación automática de revisor, merge/rebase o tags. La confirmación del push se obtiene después del commit; no se da por hecha desde esta constancia. Recomendación: Shirley (shirley6126), por coordinación de revisión de infraestructura de Pablo y continuidad con T1; su aceptación de esta nueva revisión aún no consta. Nadie aprueba su propio cambio.
+
+Resultados de la rama y límites permanecen en la matriz: 3 comprobaciones frontend, lint y 346 pruebas aprobados; formato global con 26 archivos preexistentes fallido. La combinación con develop y aprobación humana siguen pendientes antes de integrar.

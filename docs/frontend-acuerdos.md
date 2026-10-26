@@ -79,3 +79,9 @@ T2.2 conecta frontend y API mediante un Compose local aislado con datos/credenci
 ## T2.2 guardado y T2.3 autorizado
 
 Pablo solicitó commit atómico y continuar con T2.3. T2.2 queda guardado en 4d37295; T2.3 añade verificación de Chrome/backend reales y receptor de transporte QA, sin usuarios/sesiones ni cambios de producción. Las observaciones de cabeceras del receptor no equivalen a una autenticación real; las cookies Secure de NODE_ENV=production no acreditan TLS. Evidencia en FRONT-01, sección 23. Sin commit de T2.3 ni push; revisión humana de T2 y T2.4 pendientes.
+
+## T2.3 guardado y preparación de revisión T2.4
+
+Pablo pidió commit(s) atómicos y continuar con T2.4. T2.3 se guardó en cddbe34 como un único cambio lógico de pruebas/documentación. T2.4 añade guía del equipo, diagnóstico, preparación de nuevas pantallas, matriz de criterios y material de PR; no implementa T3.
+
+Auditoría final de la rama: tres pruebas frontend, lint y 346 pruebas backend aprobadas; formato global continúa fallido en 26 archivos previos. Develop contrastado c8bb5d3 contiene nuevos archivos de pagos no solapados, pero la combinación sigue sin integrar/probar. Revisor de T2, aprobación humana y publicación pendientes; no se hizo push o creó PR. Evidencia en FRONT-01, sección 25, y revision-FRONT-01-T2.md.
