@@ -1,4 +1,8 @@
 const { randomUUID } = require('node:crypto');
+const { execFileSync } = require('node:child_process');
+const { copyFileSync, mkdtempSync, rmSync } = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
 const { assertTestDatabase } = require('../../../scripts/test-database');
 const { runMigration, testPool } = require('../../helpers/database');
 const PgPaymentProofRepository = require('../../../src/modules/payments/infrastructure/pg-payment-proof.repository');
@@ -282,23 +286,57 @@ test('save actualiza el comprobante existente de la misma reserva', async () => 
   expect(rows[0].total).toBe(1);
 });
 
-test('la migración se revierte y puede aplicarse otra vez', async () => {
-  // Arrange / Act
-  runMigration('down');
-  const { rows: removedTables } = await pool.query(`
-    SELECT to_regclass('public.payment_proofs') AS payment_proofs,
-           to_regclass('public.payment_proof_notification_outbox') AS outbox
-  `);
-  expect(removedTables[0]).toEqual({ payment_proofs: null, outbox: null });
+test('la migración se revierte y puede aplicarse otra vez en su propio esquema', async () => {
+  const schema = `payment_test_${randomUUID().replace(/-/g, '')}`;
+  const migrationDirectory = mkdtempSync(path.join(os.tmpdir(), 'payment-migration-'));
+  const migrationName = '1792469000000-payment-proofs-and-outbox.js';
+  copyFileSync(
+    path.join(__dirname, '../../../migrations', migrationName),
+    path.join(migrationDirectory, migrationName),
+  );
+  const runIsolatedMigration = (direction) =>
+    execFileSync(
+      process.execPath,
+      [
+        path.join(__dirname, 'run-isolated-payment-migration.js'),
+        direction,
+        schema,
+        migrationDirectory,
+      ],
+      { env: process.env, stdio: 'pipe' },
+    );
 
-  // Restore the schema for other integration suites.
-  runMigration('up');
-  const { rows: restored } = await pool.query(
-    "SELECT to_regclass('public.payment_proofs') AS table_name",
-  );
-  expect(restored[0].table_name).toBe('payment_proofs');
-  const { rows: restoredOutbox } = await pool.query(
-    "SELECT to_regclass('public.payment_proof_notification_outbox') AS table_name",
-  );
-  expect(restoredOutbox[0].table_name).toBe('payment_proof_notification_outbox');
+  try {
+    assertTestDatabase();
+    await pool.query(`CREATE SCHEMA "${schema}"`);
+    runIsolatedMigration('up');
+    const { rows: createdTables } = await pool.query(
+      'SELECT to_regclass($1) AS payment_proofs, to_regclass($2) AS outbox',
+      [`${schema}.payment_proofs`, `${schema}.payment_proof_notification_outbox`],
+    );
+    expect(createdTables[0]).toEqual({
+      payment_proofs: `${schema}.payment_proofs`,
+      outbox: `${schema}.payment_proof_notification_outbox`,
+    });
+
+    runIsolatedMigration('down');
+    const { rows: removedTables } = await pool.query(
+      'SELECT to_regclass($1) AS payment_proofs, to_regclass($2) AS outbox',
+      [`${schema}.payment_proofs`, `${schema}.payment_proof_notification_outbox`],
+    );
+    expect(removedTables[0]).toEqual({ payment_proofs: null, outbox: null });
+
+    runIsolatedMigration('up');
+    const { rows: restoredTables } = await pool.query(
+      'SELECT to_regclass($1) AS payment_proofs, to_regclass($2) AS outbox',
+      [`${schema}.payment_proofs`, `${schema}.payment_proof_notification_outbox`],
+    );
+    expect(restoredTables[0]).toEqual({
+      payment_proofs: `${schema}.payment_proofs`,
+      outbox: `${schema}.payment_proof_notification_outbox`,
+    });
+  } finally {
+    await pool.query(`DROP SCHEMA IF EXISTS "${schema}" CASCADE`);
+    rmSync(migrationDirectory, { recursive: true, force: true });
+  }
 });
