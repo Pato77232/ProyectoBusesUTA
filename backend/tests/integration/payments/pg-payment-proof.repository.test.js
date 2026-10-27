@@ -289,7 +289,7 @@ test('save actualiza el comprobante existente de la misma reserva', async () => 
 test('la migración se revierte y puede aplicarse otra vez en su propio esquema', async () => {
   const schema = `payment_test_${randomUUID().replace(/-/g, '')}`;
   const migrationDirectory = mkdtempSync(path.join(os.tmpdir(), 'payment-migration-'));
-  const migrationName = '1792469000000-payment-proofs-and-outbox.js';
+  const migrationName = '1793123000000-payment-proofs-and-outbox.js';
   copyFileSync(
     path.join(__dirname, '../../../migrations', migrationName),
     path.join(migrationDirectory, migrationName),
