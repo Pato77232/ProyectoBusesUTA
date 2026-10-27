@@ -226,3 +226,16 @@ Comprobaciones de `docs/reservas-contratos.md`, “Verificación que se necesita
 ## 13. Defecto inducido
 
 **No aplica.**
+
+## 14. Evidencia local de implementación T4
+
+Verificación ejecutada el 27 de octubre de 2026 en la rama `feature/PAGOS-01-subir-comprobante`:
+
+- Lint: aprobado.
+- Pruebas unitarias: 33 suites y 280 pruebas aprobadas.
+- Integración de pagos con PostgreSQL aislado: 1 suite y 9 pruebas aprobadas.
+- Integración completa: 5 suites fallidas y 8 aprobadas (42 pruebas fallidas, 74 aprobadas). Las suites de frecuencias y hojas de ruta fallaron al truncar `payment_proofs`, ahora referenciada por el outbox. La suite de flota falló porque espera que una sola reversión quite `payment_proofs`, aunque la migración más reciente agrega primero el outbox.
+- `format:check` global reporta 48 archivos preexistentes fuera del cambio; los archivos de T4 pasan Prettier.
+- No se ejecutó push desde Codex. La rama no tiene integración en `develop`; el contrato real de `bookings` continúa simulado y pendiente de sus firmas/contexto autorizados.
+
+Los fallos de las suites ajenas a pagos se reportan sin editar sus módulos o pruebas, conforme al alcance de PAGOS-01.
