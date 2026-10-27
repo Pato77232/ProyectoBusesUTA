@@ -12,7 +12,7 @@ function anyRuc() {
 async function clean() {
   assertTestDatabase();
   await pool.query(
-    'TRUNCATE auth_sessions, users, cooperatives, frequency_segment_prices, frequency_stops, frequencies',
+    'TRUNCATE route_sheet_modification_logs, route_sheet_cycles, route_sheet_rest_days, route_sheet_assignments, route_sheets, bus_groups, auth_sessions, users, cooperatives, frequency_segment_prices, frequency_stops, frequencies',
   );
 }
 

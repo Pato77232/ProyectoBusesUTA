@@ -2,6 +2,8 @@
 
 Aplicación web para la **gestión y venta de boletos de transporte interprovincial en Ecuador**. Permite a las cooperativas administrar sus buses, frecuencias y hojas de ruta, a los oficinistas vender y validar pagos, y a los usuarios finales buscar viajes, elegir asientos y comprar boletos con código QR.
 
+Para trabajar con Codex, empieza por la [guía del equipo](docs/flujo-codex.md) y el [estado por integrante](docs/estado-proyecto.md). Puedes pedir: «Soy Edwin, revisa qué me corresponde ahora y explícame cómo empezar». Las tareas propuestas requieren spec y acuerdo antes de implementarse.
+
 > Proyecto del segundo parcial de **Manejo y Configuración de Software**  
 > Carrera de Software — Facultad de Ingeniería en Sistemas, Electrónica e Industrial (FISEI)  
 > Universidad Técnica de Ambato

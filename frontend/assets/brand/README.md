@@ -18,4 +18,4 @@ El logo completo no cambia por esta variante de presentación del icono. Revisar
 
 El enlace tiene nombre accesible «transViaje, inicio» y la imagen es decorativa dentro de él para evitar lectura duplicada. Mantener dimensiones y marco estable para evitar saltos. Cambiar solo recursos de marca y tokens autorizados; no renombrar módulos, repositorio, base de datos ni credenciales por el nombre público.
 
-Preparado localmente por Codex a petición de Pablo. La aceptación del logo original no acredita revisión visual de estos encuadres; esa revisión del resultado permanece pendiente. Referencia de alcance: [WEB-01](../../../docs/specs/WEB-01.md).
+Preparado localmente por Codex a petición de Pablo. La aceptación del logo original no acredita revisión visual de estos encuadres; esa revisión del resultado permanece pendiente. Referencia de alcance: [FRONT-01](../../../docs/specs/FRONT-01.md).
