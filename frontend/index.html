@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Conoce transViaje, una plataforma en preparación para consultar y comprar pasajes interprovinciales en Ecuador."
+    />
+    <meta name="theme-color" content="#202020" />
+    <title>transViaje · Tu próximo viaje, sin tantas vueltas</title>
+    <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg" />
+    <link
+      rel="stylesheet"
+      href="./assets/vendor/bootstrap-5.3.8/bootstrap.min.css"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+    />
+    <link rel="stylesheet" href="./src/styles/app.css" />
+  </head>
+  <body id="inicio">
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+    <header class="site-header">
+      <div class="container d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <a class="brand" href="#inicio" aria-label="transViaje, inicio">
+          <span class="brand-logo-frame" aria-hidden="true">
+            <img
+              class="brand-logo"
+              src="./assets/brand/logo-transviaje.png"
+              alt=""
+              width="1600"
+              height="1446"
+            />
+          </span>
+        </a>
+        <nav aria-label="Navegación principal">
+          <ul class="nav-list">
+            <li><a href="#como-funciona">Cómo funcionará</a></li>
+            <li><a href="#preguntas">Preguntas frecuentes</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main id="contenido" tabindex="-1">
+      <section class="hero container" aria-labelledby="hero-title">
+        <div class="row align-items-center gy-5 gx-lg-4">
+          <div class="col-lg-6">
+            <p class="eyebrow">PASAJES INTERPROVINCIALES · ECUADOR</p>
+            <h1 id="hero-title">
+              Bienvenido a transViaje.<br /><span class="hero-accent">Tu viaje, elevado.</span>
+            </h1>
+            <p class="hero-description">
+              Una forma más sencilla de encontrar tu ruta, elegir tu asiento y llevar tu boleto
+              contigo. Estamos preparando el camino.
+            </p>
+            <p class="availability-note">
+              <span class="status-dot" aria-hidden="true"></span>
+              En preparación. La búsqueda y compra aún no están disponibles.
+            </p>
+            <a class="btn btn-primary" href="#como-funciona">
+              Conoce cómo funcionará <span aria-hidden="true">↗</span>
+            </a>
+          </div>
+
+          <div class="col-lg-6">
+            <aside class="journey-preview" aria-labelledby="preview-title">
+              <div class="preview-header">
+                <span class="preview-label">transViaje</span>
+                <span class="preview-badge">Próximamente</span>
+              </div>
+              <h2 id="preview-title">Tu viaje.<br />Todo en un lugar.</h2>
+              <p class="preview-description">Una vista de lo que estamos preparando para ti.</p>
+              <ol class="preview-list list-unstyled">
+                <li>
+                  <span class="preview-icon" aria-hidden="true">↗</span>
+                  <div>
+                    <h3>Tu ruta</h3>
+                    <p>Encuentra el camino a tu destino.</p>
+                  </div>
+                </li>
+                <li>
+                  <span class="preview-icon" aria-hidden="true">▦</span>
+                  <div>
+                    <h3>Tu asiento</h3>
+                    <p>Elige dónde quieres viajar.</p>
+                  </div>
+                </li>
+                <li>
+                  <span class="preview-icon" aria-hidden="true">⌁</span>
+                  <div>
+                    <h3>Tu boleto</h3>
+                    <p>Llévalo contigo en formato digital.</p>
+                  </div>
+                </li>
+              </ol>
+              <p class="preview-caption">Funciones previstas · Todavía no disponibles</p>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section class="steps-section" id="como-funciona" aria-labelledby="steps-title">
+        <div class="container">
+          <div class="section-heading">
+            <p class="eyebrow">ASÍ FUNCIONARÁ</p>
+            <h2 id="steps-title">Tu viaje, paso a paso.</h2>
+            <p>Estas funciones estarán disponibles en una próxima etapa.</p>
+          </div>
+          <ol class="row g-4 list-unstyled mb-0">
+            <li class="col-md-4">
+              <div class="step-card">
+                <span class="step-number" aria-hidden="true">01</span>
+                <h3>Encuentra tu ruta</h3>
+                <p>Podrás consultar viajes entre ciudades y conocer sus horarios y tarifas.</p>
+              </div>
+            </li>
+            <li class="col-md-4">
+              <div class="step-card">
+                <span class="step-number" aria-hidden="true">02</span>
+                <h3>Elige tu asiento</h3>
+                <p>Verás la distribución del bus y seleccionarás los asientos disponibles.</p>
+              </div>
+            </li>
+            <li class="col-md-4">
+              <div class="step-card">
+                <span class="step-number" aria-hidden="true">03</span>
+                <h3>Lleva tu boleto</h3>
+                <p>Una vez aprobado el pago, recibirás tu boleto digital con código QR.</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="questions-section container" id="preguntas" aria-labelledby="questions-title">
+        <div class="row gy-4 gx-lg-4">
+          <div class="col-lg-5">
+            <p class="eyebrow">ANTES DE EMPEZAR</p>
+            <h2 id="questions-title">¿Tienes preguntas?</h2>
+            <p>Conoce qué podrás hacer y el estado actual de la plataforma.</p>
+          </div>
+          <div class="col-lg-7">
+            <details class="question" open>
+              <summary>¿Ya puedo comprar un pasaje?</summary>
+              <p>
+                Todavía no. Esta página presenta la plataforma; la consulta de viajes, las reservas
+                y los pagos aún no están habilitados.
+              </p>
+            </details>
+            <details class="question">
+              <summary>¿Necesitaré crear una cuenta?</summary>
+              <p>
+                La plataforma contemplará compras como cliente registrado o como invitado. Los
+                formularios de acceso y compra estarán disponibles más adelante.
+              </p>
+            </details>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <p class="mb-0">transViaje <span aria-hidden="true">·</span> Proyecto académico</p>
+        <a href="#inicio">Volver al inicio <span aria-hidden="true">↑</span></a>
+      </div>
+    </footer>
+  </body>
+</html>

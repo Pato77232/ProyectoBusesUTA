@@ -202,3 +202,13 @@ términos de la Licencia Pública General de GNU publicada por la Free Software
 Foundation, ya sea la versión 3 de la Licencia o (a tu elección) cualquier
 versión posterior... [ver LICENSE]
 ```
+
+## Frontend de bienvenida (WEB-01)
+
+La página pública de transViaje se sirve en http://localhost:8080/ mediante el
+servicio `frontend` de Docker Compose. Incluye Bootstrap local, logo y diseño
+adaptable; no requiere autenticación. `/api/v1` se reenvía al backend y la
+bienvenida permanece visible cuando este no está disponible.
+
+Arranque, alcance y pruebas: [frontend/README.md](frontend/README.md).
+Spec: [WEB-01](docs/specs/WEB-01.md). No incluye formularios de acceso ni compra.
