@@ -6,7 +6,9 @@ const {
   createPaymentProof,
   uploadPaymentProof,
 } = require('../../../src/modules/payments/domain/payment-proof');
-const { PaymentProofAlreadyUploadedError } = require('../../../src/modules/payments/domain/payment-proof-error');
+const {
+  PaymentProofAlreadyUploadedError,
+} = require('../../../src/modules/payments/domain/payment-proof-error');
 
 let pool;
 let repository;
@@ -81,7 +83,7 @@ beforeAll(() => {
 
 beforeEach(async () => {
   assertTestDatabase();
-  await pool.query('TRUNCATE payment_proofs');
+  await pool.query('TRUNCATE payment_proof_notification_outbox, payment_proofs');
   cooperativeId = await createCooperative();
 });
 
@@ -289,6 +291,7 @@ test('la migración se revierte y puede aplicarse otra vez', async () => {
   expect(removed[0].table_name).toBeNull();
 
   // Restore the schema for other integration suites.
+  runMigration('up');
   runMigration('up');
   const { rows: restored } = await pool.query(
     "SELECT to_regclass('public.payment_proofs') AS table_name",
