@@ -95,7 +95,13 @@ function createHarness({
 }
 
 function createInput(overrides = {}) {
-  return { bookingId: BOOKING.bookingId, customerId: BOOKING.ownerId, file: FILE, now: NOW, ...overrides };
+  return {
+    bookingId: BOOKING.bookingId,
+    customerId: BOOKING.ownerId,
+    file: FILE,
+    now: NOW,
+    ...overrides,
+  };
 }
 
 test('carga el comprobante usando la cooperativa, fecha límite y total de la reserva', async () => {
@@ -164,7 +170,9 @@ test('rechaza reservas cuando bookings indica que no admiten comprobante', async
   const harness = createHarness({ booking: { ...BOOKING, acceptsPaymentProof: false } });
 
   // Act / Assert
-  await expect(harness.useCase.execute(createInput())).rejects.toBeInstanceOf(BookingNotPayableError);
+  await expect(harness.useCase.execute(createInput())).rejects.toBeInstanceOf(
+    BookingNotPayableError,
+  );
   expect(harness.fileStorage.save).not.toHaveBeenCalled();
 });
 

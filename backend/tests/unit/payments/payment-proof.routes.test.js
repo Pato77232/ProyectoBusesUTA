@@ -10,11 +10,13 @@ describe('POST /api/v1/payment-proofs', () => {
   let middlewareCalls;
 
   beforeAll(async () => {
-    uploadPaymentProof = { execute: jest.fn(async () => ({
-      paymentProof: { id: 'proof-1', status: 'UPLOADED', file_key: 'private-key' },
-      expiresAt: new Date('2026-10-25T12:05:00.000Z'),
-      total: 2550,
-    })) };
+    uploadPaymentProof = {
+      execute: jest.fn(async () => ({
+        paymentProof: { id: 'proof-1', status: 'UPLOADED', file_key: 'private-key' },
+        expiresAt: new Date('2026-10-25T12:05:00.000Z'),
+        total: 2550,
+      })),
+    };
     middlewareCalls = [];
     const auth = {
       authenticate(request, response, next) {
@@ -28,7 +30,9 @@ describe('POST /api/v1/payment-proofs', () => {
         return (request, response, next) => {
           middlewareCalls.push(`authorize:${role}`);
           if (request.auth.user.role !== role) {
-            return response.status(403).json({ error: { code: 'FORBIDDEN', message: 'No permitido.' } });
+            return response
+              .status(403)
+              .json({ error: { code: 'FORBIDDEN', message: 'No permitido.' } });
           }
           next();
         };

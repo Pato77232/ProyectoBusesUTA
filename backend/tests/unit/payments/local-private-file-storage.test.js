@@ -34,6 +34,8 @@ describe('LocalPrivateFileStorage', () => {
 
   test('rechaza claves que podrían salir del directorio privado', async () => {
     // Act / Assert
-    await expect(storage.delete('../secreto')).rejects.toThrow('La clave del archivo no es válida.');
+    await expect(storage.delete('../secreto')).rejects.toThrow(
+      'La clave del archivo no es válida.',
+    );
   });
 });

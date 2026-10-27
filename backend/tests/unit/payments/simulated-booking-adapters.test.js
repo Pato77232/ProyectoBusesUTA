@@ -1,6 +1,8 @@
 const SimulatedBookingReader = require('../../../src/modules/payments/infrastructure/simulated-booking-reader');
 const SimulatedBookingPaymentProofNotifier = require('../../../src/modules/payments/infrastructure/simulated-booking-payment-proof-notifier');
-const { BookingPaymentProofRejectedError } = require('../../../src/modules/payments/domain/payment-proof-error');
+const {
+  BookingPaymentProofRejectedError,
+} = require('../../../src/modules/payments/domain/payment-proof-error');
 
 test('el lector simulado solo devuelve reservas configuradas', async () => {
   // Arrange
