@@ -45,3 +45,5 @@ No aplica.
 
 ## Aclaración para revisión documental
 Las decisiones de producto de `docs/reservas-decisiones.md` fueron seleccionadas por autorización de Leslie y cierran las preguntas correspondientes de este borrador. No se atribuye aprobación a otros integrantes. Los contratos reales pendientes están en `docs/reservas-contratos.md`; esta rama no implementa código, endpoints, tablas ni pantallas. Los avances de dominio existentes se conservan en sus ramas de tarea separadas.
+## Avance
+T1 implementada y probada; no ejecuta expiración persistida ni tareas periódicas. Evidencia en docs/reservas-ejecucion.md. Decisiones de producto en docs/reservas-decisiones.md.

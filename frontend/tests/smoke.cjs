@@ -183,7 +183,11 @@ async function main() {
     await fs.mkdir(output, { recursive: true });
     server.listen(0, '127.0.0.1');
     await once(server, 'listening');
-    const origin = `http://127.0.0.1:${server.address().port}`;
+    const origin = process.env.QA_BASE_URL || `http://127.0.0.1:${server.address().port}`;
+    const target = new URL(origin);
+    assert.equal(target.protocol, 'http:', 'La prueba solo admite HTTP local');
+    assert.equal(target.hostname, '127.0.0.1', 'La prueba solo admite loopback');
+    assert.equal(target.pathname, '/', 'La URL de prueba debe apuntar a la raíz');
     browser = spawn(
       process.env.BROWSER_BIN || 'google-chrome',
       [

@@ -34,3 +34,23 @@ La referencia remota develop se comprobó con la conexión GitHub de la app en 1
 
 ## Siguiente tarea
 Confirmar estos contratos en revisión. Después implementar BOOK-02 T2 por partes: caso de uso contra puertos propios y pruebas, adaptadores reales, y finalmente HTTP/pantalla. La prueba con repositorios simulados no acredita integración de producción.
+
+## Actualización comprobada el 25 de octubre de 2026 — BOOK-01 T2
+
+Base revisada: develop 67ee38d947058be53e17a0479f4404b1d3c42bf6, que incorpora grupos de buses y hojas de ruta. Las secciones anteriores son evidencia histórica de las referencias y ejecuciones allí indicadas.
+
+| Proveedor | API pública disponible | Qué sigue pendiente para reservas |
+| --- | --- | --- |
+| Flota | createFleetModule devuelve busGroupQueries.findById y findByCooperativeId | Buses reales y plantilla con identificadores de asientos; un grupo no es un inventario |
+| Frecuencias | createFrequenciesModule devuelve findActiveByRoute y router | Contrato de viaje fechado, recorrido y tarifas autorizadas para la cotización |
+| Hojas de ruta | createRouteSheetsModule devuelve router; el caso de ventana de compra queda interno | API pública de consulta de viaje comercializable y relación estable con asignación, bus y fecha |
+| Pagos | No hay implementación en esta base; PAGOS-01 continúa en PR #11 | Acuerdo de operaciones transaccionales de recepción, expiración, aprobación y rechazo |
+| Reservas | Funciones de dominio; aún no hay index.js, repositorio, tabla ni endpoints | Contratos públicos, persistencia, propiedad y bloqueo transaccional |
+
+La ventana de compra de hojas de ruta expresa un horizonte de calendario; no sustituye el plazo de 3 a 5 minutos para subir comprobantes. Tampoco acredita disponibilidad de un asiento.
+
+El arranque server.js compone auth, tenants y fleet, pero todavía no frequencies ni route-sheets. Esta revisión no modifica módulos ajenos ni presenta esos endpoints como disponibles en el servidor real.
+
+El adaptador interno de hojas de ruta contempla consultas hasPassengersForBusOnRouteSheet y hasPassengersForAssignment sobre un bookingRepository inyectado. Es una expectativa del consumidor, no una API de reservas implementada ni un acuerdo ya aceptado. Debe acordarse antes de conectar los módulos; no importar repositorios internos entre módulos.
+
+Siguiente incremento: BOOK-02 T2a, definir el puerto interno TripCatalog y el caso de uso de disponibilidad con pruebas de contrato. Los adaptadores de producción y el endpoint quedan pendientes de las fuentes reales; no se inventan tablas de viajes ni disponibilidad ficticia. En paralelo, acordar con Shirley la reserva persistida y sus transiciones antes de implementar expiración o venta.

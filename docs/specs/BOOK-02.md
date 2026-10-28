@@ -50,3 +50,9 @@ Contrato definitivo de viaje, plantilla, acceso público y comercialización por
 
 ## 11. Defecto inducido
 No aplica.
+
+## Avance
+T1 implementada y probada; evidencia en docs/reservas-ejecucion.md. T2–T4 continúan pendientes. No es todavía una consulta de producción.
+
+## Incremento BOOK-02 T2a
+Caso de uso de disponibilidad implementado contra puertos propios y validado con pruebas; detalle y evidencia en BOOK-02-T2a.md. Se verifica identidad del viaje, límites del recorrido y origen de la cooperativa/inventario antes de consultar ocupaciones. Los adaptadores reales, HTTP y pantalla siguen pendientes; las pruebas con dobles no acreditan conexión con proveedores de producción.

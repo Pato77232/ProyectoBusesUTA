@@ -3,7 +3,7 @@
 - **Responsable:** Leslie
 - **Revisor:** Edwin
 - **Módulo:** bookings
-- **Estado:** Borrador; bloqueada por reglas de descuentos sin definir.
+- **Estado:** Política seleccionada por autorización de Leslie; T2 de cálculo puro autorizada. Integración y pantalla pendientes de tarifas reales y acreditación.
 - **Dependencias:** BOOK-04, tarifas de viajes y acuerdos RN-43.
 
 ## 1. Objetivo
@@ -39,8 +39,13 @@ Tabla de casos con importes esperados aprobados; pruebas unitarias de límites y
 ## 10. Preguntas abiertas
 Porcentajes, edades, acreditación, acumulación, moneda y redondeo. Resolver antes de T2.
 
+### Decisiones de T1 y alcance de T2
+Las decisiones de producto se cierran en docs/reservas-decisiones.md por instrucción posterior de Leslie. T2 calcula una cotización individual con segmentPricesCents, birthDate y departureDate locales ISO YYYY-MM-DD y disabilityVerified booleano explícito. Consume datos confiables obtenidos por el futuro caso de uso, no constituye acreditación de declaraciones del navegador. Edad calculada en la salida; menor de 18 y mayor o igual a 65; discapacidad acreditada. Un solo descuento del 50 % si hay alguna categoría. Precio base: suma de centavos positivos seguros; redondear la mitad hacia arriba una vez por pasajero. El total y descuento deben sumar exactamente la base. Rechazar fechas imposibles, nacimiento posterior a salida, listas vacías, centavos fraccionarios, desbordamientos o acreditación no explícita. Para cumpleaños de 29 de febrero, la comparación de calendario cumple el año el 1 de marzo en año no bisiesto: decisión técnica académica registrada, no conclusión legal. No incluye cotización HTTP, acreditación real ni cobro. Rama feature/BOOK-05-T2-calcula-descuentos.
+
 ## 11. Defecto inducido
 No aplica.
 
 ## Aclaración para revisión documental
 Las decisiones de producto de `docs/reservas-decisiones.md` fueron seleccionadas por autorización de Leslie y cierran las preguntas correspondientes de este borrador. No se atribuye aprobación a otros integrantes. Los contratos reales pendientes están en `docs/reservas-contratos.md`; esta rama no implementa código, endpoints, tablas ni pantallas. Los avances de dominio existentes se conservan en sus ramas de tarea separadas.
+## Avance
+T1 de política documentada y T2 de cálculo individual implementada y probada. Pantalla, cotización HTTP, prueba con tarifas reales y acreditación siguen pendientes. Evidencia en docs/reservas-ejecucion.md.
