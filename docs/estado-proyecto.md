@@ -2,9 +2,9 @@
 
 ## Alcance y frescura de esta fotografía
 
-- **Fecha de comprobación:** 26 de octubre de 2026, America/Guayaquil.
+- **Última comprobación focalizada:** 28 de octubre de 2026, integración WEB-01/T2. Las demás observaciones conservan su fecha y alcance anteriores.
 - **Base funcional examinada anteriormente:** commit `eebfe75`; integra T1 de FRONT-01 en PR #16. Su árbol coincide con 3285695; las observaciones de backend anteriores no cambian por esa integración.
-- **Cambio local actual:** FRONT-01 T2 en `feature/FRONT-01-T2-proxy`; T2.1–T2.3 guardados hasta cddbe34, T2.4 guardado por petición de Pablo, con publicación de rama autorizada. T1 aprobada por Shirley e integrada; T2 preparado para PR/revisión humana; publicación autorizada, integración pendiente.
+- **Cambio local actual:** corrección WEB-01/T2 en `bugfix/WEB-01-integracion`, desde e77716d que contiene origin/develop 92d91d3. Implementada/verificada localmente, sin commit ni aprobación humana. Evidencia en WEB-01 sección 14.
 - **Remoto contrastado para T2:** origin/develop c8bb5d3 (añade PAGOS-01 sin solaparse con T2). Las pruebas actuales pertenecen a cddbe34 y no validan todavía la combinación con ese cambio; las demás filas conservan el alcance de la base examinada anterior.
 - **Fuentes:** árbol y composición de esa base, specs versionadas y distribución de referencia en [equipo-y-acuerdos.md](equipo-y-acuerdos.md). No se inspeccionaron todas las ramas remotas ni se certifica el trabajo privado de otros integrantes.
 
@@ -35,7 +35,8 @@ Antes de orientar a alguien:
 | [ROUTE-SHEETS-01](specs/ROUTE-SHEETS-01.md) | David, según distribución; confirmar autor/responsable | Código integrado, PR #13; integración operativa pendiente | app.js admite routeSheets, pero server.js no lo instancia; la composición necesita contratos con fleet/frequencies/bookings |
 | [INFRA-02](specs/INFRA-02.md), [INFRA-03](specs/INFRA-03.md) | Shirley; revisor indicado Pablo | Cambios presentes; cierre documental pendiente | cross-env y .gitattributes presentes, lock actualizado en historial; no implica aprobación humana ni validación Windows actual |
 | [INFRA-04](specs/INFRA-04.md) | Pablo; revisora propuesta Shirley | Integrada: su código documental está contenido en c89b1b9 | La presencia en develop está comprobada; no se inventa evidencia de revisión humana/cierre |
-| [FRONT-01](specs/FRONT-01.md) | Pablo; revisión de T2 por confirmar | T1 integrada; T2.1–T2.3 versionados y T2.4 documentado | T1 en PR #16/eebfe75; T2 con guía y [matriz de revisión](revision-FRONT-01-T2.md), tres pruebas frontend/lint/346 pruebas backend aprobadas en la rama. Formato global fallido en 26 archivos previos. T2 sin publicación/integración y FRONT-01 completa pendiente de T3/T4 |
+| [FRONT-01](specs/FRONT-01.md) | Pablo; revisión humana por confirmar | T1 y T2 presentes en origin/develop 92d91d3 | Comprobado por Git el 28 de octubre; esto no acredita nueva aprobación humana. Corrección de compatibilidad con WEB-01 en bugfix/WEB-01-integracion, base e77716d; T3/T4 pendientes |
+| [WEB-01](specs/WEB-01.md) | Revisión humana por confirmar | Corrección implementada y verificada localmente; revisión pendiente | Se recuperan modos Nginx estático/proxy, prueba compartida T2 y documentación; bienvenida/8080 conservados. Lint y 657 pruebas backend aprobados; formato global falla en 27 archivos previos. Frontend/CSRF/Compose aprobados; prueba de cambio IP requiere IPAM explícito. Sin commit ni integración; evidencia en sección 14 |
 | search, bookings, payments y tickets | Según propuesta inferior | Sin implementación en la base examinada | Confirmar ramas de los responsables antes de crear tareas |
 | CI | Pablo | Sin workflow versionado en la base | Proponer una spec propia; no afirmar protecciones remotas sin consultarlas |
 

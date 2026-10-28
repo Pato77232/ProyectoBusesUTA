@@ -185,3 +185,89 @@ busesuta-web01-preview, puerto 8080. La vista previa permanece disponible;
 backend/base temporal retirados. Health real se comprobó antes en la red de QA.
 Para detener la vista previa sin cargar variables ni .env:
 `docker stop busesuta-web01-preview-frontend-1`.
+
+## 14. Corrección de integración WEB-01 / FRONT-01 T2
+
+Solicitud humana del 28 de octubre de 2026: corregir la integración revisada.
+Base: e77716d de origin/feature/WEB-01-primera-pantalla, que contiene
+origin/develop 92d91d3. Rama de corrección: bugfix/WEB-01-integracion.
+
+Alcance autorizado: recuperar los dos modos de Nginx de FRONT-01 T2, conservar
+la bienvenida y el puerto 8080 de WEB-01, y recuperar documentación y pruebas
+compartidas reemplazadas durante la combinación. No hay cambios de negocio,
+backend, dependencias, login, política de cookies ni diseño de la portada.
+Se aplica frontend/DESIGN.md conservando identidad, tokens y accesibilidad.
+No aplica defecto inducido: estos fallos de integración son inesperados.
+
+Plan y criterios:
+
+- Dockerfile copia nginx.conf como modo estático predeterminado y también
+  nginx-proxy.conf en su ruta propia. El contenedor aislado devuelve 503 JSON
+  API_NOT_CONNECTED; conserva las aserciones de container-smoke.cjs.
+- Compose principal activa nginx-proxy.conf explícitamente en 8080. Compose
+  de desarrollo conserva su modo conectado en 8081; ambos usan la misma imagen.
+- Restaurar proxy-smoke.cjs íntegro desde develop 92d91d3, sin reducir
+  expectativas. Conservar la prueba adicional WEB-01 con otro nombre.
+- Restaurar README compartido y añadir instrucciones WEB-01 sin borrar T2.
+- Comprobar imagen estática, stack real, transporte/cookies/CSRF y bienvenida
+  WEB-01 mediante Compose principal; sin backend debe seguir sirviendo HTML.
+- Ejecutar lint, format:check y npm test del backend con PostgreSQL aislado.
+- Registrar resultados reales en esta spec y estado-proyecto.md; sin commits,
+  push, merge, rebase ni cierre/aprobación humana inferidos.
+
+La responsabilidad de configuraciones se mantiene separada: empaquetado estático
+por defecto, selección explícita del proxy en Compose y prueba de cada contrato.
+Usabilidad: conservar teclado, foco, recursos locales y reflujo de la bienvenida
+mediante las pruebas existentes; no se agregan interacciones.
+
+### Resultados de la corrección — 28 de octubre de 2026
+
+- Fallo reproducido antes del arreglo: container-smoke.cjs esperaba 503 y
+  recibió 502 en /api/v1. Tras restaurar Dockerfile, la misma prueba pasó,
+  incluidas sus aserciones de navegador, MIME, licencias y exclusiones.
+- Dockerfile y proxy-smoke.cjs restaurados byte a byte desde develop 92d91d3.
+  La comprobación propia WEB-01 se conserva íntegra como web01-smoke.cjs;
+  container-smoke.cjs y csrf-smoke.cjs no se modificaron.
+- Prueba restaurada del proxy: primera ejecución fallida por requisito de Docker
+  al asignar --ip en una red sin subred explícita. Nueva ejecución con red QA
+  precreada con IPAM explícito aprobada, sin modificar ninguna aserción:
+  arranque sin backend, migraciones, health/404/401, navegador, caída/reinicio y
+  cambio real de IP sin recrear ni reiniciar Nginx. La ejecución directa sin
+  preparar IPAM sigue dependiendo de la política de redes de Docker.
+- csrf-smoke.cjs: aprobada con backend real, navegador, cookies/CSRF, atributos
+  Secure/__Host y receptor QA de transporte. No acredita TLS de producción,
+  login completo ni separación de rate limiting por IP de cliente.
+- Compose principal real: aprobado con frontend, backend y DB de QA, sin .env.
+  Se usó un override temporal solo del puerto publicado para evitar ocupar la
+  vista previa existente; la declaración original 8080 se conserva. La prueba
+  WEB-01 pasó antes de iniciar backend, con health real y después de detenerlo.
+- npm run lint: aprobado. npm test: 657 aprobadas (550 unitarias, 107 integración)
+  con Node 24.21.0 y PostgreSQL 16.13 temporal en tmpfs.
+- npm run format:check: fallido en 27 archivos preexistentes del backend;
+  ninguno se modificó. No se oculta ni se clasifica como defecto inducido.
+- Pruebas frontend ejecutadas con Node 25.9.0 del host y Brave/Chromium instalado;
+  backend y sus pruebas con Node 24.21.0. Reflujo 360/1280 y CSS zoom 200 %
+  aprobados; no certifica zoom nativo, Windows ni ayudas técnicas.
+- Sin dependencias nuevas, cambios de backend, commits ni publicación.
+  Estado: corrección implementada localmente; revisión humana pendiente.
+
+Para repetir la prueba del proxy intacta en Docker que exige IPAM explícito,
+precrear la red del proceso de QA. Elegir antes una subred libre (la siguiente
+fue utilizada solo para QA en esta ejecución); Docker rechaza solapamientos.
+Desde la raíz, con BROWSER_BIN apuntando al navegador Chromium:
+
+```sh
+node - <<'JS'
+const { execFileSync } = require('node:child_process');
+const project = `transviaje-frontend-qa-${process.pid}`;
+execFileSync('docker', [
+  'network', 'create', '--subnet', '10.233.249.0/24',
+  '--label', `com.docker.compose.project=${project}`,
+  '--label', 'com.docker.compose.network=default', `${project}_default`,
+], { stdio: 'pipe' });
+require(process.cwd() + '/frontend/tests/proxy-smoke.cjs');
+JS
+```
+
+La propia prueba retira el proyecto y la red en su finally; no usar redes o
+contenedores ajenos. Este ejemplo es preparación QA, no configuración del producto.

@@ -1,6 +1,7 @@
 services:
   frontend:
     build: ./frontend
+    command: ["nginx", "-c", "/etc/nginx/nginx-proxy.conf", "-g", "daemon off;"]
     ports:
       - "127.0.0.1:8080:8080"
   db:
