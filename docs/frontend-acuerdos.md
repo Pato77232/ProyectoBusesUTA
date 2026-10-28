@@ -55,3 +55,33 @@ Pablo confirmó en este chat el nombre **transViaje**, el logo adjunto como defi
 ## Guardado del avance
 
 Pablo solicitó los commits atómicos. Recursos en `152f5a2`, documentación visual en `98d20bd` y portada/pruebas/estado en el commit de implementación que incluye esta constancia, todos con referencia FRONT-01. T1 sigue pendiente de revisión humana, publicación e integración; registrar commits no cierra la tarea ni autoriza T2.
+
+## Preparación de T2 autorizada
+
+Pablo autorizó preparar el siguiente incremento mientras T1 está en la PR #16. [Plan](frontend-t2-plan.md): Nginx con versión exacta propuesta, puerto loopback 8081 configurable y composición local independiente para no heredar NODE_ENV=production o datos existentes. Son detalles del enfoque F-A1–F-A4 ya confirmado, no una nueva votación del stack.
+
+Solo se preparan documentos en `feature/FRONT-01-T2-proxy`; implementación y comprobaciones reales pendientes. La política de confianza de proxy/IP queda delimitada explícitamente antes de login integrado o despliegue. No se cambian reglas, autenticación ni criterios de aprobación humana.
+
+## T2.1 autorizado e implementado localmente
+
+Pablo pidió continuar con el empaquetado. Imagen Nginx fijada por versión/digest, portada servida sin root y prueba real del contenedor aprobada, sin añadir paquetes. Backend/API siguen sin conectar: 503 explícito en `/api/v1`; no se atribuyen pruebas de cookies o autenticación al servidor estático. Evidencia en FRONT-01, sección 19; próximo incremento propuesto T2.2. Sin commit/push y sin modificar la PR de T1.
+
+## Guardado de T2.1 y continuidad recomendada
+
+Pablo autorizó commits atómicos: plan en 2815747 y empaquetado/pruebas/estado en el commit de implementación que incluye esta constancia. Comprobada PR #16 abierta y sin revisiones registradas; develop sigue en c89b1b9. Codex recomienda esperar el resultado de T1 antes de ampliar T2.2, conservando la revisión por incrementos. Esta recomendación no inventa aprobación del equipo ni cierra/bloquea técnicamente FRONT-01. No se hace push.
+
+## Integración de T1 y continuación con T2.2
+
+El 26 de octubre de 2026 se comprobó la aprobación de Shirley y merge de PR #16 en eebfe75, conservando 3285695. Pablo autorizó implementar T2.2. La recomendación anterior de esperar queda superada por esa integración; se mantiene la rama actual sin merge/rebase.
+
+T2.2 conecta frontend y API mediante un Compose local aislado con datos/credenciales efímeros, manteniendo el modo estático de T2.1. Arranque, migraciones, health, errores y cambio real de IP comprobados; evidencia en FRONT-01, sección 21. Cookies de navegador/cabeceras falsificadas quedan para T2.3. No cambia la confianza de IP ni la producción. Sin commit/push; no equivale a aprobación humana del proxy o cierre de FRONT-01.
+
+## T2.2 guardado y T2.3 autorizado
+
+Pablo solicitó commit atómico y continuar con T2.3. T2.2 queda guardado en 4d37295; T2.3 añade verificación de Chrome/backend reales y receptor de transporte QA, sin usuarios/sesiones ni cambios de producción. Las observaciones de cabeceras del receptor no equivalen a una autenticación real; las cookies Secure de NODE_ENV=production no acreditan TLS. Evidencia en FRONT-01, sección 23. Sin commit de T2.3 ni push; revisión humana de T2 y T2.4 pendientes.
+
+## T2.3 guardado y preparación de revisión T2.4
+
+Pablo pidió commit(s) atómicos y continuar con T2.4. T2.3 se guardó en cddbe34 como un único cambio lógico de pruebas/documentación. T2.4 añade guía del equipo, diagnóstico, preparación de nuevas pantallas, matriz de criterios y material de PR; no implementa T3.
+
+Auditoría final de la rama: tres pruebas frontend, lint y 346 pruebas backend aprobadas; formato global continúa fallido en 26 archivos previos. Develop contrastado c8bb5d3 contiene nuevos archivos de pagos no solapados, pero la combinación sigue sin integrar/probar. Revisor de T2, aprobación humana y publicación pendientes; no se hizo push o creó PR. Evidencia en FRONT-01, sección 25, y revision-FRONT-01-T2.md.
