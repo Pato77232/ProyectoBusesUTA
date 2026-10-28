@@ -77,10 +77,41 @@ test('listado vacío cuando la cooperativa no tiene grupos', async () => {
 });
 
 test('migración sube, baja y vuelve a subir', async () => {
-  runMigration('down');
-  const gone = await pool.query("SELECT to_regclass('public.bus_groups') AS table_name");
-  expect(gone.rows[0].table_name).toBeNull();
-  runMigration();
-  const back = await pool.query("SELECT to_regclass('public.bus_groups') AS table_name");
-  expect(back.rows[0].table_name).toBe('bus_groups');
+  const busGroupsMigration = '1792470000000-create-bus-groups';
+  const routeSheetsMigration = '1792480000000-create-route-sheets';
+  const { rows: applied } = await pool.query('SELECT name FROM pgmigrations ORDER BY id DESC');
+  const names = applied.map((migration) => migration.name);
+  expect(names).toContain(busGroupsMigration);
+
+  // Esta rama puede no incluir aún hojas de ruta; si está instalada, se verifica también.
+  const hasRouteSheets = names.includes(routeSheetsMigration);
+  const tables = async () => (await pool.query(
+    "SELECT to_regclass('public.bus_groups') AS bus_groups, to_regclass('public.route_sheets') AS route_sheets",
+  )).rows[0];
+  const initial = { bus_groups: 'bus_groups', route_sheets: hasRouteSheets ? 'route_sheets' : null };
+  expect(await tables()).toEqual(initial);
+  if (hasRouteSheets) {
+    expect(names.indexOf(routeSheetsMigration)).toBeLessThan(names.indexOf(busGroupsMigration));
+  }
+
+  try {
+    for (const { name } of applied) {
+      runMigration('down');
+      const remaining = (await pool.query('SELECT name FROM pgmigrations')).rows;
+      expect(remaining.map((migration) => migration.name)).not.toContain(name);
+      if (name === routeSheetsMigration) {
+        expect(await tables()).toEqual({ bus_groups: 'bus_groups', route_sheets: null });
+      }
+      if (name === busGroupsMigration) {
+        expect(await tables()).toEqual({ bus_groups: null, route_sheets: null });
+        break;
+      }
+    }
+  } finally {
+    runMigration();
+  }
+
+  expect(await tables()).toEqual(initial);
+  const restored = await pool.query('SELECT name FROM pgmigrations ORDER BY id');
+  expect(restored.rows.map((migration) => migration.name)).toEqual([...names].reverse());
 });
