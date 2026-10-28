@@ -1,0 +1,9 @@
+{
+  "name": "transviaje-frontend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/api/*.test.js",
+    "lint": "../backend/node_modules/.bin/eslint src/api tests/api"
+  }
+}
