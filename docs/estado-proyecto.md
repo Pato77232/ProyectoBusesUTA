@@ -38,6 +38,15 @@ Antes de orientar a alguien:
 | search, bookings, payments, tickets y frontend | Según propuesta inferior | Sin implementación en la base examinada | Confirmar ramas de los responsables antes de crear tareas |
 | CI | Pablo | Sin workflow versionado en la base | Proponer una spec propia; no afirmar protecciones remotas sin consultarlas |
 
+## Actualización parcial de reservas — 27 de octubre de 2026
+
+Solo tareas de Leslie, contrastadas con origin/develop e96a277; las filas anteriores conservan su fotografía histórica.
+
+| Spec / área | Estado comprobado | Evidencia y dependencia |
+| --- | --- | --- |
+| BOOK-02/04/05/06, incrementos del PR #15 | Integrados en e96a277 | GitHub confirma PR #15 fusionado. El dominio no incorpora por sí solo almacenamiento ni pantallas. |
+| BOOK-07 T1 | PR #17 abierto, aprobado por Shirley | Contrato documental; no equivale a funciones ni pruebas de carrera implementadas. |
+| BOOK-03 T1 | En desarrollo local, resumen A implementado | BOOK-03-T1.md; parte B y revisión humana pendientes. Viajes y plantillas reales siguen sin proveedor público comprobado; no se sustituye por inventario ficticio. |
 ## Próximos pasos por integrante
 
 Orden recomendado para discutir con el equipo. Cada fila es **Propuesta sin spec**, salvo la referencia a una tarea existente. Confirmar asignación y disponibilidad; las prioridades no son fechas comprometidas. Las pantallas se separan cuando su contrato está listo.
