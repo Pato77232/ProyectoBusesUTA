@@ -90,6 +90,14 @@ test('listado vacío cuando la cooperativa no tiene grupos', async () => {
 });
 
 test('migración sube, baja y vuelve a subir', async () => {
+  // Conserva las aserciones de flota aunque se añadan migraciones posteriores.
+  const target = '1792480000000-create-route-sheets';
+  const { rows } = await pool.query('SELECT name FROM pgmigrations ORDER BY id DESC');
+  expect(rows.map((row) => row.name)).toContain(target);
+  for (const row of rows) {
+    if (row.name === target) break;
+    runMigration('down');
+  }
   runMigration('down');
   const gone = await pool.query("SELECT to_regclass('public.route_sheets') AS table_name");
   expect(gone.rows[0].table_name).toBeNull();

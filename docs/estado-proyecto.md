@@ -47,6 +47,15 @@ Solo tareas de Leslie, contrastadas con origin/develop e96a277; las filas anteri
 | BOOK-02/04/05/06, incrementos del PR #15 | Integrados en e96a277 | GitHub confirma PR #15 fusionado. El dominio no incorpora por sí solo almacenamiento ni pantallas. |
 | BOOK-07 T1 | PR #17 abierto, aprobado por Shirley | Contrato documental; no equivale a funciones ni pruebas de carrera implementadas. |
 | BOOK-03 T1 | A y B implementadas localmente; revisión humana pendiente | BOOK-03-T1.md; 81 pruebas nuevas, 631 unitarias aprobadas. Integración sin base aislada disponible en esta sesión. Viajes y plantillas reales siguen sin proveedor público comprobado; no se sustituye por inventario ficticio. |
+## Actualización parcial de reservas — 28 de octubre de 2026
+
+Solo tareas de Leslie. Misma rama local feature/BOOK-03-resumen-creacion-dominio; se conserva la fotografía histórica anterior.
+
+| Spec / área | Estado local | Evidencia y siguiente paso |
+| --- | --- | --- |
+| BOOK-03 T1 | Partes A/B implementadas localmente | ae5f29d y 7eb41ba; resumen y valor inicial de dominio, ahora comprobados también en la suite completa con base aislada. |
+| BOOK-03 T2 | Persistencia y concurrencia verificadas localmente; revisión humana pendiente | BOOK-03-T2.md, ADR 0005 y 16 pruebas nuevas de PostgreSQL. Total de esta rama: 754 aprobadas. Faltan T3/T4 y proveedores reales antes de habilitar compra. |
+| Contrato de viaje y plantilla | Seleccionado por Leslie según delegación transmitida de David/Edwin | TripCatalog.findBookableById y snapshot de BOOK-03-T1/T2; esto no implementa los adaptadores ni certifica su funcionamiento. |
 ## Próximos pasos por integrante
 
 Orden recomendado para discutir con el equipo. Cada fila es **Propuesta sin spec**, salvo la referencia a una tarea existente. Confirmar asignación y disponibilidad; las prioridades no son fechas comprometidas. Las pantallas se separan cuando su contrato está listo.

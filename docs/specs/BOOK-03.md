@@ -2,7 +2,7 @@
 
 - **Responsable:** Leslie
 - **Revisor propuesto por Leslie:** PabloToapanta
-- **Estado:** T1 de dominio implementada localmente; revisión humana pendiente. T2/T3/T4 sin implementar; no realizar escritura hasta cerrar contratos.
+- **Estado:** T1 y T2 implementadas localmente; revisión humana pendiente. T3/T4 sin implementar; no habilitar escritura pública sin proveedores reales y autorización.
 - **Módulo:** bookings
 - **Dependencias:** BOOK-01/02/04/05, viajes, plantilla e identidad del comprador.
 
@@ -48,3 +48,6 @@ Las decisiones de producto de `docs/reservas-decisiones.md` fueron seleccionadas
 
 ## Actualización T1 — resumen y creación inicial de dominio
 Alcance autorizado por Leslie el 27 de octubre de 2026: [BOOK-03-T1](BOOK-03-T1.md). Se agrupan dos partes en la rama feature/BOOK-03-resumen-creacion-dominio, con un commit por parte y una futura revisión de la entrega conjunta. El resumen compone pasajeros, tramo y tarifas de contexto de servidor; partes A y B implementadas localmente. La creación inicial se limita a un valor de dominio, sin escritura ni bloqueo. T2/T3/T4 siguen condicionadas a contratos reales de viaje/asientos e identidad. La aclaración documental anterior es histórica; esta sección no declara disponible una reserva de producción.
+
+## Actualización T2 — 28 de octubre de 2026
+Leslie autorizó elegir el contrato de viajes/asientos conforme a la delegación que transmite de David y Edwin. [BOOK-03-T2](BOOK-03-T2.md) fija ese contrato y su alcance. Migración y repositorio transaccional locales implementados y probados contra PostgreSQL: todos los asientos o ninguno, con bloqueo por cooperativa/viaje y detección de solapamiento. La decisión de identificadores lógicos y su límite referencial están en [ADR 0005](../adr/0005-bloqueo-inventario-reservas.md). Todavía no existe compra HTTP ni adaptación real de los proveedores; no se debe usar catálogo ficticio en producción.
