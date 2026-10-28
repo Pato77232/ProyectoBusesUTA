@@ -1,8 +1,8 @@
 # BOOK-03: Crear reserva y bloquear asientos
 
 - **Responsable:** Leslie
-- **Revisor:** Edwin
-- **Estado:** Borrador; no implementar escritura hasta cerrar contratos.
+- **Revisor propuesto por Leslie:** PabloToapanta
+- **Estado:** T1 de dominio implementada localmente; revisión humana pendiente. T2/T3/T4 sin implementar; no realizar escritura hasta cerrar contratos.
 - **Módulo:** bookings
 - **Dependencias:** BOOK-01/02/04/05, viajes, plantilla e identidad del comprador.
 
@@ -47,4 +47,4 @@ No aplica.
 Las decisiones de producto de `docs/reservas-decisiones.md` fueron seleccionadas por autorización de Leslie y cierran las preguntas correspondientes de este borrador. No se atribuye aprobación a otros integrantes. Los contratos reales pendientes están en `docs/reservas-contratos.md`; esta rama no implementa código, endpoints, tablas ni pantallas. Los avances de dominio existentes se conservan en sus ramas de tarea separadas.
 
 ## Actualización T1 — resumen y creación inicial de dominio
-Alcance autorizado por Leslie el 27 de octubre de 2026: [BOOK-03-T1](BOOK-03-T1.md). Se agrupan dos partes en la rama feature/BOOK-03-resumen-creacion-dominio, con un commit por parte y una futura revisión de la entrega conjunta. El resumen compone pasajeros, tramo y tarifas de contexto de servidor; parte A implementada localmente. La creación inicial se limita a un valor de dominio, sin escritura ni bloqueo. T2/T3/T4 siguen condicionadas a contratos reales de viaje/asientos e identidad. La aclaración documental anterior es histórica; esta sección no declara disponible una reserva de producción.
+Alcance autorizado por Leslie el 27 de octubre de 2026: [BOOK-03-T1](BOOK-03-T1.md). Se agrupan dos partes en la rama feature/BOOK-03-resumen-creacion-dominio, con un commit por parte y una futura revisión de la entrega conjunta. El resumen compone pasajeros, tramo y tarifas de contexto de servidor; partes A y B implementadas localmente. La creación inicial se limita a un valor de dominio, sin escritura ni bloqueo. T2/T3/T4 siguen condicionadas a contratos reales de viaje/asientos e identidad. La aclaración documental anterior es histórica; esta sección no declara disponible una reserva de producción.

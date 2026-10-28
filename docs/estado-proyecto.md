@@ -46,7 +46,7 @@ Solo tareas de Leslie, contrastadas con origin/develop e96a277; las filas anteri
 | --- | --- | --- |
 | BOOK-02/04/05/06, incrementos del PR #15 | Integrados en e96a277 | GitHub confirma PR #15 fusionado. El dominio no incorpora por sí solo almacenamiento ni pantallas. |
 | BOOK-07 T1 | PR #17 abierto, aprobado por Shirley | Contrato documental; no equivale a funciones ni pruebas de carrera implementadas. |
-| BOOK-03 T1 | En desarrollo local, resumen A implementado | BOOK-03-T1.md; parte B y revisión humana pendientes. Viajes y plantillas reales siguen sin proveedor público comprobado; no se sustituye por inventario ficticio. |
+| BOOK-03 T1 | A y B implementadas localmente; revisión humana pendiente | BOOK-03-T1.md; 81 pruebas nuevas, 631 unitarias aprobadas. Integración sin base aislada disponible en esta sesión. Viajes y plantillas reales siguen sin proveedor público comprobado; no se sustituye por inventario ficticio. |
 ## Próximos pasos por integrante
 
 Orden recomendado para discutir con el equipo. Cada fila es **Propuesta sin spec**, salvo la referencia a una tarea existente. Confirmar asignación y disponibilidad; las prioridades no son fechas comprometidas. Las pantallas se separan cuando su contrato está listo.

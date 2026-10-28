@@ -1,7 +1,7 @@
 # BOOK-03 T1: resumen y creación inicial de dominio
 
 - Responsable: Leslie Coello. Revisor propuesto por Leslie: PabloToapanta.
-- Fecha: 27 de octubre de 2026. Estado: especificada antes de implementar, autorizada por Leslie.
+- Fecha: 27 de octubre de 2026. Estado: A y B implementadas localmente; revisión humana pendiente. Especificación previa a código, autorizada por Leslie.
 - Base: origin/develop e96a277, que ya incorpora el PR #15. Rama: feature/BOOK-03-resumen-creacion-dominio.
 - Reglas: RN-02, RN-40/41/42/43 y RN-50; decisiones de reservas existentes.
 
@@ -39,3 +39,8 @@ No hay aún API real de viajes ni de plantillas en esta base. T2, T3 y T4 siguen
 
 ## Evidencia A — resumen
 27 de octubre de 2026: parte A implementada con 45 pruebas nuevas. Lint y formato de código/pruebas de bookings aprobados. npm test: 595 unitarias y 4 de integración aprobadas; 103 de integración fallidas por falta de URL/base de pruebas. Se intentó iniciar Docker Desktop sin éxito; no se utilizaron bases existentes. Formato global reporta 27 archivos preexistentes ajenos. Parte B pendiente en este punto; no se presenta reserva persistida ni acreditación oficial de descuentos.
+
+## Evidencia B — aceptación y valor inicial
+Parte B completada el 27 de octubre de 2026 con 36 pruebas nuevas. La entrega A+B agrega 81 pruebas; verificación final: 631 unitarias aprobadas, lint y formato de reservas aprobados. npm test completo sigue fallido: 4 de integración aprobadas y 103 fallidas por ausencia de URL/base de pruebas; el motor Docker no está disponible. Formato global mantiene 27 archivos preexistentes ajenos. Ningún cambio en pruebas previas, migraciones, dependencias o módulos ajenos.
+
+El valor inicial vuelve a construir el resumen con contexto de servidor, exige aceptación true y conserva fechas ISO sin compartir el Date mutable. No demuestra ni promete reserva persistida, protección concurrente, acreditación o aceptación de un precio cambiado: el futuro caso de uso deberá comprobar el resumen aceptado y resolver su versión antes de escribir. Ambos commits pertenecen a la misma entrega, no se recomienda un PR por paso. Faltan contratos reales, revisión humana, integración y pruebas de bloqueo en PostgreSQL.
