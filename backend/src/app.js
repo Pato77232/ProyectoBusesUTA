@@ -8,7 +8,16 @@ const API_PREFIX = '/api/v1';
  * Composición de Express. Punto único de montaje de middlewares y rutas.
  * Los módulos exponen sus rutas por su API pública y se registran aquí.
  */
-function createApp({ auth, tenants, fleet, frequencies, routeSheets, pool, trustProxy = false } = {}) {
+function createApp({
+  auth,
+  tenants,
+  fleet,
+  frequencies,
+  routeSheets,
+  payments,
+  pool,
+  trustProxy = false,
+} = {}) {
   const app = express();
 
   app.disable('x-powered-by');
@@ -32,6 +41,8 @@ function createApp({ auth, tenants, fleet, frequencies, routeSheets, pool, trust
   if (frequencies) app.use(`${API_PREFIX}/frequencies`, frequencies.router);
 
   if (routeSheets) app.use(`${API_PREFIX}/route-sheets`, routeSheets.router);
+
+  if (payments) app.use(`${API_PREFIX}/payment-proofs`, payments.router);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

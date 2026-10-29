@@ -1,10 +1,10 @@
 # Identidad de transViaje — FRONT-01 T1
 
-Nombre, logo definitivo y paleta blanco/negro/violeta confirmados por Pablo. [Procedencia y constancia](../../../docs/design/README.md).
+Nombre, logo definitivo y paleta blanco/negro/violeta confirmados por Pablo. Procedencia: recurso recuperado de origin/develop (c8bb5d3), aportado también por el usuario en esta sesión.
 
 ## Recurso original usado
 
-`logo-transviaje.png` es una copia byte a byte del [PNG documental original](../../../docs/design/references/logo-transviaje-original.png), SHA-256 `1bf553b535b0fbbf0d2ffdba7289fb57e31ad078da02af64022e39e34f7e6889`. No se recoloreó, trazó, generó de nuevo ni eliminó su fondo. Autoría/licencia no se presumen.
+`logo-transviaje.png` es una copia byte a byte del PNG de la base FRONT-01, SHA-256 `1bf553b535b0fbbf0d2ffdba7289fb57e31ad078da02af64022e39e34f7e6889`. No se recoloreó, trazó, generó de nuevo ni eliminó su fondo. Autoría/licencia no se presumen.
 
 El encabezado muestra el logotipo completo mediante un encuadre CSS: x=230, y=250, ancho=1010, alto=760 sobre el PNG 1600×1446. Los porcentajes de app.css derivan de ese rectángulo. El marco de 144 px de ancho conserva proporción; solo oculta el espacio exterior. El fondo claro original permanece, por lo que se usa sobre blanco. No interpretar el recurso como transparente.
 

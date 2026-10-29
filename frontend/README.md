@@ -1,47 +1,50 @@
-# transViaje — Frontend compartido, FRONT-01 T1
+# transViaje — WEB-01
 
-Base estática en HTML y CSS. Incluye Bootstrap 5.3.8 local, navegación por secciones, enlace para saltar al contenido y preguntas con details/summary nativos. No necesita JavaScript para funcionar. Aún no incluye búsqueda, compra, login ni conexión a la API.
+Bienvenida pública en HTML y Bootstrap 5.3.8 local, con logo aportado, tipografía
+local y estilos reutilizados de FRONT-01. No consulta la API para mostrar contenido.
+No incluye login, registro, búsqueda ni compra. Alcance: [WEB-01](../docs/specs/WEB-01.md).
 
-Guía visual y trazabilidad: [DESIGN.md](DESIGN.md). La referencia original y la adaptación están separadas. Pablo confirmó nombre transViaje, logo definitivo y paleta blanco/negro/violeta; la revisión humana de la implementación sigue pendiente.
+## Ejecutar
 
-## Ver la página
-
-Desde la raíz del repositorio, con Python 3 disponible:
-
-```sh
-python3 -m http.server 8080 --bind 127.0.0.1 --directory frontend
-```
-
-Abrir http://127.0.0.1:8080. Detener con Ctrl+C. Es un servidor temporal para revisar T1, no un despliegue: el contenedor/proxy corresponde a T2. Si el puerto está ocupado, elegir otro y usarlo también en el navegador. En Windows se puede usar `py -3` en lugar de `python3` si ese es el lanzador instalado.
-
-## Estructura y responsabilidades
-
-- `index.html`: estructura semántica y contenido público, sin enlaces a funciones inexistentes.
-- `src/styles/app.css`: estilos propios, foco, tamaños y adaptación. Mantener overrides aquí en vez de modificar Bootstrap.
-- `assets/brand/`: logo original local y guía de encuadre/procedencia.
-- `assets/favicon.svg`: contenedor SVG con símbolo encuadrado del PNG original incrustado; no es una fuente vectorial ni depende de imágenes remotas.
-- `assets/vendor/plus-jakarta-sans/`: tipografía local, licencia OFL 1.1 y procedencia verificable.
-- `assets/vendor/bootstrap-5.3.8/`: CSS original y licencia; procedencia en su README.
-- `tests/smoke.cjs`: comprobaciones de navegador sin paquetes adicionales. No es código servido/importado por la página.
-
-Las carpetas de páginas, API y componentes se crearán cuando exista una tarea concreta; no hay un router ni módulos ficticios de producción. Antes de añadir una pantalla, usar su spec y acordar navegación/cliente HTTP común. Las pantallas deben conservar lang, viewport, landmarks, foco visible y el enlace al contenido. Los permisos y reglas del negocio permanecen en el backend.
-
-## Repetir las comprobaciones
-
-Con Node 24 y Google Chrome instalados:
+Con el entorno del backend configurado por el responsable, desde la raíz:
 
 ```sh
-node frontend/tests/smoke.cjs
+docker compose up --build
 ```
 
-La prueba inicia un servidor en un puerto libre de loopback y Chrome headless con un perfil temporal, y los cierra al terminar. No lee .env ni inicia PostgreSQL. Si Chrome no está en PATH como `google-chrome`, definir BROWSER_BIN con la ruta real del ejecutable. QA_OUTPUT_DIR permite elegir el directorio de capturas; por defecto se usa `busesuta-front01-qa` en el directorio temporal del sistema. No almacenar perfiles ni datos personales en el repositorio.
-
-Se comprueban carga de Bootstrap y tipografía locales, enlaces internos, ausencia de errores de recursos, Tab/Enter, foco visible, enlace de salto, apertura nativa de preguntas y ausencia de desbordamiento a 360/1280 píxeles. El escenario de 200 % usa zoom CSS: es una emulación de ampliación, no prueba de zoom nativo ni certificación de accesibilidad. Revisar también manualmente contraste, lectura y comportamiento con ayudas técnicas antes de la aceptación final.
-
-El formato de los archivos propios puede comprobarse con la herramienta ya instalada en backend, sin instalar paquetes:
+Abrir http://localhost:8080/. El frontend sirve estáticos y reenvía `/api/v1`
+a `backend:3000` conservando el prefijo. No depende del arranque del backend:
+si este falla, la bienvenida funciona y la API devuelve un error HTTP.
+Si 8080 está ocupado, detener el servicio que lo utiliza; no cambiarlo silenciosamente.
+Para revisar únicamente la bienvenida, sin backend ni variables de entorno:
 
 ```sh
-backend/node_modules/.bin/prettier --config backend/.prettierrc.json --check frontend/index.html frontend/src/styles/app.css frontend/tests/smoke.cjs
+docker build -t busesuta-web01-frontend frontend
+docker run --rm -p 127.0.0.1:8080:8080 busesuta-web01-frontend
 ```
 
-No reformatear el recurso de terceros: debe conservar su integridad. Las verificaciones del backend siguen ejecutándose desde backend según AGENTS.md.
+El proxy requiere una red Docker donde `backend` sea resoluble. El segundo comando
+solo permite revisar estáticos; la API fallará sin ese servicio.
+Nginx 1.30.6 alpine3.24-slim se fija por digest en Dockerfile, reutilizado de la
+rama FRONT-01-T2-proxy. Bootstrap conserva su licencia MIT y la fuente su OFL.
+La configuración de cookies de producción no cambia: una futura pantalla de acceso
+necesitará el entorno HTTPS o de desarrollo definido en su propia tarea.
+
+## Archivos y pruebas
+
+- `index.html`: bienvenida y enlaces internos reales.
+- `src/styles/app.css`: tokens compartidos, adaptación y foco.
+- `assets/`: logo, favicon y dependencias locales con procedencia/licencias.
+- `nginx-proxy.conf`, `proxy-api.conf`: estáticos, DNS Docker y proxy sin caché.
+- `tests/smoke.cjs`: navegador, teclado, recursos y reflujo 360/1280 px y ampliación CSS 200 %.
+- `tests/proxy-smoke.cjs`: portada/API/404 sobre un servidor levantado.
+
+```sh
+BROWSER_BIN=/ruta/al/navegador-chromium node frontend/tests/smoke.cjs
+node frontend/tests/proxy-smoke.cjs
+API_UNAVAILABLE=1 node frontend/tests/proxy-smoke.cjs
+```
+
+La última comprobación se ejecuta con el backend detenido. No certifica zoom nativo
+ni ayudas técnicas. Lint y suite del backend se ejecutan desde `backend/`.
+No se instalaron dependencias nuevas de frontend; recursos recuperados de Git.
