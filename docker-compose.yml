@@ -1,4 +1,8 @@
 services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "127.0.0.1:8080:8080"
   db:
     image: postgres:16.13-alpine
     environment:
