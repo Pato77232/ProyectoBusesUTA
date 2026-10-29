@@ -103,3 +103,12 @@ Usar [equipo-y-acuerdos.md](equipo-y-acuerdos.md) para preparar la consulta y re
 ## Evidencia de calidad
 
 Resultados actuales de INFRA-04 se registran en su [spec](specs/INFRA-04.md). No confundir evidencia histórica de otras specs con una ejecución actual. Los fallos preexistentes se reportan sin corregirlos de paso ni declarar la entrega lista.
+
+## Actualización parcial de reservas — 29 de octubre de 2026
+
+Solo tareas de Leslie. origin/develop consultado en e556e59, aún no incorporado a esta rama.
+
+| Spec / área | Estado comprobado | Evidencia y siguiente paso |
+| --- | --- | --- |
+| BOOK-03 T3 A | Caso de uso de resumen implementado localmente | BOOK-03-T3.md; 32 pruebas nuevas y 663 unitarias aprobadas, lint aprobado. Falta B, integración del incremento y T4. No abrir PR por este commit. |
+| BOOK-07 T1 | PR #17 cerrado sin merge | Contrato conservado en 292617b. Leslie decide recuperarlo con la implementación de pagos/expiración en una entrega funcional, sin rehacerlo ni abrir otro PR solo documental. |
