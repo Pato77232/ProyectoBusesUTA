@@ -8,6 +8,8 @@ const {
   PaymentProofValidationError,
 } = require('../domain/payment-proof-error');
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 function requiredIdentifier(value) {
   if (typeof value !== 'string' || !value.trim()) throw new PaymentProofValidationError();
   return value.trim();
@@ -27,6 +29,7 @@ class ApprovePaymentProof {
 
   async execute({ paymentProofId, cooperativeId, approverId, now }) {
     const proofId = requiredIdentifier(paymentProofId);
+    if (!UUID_PATTERN.test(proofId)) throw new PaymentProofValidationError();
     const tenantId = requiredIdentifier(cooperativeId);
     const clerkId = requiredIdentifier(approverId);
     const decisionDate = validDate(now);

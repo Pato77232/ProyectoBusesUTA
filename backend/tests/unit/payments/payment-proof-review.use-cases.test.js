@@ -11,7 +11,7 @@ const {
 } = require('../../../src/modules/payments/domain/payment-proof-error');
 
 const pendingProof = Object.freeze({
-  id: 'proof-1',
+  id: 'a80a2c4d-8aa8-4a1f-b7b0-e8d0f002bc42',
   booking_id: 'booking-1',
   cooperative_id: 'coop-1',
   status: 'UPLOADED',
@@ -23,6 +23,8 @@ const pendingProof = Object.freeze({
   approved_at: null,
   approved_by: null,
 });
+
+const PAYMENT_PROOF_ID = 'a80a2c4d-8aa8-4a1f-b7b0-e8d0f002bc42';
 
 function createRepository(overrides = {}) {
   return {
@@ -67,13 +69,16 @@ test('lee el archivo solo después de consultar el comprobante dentro de la coop
   const useCase = new ReadPaymentProofFile({ paymentProofRepository, fileReader });
 
   await expect(
-    useCase.execute({ paymentProofId: 'proof-1', cooperativeId: 'coop-1' }),
+    useCase.execute({ paymentProofId: PAYMENT_PROOF_ID, cooperativeId: 'coop-1' }),
   ).resolves.toEqual({
     content,
     mediaType: 'application/pdf',
     originalFileName: 'transferencia.pdf',
   });
-  expect(paymentProofRepository.findByIdAndCooperativeId).toHaveBeenCalledWith('proof-1', 'coop-1');
+  expect(paymentProofRepository.findByIdAndCooperativeId).toHaveBeenCalledWith(
+    PAYMENT_PROOF_ID,
+    'coop-1',
+  );
   expect(fileReader.read).toHaveBeenCalledWith('private-key');
 });
 
@@ -95,11 +100,35 @@ test('no lee archivos inexistentes, ajenos ni aprobados', async () => {
   });
 
   await expect(
-    missing.execute({ paymentProofId: 'proof-1', cooperativeId: 'coop-2' }),
+    missing.execute({ paymentProofId: PAYMENT_PROOF_ID, cooperativeId: 'coop-2' }),
   ).rejects.toBeInstanceOf(PaymentProofNotFoundError);
   await expect(
-    approved.execute({ paymentProofId: 'proof-1', cooperativeId: 'coop-1' }),
+    approved.execute({ paymentProofId: PAYMENT_PROOF_ID, cooperativeId: 'coop-1' }),
   ).rejects.toBeInstanceOf(PaymentProofNotPendingError);
+  expect(fileReader.read).not.toHaveBeenCalled();
+});
+
+test('rechaza identificadores que no sean UUID antes de consultar el repositorio', async () => {
+  const paymentProofRepository = createRepository();
+  const fileReader = { read: jest.fn() };
+  const readFile = new ReadPaymentProofFile({ paymentProofRepository, fileReader });
+  const approve = new ApprovePaymentProof({
+    paymentProofRepository,
+    bookingSaleConfirmer: { confirmSale: jest.fn() },
+  });
+
+  await expect(
+    readFile.execute({ paymentProofId: 'not-a-uuid', cooperativeId: 'coop-1' }),
+  ).rejects.toBeInstanceOf(PaymentProofValidationError);
+  await expect(
+    approve.execute({
+      paymentProofId: 'not-a-uuid',
+      cooperativeId: 'coop-1',
+      approverId: 'clerk-1',
+      now: new Date(),
+    }),
+  ).rejects.toBeInstanceOf(PaymentProofValidationError);
+  expect(paymentProofRepository.findByIdAndCooperativeId).not.toHaveBeenCalled();
   expect(fileReader.read).not.toHaveBeenCalled();
 });
 
@@ -111,7 +140,7 @@ test('confirma la venta por el puerto y persiste la identidad del oficinista', a
 
   await expect(
     useCase.execute({
-      paymentProofId: 'proof-1',
+      paymentProofId: PAYMENT_PROOF_ID,
       cooperativeId: 'coop-1',
       approverId: 'clerk-1',
       now,
@@ -120,10 +149,10 @@ test('confirma la venta por el puerto y persiste la identidad del oficinista', a
   expect(bookingSaleConfirmer.confirmSale).toHaveBeenCalledWith({
     bookingId: 'booking-1',
     cooperativeId: 'coop-1',
-    paymentProofId: 'proof-1',
+    paymentProofId: PAYMENT_PROOF_ID,
   });
   expect(paymentProofRepository.markApprovedIfPending).toHaveBeenCalledWith({
-    paymentProofId: 'proof-1',
+    paymentProofId: PAYMENT_PROOF_ID,
     cooperativeId: 'coop-1',
     approvedBy: 'clerk-1',
     approvedAt: now,
@@ -142,7 +171,7 @@ test('un comprobante ya aprobado devuelve su decisión sin confirmar otra venta'
 
   await expect(
     useCase.execute({
-      paymentProofId: 'proof-1',
+      paymentProofId: PAYMENT_PROOF_ID,
       cooperativeId: 'coop-1',
       approverId: 'clerk-2',
       now: new Date(),
@@ -160,7 +189,7 @@ test('mantiene pendiente el comprobante si confirmSale rechaza o queda incierto'
     },
   });
   const input = {
-    paymentProofId: 'proof-1',
+    paymentProofId: PAYMENT_PROOF_ID,
     cooperativeId: 'coop-1',
     approverId: 'clerk-1',
     now: new Date(),
@@ -192,7 +221,7 @@ test('devuelve el resultado aprobado cuando otra solicitud gana la actualizació
 
   await expect(
     useCase.execute({
-      paymentProofId: 'proof-1',
+      paymentProofId: PAYMENT_PROOF_ID,
       cooperativeId: 'coop-1',
       approverId: 'clerk-1',
       now: new Date(),
@@ -210,7 +239,7 @@ test('indica incertidumbre si no puede persistir una venta confirmada', async ()
 
   await expect(
     useCase.execute({
-      paymentProofId: 'proof-1',
+      paymentProofId: PAYMENT_PROOF_ID,
       cooperativeId: 'coop-1',
       approverId: 'clerk-1',
       now: new Date(),
