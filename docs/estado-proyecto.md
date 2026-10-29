@@ -112,3 +112,6 @@ Solo tareas de Leslie. origin/develop consultado en e556e59, aún no incorporado
 | --- | --- | --- |
 | BOOK-03 T3 A | Caso de uso de resumen implementado localmente | BOOK-03-T3.md; 32 pruebas nuevas y 663 unitarias aprobadas, lint aprobado. Falta B, integración del incremento y T4. No abrir PR por este commit. |
 | BOOK-07 T1 | PR #17 cerrado sin merge | Contrato conservado en 292617b. Leslie decide recuperarlo con la implementación de pagos/expiración en una entrega funcional, sin rehacerlo ni abrir otro PR solo documental. |
+
+| BOOK-03 T3 B | Creación transaccional implementada y verificada localmente | BOOK-03-T3.md; 30 unitarias nuevas y siete de PostgreSQL. Suite completa: 693 unitarias + 130 integración = 823 aprobadas. No hay endpoints ni proveedores reales compuestos; revisión humana pendiente. |
+| Entrega funcional de reservas | En preparación, sin PR nuevo | Leslie solicita un PR por funcionalidad hacia develop, con varios commits, specs y pruebas. Faltan T4, proveedores reales y recuperación segura de creación incierta; no se publica cada paso. |

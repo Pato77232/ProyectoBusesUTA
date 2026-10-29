@@ -2,7 +2,7 @@
 
 - **Responsable:** Leslie
 - **Revisor propuesto por Leslie:** PabloToapanta
-- **Estado:** T1 y T2 implementadas localmente; revisión humana pendiente. T3/T4 sin implementar; no habilitar escritura pública sin proveedores reales y autorización.
+- **Estado:** T1/T2 y los casos de uso de T3 implementados localmente; revisión humana pendiente. T4 y proveedores reales sin conectar; no habilitar escritura pública sin ellos.
 - **Módulo:** bookings
 - **Dependencias:** BOOK-01/02/04/05, viajes, plantilla e identidad del comprador.
 
@@ -13,7 +13,7 @@ Reservar todos los asientos del resumen aceptado sin permitir doble ocupación.
 RN-02, RN-40, RN-41, RN-42, RN-43 y RN-50. El bloqueo empieza al aceptar el resumen, después de pasajeros y cálculo de descuentos.
 
 ## 3. Tareas
-T1 dominio de reserva; T2 migración nueva y repositorio transaccional; T3 caso de uso; T4 HTTP con protección CSRF y botón de confirmación. Una rama y commit por tarea.
+T1 dominio de reserva; T2 migración nueva y repositorio transaccional; T3 caso de uso; T4 HTTP con protección CSRF y botón de confirmación. Una rama por funcionalidad y un commit por tarea; un solo PR de creación de reservas hacia develop, con especificaciones, código y pruebas.
 
 ## 4. Flujo
 Resolver comprador y viaje en el servidor; validar todos los asientos, pasajeros y precios; revalidar disponibilidad bajo bloqueo; persistir reserva y ocupaciones en una transacción; devolver identificador y vencimiento. Cualquier fallo revierte todo.
@@ -51,3 +51,7 @@ Alcance autorizado por Leslie el 27 de octubre de 2026: [BOOK-03-T1](BOOK-03-T1.
 
 ## Actualización T2 — 28 de octubre de 2026
 Leslie autorizó elegir el contrato de viajes/asientos conforme a la delegación que transmite de David y Edwin. [BOOK-03-T2](BOOK-03-T2.md) fija ese contrato y su alcance. Migración y repositorio transaccional locales implementados y probados contra PostgreSQL: todos los asientos o ninguno, con bloqueo por cooperativa/viaje y detección de solapamiento. La decisión de identificadores lógicos y su límite referencial están en [ADR 0005](../adr/0005-bloqueo-inventario-reservas.md). Todavía no existe compra HTTP ni adaptación real de los proveedores; no se debe usar catálogo ficticio en producción.
+
+## Actualización T3 — 29 de octubre de 2026
+
+[BOOK-03-T3](BOOK-03-T3.md) conecta la consulta del resumen con el caso de uso de creación. Resuelve comprador por un puerto de identidad verificada, catálogo y acreditación por proveedores internos; detecta cambios del resumen mediante revisión canónica y exige nueva aceptación. Relee viaje, acreditación y hora después del bloqueo de T2 antes de guardar. No habilita HTTP, ni crea proveedores ficticios; T4, recuperación/idempotencia y composición real siguen pendientes. Se mantiene un único PR futuro para creación de reservas; no se solicita reabrir el PR documental #17.

@@ -7,3 +7,11 @@ listEffectiveByTrip({tripId, cooperativeId}) implementa la lectura de ocupacione
 Las ocupaciones activas incluyen las que esperan revisión y no expiran por una lectura. Las transiciones de pago y liberación deben coordinar estado y ocupaciones de forma transaccional conforme a BOOK-06/07; no están implementadas por este repositorio inicial.
 
 La elección de catálogo y asientos delegada por Leslie consta en docs/specs/BOOK-03-T2.md. No hay proveedor ficticio en producción, index.js ni montaje HTTP en esta entrega. La garantía de no superposición exige que todo escritor de inventario use la misma coordinación por viaje; no se autoriza SQL externo que la eluda.
+
+## Consumidores de T3
+
+getBookingSummary y createBooking consumen puertos inyectados, definidos con detalle en docs/specs/BOOK-03-T3.md: buyerIdentity.resolve(authContext), TripCatalog.findBookableById(tripId), passengerVerifier.verify({ownerId, passengers, departureDate}), clock(), calendarDateAt(instant), newId() y proofWindowSeconds de configuración.
+
+La entrada cliente de creación incorpora summaryAccepted true y acceptedSummaryRevision. La revisión SHA-256 del resumen canónico detecta cambios y no autentica, firma, reserva ni permite elegir precios; el servidor siempre recalcula. El caso de uso resuelve el comprador fuera del body y entrega a reserve una preparación propia que relee catálogo, acreditación y reloj tras el bloqueo. La escritura rechaza un resumen distinto y una cooperativa que ya no coincide con el bloqueo inicial. La consulta del resumen no garantiza disponibilidad: solo la transacción decide la ocupación.
+
+Estos casos de uso no convierten un doble de pruebas en proveedor real ni quedan montados públicamente. Reintentar automáticamente tras una respuesta de creación perdida sigue sin contrato idempotente; el conflicto por asiento evita otra ocupación incompatible, pero no equivale a recuperar la primera respuesta.

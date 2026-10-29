@@ -49,3 +49,15 @@ No se conecta a app.js/index.js ni se habilita POST público con dobles o invent
 ## Evidencia A — 29 de octubre de 2026
 
 getBookingSummary implementado localmente con revisión canónica, copia de entradas y puertos de identidad/catálogo/acreditación. Pasaron las 32 pruebas nuevas y las 663 unitarias de la rama. Lint aprobado; formato del código nuevo aprobado. El formato global conserva 27 archivos preexistentes ajenos. Docker no responde (pipe dockerDesktopLinuxEngine ausente); se solicitó abrirlo mientras se continúa trabajo independiente. Integración de este incremento pendiente, sin usar bases existentes. B y T4 siguen pendientes; no hay compra HTTP habilitada.
+
+## Evidencia B — 29 de octubre de 2026
+
+createBooking implementado localmente sobre reserve de T2: copia entrada, resuelve propietario fuera del body, relee catálogo y acreditación bajo bloqueo, compara revisión del resumen y usa hora/ID/plazo de servidor. El cambio de cooperativa rechaza antes de escribir en otro contexto. Los fallos se propagan y PostgreSQL revierte toda la transacción.
+
+Pasaron 30 pruebas unitarias nuevas de creación y siete nuevas de integración con PostgreSQL real. Incluyen guardado recuperable por propietario, rollback por cambio de precio/acreditación/fallo de proveedor, reenvío sin doble ocupación, cambio de cooperativa y dos casos de uso concurrentes con espera de bloqueo observada en pg_stat_activity. Los proveedores externos de esas pruebas son dobles explícitos; SQL y transacciones son reales.
+
+Validación final de T3: npm test aprobado con 693 unitarias y 130 de integración, 823 pruebas en total. Lint y formato de todos los archivos nuevos aprobados; format:check global mantiene 27 archivos preexistentes ajenos. No se alteraron pruebas previas, migraciones, dependencias ni composición.
+
+Tras confirmación de Leslie, Docker respondió. Se creó exclusivamente busesuta-leslie-book03-t3 con busesuta_test y test_user; se comprobaron cero tablas antes de migrar. No se leyó .env ni se usaron bases existentes. Se retira solo este proyecto temporal al terminar.
+
+A/B completas localmente, sin aprobación humana ni publicación. Pendientes para el PR funcional: incorporación de cambios recientes de develop, contratos/proveedores reales de viajes/plantillas y acreditación/revisión asistida, recuperación de creación de resultado desconocido y T4 (API con autenticación/CSRF y pantalla). No abrir un PR por estos commits ni presentar compra operativa en producción.

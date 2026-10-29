@@ -127,3 +127,11 @@ No se modificaron pruebas anteriores, módulos ajenos, dependencias, migraciones
 Docker respondió inicialmente, se perdió al crear la base y los intentos de CLI esperaron su arranque; el acceso de Computer Use a su ventana expiró sin autorización de la aplicación. Tras confirmación de Leslie volvió a responder. Se usó solo el contenedor nuevo busesuta-leslie-book03 y busesuta_test, con cero tablas antes de pruebas. La ejecución sin URL previa tuvo 119 fallos de integración y 4 HTTP aprobadas; la ejecución posterior completa con base aislada resolvió esos fallos. No se leyeron archivos .env ni datos reales ni se cambiaron protecciones o configuración del sistema. El contenedor temporal se retira tras comprobar los resultados.
 
 T2 verificada localmente, pendiente de revisión humana. T3/T4, catálogo y plantilla reales, acreditación, identidad invitada, API de pagos y coordinación de expiración siguen pendientes; no se declara compra operativa. No se publican ramas ni PR por cada commit; se mantiene esta entrega con las dos partes de T1.
+
+## BOOK-03 T3 — casos de uso de resumen y creación
+
+29 de octubre de 2026. Misma carpeta original y rama de T1/T2. Se implementan getBookingSummary y createBooking con revisión del resumen, identidad resuelta por puerto confiable, acreditación explícita y relectura del contexto dentro de la transacción de T2. Un cambio de resumen exige nueva aceptación, sin cobrar otro precio silenciosamente. La revisión es detección de cambio, no autenticación ni promesa de disponibilidad.
+
+69 pruebas nuevas en T3 (32 resumen, 30 creación y siete integración). Suite completa: 693 unitarias + 130 de integración = 823 aprobadas; lint y formato de archivos nuevos aprobados. Formato global conserva 27 archivos preexistentes ajenos. PostgreSQL 16.13 aislado en busesuta-leslie-book03-t3, vacío antes de migrar; sin .env ni datos existentes. No cambia app.js ni server.js. Proveedores de pruebas explícitamente simulados; no se habilita compra pública.
+
+Leslie confirma entregas por funcionalidad: los commits se acumulan para un único PR de creación de reservas hacia develop. El contrato del PR #17 permanece conservado para la posterior implementación de pagos/expiración. T4, composición con catálogo/asientos/acreditación reales y recuperación de creación incierta siguen pendientes.
