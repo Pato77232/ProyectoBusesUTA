@@ -6,7 +6,7 @@
 - **Alcance de commit:** `pagos`
 - **Responsable:** Shirley
 - **Revisor:** Pablo
-- **Estado:** Borrador; implementación T4 pendiente de verificar en la rama limpia. Esta especificación no registra aprobaciones.
+- **Estado:** Borrador; T4 implementada en la rama de trabajo actualizada y pendiente de verificación de integración. Esta especificación no registra aprobaciones.
 
 > Propuesta pendiente de revisión. Las decisiones pendientes de confirmación deben resolverse antes de implementar los puntos que afectan.
 
@@ -231,6 +231,10 @@ Comprobaciones de `docs/reservas-contratos.md`, “Verificación que se necesita
 
 ## 14. Evidencia local de implementación T4
 
-La rama limpia parte de `origin/develop` y excluye cambios en módulos y specs ajenas. La implementación y sus pruebas se registrarán en esta sección después de ejecutarlas; todavía no hay resultados de verificación en esta rama. El contrato real de `bookings` continúa simulado y pendiente de sus firmas y contexto autorizados.
+La rama `feature/PAGOS-01-subir-comprobante-actualizado` parte de `origin/develop` en `e556e59`. La integración de Edwin para la reversión por migración objetivo está presente en esa base. El adaptador de lectura/notificación de `bookings` permanece simulado conforme al alcance T4; las firmas y el contexto autorizado del contrato real siguen pendientes.
 
-Los fallos de las suites ajenas a pagos se reportan sin editar sus módulos o pruebas, conforme al alcance de PAGOS-01.
+- Lint: aprobado en la rama actualizada.
+- Pruebas unitarias: 41 suites y 564 pruebas aprobadas.
+- Integración: pendiente. `docker compose -f docker-compose.test.yml up -d --wait` no pudo conectar con `dockerDesktopLinuxEngine`; no se ejecutaron pruebas de integración contra esta rama actualizada.
+- Las suites y pruebas de otros módulos no se editaron. La prueba de Fleet `a78c750` ya está integrada en la base y se verificó previamente junto con pagos y hojas de ruta sobre la base anterior: 13 suites y 116 pruebas aprobadas. Ese resultado anterior no sustituye la integración pendiente de esta rama.
+- No se ha publicado la rama ni abierto PR. Se requiere completar la integración en la base actual y revisión humana.
