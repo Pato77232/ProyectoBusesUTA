@@ -98,7 +98,7 @@ afterAll(async () => {
   if (pool) await pool.end();
 });
 
-test('la migración crea payment_proofs sin duplicar plazo ni total', async () => {
+test('las migraciones crean payment_proofs sin duplicar plazo ni total', async () => {
   // Arrange / Act
   const { rows } = await pool.query(
     `SELECT column_name FROM information_schema.columns
@@ -117,10 +117,10 @@ test('la migración crea payment_proofs sin duplicar plazo ni total', async () =
     'file_size_bytes',
     'uploaded_at',
     'expired_at',
-    'approved_at',
-    'approved_by',
     'created_at',
     'updated_at',
+    'approved_at',
+    'approved_by',
   ]);
   const { rows: indexRows } = await pool.query(
     `SELECT indexdef FROM pg_indexes WHERE tablename = 'payment_proofs'

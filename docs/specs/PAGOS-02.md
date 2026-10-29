@@ -119,7 +119,8 @@ El backend no incluye una interfaz en esta tarea. Los errores permiten a una fut
 
 - Implementados en la rama dependiente de PAGOS-01: bandeja paginada, lectura privada, aprobación por puerto, adaptador simulado y migración aditiva de metadatos de aprobación.
 - `npm run lint`: aprobado.
-- Unitarias: 43 suites y 584 pruebas aprobadas al excluir `payment-proof.routes.test.js`, cuyo servidor HTTP no pudo enlazarse por `EACCES` en `127.0.0.1:55554` dentro del entorno actual.
-- Integración PostgreSQL: pendiente; Docker no pudo acceder a `dockerDesktopLinuxEngine` (`Access is denied`).
-- Formato de los archivos de PAGOS-02: verificación Prettier aprobada.
+- `npm test`: aprobado; 44 suites/590 pruebas unitarias y 13 suites/119 pruebas de integración.
+- La primera integración reveló solo una expectativa de orden de columnas; se corrigió para reflejar que la migración aditiva agrega columnas al final y se repitió la suite completa en verde.
+- `npm run lint`: aprobado; formato Prettier de los archivos PAGOS-02: aprobado.
+- `npm run format:check` global sigue reportando 48 archivos existentes de auth, fleet, route-sheets y shared; no pertenecen a este cambio y no se modificaron.
 - No se considera cerrada ni integrada; la firma productiva de `confirmSale` y su validación con Leslie/BOOK-07 siguen pendientes.

@@ -4,9 +4,9 @@
 
 - **Fecha de comprobación:** 29 de octubre de 2026, America/Guayaquil.
 - **Base integrada examinada:** `origin/develop` en `e556e59`, actualizada mediante `git fetch origin`; incluye la corrección de rollback de Fleet `a78c750`, integrada en `4c1fbbd`.
-- **Cambio local actual:** PAGOS-02, spec Borrador y código en `feature/PAGOS-02-aprobar-comprobante`, basada en la rama de PAGOS-01 porque depende de su persistencia. Implementación local: bandeja, lectura privada, aprobación y adaptador simulado; integración PostgreSQL pendiente de ejecución por falta de acceso a Docker.
+- **Cambio local actual:** PAGOS-02, spec Borrador y código en `feature/PAGOS-02-aprobar-comprobante`, basada en la rama de PAGOS-01 porque depende de su persistencia. Bandeja, lectura privada y aprobación implementadas; lint, unitarias e integración local aprobados.
 - **PAGOS-01:** Shirley informó que abrió el PR #23 desde `feature/PAGOS-01-subir-comprobante-actualizado`. La verificación local registrada es lint y formato propio aprobados, 41 suites/564 unitarias y 13 suites/116 de integración aprobadas; revisión e integración en develop pendientes.
-- **Alcance de esta actualización:** PAGOS-02 registra implementación parcial y evidencia local; las demás filas conservan las fechas y fuentes que indican.
+- **Alcance de esta actualización:** PAGOS-02 registra implementación y validación local; las demás filas conservan las fechas y fuentes que indican.
 - **Fuentes:** árbol y composición de esa base, specs versionadas y distribución de referencia en [equipo-y-acuerdos.md](equipo-y-acuerdos.md). No se inspeccionaron todas las ramas remotas ni se certifica el trabajo privado de otros integrantes.
 
 Este archivo orienta; la spec es la fuente del alcance y business-rules.md la de reglas funcionales. Si el código y la spec difieren, mostrar ambas evidencias y pedir resolver el conflicto, sin inventar acuerdos.
@@ -39,7 +39,7 @@ Antes de orientar a alguien:
 | [FRONT-01](specs/FRONT-01.md) | Pablo; revisión humana por confirmar | T3a verificada desde develop; pendiente de revisión | Transporte JSON/errores; 17 contratos y lint frontend aprobados. Backend: lint y 657 pruebas aprobados; formato falla en 27 archivos previos. Cambio menor de 400 líneas. T3b–T3d se retomarán desde develop tras integrar sus dependencias. Avance completo anterior conservado; sección 27 de la spec |
 | search, bookings, payments y tickets | Según propuesta inferior | Sin implementación en la base examinada | Confirmar ramas de los responsables antes de crear tareas |
 | [PAGOS-01](specs/PAGOS-01.md) | Shirley | PR #23 abierto según la responsable; revisión e integración pendientes | Base `origin/develop` `e556e59`; lint y formato de sus archivos aprobados; 41 suites/564 unitarias y 13 suites/116 de integración aprobadas. `bookings` sigue simulado conforme al alcance T4. |
-| [PAGOS-02](specs/PAGOS-02.md) | Shirley | Implementación local en rama dependiente de PAGOS-01; validación incompleta | Bandeja `CLERK`, lectura privada y aprobación mediante puerto `confirmSale`; 43 suites/584 unitarias aprobadas sin prueba HTTP que requiere socket local; lint y formato aprobado; integración pendiente por acceso denegado a Docker. La firma productiva sigue pendiente de coordinación en PAGOS-02 con Leslie/BOOK-07. |
+| [PAGOS-02](specs/PAGOS-02.md) | Shirley | Implementación validada localmente en rama dependiente de PAGOS-01 | 44 suites/590 unitarias y 13 suites/119 de integración aprobadas; lint y formato de PAGOS-02 aprobados. `format:check` global aún reporta 48 archivos ajenos al módulo. La firma productiva sigue pendiente de coordinación en PAGOS-02 con Leslie/BOOK-07. |
 | CI | Pablo | Sin workflow versionado en la base | Proponer una spec propia; no afirmar protecciones remotas sin consultarlas |
 
 ## Próximos pasos por integrante
