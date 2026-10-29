@@ -6,7 +6,7 @@
 - **Alcance de commit:** `pagos`
 - **Responsable:** Shirley
 - **Revisor:** Pablo
-- **Estado:** Borrador; T4 implementada en la rama de trabajo actualizada y pendiente de verificación de integración. Esta especificación no registra aprobaciones.
+- **Estado:** Borrador; T4 implementada y verificada localmente en la rama actualizada, pendiente de revisión humana. Esta especificación no registra aprobaciones.
 
 > Propuesta pendiente de revisión. Las decisiones pendientes de confirmación deben resolverse antes de implementar los puntos que afectan.
 
@@ -235,6 +235,7 @@ La rama `feature/PAGOS-01-subir-comprobante-actualizado` parte de `origin/develo
 
 - Lint: aprobado en la rama actualizada.
 - Pruebas unitarias: 41 suites y 564 pruebas aprobadas.
-- Integración: pendiente. `docker compose -f docker-compose.test.yml up -d --wait` no pudo conectar con `dockerDesktopLinuxEngine`; no se ejecutaron pruebas de integración contra esta rama actualizada.
-- Las suites y pruebas de otros módulos no se editaron. La prueba de Fleet `a78c750` ya está integrada en la base y se verificó previamente junto con pagos y hojas de ruta sobre la base anterior: 13 suites y 116 pruebas aprobadas. Ese resultado anterior no sustituye la integración pendiente de esta rama.
-- No se ha publicado la rama ni abierto PR. Se requiere completar la integración en la base actual y revisión humana.
+- Integración con PostgreSQL aislado: 13 suites y 116 pruebas aprobadas, incluidas Fleet, hojas de ruta y pagos.
+- Formato: todos los archivos JavaScript cambiados por PAGOS-01 pasan Prettier. El chequeo global informa 48 archivos de otros módulos o infraestructura con formato previo pendiente; no se modificaron.
+- La prueba de Fleet `a78c750` está integrada en la base `origin/develop` examinada. No se editaron suites ni pruebas de otros módulos.
+- No se ha publicado la rama ni abierto PR. Corresponde publicar la rama para revisión humana.
