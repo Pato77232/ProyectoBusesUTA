@@ -5,6 +5,21 @@ class PaymentProofRepository {
     throw new Error('PaymentProofRepository.findByBookingId debe implementarse.');
   }
 
+  /** listPendingByCooperative({ cooperativeId, limit, cursor }) lista comprobantes pendientes. */
+  async listPendingByCooperative() {
+    throw new Error('PaymentProofRepository.listPendingByCooperative debe implementarse.');
+  }
+
+  /** findByIdAndCooperativeId(id, cooperativeId) oculta registros de otras cooperativas. */
+  async findByIdAndCooperativeId() {
+    throw new Error('PaymentProofRepository.findByIdAndCooperativeId debe implementarse.');
+  }
+
+  /** markApprovedIfPending registra una aprobación condicional; null indica carrera/estado cambiado. */
+  async markApprovedIfPending() {
+    throw new Error('PaymentProofRepository.markApprovedIfPending debe implementarse.');
+  }
+
   /** save(paymentProof) persiste el comprobante y devuelve la entidad guardada. */
   async save() {
     throw new Error('PaymentProofRepository.save debe implementarse.');

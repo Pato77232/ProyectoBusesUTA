@@ -78,6 +78,17 @@ class BookingSaleUncertainError extends PaymentProofError {
   }
 }
 
+class PaymentProofApprovalPersistenceUncertainError extends PaymentProofError {
+  constructor() {
+    super(
+      'PAYMENT_PROOF_APPROVAL_PERSISTENCE_UNCERTAIN',
+      503,
+      'La venta puede estar confirmada; reintente la aprobación con el mismo comprobante.',
+    );
+    this.name = 'PaymentProofApprovalPersistenceUncertainError';
+  }
+}
+
 class BookingNotFoundOrNotOwnedError extends PaymentProofError {
   constructor() {
     super('BOOKING_NOT_FOUND', 404, 'La reserva no existe o no pertenece al cliente.');
@@ -136,6 +147,7 @@ module.exports = {
   PaymentProofNotPendingError,
   BookingSaleRejectedError,
   BookingSaleUncertainError,
+  PaymentProofApprovalPersistenceUncertainError,
   BookingNotFoundOrNotOwnedError,
   BookingNotPayableError,
   BookingPaymentProofRejectedError,
