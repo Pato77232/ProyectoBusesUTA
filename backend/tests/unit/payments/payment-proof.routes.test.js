@@ -7,6 +7,9 @@ describe('POST /api/v1/payment-proofs', () => {
   let server;
   let baseUrl;
   let uploadPaymentProof;
+  let listPendingPaymentProofs;
+  let readPaymentProofFile;
+  let approvePaymentProof;
   let middlewareCalls;
 
   beforeAll(async () => {
@@ -17,12 +20,46 @@ describe('POST /api/v1/payment-proofs', () => {
         total: 2550,
       })),
     };
+    listPendingPaymentProofs = {
+      execute: jest.fn(async () => ({
+        items: [
+          {
+            id: 'proof-1',
+            booking_id: BOOKING_ID,
+            status: 'UPLOADED',
+            file_key: 'private-key',
+            original_file_name: 'transferencia.pdf',
+            media_type: 'application/pdf',
+            file_size_bytes: 8,
+            uploaded_at: new Date('2026-10-25T12:00:00.000Z'),
+          },
+        ],
+        nextCursor: 'opaque-cursor',
+      })),
+    };
+    readPaymentProofFile = {
+      execute: jest.fn(async () => ({
+        content: Buffer.from('%PDF'),
+        mediaType: 'application/pdf',
+        originalFileName: 'transferencia.pdf',
+      })),
+    };
+    approvePaymentProof = {
+      execute: jest.fn(async () => ({
+        id: 'proof-1',
+        approved_at: new Date('2026-10-25T12:00:00.000Z'),
+      })),
+    };
     middlewareCalls = [];
     const auth = {
       authenticate(request, response, next) {
         middlewareCalls.push('authenticate');
         request.auth = {
-          user: { id: 'customer-1', role: request.get('X-Test-Role') || 'CUSTOMER' },
+          user: {
+            id: request.get('X-Test-Role') === 'CLERK' ? 'clerk-1' : 'customer-1',
+            role: request.get('X-Test-Role') || 'CUSTOMER',
+            cooperative_id: 'cooperative-1',
+          },
         };
         next();
       },
@@ -47,7 +84,15 @@ describe('POST /api/v1/payment-proofs', () => {
         next();
       },
     };
-    const payments = { router: createPaymentProofRouter({ auth, uploadPaymentProof }) };
+    const payments = {
+      router: createPaymentProofRouter({
+        auth,
+        uploadPaymentProof,
+        listPendingPaymentProofs,
+        readPaymentProofFile,
+        approvePaymentProof,
+      }),
+    };
     const app = createApp({ payments });
     server = app.listen(0, '127.0.0.1');
     await once(server, 'listening');
@@ -62,6 +107,9 @@ describe('POST /api/v1/payment-proofs', () => {
   beforeEach(() => {
     middlewareCalls.length = 0;
     uploadPaymentProof.execute.mockClear();
+    listPendingPaymentProofs.execute.mockClear();
+    readPaymentProofFile.execute.mockClear();
+    approvePaymentProof.execute.mockClear();
   });
 
   test('autentica, autoriza CUSTOMER, valida CSRF y responde sin exponer la clave privada', async () => {
@@ -130,5 +178,67 @@ describe('POST /api/v1/payment-proofs', () => {
     expect(response.status).toBe(403);
     expect(middlewareCalls).toEqual(['authenticate', 'authorize:CUSTOMER', 'csrfProtection']);
     expect(uploadPaymentProof.execute).not.toHaveBeenCalled();
+  });
+
+  test('lista la bandeja autenticada usando la cooperativa verificada', async () => {
+    const response = await fetch(`${baseUrl}/api/v1/payment-proofs?cursor=opaque-cursor`, {
+      headers: { 'X-Test-Role': 'CLERK' },
+    });
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.items[0]).toEqual(
+      expect.objectContaining({
+        id: 'proof-1',
+        bookingId: BOOKING_ID,
+        fileName: 'transferencia.pdf',
+      }),
+    );
+    expect(JSON.stringify(body)).not.toContain('private-key');
+    expect(listPendingPaymentProofs.execute).toHaveBeenCalledWith({
+      cooperativeId: 'cooperative-1',
+      cursor: 'opaque-cursor',
+    });
+    expect(middlewareCalls).toEqual(['authenticate', 'authorize:CLERK']);
+  });
+
+  test('lee un archivo solo para CLERK y con disposición privada en línea', async () => {
+    const response = await fetch(`${baseUrl}/api/v1/payment-proofs/proof-1/file`, {
+      headers: { 'X-Test-Role': 'CLERK' },
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('application/pdf');
+    expect(response.headers.get('content-disposition')).toContain('inline;');
+    expect(response.headers.get('x-content-type-options')).toBe('nosniff');
+    expect(Buffer.from(await response.arrayBuffer())).toEqual(Buffer.from('%PDF'));
+    expect(readPaymentProofFile.execute).toHaveBeenCalledWith({
+      paymentProofId: 'proof-1',
+      cooperativeId: 'cooperative-1',
+    });
+  });
+
+  test('aprueba con CSRF y conserva la identidad verificada del oficinista', async () => {
+    const response = await fetch(`${baseUrl}/api/v1/payment-proofs/proof-1/approve`, {
+      method: 'POST',
+      headers: { 'X-Test-Role': 'CLERK', 'X-CSRF-Token': 'valid' },
+    });
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.paymentProof).toEqual({
+      id: 'proof-1',
+      decision: 'APPROVED',
+      approvedAt: '2026-10-25T12:00:00.000Z',
+    });
+    expect(approvePaymentProof.execute).toHaveBeenCalledWith(
+      expect.objectContaining({
+        paymentProofId: 'proof-1',
+        cooperativeId: 'cooperative-1',
+        approverId: 'clerk-1',
+        now: expect.any(Date),
+      }),
+    );
+    expect(middlewareCalls).toEqual(['authenticate', 'authorize:CLERK', 'csrfProtection']);
   });
 });
