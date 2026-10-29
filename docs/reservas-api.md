@@ -36,3 +36,7 @@ BOOKING_PROOF_WINDOW_SECONDS configura el plazo inicial (300 por defecto; 180 a 
 createBookingsModule permite inyectar tripCatalog y passengerVerifier en composición, conforme a BOOK-03-T2/T3. Los adaptadores reales de esos módulos siguen pendientes; no se pasan por HTTP ni se sustituyen con simuladores en server.js. El montaje de pagos se conserva sin conectar aún su ciclo de comprobantes/expiración.
 
 Prueba de HTTP y arranque: backend/tests/integration/bookings/booking-http.test.js. Usa JWT, sesiones, CSRF y PostgreSQL reales; solo catálogo y acreditación tienen fixtures identificadas. La pantalla y su verificación de teclado/adaptación pertenecen a T4 B.
+
+### Recuperar al recargar
+
+GET /api/v1/bookings/attempts/:requestKey requiere sesión CUSTOMER y devuelve 200 {booking} solo para el comprador verificado. No necesita CSRF porque no escribe. La clave nunca autoriza por sí sola; desconocida o de otro comprador devuelve el mismo 404 BOOKING_ATTEMPT_NOT_FOUND. La respuesta conserva ID/estado/importes/fechas. Un 404 no prueba que una creación todavía en curso haya fallado: conservar la referencia y consultar de nuevo, sin iniciar otra compra automáticamente. Esto permite guardar solo la referencia del intento en sessionStorage, sin persistir pasajeros para reconstruir el POST.

@@ -136,3 +136,9 @@ Solo tareas de Leslie. Misma rama local feature/BOOK-03-resumen-creacion-dominio
 | BOOK-03 T4 A | API montada y verificada localmente; revisión humana pendiente | BOOK-03-T4.md y reservas-api.md; 27 unitarias nuevas y 25 HTTP. Suite conjunta: 766 unitarias + 185 integración = 951 aprobadas; arranque real comprobado. |
 | Catálogo/acreditación | Aún no compuestos con proveedores reales | Rutas nuevas responden 503 sin datos simulados; reintentos de reservas existentes conservan recuperación con sesión válida. No se afirma compra operativa. |
 | Entrega funcional BOOK-03 | En preparación, sin PR nuevo | Falta T4 B (pantalla), proveedores reales y revisión humana. Mantener un solo PR funcional hacia develop con todos sus commits/specs/pruebas. |
+
+## Actualización parcial de reservas — recuperación de pantalla, 29 de octubre de 2026
+
+| Spec / área de Leslie | Estado local | Evidencia |
+| --- | --- | --- |
+| BOOK-03 T4 B, parte A | Consulta del resultado implementada; revisión humana pendiente | GET propio por clave y dueño; siete unitarias y tres HTTP nuevas. Suite completa: 773 unitarias + 188 integración = 961 aprobadas. Pantalla B aún en implementación, sin afirmar QA visual. |

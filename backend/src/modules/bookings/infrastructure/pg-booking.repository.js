@@ -2,7 +2,10 @@ const { createPendingBooking } = require('../domain/pending-booking');
 const { listSeatAvailability } = require('../domain/seat-availability');
 const { BookingValidationError } = require('../domain/booking-error');
 const BookingConflictError = require('../domain/booking-conflict-error');
-const { createBookingOperation } = require('../domain/booking-creation-request');
+const {
+  createBookingOperation,
+  validateRequestKey,
+} = require('../domain/booking-creation-request');
 
 function identifier(value) {
   if (typeof value !== 'string' || !value.trim()) throw new BookingValidationError();
@@ -184,6 +187,15 @@ class PgBookingRepository {
     return readAllocations(this.pool, tripScope(scope));
   }
 
+  async findByCreationRequest(input) {
+    const ownerId = identifier(input?.ownerId);
+    const requestKey = validateRequestKey(input?.requestKey);
+    const { rows } = await this.pool.query(
+      'SELECT * FROM bookings WHERE owner_id = $1 AND creation_request_key = $2',
+      [ownerId, requestKey],
+    );
+    return rows.length ? privateBooking(rows[0]) : null;
+  }
   async findByOwner(scope) {
     const target = {
       bookingId: identifier(scope?.bookingId),

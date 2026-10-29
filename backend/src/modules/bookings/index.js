@@ -6,6 +6,7 @@ const defaultCalendarDateAt = require('./infrastructure/booking-clock');
 const getSeatAvailability = require('./application/get-seat-availability.use-case');
 const getBookingSummary = require('./application/get-booking-summary.use-case');
 const createBooking = require('./application/create-booking.use-case');
+const getBookingAttempt = require('./application/get-booking-attempt.use-case');
 const createRouter = require('./interfaces/booking-router');
 const BookingServiceUnavailableError = require('./domain/booking-service-unavailable-error');
 
@@ -55,6 +56,7 @@ function createBookingsModule({
       getSeatAvailability: getSeatAvailability({ tripCatalog, allocationReader: repository }),
       getBookingSummary: getBookingSummary(dependencies),
       createBooking: createBooking(dependencies),
+      getBookingAttempt: getBookingAttempt(dependencies),
     }),
   };
 }

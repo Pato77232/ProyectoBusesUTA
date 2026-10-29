@@ -428,3 +428,53 @@ test('beneficio por edad sin acreditar pide revisión y no permite escribir una 
   expect((await response.json()).error.code).toBe('BOOKING_BENEFIT_REVIEW_REQUIRED');
   expect(await counts()).toEqual({ bookings: 0, allocations: 0 });
 });
+
+test('consulta de intento recupera compra propia sin catálogo y mantiene fechas', async () => {
+  const browser = await customer();
+  const input = await accepted(browser);
+  const original = await (
+    await browser.request('/api/v1/bookings', 'POST', input, createHeaders)
+  ).json();
+  tripCatalog.findBookableById.mockRejectedValue(new Error('catálogo no disponible'));
+  const response = await browser.request('/api/v1/bookings/attempts/' + key);
+  expect(response.status).toBe(200);
+  expect(response.headers.get('cache-control')).toBe('no-store');
+  expect(await response.json()).toEqual(original);
+  expect(await counts()).toEqual({ bookings: 1, allocations: 2 });
+});
+
+test('intento de otro comprador y clave desconocida son indistinguibles', async () => {
+  const browser = await customer();
+  const input = await accepted(browser);
+  await browser.request('/api/v1/bookings', 'POST', input, createHeaders);
+  const otherUser = randomUUID();
+  const otherSession = randomUUID();
+  await pool.query(
+    `INSERT INTO users (id,email,password_hash,role)
+    VALUES ($1,'otro-ficticio@example.ec','hash-de-prueba','CUSTOMER')`,
+    [otherUser],
+  );
+  await pool.query(
+    `INSERT INTO auth_sessions (id,user_id,expires_at)
+    VALUES ($1,$2,CURRENT_TIMESTAMP + interval '1 hour')`,
+    [otherSession, otherUser],
+  );
+  const other = new Browser(url, accessToken(otherUser, otherSession));
+  const foreign = await other.request('/api/v1/bookings/attempts/' + key);
+  const absent = await other.request('/api/v1/bookings/attempts/' + randomUUID());
+  expect(foreign.status).toBe(404);
+  expect(absent.status).toBe(404);
+  expect(await foreign.json()).toEqual(await absent.json());
+  expect(await counts()).toEqual({ bookings: 1, allocations: 2 });
+});
+
+test('consulta de intento rechaza clave inválida, sesión ausente y contexto por query', async () => {
+  const anonymous = new Browser();
+  expect((await anonymous.request('/api/v1/bookings/attempts/' + key)).status).toBe(401);
+  const browser = await customer();
+  expect((await browser.request('/api/v1/bookings/attempts/invalido')).status).toBe(400);
+  expect(
+    (await browser.request('/api/v1/bookings/attempts/' + key + '?ownerId=ajeno')).status,
+  ).toBe(400);
+  expect(await counts()).toEqual({ bookings: 0, allocations: 0 });
+});

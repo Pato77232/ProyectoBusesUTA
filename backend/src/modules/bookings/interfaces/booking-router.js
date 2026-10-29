@@ -7,6 +7,7 @@ const ERROR_STATUS = Object.freeze({
   UNAUTHENTICATED: 401,
   FORBIDDEN: 403,
   BOOKING_TRIP_UNAVAILABLE: 404,
+  BOOKING_ATTEMPT_NOT_FOUND: 404,
   BOOKING_SEAT_CONFLICT: 409,
   BOOKING_ALREADY_EXISTS: 409,
   BOOKING_SUMMARY_CHANGED: 409,
@@ -39,7 +40,13 @@ function availabilityInput(query) {
   };
 }
 
-function createBookingRouter({ auth, getSeatAvailability, getBookingSummary, createBooking }) {
+function createBookingRouter({
+  auth,
+  getSeatAvailability,
+  getBookingSummary,
+  createBooking,
+  getBookingAttempt,
+}) {
   const router = express.Router();
   router.use((req, res, next) => {
     res.set('Cache-Control', 'no-store');
@@ -49,6 +56,10 @@ function createBookingRouter({ auth, getSeatAvailability, getBookingSummary, cre
   router.get('/availability', async (req, res) => {
     const seats = await getSeatAvailability(availabilityInput(req.query));
     res.json({ seats });
+  });
+  router.get('/attempts/:requestKey', async (req, res) => {
+    if (Object.keys(req.query).length) throw new errors.BookingValidationError();
+    res.json({ booking: await getBookingAttempt(req.params.requestKey, req.auth) });
   });
   router.post('/summary', auth.csrfProtection, requireJson, async (req, res) => {
     res.json(await getBookingSummary(req.body, req.auth));
