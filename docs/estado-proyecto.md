@@ -2,10 +2,10 @@
 
 ## Alcance y frescura de esta fotografía
 
-- **Fecha de comprobación:** 26 de octubre de 2026, America/Guayaquil.
-- **Base funcional examinada anteriormente:** commit `eebfe75`; integra T1 de FRONT-01 en PR #16. Su árbol coincide con 3285695; las observaciones de backend anteriores no cambian por esa integración.
-- **Cambio local actual:** T3 dividida según CONTRIBUTING.md. T3a en feature/FRONT-01-T3a-transporte-json desde origin/develop 92d91d3; trabajo completo conservado sin publicar en el checkout original. Sin commit ni revisión humana de esta entrega.
-- **Remoto contrastado para T2:** origin/develop c8bb5d3 (añade PAGOS-01 sin solaparse con T2). Las pruebas actuales pertenecen a cddbe34 y no validan todavía la combinación con ese cambio; las demás filas conservan el alcance de la base examinada anterior.
+- **Fecha de comprobación:** 29 de octubre de 2026, America/Guayaquil.
+- **Base integrada examinada:** `origin/develop` en `e556e59`, actualizada mediante `git fetch origin`; incluye la corrección de rollback de Fleet `a78c750`, integrada en `4c1fbbd`.
+- **Cambio local actual:** PAGOS-01 T4 en `feature/PAGOS-01-subir-comprobante-actualizado`, basada en la referencia actual. Lint, formato de los archivos propios, 41 suites/564 unitarias y 13 suites/116 pruebas de integración aprobadas. Publicación y revisión humana pendientes.
+- **Alcance de esta actualización:** la evidencia específica de PAGOS-01 se comprobó hoy; las demás filas conservan las fechas y fuentes que indican.
 - **Fuentes:** árbol y composición de esa base, specs versionadas y distribución de referencia en [equipo-y-acuerdos.md](equipo-y-acuerdos.md). No se inspeccionaron todas las ramas remotas ni se certifica el trabajo privado de otros integrantes.
 
 Este archivo orienta; la spec es la fuente del alcance y business-rules.md la de reglas funcionales. Si el código y la spec difieren, mostrar ambas evidencias y pedir resolver el conflicto, sin inventar acuerdos.
@@ -37,6 +37,7 @@ Antes de orientar a alguien:
 | [INFRA-04](specs/INFRA-04.md) | Pablo; revisora propuesta Shirley | Integrada: su código documental está contenido en c89b1b9 | La presencia en develop está comprobada; no se inventa evidencia de revisión humana/cierre |
 | [FRONT-01](specs/FRONT-01.md) | Pablo; revisión humana por confirmar | T3a verificada desde develop; pendiente de revisión | Transporte JSON/errores; 17 contratos y lint frontend aprobados. Backend: lint y 657 pruebas aprobados; formato falla en 27 archivos previos. Cambio menor de 400 líneas. T3b–T3d se retomarán desde develop tras integrar sus dependencias. Avance completo anterior conservado; sección 27 de la spec |
 | search, bookings, payments y tickets | Según propuesta inferior | Sin implementación en la base examinada | Confirmar ramas de los responsables antes de crear tareas |
+| [PAGOS-01](specs/PAGOS-01.md) | Shirley | En desarrollo; T4 verificada localmente, revisión humana pendiente | Base `origin/develop` `e556e59`; lint y formato de sus archivos aprobados; 41 suites/564 unitarias y 13 suites/116 de integración aprobadas. `bookings` sigue simulado conforme al alcance T4. |
 | CI | Pablo | Sin workflow versionado en la base | Proponer una spec propia; no afirmar protecciones remotas sin consultarlas |
 
 ## Próximos pasos por integrante
