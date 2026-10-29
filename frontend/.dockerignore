@@ -12,3 +12,12 @@
 !assets/**
 **/*.md
 **/provenance.json
+!pages/
+!pages/reservas.html
+!src/bookings/
+!src/bookings/api.js
+!src/bookings/flow.js
+!src/bookings/page.js
+!src/api/
+!src/api/json-transport.js
+!src/api/api-error.js

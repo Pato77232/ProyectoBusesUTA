@@ -56,3 +56,21 @@ Implementado GET /api/v1/bookings/attempts/:requestKey y el caso de uso getBooki
 Siete pruebas unitarias nuevas y tres HTTP nuevas aprobadas. Suite completa: 773 unitarias + 188 integración = 961 pruebas. Lint aprobado; formato de archivos de A aprobado, formato global conserva 24 archivos preexistentes ajenos. Sin migraciones/dependencias nuevas ni eliminación de pruebas. Se usa base temporal nueva busesuta-leslie-book03-pantalla, cero tablas antes de migrar; se conserva activa para comprobar la pantalla y se retirará al terminar.
 
 A completa localmente; B en implementación y todavía sin prueba de navegador. No se declara compra de producción ni revisión humana.
+
+## Evidencia B — pantalla, 29 de octubre de 2026
+
+Implementados pages/reservas.html, módulos API/estado/DOM de reservas y estilos bajo .booking-page. Reutiliza transporte JSON, diseño/recursos locales y Bootstrap. Lista sin distribución ficticia, pasajeros, resumen del servidor, aceptación, confirmación, consulta/recuperación al recargar, estados 401/503/vacío/error y botón visible para volver a consultar. Se conserva solo UUID en sessionStorage; cuerpos y pasajeros quedan en memoria. No se modifica navegación de portada ni se añade un login inexistente.
+
+Validación frontend: npm test aprobado, 45 pruebas (17 previas del transporte y 28 nuevas de reservas); npm run lint aprobado. El script previo de lint no funcionaba en Windows por su ruta de ejecutable; ahora invoca Node de forma portable, sin instalar dependencias. Formato de todos los archivos de B aprobado.
+
+Chrome headless Windows, backend/PostgreSQL/JWT/CSRF reales: entrada sin viaje, 401, selección con teclado/foco, aceptación obligatoria, datos conservados ante tarifa modificada, nueva aceptación, doble envío bloqueado, COMMIT real con respuesta 201 perdida/sustituida por 502 y recuperación GET al recargar con mismo ID/plazo. Comprobado que sessionStorage no contiene pasajeros ni tokens y que el 503 no inventa asientos; botón permite nueva consulta al recuperarse el proveedor. Solo catálogo/acreditación son fixtures de QA.
+
+Verificación visual: capturas de escritorio 1280, móvil 360, resumen, recuperación y servicio no disponible inspeccionadas. Sin desbordamiento; contraste de muestras de texto >=4.5:1 por colores computados; foco y acciones de selección/confirmación con Tab/Enter/Espacio. Los campos de prueba se rellenan programáticamente. Ampliación del contenido al 200% con CSS: no equivale a zoom nativo. Zoom nativo, lector de pantalla y dispositivos físicos pendientes. Prueba previa de portada pasó en escritorio/móvil/ampliación CSS, sin modificar sus aserciones.
+
+Imagen real busesuta-frontend:book03-pantalla construida y verificada: nginx sin root, página/módulos/CSS con MIME correcto; docs/tests/package.json excluidos y rutas inexistentes 404. Su contenedor y red propios se retiran al terminar. CSS/JS y recursos HTTP del flujo son del mismo origen; URLs internas/data con origen null no se confunden con tráfico HTTP externo.
+
+Se conservan incidencias de verificación: el primer ensayo destruyendo la conexión no mostró el estado pendiente esperado (se observó éxito), por lo que el proxy QA perdió la respuesta con 502 tras COMMIT de forma controlada. El ayudante contaba URLs internas/data como origen null; se precisó la aserción a solicitudes HTTP, sin permitir destinos web externos. Al añadir la nueva consulta, una primera ejecución detectó el botón todavía ausente del HTML; se corrigió y ambas pruebas finales pasaron. No se eliminaron comprobaciones funcionales para aprobar.
+
+Backend completo verificado al añadir A: 773 unitarias + 188 integración = 961 aprobadas; no hubo cambios posteriores de backend en B. Lint aprobado y formato global mantiene 24 archivos preexistentes ajenos. La base temporal busesuta-leslie-book03-pantalla se verificó vacía antes de migrar; su retirada demoró en Docker y finalmente se confirmaron contenedor y red eliminados. Sin .env ni datos existentes ni cambios de dependencias.
+
+A y B implementadas/verificadas localmente, sin aprobación humana ni PR por paso. Guía en ../reservas-pantalla.md. Quedan proveedores reales de viaje/plantillas/acreditación y revisión asistida, entrada desde búsqueda/login y revisión de la entrega. No afirmar compra de producción habilitada ni sustituir revisión humana.

@@ -11,3 +11,8 @@ COPY assets /usr/share/nginx/html/assets
 USER nginx
 EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]
+
+# BOOK-03: pantalla y módulos consumidos; no copiar tests ni documentación.
+COPY pages/reservas.html /usr/share/nginx/html/pages/reservas.html
+COPY src/bookings /usr/share/nginx/html/src/bookings
+COPY src/api/json-transport.js src/api/api-error.js /usr/share/nginx/html/src/api/

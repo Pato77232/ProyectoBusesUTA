@@ -142,3 +142,12 @@ Solo tareas de Leslie. Misma rama local feature/BOOK-03-resumen-creacion-dominio
 | Spec / área de Leslie | Estado local | Evidencia |
 | --- | --- | --- |
 | BOOK-03 T4 B, parte A | Consulta del resultado implementada; revisión humana pendiente | GET propio por clave y dueño; siete unitarias y tres HTTP nuevas. Suite completa: 773 unitarias + 188 integración = 961 aprobadas. Pantalla B aún en implementación, sin afirmar QA visual. |
+
+## Actualización parcial de reservas — pantalla, 29 de octubre de 2026
+
+| Spec / área de Leslie | Estado comprobado | Evidencia y dependencia |
+| --- | --- | --- |
+| BOOK-03 T4 B, pantalla | Implementada y verificada localmente; revisión humana pendiente | 45 pruebas frontend, lint/formato, Chrome con API/PostgreSQL reales, contenedor y portada aprobados. Selección/pasajeros/resumen/aceptación/recuperación. Guía reservas-pantalla.md. |
+| BOOK-03 T4 B, lectura de resultado | Implementada en 7a57e1c | Suite backend completa: 773 unitarias + 188 integración = 961 aprobadas. Consulta solo propio comprador, sin reactivar ni prorrogar. |
+| Integración de compra real | Pendiente | Catálogo de viajes/plantillas, acreditación/revisión asistida y entrada desde búsqueda/login. Sin proveedores el servidor da 503; no hay datos simulados de producción. |
+| Revisión de entrega | Pendiente | Un solo PR futuro de funcionalidad hacia develop, con specs/código/pruebas y commits por tarea. QA con datos ficticios no equivale a aprobación humana ni compra de producción. |

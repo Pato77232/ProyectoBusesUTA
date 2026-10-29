@@ -2,7 +2,7 @@
 
 - **Responsable:** Leslie
 - **Revisor propuesto por Leslie:** PabloToapanta
-- **Estado:** T1/T2/T3 y T4 A (API protegida) implementados localmente; revisión humana pendiente. Pantalla y proveedores reales sin conectar; el servidor responde 503 a compras nuevas mientras falten.
+- **Estado:** T1/T2/T3 y T4 A/B (API y pantalla) implementados localmente y probados; revisión humana pendiente. Faltan proveedores reales y entrada desde búsqueda/login; el servidor responde 503 a compras nuevas mientras falten.
 - **Módulo:** bookings
 - **Dependencias:** BOOK-01/02/04/05, viajes, plantilla e identidad del comprador.
 
@@ -67,3 +67,7 @@ La limitación de reintentos de T3 es histórica y queda resuelta para la ruta c
 [BOOK-03-T4](BOOK-03-T4.md): API protegida de disponibilidad, resumen y creación montada en app.js/server.js. Auth y CSRF reales, claves de reintento obligatorias por HTTP, plazo configurable y sin caché. [Contrato para frontend](../reservas-api.md). El catálogo y la acreditación faltantes producen 503 sin escrituras ficticias; las pruebas inyectan fixtures identificadas.
 
 Base actualizada con develop f26415d en 8df558a; se conserva la prueba revisada de flota y el montaje de pagos. Validación conjunta: 951 pruebas aprobadas, incluido arranque real. Pantalla T4 B, proveedores reales y revisión humana pendientes; todavía no es compra de producción completa ni se publica un PR por tarea.
+
+## Actualización T4 B — pantalla y recuperación, 29 de octubre de 2026
+
+[BOOK-03-T4-B](BOOK-03-T4-B.md) añade la consulta propia de resultado y la pantalla de reserva con recursos/diseño de transViaje. [Guía](../reservas-pantalla.md). Backend: 961 pruebas aprobadas; frontend: 45, además de navegador con backend real y contenedor. Pantalla a 360/1280, foco/teclado y contenido 200% CSS comprobados; zoom nativo/lector de pantalla pendientes. No se considera activada compra real: faltan catálogo/plantillas/acreditación y entrada desde búsqueda/login. Un único PR funcional futuro tras cerrar esas dependencias y revisión humana.

@@ -1,23 +1,25 @@
+import { bookingRules } from "./bookings-eslint.config.js";
 export default [
+  bookingRules,
   {
-    files: ['src/api/**/*.js', 'tests/api/**/*.js'],
+    files: ["src/api/**/*.js", "tests/api/**/*.js"],
     languageOptions: {
       ecmaVersion: 2022,
-      sourceType: 'module',
+      sourceType: "module",
       globals: {
-        fetch: 'readonly',
-        URL: 'readonly',
-        Response: 'readonly',
-        DOMException: 'readonly',
-        AbortSignal: 'readonly',
-        AbortController: 'readonly',
+        fetch: "readonly",
+        URL: "readonly",
+        Response: "readonly",
+        DOMException: "readonly",
+        AbortSignal: "readonly",
+        AbortController: "readonly",
       },
     },
     rules: {
-      'no-undef': 'error',
-      'no-console': 'error',
-      'no-unreachable': 'error',
-      eqeqeq: ['error', 'always'],
+      "no-undef": "error",
+      "no-console": "error",
+      "no-unreachable": "error",
+      eqeqeq: ["error", "always"],
     },
   },
 ];

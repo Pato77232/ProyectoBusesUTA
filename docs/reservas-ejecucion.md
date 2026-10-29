@@ -157,3 +157,13 @@ Sin catálogo o verificador reales, las nuevas compras reciben 503; no se añade
 Pasaron 27 unitarias nuevas y 25 HTTP con PostgreSQL/JWT/sesiones/CSRF reales. Suite completa sobre base actualizada: 766 unitarias + 185 integración = 951 aprobadas, 65 suites. Lint y formato de archivos propios aprobados; formato global conserva 24 archivos preexistentes ajenos. Sin migraciones/dependencias nuevas ni pruebas previas debilitadas.
 
 Se usó solo la base temporal nueva busesuta-leslie-book03-http, cero tablas antes de migrar; se retiró su contenedor/red al terminar y se cerraron servidores/pools. No se leyó .env ni se usaron bases de otros proyectos. T4 B y proveedores reales pendientes; un único PR funcional futuro, sin publicación por este paso.
+
+## BOOK-03 T4 B — pantalla y resultado recuperable
+
+29 de octubre de 2026. Consulta GET propia implementada en 7a57e1c para recuperar la reserva sin persistir pasajeros en navegador; 961 pruebas backend aprobadas. La pantalla usa diseño local, transporte compartido y solo la referencia UUID en sessionStorage. Datos/precios/estado/plazo proceden del servidor; no hay inventario o acreditación simulada en producción.
+
+Pasaron 45 pruebas frontend, lint, formato y Chrome headless Windows con backend/PostgreSQL/JWT/CSRF reales y fixtures explícitas de viajes/acreditación. Verificados tarifa cambiada con datos conservados, nueva aceptación, doble envío y 201 perdido después de COMMIT mediante 502 controlado, recarga con GET y mismo ID/plazo. 401/503/vacío informan sin inventar viajes; botón de consulta permite recuperarse cuando vuelve el servicio.
+
+Capturas de escritorio/móvil y ampliación CSS 200% revisadas; contraste de muestras y teclado/foco verificados. Zoom nativo, lector de pantalla y dispositivos físicos pendientes. La portada anterior pasó su smoke sin cambiar comprobaciones. Imagen real empaqueta página/API/módulos con MIME correcto y excluye docs/tests; usuario nginx, 404 reales y retirada del contenedor/red de QA confirmados. Se corrigieron incidencias de la simulación de pérdida de respuesta, clasificación de URLs no HTTP y montaje del botón, repitiendo las verificaciones finales.
+
+Base temporal busesuta-leslie-book03-pantalla retirada (Docker demoró el cierre y luego lo confirmó); sin .env, datos existentes o dependencias nuevas. Persisten 24 avisos preexistentes de formato backend. Pendientes proveedores reales/entrada desde búsqueda y login/revisión humana. Un solo PR funcional futuro, sin publicar este paso.

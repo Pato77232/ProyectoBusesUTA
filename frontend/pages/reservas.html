@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <meta name="referrer" content="same-origin" />
+    <title>Reserva tu viaje · transViaje</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+    <link
+      rel="stylesheet"
+      href="/assets/vendor/bootstrap-5.3.8/bootstrap.min.css"
+    />
+    <link rel="stylesheet" href="/src/styles/app.css" />
+    <script type="module" src="/src/bookings/page.js"></script>
+  </head>
+  <body class="booking-page">
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+    <header class="site-header">
+      <div
+        class="container d-flex align-items-center justify-content-between gap-3"
+      >
+        <a class="brand" href="/" aria-label="transViaje, inicio">
+          <span class="brand-logo-frame" aria-hidden="true"
+            ><img
+              class="brand-logo"
+              src="/assets/brand/logo-transviaje.png"
+              alt=""
+              width="1600"
+              height="1446"
+          /></span>
+        </a>
+        <a class="booking-back" href="/"
+          >Volver al inicio <span aria-hidden="true">↗</span></a
+        >
+      </div>
+    </header>
+    <main id="contenido" class="container booking-main" tabindex="-1">
+      <div class="booking-intro">
+        <p class="eyebrow">TU PRÓXIMO VIAJE</p>
+        <h1>
+          Un asiento.<br /><span class="hero-accent"
+            >Tu siguiente destino.</span
+          >
+        </h1>
+        <p>
+          Elige dónde viajar, completa los pasajeros y revisa todo antes de
+          confirmar.
+        </p>
+      </div>
+      <ol class="booking-steps" aria-label="Pasos de la reserva">
+        <li data-step="seats" aria-current="step">
+          <span aria-hidden="true">01</span> Asientos
+        </li>
+        <li data-step="passengers">
+          <span aria-hidden="true">02</span> Pasajeros
+        </li>
+        <li data-step="summary">
+          <span aria-hidden="true">03</span> Confirmación
+        </li>
+      </ol>
+      <div
+        id="booking-notice"
+        class="booking-notice"
+        role="status"
+        aria-live="polite"
+        tabindex="-1"
+      >
+        Preparando tu reserva…
+      </div>
+      <button
+        id="retry-availability"
+        class="booking-button booking-button-light booking-retry"
+        type="button"
+        hidden
+      >
+        Volver a consultar
+      </button>
+      <noscript
+        ><p class="booking-notice">
+          Activa JavaScript para consultar y confirmar una reserva.
+        </p></noscript
+      >
+      <div class="booking-layout">
+        <div class="booking-workflow">
+          <section
+            id="seat-panel"
+            class="booking-panel"
+            hidden
+            aria-labelledby="seat-title"
+          >
+            <div class="booking-panel-header">
+              <div>
+                <p class="booking-kicker">PRIMERO, TU LUGAR</p>
+                <h2 id="seat-title">Elige tus asientos</h2>
+              </div>
+              <button
+                id="refresh-seats"
+                type="button"
+                class="booking-button booking-button-light"
+              >
+                Actualizar
+              </button>
+            </div>
+            <p>
+              La disponibilidad se vuelve a comprobar al confirmar la reserva.
+            </p>
+            <div class="booking-legend" aria-label="Estados de los asientos">
+              <span>□ Libre</span><span>✓ Elegido</span><span>× Ocupado</span>
+            </div>
+            <div
+              id="seat-list"
+              class="booking-seats"
+              role="group"
+              aria-label="Asientos del viaje"
+            ></div>
+            <p id="selection-count" class="booking-selection-count">
+              Aún no has elegido un asiento.
+            </p>
+          </section>
+          <form
+            id="passenger-form"
+            class="booking-panel"
+            hidden
+            autocomplete="off"
+          >
+            <p class="booking-kicker">CADA PASAJERO CUENTA</p>
+            <h2>¿Quiénes viajan?</h2>
+            <p>
+              Completa un pasajero por asiento. Los descuentos y su acreditación
+              se revisan en el servidor.
+            </p>
+            <div id="passenger-fields"></div>
+            <button id="review-button" class="booking-button" type="submit">
+              Ver resumen <span aria-hidden="true">↗</span>
+            </button>
+          </form>
+          <section
+            id="summary-panel"
+            class="booking-panel"
+            hidden
+            tabindex="-1"
+            aria-labelledby="summary-title"
+          >
+            <div class="booking-panel-header">
+              <div>
+                <p class="booking-kicker">TODO CLARO, ANTES DE CONFIRMAR</p>
+                <h2 id="summary-title">Revisa tu reserva</h2>
+              </div>
+              <button
+                id="edit-details"
+                type="button"
+                class="booking-button booking-button-light"
+              >
+                Modificar datos
+              </button>
+            </div>
+            <div id="summary-content"></div>
+            <div class="booking-acceptance">
+              <input id="accept-summary" type="checkbox" />
+              <label for="accept-summary"
+                >Revisé los pasajeros, los asientos y el total. Acepto crear
+                esta reserva.</label
+              >
+            </div>
+            <p class="booking-small">
+              El plazo de pago empieza al crear la reserva. Verás su vencimiento
+              exacto al confirmar.
+            </p>
+            <button
+              id="confirm-booking"
+              class="booking-button"
+              type="button"
+              disabled
+            >
+              Confirmar reserva
+            </button>
+          </section>
+          <section
+            id="pending-panel"
+            class="booking-panel"
+            hidden
+            tabindex="-1"
+            aria-labelledby="pending-title"
+          >
+            <p class="booking-kicker">CONSULTEMOS EL RESULTADO</p>
+            <h2 id="pending-title">Estamos verificando tu reserva</h2>
+            <p>
+              La respuesta pudo cortarse después de guardar. Evita iniciar otra
+              compra hasta conocer el resultado de este intento.
+            </p>
+            <div class="booking-actions">
+              <button id="recover-attempt" class="booking-button" type="button">
+                Consultar resultado
+              </button>
+              <button
+                id="retry-attempt"
+                class="booking-button booking-button-light"
+                type="button"
+                hidden
+              >
+                Reintentar el mismo envío
+              </button>
+            </div>
+          </section>
+          <section
+            id="receipt-panel"
+            class="booking-panel"
+            hidden
+            tabindex="-1"
+            aria-labelledby="receipt-title"
+          >
+            <p class="booking-kicker">UN PASO MÁS CERCA</p>
+            <h2 id="receipt-title">La reserva está registrada</h2>
+            <p>Referencia de tu reserva</p>
+            <p id="booking-reference" class="booking-reference"></p>
+            <p id="booking-status"></p>
+            <p>Vencimiento indicado: <time id="booking-expiry"></time></p>
+            <p
+              id="booking-countdown"
+              class="booking-countdown"
+              aria-live="off"
+            ></p>
+            <div id="receipt-content"></div>
+            <p class="booking-small">
+              La reserva todavía no es un boleto ni una venta aprobada.
+            </p>
+            <div class="booking-actions">
+              <button
+                id="refresh-booking"
+                type="button"
+                class="booking-button booking-button-light"
+              >
+                Actualizar estado
+              </button>
+              <a id="finish-booking" class="booking-button" href="/"
+                >Finalizar y volver al inicio</a
+              >
+            </div>
+          </section>
+        </div>
+        <aside class="booking-side booking-panel" aria-labelledby="help-title">
+          <span class="booking-help-mark" aria-hidden="true">↗</span>
+          <h2 id="help-title">Viaja con<br />todo claro.</h2>
+          <p>
+            Los asientos se reservan cuando confirmas el resumen, no mientras
+            completas tus datos.
+          </p>
+          <hr />
+          <h3>Antes de confirmar</h3>
+          <ul class="booking-help-list">
+            <li>Comprueba los datos de cada pasajero.</li>
+            <li>Revisa el descuento y el total mostrados.</li>
+            <li>Espera el resultado de tu confirmación.</li>
+          </ul>
+          <p class="booking-small">
+            Si se corta la conexión, consulta el mismo intento. No necesitas
+            iniciar otra compra.
+          </p>
+        </aside>
+      </div>
+      <footer class="booking-footer">
+        <span>transViaje · Tu próximo destino empieza aquí.</span
+        ><a href="/">Inicio</a>
+      </footer>
+    </main>
+  </body>
+</html>
