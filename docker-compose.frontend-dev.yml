@@ -1,0 +1,59 @@
+# FRONT-01 T2.2: entorno efímero local; independiente de docker-compose.yml.
+services:
+  db:
+    image: postgres:16.13-alpine
+    environment:
+      POSTGRES_DB: transviaje_frontend_dev
+      POSTGRES_USER: frontend_dev
+      POSTGRES_PASSWORD: ${FRONTEND_DEV_DB_PASSWORD:?Usa el lanzador frontend/scripts/dev.cjs}
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U frontend_dev -d transviaje_frontend_dev"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+  migrate:
+    build: ./backend
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: ${FRONTEND_DEV_DATABASE_URL:?Usa el lanzador frontend/scripts/dev.cjs}
+    command: ["node", "scripts/migrate.js", "up"]
+    depends_on:
+      db:
+        condition: service_healthy
+  backend:
+    build: ./backend
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: ${FRONTEND_DEV_DATABASE_URL:?Usa el lanzador frontend/scripts/dev.cjs}
+      JWT_SECRET: ${FRONTEND_DEV_JWT_SECRET:?Usa el lanzador frontend/scripts/dev.cjs}
+      JWT_EXPIRES_IN: 30m
+      TRUST_PROXY: "false"
+      PORT: 3000
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/v1/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 2s
+      timeout: 6s
+      retries: 20
+      start_period: 5s
+  frontend:
+    build: ./frontend
+    command: ["nginx", "-c", "/etc/nginx/nginx-proxy.conf", "-g", "daemon off;"]
+    ports:
+      - "127.0.0.1:${FRONTEND_DEV_PORT:-8081}:8080"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
+      interval: 2s
+      timeout: 3s
+      retries: 20

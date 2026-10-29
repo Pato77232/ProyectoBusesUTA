@@ -18,10 +18,14 @@ beforeEach(async () => {
   assertTestDatabase();
   await pool.query('TRUNCATE bus_groups, cooperatives CASCADE');
   coopA = (
-    await pool.query("INSERT INTO cooperatives(name, ruc) VALUES ('Coop A', '0011111111111') RETURNING id")
+    await pool.query(
+      "INSERT INTO cooperatives(name, ruc) VALUES ('Coop A', '0011111111111') RETURNING id",
+    )
   ).rows[0].id;
   coopB = (
-    await pool.query("INSERT INTO cooperatives(name, ruc) VALUES ('Coop B', '0022222222222') RETURNING id")
+    await pool.query(
+      "INSERT INTO cooperatives(name, ruc) VALUES ('Coop B', '0022222222222') RETURNING id",
+    )
   ).rows[0].id;
 });
 
@@ -48,11 +52,17 @@ test('aislamiento: dos cooperativas, cada una solo ve sus grupos', async () => {
 });
 
 test('duplicado y duplicado por mayúsculas devuelven conflicto con una sola fila', async () => {
-  await repository.create(coopA, createBusGroupData({ name: 'Rutas Largas', category: 'LONG_ROUTE' }));
+  await repository.create(
+    coopA,
+    createBusGroupData({ name: 'Rutas Largas', category: 'LONG_ROUTE' }),
+  );
   await expect(
     repository.create(coopA, createBusGroupData({ name: 'rutas largas', category: 'CANTONAL' })),
   ).rejects.toMatchObject({ code: 'BUS_GROUP_ALREADY_EXISTS' });
-  const count = await pool.query('SELECT count(*)::int AS count FROM bus_groups WHERE cooperative_id = $1', [coopA]);
+  const count = await pool.query(
+    'SELECT count(*)::int AS count FROM bus_groups WHERE cooperative_id = $1',
+    [coopA],
+  );
   expect(count.rows[0].count).toBe(1);
 });
 
@@ -67,7 +77,10 @@ test('dos inserciones concurrentes del mismo nombre: una fila y un conflicto', a
   expect(fulfilled).toHaveLength(1);
   expect(rejected).toHaveLength(1);
   expect(rejected[0].reason).toMatchObject({ code: 'BUS_GROUP_ALREADY_EXISTS' });
-  const count = await pool.query('SELECT count(*)::int AS count FROM bus_groups WHERE cooperative_id = $1', [coopA]);
+  const count = await pool.query(
+    'SELECT count(*)::int AS count FROM bus_groups WHERE cooperative_id = $1',
+    [coopA],
+  );
   expect(count.rows[0].count).toBe(1);
 });
 

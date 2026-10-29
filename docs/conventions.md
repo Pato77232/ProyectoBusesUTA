@@ -23,6 +23,7 @@
 - Errores de dominio explícitos (`FrequencyRequiresAntResolutionError`), no `throw new Error('error')`.
 - Sin `console.log` en código final: usar el logger de `shared`.
 - ESLint y Prettier sin advertencias antes de cada commit.
+- Aplicar los criterios SOLID de `docs/calidad.md` al alcance de la tarea, sin abstracciones especulativas. Las interfaces incluyen criterios de usabilidad verificables en su spec.
 
 ## 4. Pruebas
 - Jest. Archivos en `backend/tests/unit/<modulo>/` y `backend/tests/integration/<modulo>/`, con sufijo `.test.js`.

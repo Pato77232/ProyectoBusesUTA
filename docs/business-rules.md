@@ -51,7 +51,7 @@ Flujo del cliente:
 - **RN-40** Un asiento solo puede estar en un estado a la vez: *Disponible*, *Reservado* o *Vendido*. Un asiento reservado o vendido no puede ser elegido por otro cliente (control de concurrencia).
 - **RN-41** Se puede comprar como invitado o como cliente registrado.
 - **RN-42** Se pide la cédula por cada asiento seleccionado.
-- **RN-43 (descuentos)** Se aplican automáticamente descuentos por: tercera edad, menor de edad y discapacidad. El porcentaje y la forma de validación están en "Preguntas abiertas".
+- **RN-43 (descuentos)** Se aplican automáticamente descuentos por: tercera edad, menor de edad y discapacidad. Por autorización de Leslie, las decisiones del módulo de reservas se registran en `docs/reservas-decisiones.md` y BOOK-05: descuento único del 50 %, menor de 18 años, 65 años cumplidos o discapacidad acreditada; no confundir cálculo de elegibilidad con acreditación de identidad.
 
 ## 7. Pagos y comprobantes
 - **RN-50** Al pagar por depósito o transferencia, el cliente tiene un **plazo de 3 a 5 minutos** para subir el comprobante. El valor es **configurable** (no fijo en el código).
@@ -82,12 +82,12 @@ Estados del comprobante: *Pendiente* → *Aprobado* | *Rechazado* | *Expirado*.
 | Cliente | `Customer` |
 
 ## 9. Preguntas abiertas (resolver antes de implementar lo que afecten)
-1. **Descuentos:** ¿qué porcentaje aplica a tercera edad, menor de edad y discapacidad? ¿Hasta qué edad se considera menor?
-2. **Validación por cédula:** ¿se valida solo el formato, se consulta un servicio externo o hay datos simulados?
+1. **Descuentos:** política seleccionada por autorización de Leslie en `docs/reservas-decisiones.md` y BOOK-05. La acreditación real requiere una fuente o revisión autorizada; no simularla en producción.
+2. **Validación por cédula:** estructura de 10 dígitos y módulo 10 para esta fase; no acredita titularidad, edad ni discapacidad. Fuente y alcance en BOOK-04. No se ha contratado una consulta externa.
 3. **Tarjeta:** ¿se integra una pasarela real o se simula en esta fase?
 4. **Precio:** ¿es por frecuencia completa o por tramo entre paradas?
 5. **Wallet:** ¿qué alcance tiene en esta fase?
 6. **Hoja de ruta automática:** ¿qué criterio de asignación y rotación se usa (por ejemplo, equidad de kilómetros)?
 7. **Venta física:** ¿el oficinista vende asientos directamente sin pasar por reserva y comprobante?
-8. **Invitado:** ¿qué datos mínimos se piden y cómo recupera su boleto?
+8. **Invitado:** nombre y correo de contacto; enlace secreto de recuperación con hash persistido, según `docs/reservas-decisiones.md`. Implementación del contrato de acceso y envío de correo pendiente de integración.
 9. **Viaje:** el concepto "Viaje" (frecuencia en una fecha con bus) se deduce del charter; confirmar con el equipo.
