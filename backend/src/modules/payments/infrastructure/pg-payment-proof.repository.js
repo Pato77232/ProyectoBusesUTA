@@ -2,6 +2,7 @@ const PaymentProofRepository = require('../domain/payment-proof.repository');
 const {
   PaymentProofAlreadyUploadedError,
   PaymentProofPersistenceUncertainError,
+  PaymentProofValidationError,
 } = require('../domain/payment-proof-error');
 const {
   createPaymentProof,
@@ -11,7 +12,37 @@ const {
 
 const PAYMENT_PROOF_COLUMNS = `id, booking_id, cooperative_id, status, file_key,
   original_file_name, media_type, file_size_bytes, uploaded_at, expired_at,
-  created_at, updated_at`;
+  approved_at, approved_by, created_at, updated_at`;
+
+const MAX_PAGE_SIZE = 50;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function parseCursor(cursor) {
+  if (cursor === null || cursor === undefined) return null;
+  try {
+    const decoded = Buffer.from(cursor, 'base64url').toString('utf8');
+    const value = JSON.parse(decoded);
+    const uploadedAt = new Date(value.uploadedAt);
+    if (
+      !value ||
+      typeof value.uploadedAt !== 'string' ||
+      Number.isNaN(uploadedAt.getTime()) ||
+      typeof value.id !== 'string' ||
+      !UUID_PATTERN.test(value.id)
+    ) {
+      throw new Error('cursor inválido');
+    }
+    return { uploadedAt, id: value.id };
+  } catch {
+    throw new PaymentProofValidationError();
+  }
+}
+
+function createCursor(paymentProof) {
+  return Buffer.from(
+    JSON.stringify({ uploadedAt: paymentProof.uploaded_at.toISOString(), id: paymentProof.id }),
+  ).toString('base64url');
+}
 
 function asDate(value) {
   return value === null ? null : new Date(value);
@@ -20,6 +51,8 @@ function asDate(value) {
 function withPersistenceDates(paymentProof, row) {
   return Object.freeze({
     ...paymentProof,
+    approved_at: asDate(row.approved_at),
+    approved_by: row.approved_by,
     created_at: asDate(row.created_at),
     updated_at: asDate(row.updated_at),
   });
@@ -69,6 +102,59 @@ class PgPaymentProofRepository extends PaymentProofRepository {
     return rows.length === 0 ? null : toPaymentProof(rows[0]);
   }
 
+  async listPendingByCooperative({ cooperativeId, limit, cursor }) {
+    if (!Number.isInteger(limit) || limit < 1 || limit > MAX_PAGE_SIZE) {
+      throw new PaymentProofValidationError();
+    }
+    const position = parseCursor(cursor);
+    const values = [cooperativeId, limit + 1];
+    let cursorClause = '';
+    if (position) {
+      values.push(position.uploadedAt, position.id);
+      cursorClause = 'AND (uploaded_at, id) < ($3, $4)';
+    }
+
+    const { rows } = await this.pool.query(
+      `SELECT ${PAYMENT_PROOF_COLUMNS} FROM payment_proofs
+       WHERE cooperative_id = $1 AND status = 'UPLOADED' AND approved_at IS NULL
+       ${cursorClause}
+       ORDER BY uploaded_at DESC, id DESC LIMIT $2`,
+      values,
+    );
+    const hasMore = rows.length > limit;
+    const items = rows.slice(0, limit).map((row) => {
+      const proof = toPaymentProof(row);
+      const { file_key: _fileKey, ...safeProof } = proof;
+      return Object.freeze(safeProof);
+    });
+
+    return Object.freeze({
+      items: Object.freeze(items),
+      nextCursor: hasMore ? createCursor(items[items.length - 1]) : null,
+    });
+  }
+
+  async findByIdAndCooperativeId(paymentProofId, cooperativeId) {
+    const { rows } = await this.pool.query(
+      `SELECT ${PAYMENT_PROOF_COLUMNS} FROM payment_proofs
+       WHERE id = $1 AND cooperative_id = $2`,
+      [paymentProofId, cooperativeId],
+    );
+    return rows.length === 0 ? null : toPaymentProof(rows[0]);
+  }
+
+  async markApprovedIfPending({ paymentProofId, cooperativeId, approvedBy, approvedAt }) {
+    const { rows } = await this.pool.query(
+      `UPDATE payment_proofs SET approved_by = $3, approved_at = $4,
+         updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1 AND cooperative_id = $2 AND status = 'UPLOADED'
+         AND approved_at IS NULL
+       RETURNING ${PAYMENT_PROOF_COLUMNS}`,
+      [paymentProofId, cooperativeId, approvedBy, approvedAt],
+    );
+    return rows.length === 0 ? null : toPaymentProof(rows[0]);
+  }
+
   async save(paymentProof) {
     const { rows } = await this.pool.query(
       `INSERT INTO payment_proofs(
@@ -85,6 +171,7 @@ class PgPaymentProofRepository extends PaymentProofRepository {
         uploaded_at = EXCLUDED.uploaded_at,
         expired_at = EXCLUDED.expired_at,
         updated_at = CURRENT_TIMESTAMP
+      WHERE payment_proofs.approved_at IS NULL
       RETURNING ${PAYMENT_PROOF_COLUMNS}`,
       [
         paymentProof.booking_id,
@@ -98,6 +185,7 @@ class PgPaymentProofRepository extends PaymentProofRepository {
         paymentProof.expired_at,
       ],
     );
+    if (rows.length === 0) throw new PaymentProofAlreadyUploadedError();
     return toPaymentProof(rows[0]);
   }
 

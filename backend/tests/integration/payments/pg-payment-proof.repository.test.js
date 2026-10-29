@@ -34,9 +34,12 @@ function createAwaiting(bookingId = randomUUID()) {
   return createPaymentProof({ booking_id: bookingId, cooperative_id: cooperativeId });
 }
 
-function createUploaded(bookingId = randomUUID(), fileKey = 'private/proof-1') {
+function createUploaded(
+  bookingId = randomUUID(),
+  fileKey = 'private/proof-1',
+  uploadedAt = new Date('2026-10-25T14:00:00.000Z'),
+) {
   const awaiting = createAwaiting(bookingId);
-  const uploadedAt = new Date('2026-10-25T14:00:00.000Z');
   return uploadPaymentProof(
     awaiting,
     {
@@ -114,6 +117,8 @@ test('la migración crea payment_proofs sin duplicar plazo ni total', async () =
     'file_size_bytes',
     'uploaded_at',
     'expired_at',
+    'approved_at',
+    'approved_by',
     'created_at',
     'updated_at',
   ]);
@@ -122,6 +127,11 @@ test('la migración crea payment_proofs sin duplicar plazo ni total', async () =
      AND indexname = 'payment_proofs_status_booking_id_idx'`,
   );
   expect(indexRows[0].indexdef).toContain('(status, booking_id)');
+  const { rows: inboxIndexRows } = await pool.query(
+    `SELECT indexdef FROM pg_indexes WHERE tablename = 'payment_proofs'
+     AND indexname = 'payment_proofs_clerk_inbox_idx'`,
+  );
+  expect(inboxIndexRows[0].indexdef).toContain('(cooperative_id, uploaded_at, id)');
   const { rows: bookingForeignKeys } = await pool.query(
     `SELECT constraint_name FROM information_schema.key_column_usage
      WHERE table_name = 'payment_proofs' AND column_name = 'booking_id'
@@ -286,13 +296,92 @@ test('save actualiza el comprobante existente de la misma reserva', async () => 
   expect(rows[0].total).toBe(1);
 });
 
+test('lista comprobantes pendientes aislados por cooperativa y oculta file_key', async () => {
+  const older = await repository.save(
+    createUploaded(randomUUID(), 'private/older', new Date('2026-10-25T14:00:00.000Z')),
+  );
+  const newer = await repository.save(
+    createUploaded(randomUUID(), 'private/newer', new Date('2026-10-25T14:01:00.000Z')),
+  );
+  const otherCooperativeId = await createCooperative();
+  const otherProof = uploadPaymentProof(
+    createPaymentProof({ booking_id: randomUUID(), cooperative_id: otherCooperativeId }),
+    {
+      file_key: 'private/other',
+      original_file_name: 'otro.pdf',
+      media_type: 'application/pdf',
+      file_size_bytes: 12,
+    },
+    new Date('2026-10-25T14:06:00.000Z'),
+    new Date('2026-10-25T14:00:00.000Z'),
+  );
+  await repository.save(otherProof);
+
+  const firstPage = await repository.listPendingByCooperative({
+    cooperativeId,
+    limit: 1,
+    cursor: null,
+  });
+  const secondPage = await repository.listPendingByCooperative({
+    cooperativeId,
+    limit: 1,
+    cursor: firstPage.nextCursor,
+  });
+
+  expect(firstPage.items.map(({ id }) => id)).toEqual([newer.id]);
+  expect(firstPage.items[0]).not.toHaveProperty('file_key');
+  expect(firstPage.nextCursor).toEqual(expect.any(String));
+  expect(secondPage.items.map(({ id }) => id)).toEqual([older.id]);
+  expect(secondPage.nextCursor).toBeNull();
+});
+
+test('la aprobación condicional solo registra al primer oficinista y oculta el comprobante', async () => {
+  const proof = await repository.save(createUploaded());
+  const approvedAt = new Date('2026-10-26T12:00:00.000Z');
+  const approvedBy = randomUUID();
+
+  const approved = await repository.markApprovedIfPending({
+    paymentProofId: proof.id,
+    cooperativeId,
+    approvedBy,
+    approvedAt,
+  });
+  const repeated = await repository.markApprovedIfPending({
+    paymentProofId: proof.id,
+    cooperativeId,
+    approvedBy: randomUUID(),
+    approvedAt,
+  });
+  const inbox = await repository.listPendingByCooperative({
+    cooperativeId,
+    limit: 50,
+    cursor: null,
+  });
+
+  expect(approved.approved_at).toEqual(approvedAt);
+  expect(approved.approved_by).toBe(approvedBy);
+  expect(repeated).toBeNull();
+  expect(inbox.items).toEqual([]);
+});
+
+test('rechaza cursores corruptos', async () => {
+  await expect(
+    repository.listPendingByCooperative({ cooperativeId, limit: 50, cursor: 'invalid' }),
+  ).rejects.toMatchObject({ code: 'PAYMENT_PROOF_VALIDATION_ERROR' });
+});
+
 test('la migración se revierte y puede aplicarse otra vez en su propio esquema', async () => {
   const schema = `payment_test_${randomUUID().replace(/-/g, '')}`;
   const migrationDirectory = mkdtempSync(path.join(os.tmpdir(), 'payment-migration-'));
-  const migrationName = '1793123000000-payment-proofs-and-outbox.js';
-  copyFileSync(
-    path.join(__dirname, '../../../migrations', migrationName),
-    path.join(migrationDirectory, migrationName),
+  const migrationNames = [
+    '1793123000000-payment-proofs-and-outbox.js',
+    '1793130000000-payment-proof-approvals.js',
+  ];
+  migrationNames.forEach((migrationName) =>
+    copyFileSync(
+      path.join(__dirname, '../../../migrations', migrationName),
+      path.join(migrationDirectory, migrationName),
+    ),
   );
   const runIsolatedMigration = (direction) =>
     execFileSync(
@@ -318,7 +407,14 @@ test('la migración se revierte y puede aplicarse otra vez en su propio esquema'
       payment_proofs: `${schema}.payment_proofs`,
       outbox: `${schema}.payment_proof_notification_outbox`,
     });
+    const { rows: isolatedColumns } = await pool.query(
+      `SELECT column_name FROM information_schema.columns
+       WHERE table_schema = $1 AND table_name = 'payment_proofs'`,
+      [schema],
+    );
+    expect(isolatedColumns.map(({ column_name }) => column_name)).toContain('approved_at');
 
+    runIsolatedMigration('down');
     runIsolatedMigration('down');
     const { rows: removedTables } = await pool.query(
       'SELECT to_regclass($1) AS payment_proofs, to_regclass($2) AS outbox',
@@ -326,6 +422,7 @@ test('la migración se revierte y puede aplicarse otra vez en su propio esquema'
     );
     expect(removedTables[0]).toEqual({ payment_proofs: null, outbox: null });
 
+    runIsolatedMigration('up');
     runIsolatedMigration('up');
     const { rows: restoredTables } = await pool.query(
       'SELECT to_regclass($1) AS payment_proofs, to_regclass($2) AS outbox',
