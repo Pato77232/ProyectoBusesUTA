@@ -370,3 +370,74 @@ Pablo solicitó guardar T2.4, publicar la rama y entregar contenido de PR y reco
 Publicación autorizada de feature/FRONT-01-T2-proxy, sin force-push, creación de PR, asignación automática de revisor, merge/rebase o tags. La confirmación del push se obtiene después del commit; no se da por hecha desde esta constancia. Recomendación: Shirley (shirley6126), por coordinación de revisión de infraestructura de Pablo y continuidad con T1; su aceptación de esta nueva revisión aún no consta. Nadie aprueba su propio cambio.
 
 Resultados de la rama y límites permanecen en la matriz: 3 comprobaciones frontend, lint y 346 pruebas aprobados; formato global con 26 archivos preexistentes fallido. La combinación con develop y aprobación humana siguen pendientes antes de integrar.
+
+## 27. División de T3 según CONTRIBUTING.md
+
+Autorización humana del 28 de octubre de 2026: corregir tamaño de PR y base de
+rama. La implementación completa anterior se conserva sin modificar ni perder
+pruebas en el checkout original, rama feature/FRONT-01-T3-cliente-http, base
+6bf2cbc. No se propone publicar esa rama monolítica ni cerrarla como integrada.
+
+Se divide el mismo alcance T3 en entregas secuenciales bajo esta spec:
+
+| Entrega | Contenido | Base y dependencia |
+|---|---|---|
+| T3a | Transporte JSON, errores normalizados y pruebas de contrato | feature/FRONT-01-T3a-transporte-json desde origin/develop 92d91d3 |
+| T3b | Caché/renovación CSRF y sus contratos | Crear desde develop después de integrar T3a |
+| T3c | Cliente de rutas/métodos y los 45 contratos completos ya escritos | Crear desde develop después de integrar T3b; conservar las aserciones |
+| T3d | Empaquetado, documentación y navegador con backend real | Crear desde develop tras T3c y corrección WEB-01 integradas |
+
+Cada PR tendrá menos de unas 400 líneas de cambio; el tamaño se comprueba sobre
+su diff real antes de publicarla. No basta dividir commits dentro de una PR grande.
+T3a no necesita WEB-01: añade solo módulos internos y herramientas/pruebas; no
+modifica Nginx, Compose, portada ni backend. Las entregas siguientes no se publican acumuladas
+sobre una base antigua: se retomarán una por una tras integrar su dependencia.
+
+Contrato T3a: createJsonTransport recibe fetch y devuelve una función send para
+rutas ya validadas por el futuro cliente. Normaliza JSON, vacíos, errores HTTP,
+red y cancelación; no hace reintentos ni obtiene CSRF por sí misma. No es aún
+la API pública para pantallas ni autoriza una pantalla o mutación de negocio.
+RN-01/02 y ADR 0004 se mantienen en el backend. Sin nuevas dependencias.
+Aplica DESIGN.md sin cambios visuales. No aplica defecto inducido.
+
+Pruebas T3a: Node 24 con dobles de transporte, lint/formato propios y comprobación
+backend exigida por AGENTS.md. Resultados se registran abajo; no se trasladan los
+45 contratos ni el navegador de la rama completa como evidencia de esta entrega.
+Sin commit/push, revisión humana o integración inferidas.
+
+
+Se separa CSRF del cliente para no recortar las 45 pruebas completas solo para
+reducir líneas. Estimación de cambios propios por entrega: T3a aproximadamente
+300; T3b menos de 250; T3c aproximadamente 390; T3d menos de 300. Las tres últimas
+cifras son planificación, no PRs creadas ni tamaño final verificado.
+
+Ejecutar en frontend: npm run lint y npm test, con Node 24 y dependencias de
+backend disponibles. Las pruebas de T3a se ejecutan sobre el transporte interno;
+la validación de rutas, métodos y renovación de sesión permanece fuera de esta
+primera entrega. No publicar estos módulos como API lista para pantallas.
+
+
+### Verificación propia de T3a — 28 de octubre de 2026
+
+- HEAD y merge-base con origin/develop coinciden en 92d91d3; rama creada desde
+  esa base, sin incorporar commits WEB-01 ni ejecutar merge/rebase.
+- Frontend Node 24.21.0: npm run lint aprobado; 17 contratos de transporte
+  aprobados, sin omisiones. Prettier de archivos nuevos y diff --check aprobados.
+- Backend sin modificaciones: lint aprobado; npm test con 657 aprobadas,
+  550 unitarias y 107 de integración en PostgreSQL 16.13 temporal en tmpfs.
+  format:check falló en 27 archivos preexistentes, conservados sin cambios.
+- Se reutilizaron dependencias existentes mediante montajes de solo lectura;
+  no se instalaron paquetes ni se leyó .env. El primer intento de montaje no
+  inició las pruebas porque faltaba su directorio; tras crearlo como punto de
+  montaje ignorado por Git, la ejecución completa aprobó.
+- Dockerfile, Compose, portada, CSS, backend y pruebas anteriores intactos.
+  No se atribuye a esta entrega la prueba de autenticación de T3 completa.
+- Los módulos de transporte coinciden byte a byte con el avance conservado.
+  Código y 45 pruebas completas siguen disponibles en la carpeta original.
+- Sin commit/push ni PR creada. Revisión humana e integración pendientes.
+
+El usuario autorizó expresamente commit y push de T3a el 28 de octubre de 2026,
+como excepción puntual a la prohibición de push de AGENTS.md. El commit que
+contiene esta constancia guarda el transporte y su evidencia; no autoriza merge,
+rebase, tags ni publicación de las demás entregas. Confirmar el resultado del push
+con Git; esta autorización no equivale a revisión humana o integración.
