@@ -237,6 +237,16 @@ test('dos transacciones se serializan y solo una reserva el mismo tramo', async 
 });
 
 test('la migración es reversible y reaplicable sin editar migraciones anteriores', async () => {
+  const target = '1793145600000-create-bookings';
+  const { rows: applied } = await pool.query('SELECT name FROM pgmigrations ORDER BY id DESC');
+  expect(applied.map(({ name }) => name)).toContain(target);
+  for (const { name } of applied) {
+    if (name === target) break;
+    runMigration('down');
+    expect(
+      (await pool.query('SELECT name FROM pgmigrations')).rows.map((row) => row.name),
+    ).not.toContain(name);
+  }
   runMigration('down');
   try {
     const { rows } = await pool.query(

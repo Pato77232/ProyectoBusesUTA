@@ -61,3 +61,7 @@ Validación final de T3: npm test aprobado con 693 unitarias y 130 de integraci�
 Tras confirmación de Leslie, Docker respondió. Se creó exclusivamente busesuta-leslie-book03-t3 con busesuta_test y test_user; se comprobaron cero tablas antes de migrar. No se leyó .env ni se usaron bases existentes. Se retira solo este proyecto temporal al terminar.
 
 A/B completas localmente, sin aprobación humana ni publicación. Pendientes para el PR funcional: incorporación de cambios recientes de develop, contratos/proveedores reales de viajes/plantillas y acreditación/revisión asistida, recuperación de creación de resultado desconocido y T4 (API con autenticación/CSRF y pantalla). No abrir un PR por estos commits ni presentar compra operativa en producción.
+
+## Continuación de recuperación
+
+La limitación de reintentos de esta spec se conserva como evidencia histórica de T3 A/B. La continuación autorizada [BOOK-03-T3-R](BOOK-03-T3-R.md) añade recuperación con requestKey a la misma creación. No se habilita una ruta pública sin clave ni se afirma composición real antes de T4.

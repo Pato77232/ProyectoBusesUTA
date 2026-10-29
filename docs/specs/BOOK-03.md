@@ -55,3 +55,9 @@ Leslie autorizó elegir el contrato de viajes/asientos conforme a la delegación
 ## Actualización T3 — 29 de octubre de 2026
 
 [BOOK-03-T3](BOOK-03-T3.md) conecta la consulta del resumen con el caso de uso de creación. Resuelve comprador por un puerto de identidad verificada, catálogo y acreditación por proveedores internos; detecta cambios del resumen mediante revisión canónica y exige nueva aceptación. Relee viaje, acreditación y hora después del bloqueo de T2 antes de guardar. No habilita HTTP, ni crea proveedores ficticios; T4, recuperación/idempotencia y composición real siguen pendientes. Se mantiene un único PR futuro para creación de reservas; no se solicita reabrir el PR documental #17.
+
+## Actualización de reintentos — 29 de octubre de 2026
+
+[BOOK-03-T3-R](BOOK-03-T3-R.md) implementa recuperación idempotente con requestKey por comprador verificado y huella del contenido aceptado. La misma solicitud recupera la reserva y sus fechas persistidas, incluso si se perdió la respuesta tras COMMIT o el catálogo ya no responde. Reutilizar la clave con otros datos da conflicto. Reserva, ocupaciones y clave se guardan atómicamente; una operación revertida no consume el intento.
+
+La limitación de reintentos de T3 es histórica y queda resuelta para la ruta con requestKey. La ruta privada antigua sin clave mantiene su contrato, por compatibilidad; T4 deberá exigir clave para toda creación pública. API, pantalla, proveedores reales y actualización con develop siguen pendientes; este paso se conserva en el mismo PR funcional futuro.

@@ -2,6 +2,7 @@ const { createPendingBooking } = require('../domain/pending-booking');
 const { listSeatAvailability } = require('../domain/seat-availability');
 const { BookingValidationError } = require('../domain/booking-error');
 const BookingConflictError = require('../domain/booking-conflict-error');
+const { createBookingOperation } = require('../domain/booking-creation-request');
 
 function identifier(value) {
   if (typeof value !== 'string' || !value.trim()) throw new BookingValidationError();
@@ -18,6 +19,17 @@ function freezeTree(value) {
     Object.freeze(value);
   }
   return value;
+}
+
+function privateBooking(row) {
+  return freezeTree({
+    bookingId: row.id,
+    ownerId: row.owner_id,
+    status: row.status,
+    summary: row.summary,
+    createdAt: row.created_at.toISOString(),
+    expiresAt: row.expires_at.toISOString(),
+  });
 }
 
 async function readAllocations(client, scope) {
@@ -41,12 +53,13 @@ async function readAllocations(client, scope) {
   );
 }
 
-async function insertBooking(client, booking) {
+async function insertBooking(client, booking, operation) {
   const { summary } = booking;
   await client.query(
     `INSERT INTO bookings (id, cooperative_id, trip_id, owner_id, from_position, to_position,
-       status, summary, base_price_cents, discount_cents, total_price_cents, created_at, expires_at)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
+       status, summary, base_price_cents, discount_cents, total_price_cents, created_at, expires_at,
+       creation_request_key, creation_request_fingerprint)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
     [
       booking.bookingId,
       summary.cooperativeId,
@@ -61,6 +74,8 @@ async function insertBooking(client, booking) {
       summary.totals.totalPriceCents,
       booking.createdAt,
       booking.expiresAt,
+      operation?.requestKey ?? null,
+      operation?.requestFingerprint ?? null,
     ],
   );
   for (const passenger of summary.passengers) {
@@ -80,49 +95,89 @@ async function insertBooking(client, booking) {
   }
 }
 
+async function reserveTrip(client, target, prepare, operation) {
+  await client.query(
+    `INSERT INTO booking_trip_locks (cooperative_id, trip_id) VALUES ($1,$2)
+     ON CONFLICT DO NOTHING`,
+    [target.cooperativeId, target.tripId],
+  );
+  await client.query(
+    'SELECT trip_id FROM booking_trip_locks WHERE cooperative_id = $1 AND trip_id = $2 FOR UPDATE',
+    [target.cooperativeId, target.tripId],
+  );
+  // prepare pertenece al caso de uso y se ejecuta después del bloqueo de inventario.
+  const prepared = await prepare(target);
+  const booking = createPendingBooking(prepared?.input, prepared?.context);
+  const { summary } = booking;
+  if (
+    summary.tripId !== target.tripId ||
+    summary.cooperativeId !== target.cooperativeId ||
+    (operation && booking.ownerId !== operation.ownerId)
+  )
+    throw new BookingValidationError();
+  const seats = listSeatAvailability({
+    query: summary,
+    seatIds: summary.passengers.map((passenger) => passenger.seatId),
+    allocations: await readAllocations(client, target),
+  });
+  if (seats.some((seat) => seat.status !== 'AVAILABLE')) throw new BookingConflictError();
+  await insertBooking(client, booking, operation);
+  return booking;
+}
+
 class PgBookingRepository {
   constructor({ pool }) {
     this.pool = pool;
   }
 
-  async reserve(scope, prepare) {
-    const target = tripScope(scope);
-    if (typeof prepare !== 'function') throw new BookingValidationError();
+  async transaction(execute) {
     const client = await this.pool.connect();
+    let connectionFailure;
     try {
       await client.query('BEGIN ISOLATION LEVEL READ COMMITTED');
-      await client.query(
-        `INSERT INTO booking_trip_locks (cooperative_id, trip_id) VALUES ($1,$2)
-         ON CONFLICT DO NOTHING`,
-        [target.cooperativeId, target.tripId],
-      );
-      await client.query(
-        'SELECT trip_id FROM booking_trip_locks WHERE cooperative_id = $1 AND trip_id = $2 FOR UPDATE',
-        [target.cooperativeId, target.tripId],
-      );
-      // prepare pertenece al caso de uso: resuelve contexto y hora después del bloqueo.
-      const prepared = await prepare();
-      const booking = createPendingBooking(prepared?.input, prepared?.context);
-      const { summary } = booking;
-      if (summary.tripId !== target.tripId || summary.cooperativeId !== target.cooperativeId) {
-        throw new BookingValidationError();
-      }
-      const seats = listSeatAvailability({
-        query: summary,
-        seatIds: summary.passengers.map((passenger) => passenger.seatId),
-        allocations: await readAllocations(client, target),
-      });
-      if (seats.some((seat) => seat.status !== 'AVAILABLE')) throw new BookingConflictError();
-      await insertBooking(client, booking);
+      const result = await execute(client);
       await client.query('COMMIT');
-      return booking;
+      return result;
     } catch (error) {
-      await client.query('ROLLBACK');
+      try {
+        await client.query('ROLLBACK');
+      } catch (rollbackError) {
+        connectionFailure = rollbackError;
+      }
       if (error.code === '23505') throw new BookingConflictError('BOOKING_ALREADY_EXISTS');
       throw error;
     } finally {
-      client.release();
+      client.release(connectionFailure);
     }
+  }
+
+  async reserve(scope, prepare) {
+    const target = tripScope(scope);
+    if (typeof prepare !== 'function') throw new BookingValidationError();
+    return this.transaction((client) => reserveTrip(client, target, prepare));
+  }
+
+  async reserveOnce(input, locate, prepare) {
+    const operation = createBookingOperation(input);
+    if (typeof locate !== 'function' || typeof prepare !== 'function')
+      throw new BookingValidationError();
+    return this.transaction(async (client) => {
+      await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', [
+        JSON.stringify([operation.ownerId, operation.requestKey]),
+      ]);
+      const { rows } = await client.query(
+        'SELECT * FROM bookings WHERE owner_id = $1 AND creation_request_key = $2',
+        [operation.ownerId, operation.requestKey],
+      );
+      if (rows.length) {
+        if (rows[0].creation_request_fingerprint !== operation.requestFingerprint) {
+          throw new BookingConflictError('BOOKING_REQUEST_KEY_REUSED');
+        }
+        return privateBooking(rows[0]);
+      }
+      const scope = tripScope(await locate());
+      return reserveTrip(client, scope, prepare, operation);
+    });
   }
 
   async listEffectiveByTrip(scope) {
@@ -139,16 +194,7 @@ class PgBookingRepository {
       'SELECT * FROM bookings WHERE id = $1 AND cooperative_id = $2 AND owner_id = $3',
       [target.bookingId, target.cooperativeId, target.ownerId],
     );
-    if (!rows.length) return null;
-    const row = rows[0];
-    return freezeTree({
-      bookingId: row.id,
-      ownerId: row.owner_id,
-      status: row.status,
-      summary: row.summary,
-      createdAt: row.created_at.toISOString(),
-      expiresAt: row.expires_at.toISOString(),
-    });
+    return rows.length ? privateBooking(rows[0]) : null;
   }
 }
 module.exports = PgBookingRepository;

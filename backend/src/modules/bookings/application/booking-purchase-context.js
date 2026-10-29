@@ -13,7 +13,7 @@ const PASSENGER_FIELDS = ['seatId', 'identificationNumber', 'fullName', 'birthDa
 
 function copyPurchaseInput(input, acceptance = false) {
   const fields = acceptance
-    ? [...INPUT_FIELDS, 'summaryAccepted', 'acceptedSummaryRevision']
+    ? [...INPUT_FIELDS, 'summaryAccepted', 'acceptedSummaryRevision', 'requestKey']
     : INPUT_FIELDS;
   if (
     !input ||

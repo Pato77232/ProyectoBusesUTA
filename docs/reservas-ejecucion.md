@@ -135,3 +135,13 @@ T2 verificada localmente, pendiente de revisión humana. T3/T4, catálogo y plan
 69 pruebas nuevas en T3 (32 resumen, 30 creación y siete integración). Suite completa: 693 unitarias + 130 de integración = 823 aprobadas; lint y formato de archivos nuevos aprobados. Formato global conserva 27 archivos preexistentes ajenos. PostgreSQL 16.13 aislado en busesuta-leslie-book03-t3, vacío antes de migrar; sin .env ni datos existentes. No cambia app.js ni server.js. Proveedores de pruebas explícitamente simulados; no se habilita compra pública.
 
 Leslie confirma entregas por funcionalidad: los commits se acumulan para un único PR de creación de reservas hacia develop. El contrato del PR #17 permanece conservado para la posterior implementación de pagos/expiración. T4, composición con catálogo/asientos/acreditación reales y recuperación de creación incierta siguen pendientes.
+
+## BOOK-03 T3 R — recuperación tras respuesta perdida
+
+29 de octubre de 2026. Se continúa en la carpeta y rama originales con una única entrega funcional. Spec BOOK-03-T3-R previa a código. requestKey opcional en el caso de uso privado, obligatorio para el futuro HTTP: se vincula al comprador verificado y al contenido aceptado. La transacción serializa el intento, recupera una reserva existente sin recalcular ni prolongar su plazo, o crea todos los asientos junto a sus metadatos. Una misma clave con otros datos da BOOKING_REQUEST_KEY_REUSED. La identidad se comprueba cada vez y la clave sola no permite lectura.
+
+Nueva migración de columnas/índice/validación, sin editar las anteriores. El guardado T2 se comparte entre reserve y reserveOnce. Se añade a la prueba previa de reversibilidad el recorrido por migración objetivo, manteniendo todas sus aserciones. Los fallos de COMMIT se devuelven como resultado desconocido: puede reintentarse con la misma clave; no se afirma que siempre hubo rollback.
+
+Pasaron 53 pruebas nuevas, 44 de integración de reservas y la suite completa de 876 pruebas (725 unitarias + 151 integración). Lint y formato de archivos afectados aprobados; formato global mantiene 27 archivos preexistentes ajenos. Base PostgreSQL exclusiva busesuta-leslie-book03-reintentos, vacía antes de migrar y retirada tras verificar. Sin .env, datos existentes, cambios de dependencias ni composición. origin/develop actualizado solo como referencia en f26415d; no se ejecutó merge ni se publicó un PR por este commit.
+
+La migración inversa conserva reservas pero elimina las claves; su reaplicación no restaura metadatos perdidos. API, pantalla y composición real siguen pendientes; no se presenta una compra pública operativa ni una aprobación humana.

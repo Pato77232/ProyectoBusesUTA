@@ -115,3 +115,12 @@ Solo tareas de Leslie. origin/develop consultado en e556e59, aún no incorporado
 
 | BOOK-03 T3 B | Creación transaccional implementada y verificada localmente | BOOK-03-T3.md; 30 unitarias nuevas y siete de PostgreSQL. Suite completa: 693 unitarias + 130 integración = 823 aprobadas. No hay endpoints ni proveedores reales compuestos; revisión humana pendiente. |
 | Entrega funcional de reservas | En preparación, sin PR nuevo | Leslie solicita un PR por funcionalidad hacia develop, con varios commits, specs y pruebas. Faltan T4, proveedores reales y recuperación segura de creación incierta; no se publica cada paso. |
+
+## Actualización parcial de reservas — recuperación de creación, 29 de octubre de 2026
+
+Solo tareas de Leslie. Misma rama local feature/BOOK-03-resumen-creacion-dominio. origin/develop consultado en f26415d, todavía no incorporado.
+
+| Spec / área | Estado comprobado | Evidencia y siguiente paso |
+| --- | --- | --- |
+| BOOK-03 T3 R | Recuperación idempotente implementada localmente; revisión humana pendiente | BOOK-03-T3-R.md; 53 pruebas nuevas. npm test completo: 725 unitarias y 151 de integración, 876 aprobadas. Misma clave/dueño/datos recupera ID, total y plazo; otros datos dan conflicto. |
+| Entrega funcional BOOK-03 | En preparación, sin PR nuevo | Continúan pendientes T4, proveedores reales y actualización con develop. Se conserva un único PR futuro de funcionalidad hacia develop, con especificaciones, código, pruebas y varios commits. |
