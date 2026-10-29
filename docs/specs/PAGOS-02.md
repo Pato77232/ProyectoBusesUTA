@@ -114,3 +114,12 @@ El backend no incluye una interfaz en esta tarea. Los errores permiten a una fut
 - **Coordina con BOOK-07:** Leslie conserva su spec y decide junto con Shirley la firma/semántica de `confirmSale`, idempotencia, aceptación/rechazo y recuperación transaccional. La propuesta técnica de pagos queda documentada solo aquí hasta acordarla.
 - **Siguiente tarea:** PAGOS-03 define rechazo con justificación y `releaseBooking`; debe preservar la exclusión mutua con una aprobación ya confirmada.
 - **Dependiente:** BOLETOS-01 emite QR tras confirmar la venta, en una spec separada.
+
+## 13. Evidencia de implementación local
+
+- Implementados en la rama dependiente de PAGOS-01: bandeja paginada, lectura privada, aprobación por puerto, adaptador simulado y migración aditiva de metadatos de aprobación.
+- `npm run lint`: aprobado.
+- Unitarias: 43 suites y 584 pruebas aprobadas al excluir `payment-proof.routes.test.js`, cuyo servidor HTTP no pudo enlazarse por `EACCES` en `127.0.0.1:55554` dentro del entorno actual.
+- Integración PostgreSQL: pendiente; Docker no pudo acceder a `dockerDesktopLinuxEngine` (`Access is denied`).
+- Formato de los archivos de PAGOS-02: verificación Prettier aprobada.
+- No se considera cerrada ni integrada; la firma productiva de `confirmSale` y su validación con Leslie/BOOK-07 siguen pendientes.
