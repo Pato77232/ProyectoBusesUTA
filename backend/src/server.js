@@ -5,6 +5,7 @@ const { createAuthModule } = require('./modules/auth');
 const { createTenantsModule } = require('./modules/tenants');
 const { createFleetModule } = require('./modules/fleet');
 const { createPaymentsModule } = require('./modules/payments');
+const { createBookingsModule } = require('./modules/bookings');
 async function start(env = process.env) {
   const port = env.PORT === undefined ? 3000 : Number(env.PORT);
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('PORT inválido.');
@@ -16,11 +17,13 @@ async function start(env = process.env) {
     const tenants = createTenantsModule({ pool, auth });
     const fleet = createFleetModule({ pool, auth });
     const payments = createPaymentsModule({ pool, auth, env });
+    const bookings = createBookingsModule({ pool, auth, env });
     const app = createApp({
       auth,
       tenants,
       fleet,
       payments,
+      bookings,
       pool,
       trustProxy: env.TRUST_PROXY === 'loopback',
     });

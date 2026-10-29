@@ -145,3 +145,15 @@ Nueva migración de columnas/índice/validación, sin editar las anteriores. El 
 Pasaron 53 pruebas nuevas, 44 de integración de reservas y la suite completa de 876 pruebas (725 unitarias + 151 integración). Lint y formato de archivos afectados aprobados; formato global mantiene 27 archivos preexistentes ajenos. Base PostgreSQL exclusiva busesuta-leslie-book03-reintentos, vacía antes de migrar y retirada tras verificar. Sin .env, datos existentes, cambios de dependencias ni composición. origin/develop actualizado solo como referencia en f26415d; no se ejecutó merge ni se publicó un PR por este commit.
 
 La migración inversa conserva reservas pero elimina las claves; su reaplicación no restaura metadatos perdidos. API, pantalla y composición real siguen pendientes; no se presenta una compra pública operativa ni una aprobación humana.
+
+## BOOK-03 T4 A — transporte HTTP y composición
+
+29 de octubre de 2026. Se actualizó solo la rama feature/BOOK-03-resumen-creacion-dominio desde origin/develop f26415d; commit local 8df558a. Único conflicto en prueba de reversibilidad de flota: se conservó la versión revisada de develop con recorrido por nombre, aserciones y restauración. No se fusionó la entrega de Leslie hacia develop ni se reabrió PR #17.
+
+Con spec BOOK-03-T4 previa, se añadieron index.js de reservas, adaptadores de identidad/configuración/fecha y router HTTP. app.js/server.js montan las rutas preservando pagos. POST de resumen/creación requieren sesión CUSTOMER y CSRF; creación exige Idempotency-Key válido. Proyección de disponibilidad sin personas; errores y respuestas privadas sin caché, incluidos errores del parser JSON. Configuración única BOOKING_PROOF_WINDOW_SECONDS (180 a 300, inicial 300).
+
+Sin catálogo o verificador reales, las nuevas compras reciben 503; no se añade inventario de prueba al servidor. Recuperar una reserva ya guardada no consulta proveedores faltantes ni cambia su plazo. El contrato de transporte está en reservas-api.md. La prueba de arranque real confirma health y el montaje protegido, no una compra de producción ni la disponibilidad real de viajes.
+
+Pasaron 27 unitarias nuevas y 25 HTTP con PostgreSQL/JWT/sesiones/CSRF reales. Suite completa sobre base actualizada: 766 unitarias + 185 integración = 951 aprobadas, 65 suites. Lint y formato de archivos propios aprobados; formato global conserva 24 archivos preexistentes ajenos. Sin migraciones/dependencias nuevas ni pruebas previas debilitadas.
+
+Se usó solo la base temporal nueva busesuta-leslie-book03-http, cero tablas antes de migrar; se retiró su contenedor/red al terminar y se cerraron servidores/pools. No se leyó .env ni se usaron bases de otros proyectos. T4 B y proveedores reales pendientes; un único PR funcional futuro, sin publicación por este paso.

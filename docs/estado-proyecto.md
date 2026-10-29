@@ -126,3 +126,13 @@ Solo tareas de Leslie. Misma rama local feature/BOOK-03-resumen-creacion-dominio
 | --- | --- | --- |
 | BOOK-03 T3 R | Recuperación idempotente implementada localmente; revisión humana pendiente | BOOK-03-T3-R.md; 53 pruebas nuevas. npm test completo: 725 unitarias y 151 de integración, 876 aprobadas. Misma clave/dueño/datos recupera ID, total y plazo; otros datos dan conflicto. |
 | Entrega funcional BOOK-03 | En preparación, sin PR nuevo | Continúan pendientes T4, proveedores reales y actualización con develop. Se conserva un único PR futuro de funcionalidad hacia develop, con especificaciones, código, pruebas y varios commits. |
+
+## Actualización parcial de reservas — API protegida, 29 de octubre de 2026
+
+Solo tareas de Leslie. Misma rama local feature/BOOK-03-resumen-creacion-dominio, actualizada desde develop f26415d mediante 8df558a; sin integrar la entrega hacia develop.
+
+| Spec / área | Estado comprobado | Evidencia y siguiente paso |
+| --- | --- | --- |
+| BOOK-03 T4 A | API montada y verificada localmente; revisión humana pendiente | BOOK-03-T4.md y reservas-api.md; 27 unitarias nuevas y 25 HTTP. Suite conjunta: 766 unitarias + 185 integración = 951 aprobadas; arranque real comprobado. |
+| Catálogo/acreditación | Aún no compuestos con proveedores reales | Rutas nuevas responden 503 sin datos simulados; reintentos de reservas existentes conservan recuperación con sesión válida. No se afirma compra operativa. |
+| Entrega funcional BOOK-03 | En preparación, sin PR nuevo | Falta T4 B (pantalla), proveedores reales y revisión humana. Mantener un solo PR funcional hacia develop con todos sus commits/specs/pruebas. |

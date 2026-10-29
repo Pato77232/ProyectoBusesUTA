@@ -2,7 +2,7 @@
 
 - **Responsable:** Leslie
 - **Revisor propuesto por Leslie:** PabloToapanta
-- **Estado:** T1/T2 y los casos de uso de T3 implementados localmente; revisión humana pendiente. T4 y proveedores reales sin conectar; no habilitar escritura pública sin ellos.
+- **Estado:** T1/T2/T3 y T4 A (API protegida) implementados localmente; revisión humana pendiente. Pantalla y proveedores reales sin conectar; el servidor responde 503 a compras nuevas mientras falten.
 - **Módulo:** bookings
 - **Dependencias:** BOOK-01/02/04/05, viajes, plantilla e identidad del comprador.
 
@@ -61,3 +61,9 @@ Leslie autorizó elegir el contrato de viajes/asientos conforme a la delegación
 [BOOK-03-T3-R](BOOK-03-T3-R.md) implementa recuperación idempotente con requestKey por comprador verificado y huella del contenido aceptado. La misma solicitud recupera la reserva y sus fechas persistidas, incluso si se perdió la respuesta tras COMMIT o el catálogo ya no responde. Reutilizar la clave con otros datos da conflicto. Reserva, ocupaciones y clave se guardan atómicamente; una operación revertida no consume el intento.
 
 La limitación de reintentos de T3 es histórica y queda resuelta para la ruta con requestKey. La ruta privada antigua sin clave mantiene su contrato, por compatibilidad; T4 deberá exigir clave para toda creación pública. API, pantalla, proveedores reales y actualización con develop siguen pendientes; este paso se conserva en el mismo PR funcional futuro.
+
+## Actualización T4 A — 29 de octubre de 2026
+
+[BOOK-03-T4](BOOK-03-T4.md): API protegida de disponibilidad, resumen y creación montada en app.js/server.js. Auth y CSRF reales, claves de reintento obligatorias por HTTP, plazo configurable y sin caché. [Contrato para frontend](../reservas-api.md). El catálogo y la acreditación faltantes producen 503 sin escrituras ficticias; las pruebas inyectan fixtures identificadas.
+
+Base actualizada con develop f26415d en 8df558a; se conserva la prueba revisada de flota y el montaje de pagos. Validación conjunta: 951 pruebas aprobadas, incluido arranque real. Pantalla T4 B, proveedores reales y revisión humana pendientes; todavía no es compra de producción completa ni se publica un PR por tarea.
