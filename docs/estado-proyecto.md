@@ -151,3 +151,11 @@ Solo tareas de Leslie. Misma rama local feature/BOOK-03-resumen-creacion-dominio
 | BOOK-03 T4 B, lectura de resultado | Implementada en 7a57e1c | Suite backend completa: 773 unitarias + 188 integración = 961 aprobadas. Consulta solo propio comprador, sin reactivar ni prorrogar. |
 | Integración de compra real | Pendiente | Catálogo de viajes/plantillas, acreditación/revisión asistida y entrada desde búsqueda/login. Sin proveedores el servidor da 503; no hay datos simulados de producción. |
 | Revisión de entrega | Pendiente | Un solo PR futuro de funcionalidad hacia develop, con specs/código/pruebas y commits por tarea. QA con datos ficticios no equivale a aprobación humana ni compra de producción. |
+
+## Actualización parcial de reservas — acceso de cliente, 29 de octubre de 2026
+
+| Spec / área de Leslie | Estado comprobado | Evidencia y siguiente paso |
+| --- | --- | --- |
+| BOOK-03 T4 C | Acceso real integrado en pantalla; revisión humana pendiente | 54 pruebas frontend, lint/formato, Chrome con argon2/JWT/cookies/CSRF/PostgreSQL reales y contenedor aprobado. No se modificaron módulos internos de auth. |
+| Recuperación de sesión | Implementada localmente | Sesión revocada retira datos privados, conserva clave y nuevo acceso recupera mismo ID/plazo por GET, sin otro POST. |
+| Activación de compra real | Pendiente | origin/develop sigue en f26415d al consultar; no hay catálogo/plantilla real disponible en ramas revisadas. Faltan esos proveedores, acreditación/revisión asistida y entrada desde búsqueda. |

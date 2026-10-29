@@ -167,3 +167,13 @@ Pasaron 45 pruebas frontend, lint, formato y Chrome headless Windows con backend
 Capturas de escritorio/móvil y ampliación CSS 200% revisadas; contraste de muestras y teclado/foco verificados. Zoom nativo, lector de pantalla y dispositivos físicos pendientes. La portada anterior pasó su smoke sin cambiar comprobaciones. Imagen real empaqueta página/API/módulos con MIME correcto y excluye docs/tests; usuario nginx, 404 reales y retirada del contenedor/red de QA confirmados. Se corrigieron incidencias de la simulación de pérdida de respuesta, clasificación de URLs no HTTP y montaje del botón, repitiendo las verificaciones finales.
 
 Base temporal busesuta-leslie-book03-pantalla retirada (Docker demoró el cierre y luego lo confirmó); sin .env, datos existentes o dependencias nuevas. Persisten 24 avisos preexistentes de formato backend. Pendientes proveedores reales/entrada desde búsqueda y login/revisión humana. Un solo PR funcional futuro, sin publicar este paso.
+
+## BOOK-03 T4 C — cliente autenticado desde la pantalla
+
+29 de octubre de 2026. Se consultaron develop f26415d y ramas de flota/hojas de ruta/auth/frontend, sin proveedores nuevos de viajes/plantillas ni pantalla de acceso equivalente. Se implementó dentro de reservas consumo de login/me públicos, sin modificar el backend de Pablo ni el cliente HTTP compartido. Spec T4 C previa a código.
+
+54 pruebas frontend aprobadas, lint y formato correctos, Chrome real con acceso desde formulario/argon2/CSRF/cookie/me, y empaquetado de access.js en imagen nginx. Una contraseña incorrecta no crea sesión; un nuevo acceso recupera una reserva existente después de revocar la sesión, retirando los datos privados durante el cierre y sin enviar otra compra. Se conservan aserciones anteriores del recorrido y solo se reemplaza el fixture de cookie directa por login real.
+
+Capturas de acceso a 1280/360 revisadas. Navegador mantiene contraste/reflujo/teclado y ampliación CSS del recorrido; zoom nativo/lector/dispositivos pendientes. Backend sin cambios, su evidencia previa sigue en 961 pruebas y no se afirma ejecución nueva. Base aislada busesuta-leslie-book03-acceso y recursos de contenedor/red retirados, sin .env ni datos existentes ni nuevas dependencias.
+
+Acceso de cuentas existentes resuelto dentro de la pantalla; proveedores reales de viaje/asientos/acreditación, entrada desde búsqueda y revisión humana siguen pendientes. Un único PR funcional futuro hacia develop, sin publicar este commit por separado.

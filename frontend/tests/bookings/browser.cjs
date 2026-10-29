@@ -7,7 +7,10 @@ const os = require("node:os");
 const { randomUUID } = require("node:crypto");
 const { setTimeout: delay } = require("node:timers/promises");
 const express = require("../../../backend/node_modules/express");
-const jwt = require("../../../backend/node_modules/jsonwebtoken");
+const {
+  createHasher,
+} = require("../../../backend/src/modules/auth/infrastructure/password-hasher");
+const qaPassword = "contraseña-ficticia-de-qa-2026";
 const { openBrowser } = require("../helpers/browser.cjs");
 const createApp = require("../../../backend/src/app");
 const { createAuthModule } = require("../../../backend/src/modules/auth");
@@ -85,6 +88,13 @@ async function fill(values) {
     }
   })()`);
 }
+async function fillLogin(password) {
+  await browser.evaluate(`(() => {
+    document.getElementById('login-email').value = 'qa-reservas-ficticio@example.ec';
+    document.getElementById('login-password').value = ${JSON.stringify(password)};
+  })()`);
+}
+
 async function screenshot(name) {
   await browser.evaluate("document.fonts.ready");
   const layout = await browser.send("Page.getLayoutMetrics");
@@ -167,23 +177,15 @@ async function main() {
   await pool.query(
     "TRUNCATE auth_sessions, users, booking_seat_allocations, bookings, booking_trip_locks",
   );
+  const hasher = await createHasher();
+  const passwordHash = await hasher.hash(qaPassword);
   const userId = randomUUID();
-  const sid = randomUUID();
   await pool.query(
     `INSERT INTO users(id,email,password_hash,role)
-    VALUES($1,'qa-reservas-ficticio@example.ec','hash-fixture-no-usado','CUSTOMER')`,
-    [userId],
+    VALUES($1,'qa-reservas-ficticio@example.ec',$2,'CUSTOMER')`,
+    [userId, passwordHash],
   );
-  await pool.query(
-    `INSERT INTO auth_sessions(id,user_id,expires_at)
-    VALUES($1,$2,CURRENT_TIMESTAMP+interval '1 hour')`,
-    [sid, userId],
-  );
-  const token = jwt.sign(
-    { sub: userId, sid, role: "CUSTOMER", cooperative_id: null },
-    env.JWT_SECRET,
-    { algorithm: "HS256", expiresIn: "30m" },
-  );
+
   const fixture = summaryContext();
   const trip = fixture.trip;
   trip.departureDate = new Date(Date.now() + 86400000)
@@ -273,13 +275,51 @@ async function main() {
     0,
   );
   checks.push("401 sin compra ni asientos inventados");
-  await browser.send("Network.setCookie", {
-    name: "access_token",
-    value: token,
-    url: origin,
-    httpOnly: true,
-    sameSite: "Lax",
-  });
+  assert.equal(
+    await browser.evaluate("document.getElementById('booking-login').open"),
+    true,
+  );
+  await screenshot("reservas-acceso-escritorio");
+  await contrast();
+  await viewport(360);
+  await screenshot("reservas-acceso-movil");
+  await viewport(1280);
+  await fillLogin("contraseña-incorrecta-de-qa");
+  await activate("#login-submit");
+  await until(
+    "document.getElementById('booking-notice').textContent.includes('correo o la contraseña')",
+    "credenciales incorrectas",
+  );
+  assert.equal(
+    await browser.evaluate("document.getElementById('login-password').value"),
+    "",
+  );
+  assert.equal(
+    (await pool.query("SELECT * FROM auth_sessions")).rows.length,
+    0,
+  );
+  await fillLogin(qaPassword);
+  await activate("#login-submit");
+  await until(
+    "document.querySelectorAll('.booking-seat').length === 3 && !document.getElementById('booking-login').open",
+    "acceso real de cliente",
+  );
+  assert.equal(
+    await browser.evaluate("document.getElementById('login-password').value"),
+    "",
+  );
+  assert.equal(
+    (await pool.query("SELECT * FROM auth_sessions")).rows.length,
+    1,
+  );
+  assert.doesNotMatch(
+    await browser.evaluate("JSON.stringify(Object.entries(sessionStorage))"),
+    /contraseña|csrf|access_token/,
+  );
+  checks.push(
+    "Login real con argon2/CSRF/cookie/me, contraseña incorrecta sin sesión y sin persistir credenciales",
+  );
+
   await navigate(pageUrl);
   await until(
     "document.querySelectorAll('.booking-seat').length === 3",
@@ -438,6 +478,56 @@ async function main() {
   await screenshot("reservas-recuperada");
   checks.push(
     "COMMIT real, respuesta perdida, doble envío bloqueado y recuperación tras recarga sin PII almacenada",
+  );
+
+  await pool.query(
+    "UPDATE auth_sessions SET revoked_at=CURRENT_TIMESTAMP WHERE user_id=$1",
+    [userId],
+  );
+  await activate("#refresh-booking");
+  await until(
+    "document.getElementById('booking-login').open && document.getElementById('receipt-panel').hidden",
+    "sesión revocada y privacidad",
+  );
+  assert.equal(
+    await browser.evaluate(
+      "document.getElementById('receipt-content').textContent",
+    ),
+    "",
+  );
+  assert.equal(
+    await browser.evaluate(
+      "document.getElementById('passenger-fields').textContent",
+    ),
+    "",
+  );
+  assert.equal(
+    await browser.evaluate(
+      "sessionStorage.getItem(" + JSON.stringify(storageKey) + ")",
+    ),
+    reference,
+  );
+  await fillLogin(qaPassword);
+  await activate("#login-submit");
+  await until(
+    "!document.getElementById('receipt-panel').hidden && !document.getElementById('booking-login').open",
+    "recuperación después de nuevo login",
+  );
+  assert.equal(createCalls, callsBefore);
+  assert.equal(
+    await browser.evaluate(
+      "document.getElementById('booking-reference').textContent",
+    ),
+    rows[0].id,
+  );
+  assert.equal(
+    await browser.evaluate(
+      "document.getElementById('booking-expiry').dateTime",
+    ),
+    rows[0].expires_at.toISOString(),
+  );
+  checks.push(
+    "Sesión revocada retira datos privados; nuevo acceso recupera misma reserva por GET sin otro POST",
   );
 
   await browser.evaluate(

@@ -76,6 +76,7 @@
       >
         Volver a consultar
       </button>
+
       <noscript
         ><p class="booking-notice">
           Activa JavaScript para consultar y confirmar una reserva.
@@ -83,6 +84,38 @@
       >
       <div class="booking-layout">
         <div class="booking-workflow">
+          <details id="booking-login" class="booking-panel booking-login">
+            <summary id="login-summary">Iniciar sesión</summary>
+            <form id="login-form" method="post" action="/api/v1/auth/login">
+              <h2>Continúa con tu cuenta</h2>
+              <p id="login-status">
+                Accede con una cuenta existente de cliente.
+              </p>
+              <div class="booking-field">
+                <label for="login-email">Correo electrónico</label>
+                <input
+                  id="login-email"
+                  name="email"
+                  type="email"
+                  required
+                  autocomplete="username"
+                />
+              </div>
+              <div class="booking-field">
+                <label for="login-password">Contraseña</label>
+                <input
+                  id="login-password"
+                  name="password"
+                  type="password"
+                  required
+                  autocomplete="current-password"
+                />
+              </div>
+              <button id="login-submit" class="booking-button" type="submit">
+                Iniciar sesión y continuar
+              </button>
+            </form>
+          </details>
           <section
             id="seat-panel"
             class="booking-panel"

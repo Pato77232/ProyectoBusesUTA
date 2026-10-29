@@ -62,6 +62,7 @@ async function main() {
       ["/pages/reservas.html", /^text\/html/],
       ["/src/bookings/page.js", /^(application|text)\/javascript/],
       ["/src/bookings/api.js", /^(application|text)\/javascript/],
+      ["/src/bookings/access.js", /^(application|text)\/javascript/],
       ["/src/bookings/flow.js", /^(application|text)\/javascript/],
       ["/src/api/json-transport.js", /^(application|text)\/javascript/],
       ["/src/api/api-error.js", /^(application|text)\/javascript/],

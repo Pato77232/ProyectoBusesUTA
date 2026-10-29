@@ -14,6 +14,16 @@ export function createBookingsApi(fetchImpl) {
     return result.csrfToken;
   }
   return {
+    async signIn(credentials) {
+      return send("/api/v1/auth/login", {
+        method: "POST",
+        data: credentials,
+        csrfToken: await csrf(),
+      });
+    },
+    session() {
+      return send("/api/v1/auth/me");
+    },
     availability(context) {
       const query = new URLSearchParams(context);
       return send("/api/v1/bookings/availability?" + query);

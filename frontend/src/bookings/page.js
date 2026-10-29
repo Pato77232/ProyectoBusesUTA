@@ -1,9 +1,13 @@
+import { createBookingAccess } from "./access.js";
 import { createBookingsApi, readTripContext } from "./api.js";
 import { createAttemptStore, createBookingFlow } from "./flow.js";
 import { ApiError } from "../api/api-error.js";
 
 const element = (id) => document.getElementById(id);
 const api = createBookingsApi(window.fetch.bind(window));
+const access = createBookingAccess({ api });
+let loginRequired = false;
+let hasCustomerSession = false;
 const context = readTripContext(window.location.search);
 const selected = new Set();
 const drafts = new Map();
@@ -40,10 +44,58 @@ function notice(text, tone = "info", focus = false) {
   target.dataset.tone = tone;
   if (focus) target.focus();
 }
+function forgetPrivateView() {
+  if (!flow) return;
+  flow.forgetPrivateData();
+  seats = [];
+  selected.clear();
+  drafts.clear();
+  for (const id of [
+    "seat-list",
+    "passenger-fields",
+    "summary-content",
+    "receipt-content",
+  ]) {
+    element(id).replaceChildren();
+  }
+  for (const id of [
+    "booking-reference",
+    "booking-status",
+    "booking-expiry",
+    "booking-countdown",
+  ]) {
+    element(id).textContent = "";
+  }
+  element("accept-summary").checked = false;
+  element("login-password").value = "";
+  if (countdown) {
+    window.clearInterval(countdown);
+    countdown = undefined;
+  }
+}
+function handleSessionFailure(error) {
+  if (!flow || !["UNAUTHENTICATED", "FORBIDDEN"].includes(error.code)) return;
+  loginRequired = true;
+  hasCustomerSession = false;
+  forgetPrivateView();
+  element("booking-login").open = true;
+}
+async function resumeAfterAccess() {
+  if (flow.state.reference) {
+    notice("Consultando primero el intento pendiente de esta sesión…");
+    await run(() => flow.recover());
+  } else if (context) await loadSeats();
+  else notice("Sesión iniciada. Elige un viaje para comenzar una reserva.");
+}
+
 function message(error) {
   if (error.code === "UNAUTHENTICATED") {
-    return "Necesitas una sesión de cliente para continuar. El acceso de clientes aún está en preparación.";
+    return "Necesitas una sesión de cliente para continuar. Inicia sesión aquí; conservaremos la referencia de tu intento.";
   }
+  if (error.code === "INVALID_CREDENTIALS")
+    return "El correo o la contraseña no son correctos.";
+  if (error.code === "VALIDATION_ERROR")
+    return "Revisa el correo y la contraseña introducidos.";
   if (error.code === "BOOKING_ATTEMPT_NOT_FOUND") {
     return "Todavía no encontramos un resultado para esta sesión. Conservamos la referencia: vuelve a consultar antes de iniciar otra compra.";
   }
@@ -197,11 +249,21 @@ function tick() {
 function sync() {
   if (!flow) return;
   const state = flow.state;
-  const busy = state.busy || loadingSeats;
-  const locked = state.locked || loadingSeats;
+  const busy = state.busy || loadingSeats || access.state.busy;
+  const locked =
+    state.locked || loadingSeats || access.state.busy || loginRequired;
   document
     .querySelector(".booking-workflow")
     .setAttribute("aria-busy", String(busy));
+  for (const input of element("login-form").querySelectorAll("input, button"))
+    input.disabled = busy;
+  element("login-form").setAttribute("aria-busy", String(access.state.busy));
+  element("login-summary").textContent = hasCustomerSession
+    ? "Cambiar cuenta"
+    : "Iniciar sesión";
+  element("login-status").textContent = hasCustomerSession
+    ? "Sesión de cliente activa."
+    : "Accede con una cuenta existente de cliente.";
   for (const button of element("seat-list").querySelectorAll("button")) {
     button.disabled = locked || button.dataset.status !== "AVAILABLE";
   }
@@ -286,6 +348,9 @@ async function loadSeats() {
         "No se pudo leer la disponibilidad del viaje.",
       );
     }
+    loginRequired = false;
+    hasCustomerSession = true;
+    element("booking-login").open = false;
     seats = result.seats;
     for (const seatId of selected) {
       if (
@@ -304,7 +369,9 @@ async function loadSeats() {
         : "No hay asientos libres para este tramo. Puedes actualizar la consulta.",
     );
   } catch (error) {
+    handleSessionFailure(error);
     notice(message(error), "error", true);
+    sync();
   } finally {
     loadingSeats = false;
     sync();
@@ -317,6 +384,10 @@ async function run(action, onSuccess) {
     await pending;
     sync();
     if (flow.state.booking) {
+      loginRequired = false;
+      hasCustomerSession = true;
+      element("booking-login").open = false;
+      sync();
       notice(
         "Tu reserva está registrada. Conserva su referencia y revisa el plazo indicado.",
         "success",
@@ -326,7 +397,9 @@ async function run(action, onSuccess) {
   } catch (error) {
     if (!flow.state.review) element("accept-summary").checked = false;
     sync();
+    handleSessionFailure(error);
     notice(message(error), "error", true);
+    sync();
   }
 }
 element("seat-list").addEventListener("click", (event) => {
@@ -399,7 +472,47 @@ element("finish-booking").addEventListener("click", (event) => {
     flow.finish();
   } catch (error) {
     event.preventDefault();
+    handleSessionFailure(error);
     notice(message(error), "error", true);
+    sync();
+  }
+});
+
+element("login-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (
+    !flow ||
+    access.state.busy ||
+    flow.state.busy ||
+    loadingSeats ||
+    !event.target.reportValidity()
+  )
+    return;
+  const credentials = {
+    email: element("login-email").value,
+    password: element("login-password").value,
+  };
+  element("login-password").value = "";
+  forgetPrivateView();
+  loginRequired = true;
+  hasCustomerSession = false;
+  notice("Verificando tu acceso de cliente…");
+  try {
+    const pending = access.signIn(credentials);
+    sync();
+    await pending;
+    loginRequired = false;
+    hasCustomerSession = true;
+    element("booking-login").open = false;
+    sync();
+    await resumeAfterAccess();
+  } catch (error) {
+    handleSessionFailure(error);
+    element("booking-login").open = true;
+    notice(message(error), "error", true);
+  } finally {
+    element("login-password").value = "";
+    sync();
   }
 });
 
@@ -420,7 +533,9 @@ async function boot() {
         "Elige primero un viaje para reservar. La búsqueda de viajes aún está en preparación; puedes volver al inicio.",
       );
   } catch (error) {
+    handleSessionFailure(error);
     notice(message(error), "error", true);
+    sync();
   }
 }
 boot();

@@ -36,3 +36,11 @@ Desde frontend con Node 24 y las dependencias ya instaladas del backend:
 La prueba de navegador usa catálogo/acreditación explícitamente ficticios solo en su servidor QA, sin modificar server.js. Pierde el 201 después de COMMIT mediante un proxy de prueba que responde 502, verifica una sola fila y recupera por GET al recargar.
 
 Evidencia: BOOK-03-T4-B.md. Verificado en Chrome headless Windows a 360/1280 px, teclado para selección y acciones, foco, contraste de muestras >=4.5:1 y ampliación CSS al 200%. Zoom nativo, lector de pantalla, dispositivos reales y revisión humana siguen pendientes; no se certifica conformidad de accesibilidad.
+
+## Acceso integrado — continuación T4 C
+
+El panel Iniciar sesión de la pantalla utiliza POST /api/v1/auth/login (200 vacío) y GET /api/v1/auth/me. Funciona con cuentas existentes; no se añadió registro ni recuperación de contraseña. Backend conserva validación/roles/CSRF/límites. La contraseña se limpia del campo y no se guarda en almacenamiento ni estado del controlador. Tras el login, la próxima operación POST obtiene CSRF ligado a la nueva sesión.
+
+Si hay un intento pendiente, entrar de nuevo consulta primero su resultado por GET. Ante 401/FORBIDDEN se retiran de la vista y memoria los datos privados y el cuerpo de reintento, conservando solo la referencia. Cambiar de cuenta no permite acceder a una compra ajena ni reenviar automáticamente el cuerpo anterior. No se necesitan tokens o cookies escritos manualmente.
+
+La prueba de navegador ahora entra por el formulario real con contraseña ficticia verificada por argon2, sin inyección de cookie. También revoca una sesión y verifica que un nuevo acceso recupera la misma reserva sin otro POST. Detalle: BOOK-03-T4-C.md. El catálogo de viajes/plantillas/acreditación y entrada desde búsqueda siguen pendientes.

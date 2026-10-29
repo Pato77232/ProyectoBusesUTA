@@ -2,7 +2,7 @@
 
 - **Responsable:** Leslie
 - **Revisor propuesto por Leslie:** PabloToapanta
-- **Estado:** T1/T2/T3 y T4 A/B (API y pantalla) implementados localmente y probados; revisión humana pendiente. Faltan proveedores reales y entrada desde búsqueda/login; el servidor responde 503 a compras nuevas mientras falten.
+- **Estado:** T1/T2/T3 y T4 A/B (API y pantalla) implementados localmente y probados; revisión humana pendiente. Faltan proveedores reales y entrada desde búsqueda; el servidor responde 503 a compras nuevas mientras falten.
 - **Módulo:** bookings
 - **Dependencias:** BOOK-01/02/04/05, viajes, plantilla e identidad del comprador.
 
@@ -71,3 +71,7 @@ Base actualizada con develop f26415d en 8df558a; se conserva la prueba revisada 
 ## Actualización T4 B — pantalla y recuperación, 29 de octubre de 2026
 
 [BOOK-03-T4-B](BOOK-03-T4-B.md) añade la consulta propia de resultado y la pantalla de reserva con recursos/diseño de transViaje. [Guía](../reservas-pantalla.md). Backend: 961 pruebas aprobadas; frontend: 45, además de navegador con backend real y contenedor. Pantalla a 360/1280, foco/teclado y contenido 200% CSS comprobados; zoom nativo/lector de pantalla pendientes. No se considera activada compra real: faltan catálogo/plantillas/acreditación y entrada desde búsqueda/login. Un único PR funcional futuro tras cerrar esas dependencias y revisión humana.
+
+## Actualización T4 C — acceso de cliente, 29 de octubre de 2026
+
+[BOOK-03-T4-C](BOOK-03-T4-C.md) conecta el acceso en la propia pantalla a la API existente de auth. Cuentas existentes, credenciales sin persistencia, me verifica rol y nuevo CSRF para POST. Al perder sesión se retiran datos privados y se conserva solo la referencia; entrar de nuevo recupera por GET antes de cualquier compra. Frontend: 54 pruebas aprobadas más Chrome/imagen real; sin cambios backend ni en reglas de otros módulos. Pendientes catálogo/plantillas/acreditación reales, entrada desde búsqueda y revisión humana de la entrega.

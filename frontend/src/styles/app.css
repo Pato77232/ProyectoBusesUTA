@@ -756,3 +756,14 @@ p {
 .booking-page .booking-retry {
   margin-bottom: 24px;
 }
+
+.booking-page .booking-login {
+  width: 100%;
+}
+.booking-page .booking-login > summary {
+  cursor: pointer;
+  font-weight: 650;
+}
+.booking-page .booking-login form {
+  margin-top: 24px;
+}

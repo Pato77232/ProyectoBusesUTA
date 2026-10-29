@@ -218,6 +218,13 @@ export function createBookingFlow({ api, attemptStore, newKey }) {
         busy = false;
       }
     },
+    forgetPrivateData() {
+      assertIdle();
+      review = null;
+      input = null;
+      request = null;
+      booking = null;
+    },
     finish() {
       if (!booking)
         throw new ApiError(

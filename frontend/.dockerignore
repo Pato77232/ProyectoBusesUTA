@@ -21,3 +21,4 @@
 !src/api/
 !src/api/json-transport.js
 !src/api/api-error.js
+!src/bookings/access.js

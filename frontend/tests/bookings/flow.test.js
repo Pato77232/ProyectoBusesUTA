@@ -333,3 +333,19 @@ test("solo finalizar una reserva confirmada retira la referencia de la pestaña"
   flow.finish();
   assert.equal(store.read(), null);
 });
+
+test("pérdida de sesión retira cuerpo y recibo privados pero conserva referencia para GET", async () => {
+  const { flow, store, api } = setup();
+  await flow.review(input());
+  await flow.confirm(true);
+  flow.forgetPrivateData();
+  assert.equal(flow.state.review, null);
+  assert.equal(flow.state.booking, null);
+  assert.equal(flow.state.canRetry, false);
+  assert.equal(store.read(), key);
+  await assert.rejects(flow.retry(), { code: "BOOKING_PENDING" });
+  assert.equal(api.create.mock.callCount(), 1);
+  await flow.recover();
+  assert.equal(flow.state.booking.bookingId, "reserva-sintetica");
+  assert.equal(api.create.mock.callCount(), 1);
+});
