@@ -73,11 +73,12 @@ Los contratos, validación, autenticación, autorización y CSRF son los definid
 ## 7. Criterios de aceptación
 
 - [ ] Dado el servidor configurado con una base de datos de pruebas, cuando se ejecuta `start`, entonces crea el módulo de frecuencias con el `pool` y `auth` inicializados.
-- [ ] Dado el arranque exitoso, cuando se consulta una ruta de frecuencias, entonces la aplicación real enruta la solicitud a `/api/v1/frequencies`.
-- [ ] Dada una mutación o consulta de frecuencias a través del servidor, cuando se procesa, entonces conserva autenticación, autorización y aislamiento ya especificados en FREQ-01.
-- [ ] Dada una falla al inicializar el módulo antes de abrir el servidor, cuando `start` rechaza, entonces el pool se cierra como está previsto en el flujo actual.
-- [ ] No se requieren cambios en módulos de negocio ajenos ni en migraciones.
-- [ ] Desde `backend/`, lint, formato y pruebas se ejecutan y sus resultados reales quedan registrados; la comprobación de arranque usa PostgreSQL aislado según `docs/testing-database.md`.
+- [x] Dado el servidor configurado con una base de datos de pruebas, cuando se ejecuta `start`, entonces crea el módulo de frecuencias con el `pool` y `auth` inicializados.
+- [x] Dado el arranque exitoso, cuando se consulta una ruta de frecuencias, entonces la aplicación real enruta la solicitud a `/api/v1/frequencies`.
+- [x] Dada una mutación o consulta de frecuencias a través del servidor, cuando se procesa, entonces conserva autenticación, autorización y aislamiento ya especificados en FREQ-01.
+- [x] Dada una falla al inicializar el módulo antes de abrir el servidor, cuando `start` rechaza, entonces el pool se cierra como está previsto en el flujo actual.
+- [x] No se requieren cambios en módulos de negocio ajenos ni en migraciones.
+- [x] Desde `backend/`, lint, formato y pruebas se ejecutan y sus resultados reales quedan registrados; la comprobación de arranque usa PostgreSQL aislado según `docs/testing-database.md`. El chequeo global de formato se ejecutó y su fallo en archivos ajenos está registrado.
 
 ## 8. Casos borde y errores
 
@@ -121,7 +122,7 @@ Cada commit debe contener un cambio lógico, compilar y conservar las pruebas. L
 
 **Evidencia inicial:** revisión local el 30 de octubre de 2026 sobre `f26415d`. `app.js` ya acepta `frequencies` y monta su router; `server.js` no instancia el módulo. FREQ-01 y sus migraciones/casos de uso existen en el árbol actual.
 
-**Resultados de la sección 1, 30 de octubre de 2026:** `npm run lint` aprobado. `npm test` aprobado: 42 suites/566 pruebas unitarias y 13 suites/116 pruebas de integración. Arranque real aprobado contra PostgreSQL efímero de pruebas en el puerto 43179; se detuvo el servidor y se eliminó el contenedor al terminar. `npm run format:check` falla por 48 archivos sin modificar de otros módulos y la infraestructura; `src/server.js` y `tests/unit/server.test.js` pasan el chequeo individual de Prettier. No se ejecutó Prettier sobre archivos ajenos al alcance.
+**Resultados de las secciones 1 y 2, 30 de octubre de 2026:** `npm run lint` aprobado. `npm test` aprobado: 42 suites/566 pruebas unitarias y 13 suites/116 pruebas de integración. Arranque real aprobado contra PostgreSQL efímero de pruebas en el puerto 43179; una petición sin autenticar a `GET /api/v1/frequencies` alcanzó el router y respondió 401, como se espera sin credenciales. Se detuvieron el servidor y el contenedor al terminar. `npm run format:check` falla por 48 archivos sin modificar de otros módulos y la infraestructura; `src/server.js` y `tests/unit/server.test.js` pasan el chequeo individual de Prettier. No se ejecutó Prettier sobre archivos ajenos al alcance.
 
 ## 14. Revisión y cierre
 
@@ -129,4 +130,4 @@ Cada commit debe contener un cambio lógico, compilar y conservar las pruebas. L
 - **Revisor humano:** Leslie propuesto; confirmación pendiente.
 - **PR e integración:** pendientes; esta rama local no acredita publicación.
 - **Cierre:** requiere pruebas, revisión humana, integración en `develop` y verificación posterior.
-- **Próxima acción:** revisar el diff y preparar los commits atómicos sugeridos; el commit lo realiza David. Mantener FREQ-02 en desarrollo hasta revisión e integración humanas.
+- **Próxima acción:** David registra esta sección documental con el commit sugerido; luego confirmar a Leslie como revisora y preparar la revisión humana. Mantener FREQ-02 en desarrollo hasta comprobar su integración en `develop`.
