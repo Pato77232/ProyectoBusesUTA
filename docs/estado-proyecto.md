@@ -31,7 +31,8 @@ Antes de orientar a alguien:
 | [TENANTS-01](specs/TENANTS-01.md), [AUTH-FK-01](specs/AUTH-FK-01.md), [AUTH-05](specs/AUTH-05.md) | Pablo | Código integrado | Cooperativas, integridad y administrador principal; no implica pantallas ni provisión del primer SYSTEM_ADMIN |
 | AUTH-BOOTSTRAP-01 | Pablo | Trabajo en rama local, fuera de develop | Corrección del pegado de contraseña en `9b65e9f`; 98 pruebas aprobadas en su rama. Publicación/revisión/integración pendientes; no rehacer la tarea |
 | [FLEET-01](specs/FLEET-01.md) | Edwin | Código integrado, PR #10 | Crear/listar grupos; no hay registro de buses ni plantillas en la base examinada |
-| [FREQ-01](specs/FREQ-01.md) | David, según distribución; spec aún «por asignar» | Código integrado; conexión al arranque pendiente | Existe módulo y montaje opcional en app.js; server.js no lo instancia |
+| [FREQ-01](specs/FREQ-01.md) | David | Código funcional integrado; conexión al arranque desarrollada en FREQ-02, pendiente de integrar en `develop` | La responsabilidad se actualizó por confirmación de David. El commit local `7026418` conecta el módulo al servidor; lint y pruebas pasan en esta rama. No atribuir este cambio local a `develop`. |
+| [FREQ-02](specs/FREQ-02.md) | David | En desarrollo en `feature/FREQ-02-arranque-frecuencias` | `npm test`: 42 suites/566 unitarias y 13 suites/116 de integración; lint y arranque real aprobados. `GET /api/v1/frequencies` sin credenciales responde 401 desde el servidor. Chequeo global de formato señala 48 archivos no modificados; archivos cambiados pasan Prettier individualmente. |
 | [ROUTE-SHEETS-01](specs/ROUTE-SHEETS-01.md) | David, según distribución; confirmar autor/responsable | Código integrado, PR #13; integración operativa pendiente | app.js admite routeSheets, pero server.js no lo instancia; la composición necesita contratos con fleet/frequencies/bookings |
 | [INFRA-02](specs/INFRA-02.md), [INFRA-03](specs/INFRA-03.md) | Shirley; revisor indicado Pablo | Cambios presentes; cierre documental pendiente | cross-env y .gitattributes presentes, lock actualizado en historial; no implica aprobación humana ni validación Windows actual |
 | [INFRA-04](specs/INFRA-04.md) | Pablo; revisora propuesta Shirley | Integrada: su código documental está contenido en c89b1b9 | La presencia en develop está comprobada; no se inventa evidencia de revisión humana/cierre |
@@ -55,7 +56,7 @@ Orden recomendado para discutir con el equipo. Cada fila es **Propuesta sin spec
 | Edwin | 2. Consultar buses de la cooperativa | Contrato público requerido por hojas de ruta; coordinar con David |
 | Edwin | 3. Definir y consultar plantilla de asientos, en tareas separadas | Acordar identificadores, pisos y tipos con Leslie; RN-12 |
 | Edwin | 4. Pantalla de registro y luego consulta de buses | Contratos anteriores y base frontend |
-| David | 1. Resolver composición y contratos operativos de frecuencias/hojas de ruta | Coordinar con Pablo y Edwin; crear spec acotada; no importar capas internas |
+| David | 1. Preparar revisión humana de [FREQ-02](specs/FREQ-02.md) | Registrar la sección 2; confirmar revisora y conservar pendiente la integración en `develop` hasta que haya evidencia |
 | David | 2. Exponer consulta de viajes por fecha | Acordar Trip, ventana de compra y fuente del bus con búsqueda/reservas |
 | David | 3. Pantalla de creación de frecuencia y luego listado/estado | Backend conectado y base frontend; specs separadas |
 | David | 4. Pantalla de hoja de ruta manual | Contratos y pruebas de integración operativa resueltos |

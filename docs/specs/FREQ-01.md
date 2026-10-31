@@ -3,7 +3,7 @@
 - **ID local:** FREQ-01
 - **Ticket externo:** pendiente de elegir gestor después del 4 de noviembre de 2026
 - **Módulo:** `frequencies`
-- **Responsable:** por asignar
+- **Responsable:** David
 - **Estado:** **Aprobada** (18 de octubre de 2026). Preguntas cerradas por el responsable; implementación autorizada en la rama `feature/frecuencias`.
 - **Reglas:** RN-02, RN-20, RN-21, RN-22, RN-23. Depende de INFRA-01/INFRA-02, AUTH-01…AUTH-04, AUTH-FK-01 y TENANTS-01. ADR 0001, ADR 0002. Resuelve la pregunta abierta 4 de `docs/business-rules.md` (precio por tramo).
 
