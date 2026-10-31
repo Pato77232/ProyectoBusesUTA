@@ -4,12 +4,12 @@
 - **Módulo / alcance:** fleet / flota.
 - **Responsable:** Edwin.
 - **Revisor propuesto:** David, sin confirmación registrada. Leslie participa en el contrato de inventario posterior.
-- **Estado:** En desarrollo. Edwin aprobó la spec y autorizó comenzar el 30 de octubre de 2026; el incremento actual cubre las tres distribuciones, validación y pruebas. Caso de uso/puerto de lectura, endpoint y composición continúan pendientes.
+- **Estado:** En revisión, implementación funcional y validación local completadas; revisión humana pendiente. Edwin aprobó la spec el 30 de octubre y autorizó continuar con los incrementos restantes. Incluye distribuciones, puerto, caso de uso, endpoint protegido y composición. No implica integración ni cierre.
 - **Fecha:** 30 de octubre de 2026, America/Guayaquil.
 - **Prioridad:** dependencia del registro de buses [FLEET-02](FLEET-02.md).
 - **Base examinada:** checkout `f26415d`; referencia origin/develop comprobada en `1d9381d` el 30 de octubre. No se integraron esos dos commits posteriores al checkout.
 - **Rama de implementación:** `feature/FLEET-03-catalogo-plantillas`, creada sobre `f26415d` conservando los borradores locales FLEET-02/estado sin sobrescribirlos. No hay implementación de alta de buses en este cambio.
-- **Autorización:** Edwin aprobó expresamente FLEET-03 y pidió comenzar por las tres distribuciones y sus pruebas el 30 de octubre. Las decisiones funcionales confirmadas se distinguen de los contratos con Leslie/David aún pendientes.
+- **Autorización:** Edwin aprobó expresamente FLEET-03 el 30 de octubre; después pidió abrir PR y continuar con lo faltante de esta tarea. PR #26 abierta en borrador para revisión del incremento y su continuación. Los contratos de inventario real por bus/viaje con Leslie/David siguen pendientes y fuera de esta implementación.
 
 ## 1. Objetivo
 
@@ -93,22 +93,22 @@ Catálogo estático versionado en Fleet para estas tres bases, con un puerto de 
 
 Respuesta completa con las tres bases; no añadir endpoint de detalle en esta tarea. La forma de cada entrada sigue la sección 5. GET no modifica estado ni requiere CSRF de mutación. Errores usan el formato central del proyecto. Fallo de catálogo/configuración debe propagarse; no devolver éxito con una lista vacía ni disponibilidad inventada.
 
-API pública propuesta en `fleet/index.js`: `seatLayoutQueries.list()` para composición; el nombre concreto puede ajustarse conservando el contrato y sin imports internos entre módulos.
+API pública implementada en `fleet/index.js`: `seatLayoutQueries.list()` para consumidores internos de confianza/composición, devuelve una promesa de las tres bases. Esta lectura genérica no autentica un actor interno ni entrega inventario privado; el endpoint sí usa autenticación/autorización. Los consumidores no importan capas internas de Fleet.
 
 El catálogo común de solo lectura contiene únicamente distribuciones genéricas, sin datos de cooperativas/buses. Esta propuesta no habilita lectura global de inventarios privados: las futuras consultas por bus deberán exigir el contexto autorizado de cooperativa y su pertenencia.
 
 ## 7. Criterios de aceptación
 
-- [ ] Dado un administrador operativo autenticado, recibe las tres bases completas en el orden de la tabla.
-- [ ] Sin sesión válida o con otro rol, se rechaza sin entregar catálogo; comprobar roles y sesiones revocadas/vencidas.
-- [ ] Los recuentos por piso y totales son 42, 44+16 y 34+12, calculados desde posiciones reales.
-- [ ] Las etiquetas, filas sin asiento individual y servicios coinciden con los esquemas de la sección 5.
-- [ ] La base 2+1 comienza `1 2 | 3` arriba y continúa `35 36 | 37` abajo; termina en 46 sin duplicados.
-- [ ] Las bases 2+2 conservan la numeración de las referencias, incluida la inversión visual del par derecho.
-- [ ] Claves/orden de lectura permanecen estables entre consultas; modificar un resultado no altera consultas posteriores.
-- [ ] Pasillos y servicios no cuentan como asientos ni tienen identidad de asiento reservable.
-- [ ] Cada asiento de las tres bases tiene categoría NORMAL; no se crean posiciones VIP ni espacios para silla de ruedas ni se confunden servicios con asientos.
-- [ ] No se crean buses, reservas, viajes ni tablas por consultar bases; no se incluyen ocupaciones ni datos privados.
+- [x] Dado un administrador operativo autenticado, recibe las tres bases completas en el orden de la tabla.
+- [x] Sin sesión válida o con otro rol, se rechaza sin entregar catálogo; comprobar roles y sesiones revocadas/vencidas.
+- [x] Los recuentos por piso y totales son 42, 44+16 y 34+12, calculados desde posiciones reales.
+- [x] Las etiquetas, filas sin asiento individual y servicios coinciden con los esquemas de la sección 5.
+- [x] La base 2+1 comienza `1 2 | 3` arriba y continúa `35 36 | 37` abajo; termina en 46 sin duplicados.
+- [x] Las bases 2+2 conservan la numeración de las referencias, incluida la inversión visual del par derecho.
+- [x] Claves/orden de lectura permanecen estables entre consultas; modificar un resultado no altera consultas posteriores.
+- [x] Pasillos y servicios no cuentan como asientos ni tienen identidad de asiento reservable.
+- [x] Cada asiento de las tres bases tiene categoría NORMAL; no se crean posiciones VIP ni espacios para silla de ruedas ni se confunden servicios con asientos.
+- [x] No se crean buses, reservas, viajes ni tablas por consultar bases; no se incluyen ocupaciones ni datos privados.
 
 ## 8. Casos borde
 
@@ -168,4 +168,13 @@ Validación final del primer incremento, 30 de octubre de 2026:
 
 ## 14. Revisión y cierre
 
-Pendientes: revisión técnica humana, contrato compartido aplicable y próximos incrementos de caso de uso/endpoint. La aprobación de alcance de Edwin no sustituye revisión de otro integrante ni respuestas de Leslie/David. Sin PR ni integración de esta tarea. El catálogo será dependencia de FLEET-02; la consulta de asientos de buses reales será otro caso de uso. No marcar Integrada ni Cerrada por la implementación parcial.
+Continuación autorizada el 30 de octubre:
+- PR de trabajo: https://github.com/Pato77232/ProyectoBusesUTA/pull/26, abierta como borrador antes de completar este incremento.
+- Puerto `SeatLayoutCatalog.list`, adaptador estático y caso de uso `ListSeatLayouts`. El caso de uso valida copias inmutables, exige exactamente las tres bases, rechaza IDs ausentes/duplicados/desconocidos y mantiene su orden; propaga fallos sin catálogo vacío.
+- `seatLayoutRouter` en Fleet con GET protegido por sesión/rol; montaje opcional en app.js sin alterar rutas anteriores ni server.js. `INVALID_SEAT_LAYOUT` de configuración se traduce a 500 genérico mediante el middleware central, sin detalles del catálogo.
+- Prueba HTTP nueva arranca `start()` real de server.js sobre PostgreSQL aislado y un puerto disponible, con credenciales exclusivamente ficticias. Verifica sesión, roles, revocación/vencimiento, dos cooperativas, respuesta completa, ausencia de escrituras y error genérico. No se modificaron pruebas anteriores.
+- Validación dirigida: 10 pruebas nuevas de aplicación/puerto y 10 de integración HTTP aprobadas; 63 pruebas unitarias de Fleet aprobadas incluyendo las 28 de matrices. El formato de todos los archivos de este incremento está correcto; lint correcto. Formato global sigue fallido en los mismos 24 archivos previos, sin modificaciones incidentales.
+
+Validación final del endpoint, 30 de octubre: `npm test` aprobó 602 unitarias y 126 integraciones (728 en total) con PostgreSQL 16.13 aislado en busesuta-fleet03-test, puerto 55433. Incluye los 10 casos HTTP con arranque real, 10 nuevos de aplicación/puerto y 28 de matrices. Lint y formato de archivos del incremento correctos; formato global fallido en 24 archivos existentes que no se tocaron. Sin migraciones ni dependencias nuevas; base temporal retirada al finalizar.
+
+Pendiente: revisión técnica humana. La aprobación de alcance de Edwin no sustituye revisión de otro integrante ni respuestas de Leslie/David. Sin integración de esta tarea. El catálogo es dependencia de FLEET-02; la consulta de asientos de buses reales será otro caso de uso. No marcar Integrada ni Cerrada por terminar la implementación.
