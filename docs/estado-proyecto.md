@@ -40,6 +40,7 @@ Antes de orientar a alguien:
 | search, bookings, payments y tickets | Según propuesta inferior | Sin implementación en la base examinada | Confirmar ramas de los responsables antes de crear tareas |
 | [PAGOS-01](specs/PAGOS-01.md) | Shirley | En desarrollo; T4 verificada localmente, revisión humana pendiente | Base `origin/develop` `e556e59`; lint y formato de sus archivos aprobados; 41 suites/564 unitarias y 13 suites/116 de integración aprobadas. `bookings` sigue simulado conforme al alcance T4. |
 | CI | Pablo | Sin workflow versionado en la base | Proponer una spec propia; no afirmar protecciones remotas sin consultarlas |
+| [FLEET-05](specs/FLEET-05.md) | Edwin | T1 en 00085d5, publicación de PR en borrador solicitada | Formulario sin conexión: 41 pruebas y ocho comprobaciones Chrome aprobadas; ESLint directo correcto. npm run lint falla en Windows y container-smoke espera 503/recibe 502, limitaciones registradas. T2/T3 requieren acuerdos con Pablo; sin alta desde pantalla ni revisión humana |
 
 ## Próximos pasos por integrante
 

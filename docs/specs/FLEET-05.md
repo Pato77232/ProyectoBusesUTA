@@ -3,9 +3,9 @@
 - **ID local:** FLEET-05; libre en las specs y ramas accesibles al comprobarlo el 31 de octubre de 2026.
 - **Ticket externo:** pendiente de elegir gestor después del 4 de noviembre de 2026
 - **Módulo:** `frontend`; consume la API de `fleet`
-- **Responsable:** Edwin, según la distribución de `docs/estado-proyecto.md`; por confirmar
+- **Responsable:** Edwin, responsable de Fleet y solicitante de revisión/publicación
 - **Revisor propuesto / confirmado:** Pablo propuesto, por ser responsable de la base frontend; sin confirmación registrada
-- **Estado:** En desarrollo; T1 local sin commit, T2 y T3 pendientes de las preguntas de la sección 10
+- **Estado:** T1 guardado en 00085d5; preparado para PR en borrador por petición de Edwin el 1 de noviembre. T2/T3 y las preguntas de la sección 10 siguen pendientes; no es un alta funcional desde la pantalla
 - **Prioridad y dependencias:** FLEET-01, FLEET-02 y FLEET-03, presentes en develop. Requiere además la pantalla de inicio de sesión y FRONT-01 T3c/T3d, que no existen en develop (sección 10).
 - **Rama / PR / base comprobada:** `feature/FLEET-05-pantalla-registro-buses`, creada desde `origin/develop` en `4f34748` el 31 de octubre de 2026; sin PR.
 - **Autorización de alcance:** el 31 de octubre de 2026 se aprobó por chat esta spec e iniciar solo T1. Las preguntas 1 a 4 de la sección 10 siguen sin respuesta de Pablo.
@@ -170,3 +170,31 @@ Una sesión por paso. T2 requiere coordinar con Pablo antes de tocar los archivo
 ## 14. Revisión y cierre
 
 Pendientes. Próxima acción: consultar a Pablo las preguntas 1 a 4 antes de iniciar T2.
+
+### Revisión de T1 para publicación, 1 de noviembre de 2026
+
+Edwin solicitó revisar FLEET-05 y abrir PR si era posible. Se revisaron los 12 archivos del commit 00085d5, sin modificar código de producto ni ampliar T1. Se aplicó frontend/DESIGN.md (D-02/03/04/05/07); las dos capturas se inspeccionaron visualmente. La rama conserva base 4f34748; develop comprobado en efcfcf2 y FRONT-01 T3c/PR #30 abierta. No se incorporaron esos cambios ni se afirma haber validado la combinación con develop.
+
+| Comprobación actual | Resultado |
+|---|---|
+| npm test de frontend | 41 pruebas aprobadas |
+| npm run lint de frontend en Windows | Fallido: el script usa una ruta POSIX al ejecutable y cmd no la reconoce, igual que documentaba T1 |
+| ESLint directo con ../backend/node_modules/.bin/eslint.cmd sobre src/api, src/fleet y sus pruebas | Aprobado |
+| Prettier con configuración explícita ../backend/.prettierrc.json | Aprobado en HTML, JS, CSS y pruebas del incremento |
+| Prettier sin esa configuración | Advierte siete archivos: frontend no tiene configuración propia y el estilo predeterminado difiere; no se oculta el resultado ni se cambia código para aparentar conformidad |
+| registrar-bus-smoke.cjs en Chrome real, perfil temporal | Ocho comprobaciones aprobadas: estado inicial deshabilitado, sin grupos, errores, cambio de plantilla, callback de prueba, fotos, móvil 360 px y orden básico de Tab |
+| smoke.cjs de portada | Aprobado en escritorio, móvil y zoom 200 % emulado con CSS; no acredita zoom nativo |
+| container-smoke.cjs | Fallido: /api/v1 responde 502 donde la prueba espera 503. Ya documentado en T1; Dockerfile/proxy y ese caso de prueba no cambiaron en develop respecto de la base al compararlos. No se debilita la comprobación ni se declara la ejecución aprobada |
+| Comprobación específica de la imagen real de T1 | Aprobada: Nginx inicia sin root, página y ambos módulos 200, formulario deshabilitado y tests excluidos |
+| git diff --check | Aprobado |
+
+No se ejecutó una nueva suite backend en esta revisión de frontend: ningún archivo del backend cambió; no se certifica su combinación con la base remota actual. No se instalaron dependencias ni se alteraron políticas de scripts.
+
+La PR se prepara en borrador exclusivamente para T1. El documento completo conserva el objetivo final, pero T2 (multipart/proxy), T3 (sesión y API real) y la aceptación humana no están completos. No se envió consulta a Pablo ni se presume su respuesta. Hay que acordar con él las preguntas 1–4; no duplicar la política común de sesión/CSRF. El cliente JSON de PR #30 no equivale a un transporte multipart ni está integrado al comprobarlo.
+
+Capturas de T1 con datos ficticios inyectados solo por la prueba, sin red/API ni bus registrado; no representan la página habilitada en producción:
+
+- [Escritorio, viewport 1280](../evidence/FLEET-05/formulario-1280.png).
+- [Móvil, viewport 360](../evidence/FLEET-05/formulario-360.png).
+
+La pantalla real publicada permanece deshabilitada y avisa que no está conectada. Sin revisión de código humana, integración ni cierre. Implementación original asistida por Claude Code (consta en 00085d5); revisión, repetición de pruebas y preparación de PR asistidas por Codex.
