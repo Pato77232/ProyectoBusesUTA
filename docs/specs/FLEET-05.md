@@ -5,9 +5,9 @@
 - **Módulo:** `frontend`; consume la API de `fleet`
 - **Responsable:** Edwin, responsable de Fleet y solicitante de revisión/publicación
 - **Revisor propuesto / confirmado:** Pablo propuesto, por ser responsable de la base frontend; sin confirmación registrada
-- **Estado:** T1 guardado en 00085d5; preparado para PR en borrador por petición de Edwin el 1 de noviembre. T2/T3 y las preguntas de la sección 10 siguen pendientes; no es un alta funcional desde la pantalla
+- **Estado:** T1 publicado para revisión en PR #31 en borrador. T2/T3 y los acuerdos de la sección 10 siguen pendientes; no es un alta funcional desde la pantalla
 - **Prioridad y dependencias:** FLEET-01, FLEET-02 y FLEET-03, presentes en develop. Requiere además la pantalla de inicio de sesión y FRONT-01 T3c/T3d, que no existen en develop (sección 10).
-- **Rama / PR / base comprobada:** `feature/FLEET-05-pantalla-registro-buses`, creada desde `origin/develop` en `4f34748` el 31 de octubre de 2026; sin PR.
+- **Rama / PR / base comprobada:** `feature/FLEET-05-pantalla-registro-buses`, creada desde `origin/develop` en `4f34748` el 31 de octubre de 2026; PR #31 en borrador: https://github.com/Pato77232/ProyectoBusesUTA/pull/31.
 - **Autorización de alcance:** el 31 de octubre de 2026 se aprobó por chat esta spec e iniciar solo T1. Las preguntas 1 a 4 de la sección 10 siguen sin respuesta de Pablo.
 
 ## 1. Objetivo
@@ -198,3 +198,4 @@ Capturas de T1 con datos ficticios inyectados solo por la prueba, sin red/API ni
 - [Móvil, viewport 360](../evidence/FLEET-05/formulario-360.png).
 
 La pantalla real publicada permanece deshabilitada y avisa que no está conectada. Sin revisión de código humana, integración ni cierre. Implementación original asistida por Claude Code (consta en 00085d5); revisión, repetición de pruebas y preparación de PR asistidas por Codex.
+Publicación confirmada el 1 de noviembre: PR #31 abierta en borrador hacia develop, https://github.com/Pato77232/ProyectoBusesUTA/pull/31, con implementación 00085d5 y evidencia de revisión/capturas 213f8ab. Se publicaron las limitaciones de lint en Windows y del smoke Docker 502/503; no se presenta T1 como funcionalidad completa. Revisión humana, acuerdos con Pablo, conexión real e integración pendientes.
