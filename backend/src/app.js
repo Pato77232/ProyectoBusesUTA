@@ -38,6 +38,8 @@ function createApp({
 
   if (fleet) app.use(`${API_PREFIX}/bus-groups`, fleet.router);
 
+  if (fleet?.seatLayoutRouter) app.use(`${API_PREFIX}/seat-layouts`, fleet.seatLayoutRouter);
+
   if (frequencies) app.use(`${API_PREFIX}/frequencies`, frequencies.router);
 
   if (routeSheets) app.use(`${API_PREFIX}/route-sheets`, routeSheets.router);
