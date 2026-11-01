@@ -30,6 +30,7 @@ services:
       JWT_SECRET: ${FRONTEND_DEV_JWT_SECRET:?Usa el lanzador frontend/scripts/dev.cjs}
       JWT_EXPIRES_IN: 30m
       TRUST_PROXY: "false"
+      BUS_PHOTO_STORAGE_DIR: /home/node/fleet-photos
       PORT: 3000
     depends_on:
       migrate:
