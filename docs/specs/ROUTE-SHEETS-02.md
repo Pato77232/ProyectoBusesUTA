@@ -3,12 +3,12 @@
 - **ID local:** ROUTE-SHEETS-02
 - **Ticket externo:** pendiente de elegir gestor después del 4 de noviembre de 2026
 - **Módulo:** `route-sheets` / composición de backend
-- **Responsable:** David (según distribución de referencia; confirmar)
+- **Responsable:** David (confirmado por el usuario)
 - **Revisor propuesto / confirmado:** Leslie / pendiente de confirmación
 - **Estado:** Borrador
-- **Prioridad y dependencias:** ROUTE-SHEETS-01 y FREQ-01; API de buses de FLEET-04 disponible en la referencia local `develop` `efcfcf2`; contratos públicos de `frequencies` y `bookings` aún pendientes, coordinación con Pablo y Leslie
-- **Rama / PR / base comprobada:** `feature/ROUTE-SHEETS-02-integracion-operativa`; sin PR conocido; spec iniciada sobre `f26415d`; rebase en curso sobre la referencia local `develop` `efcfcf2` el 1 de noviembre de 2026. No se pudo refrescar la referencia desde el remoto durante la resolución.
-- **Autorización de alcance:** autorización para redactar esta propuesta; la implementación queda pendiente de confirmar alcance y contratos
+- **Prioridad y dependencias:** ROUTE-SHEETS-01, FREQ-01 y FLEET-04; consulta de buses disponible en `develop` `efcfcf2`. Propuestas de contratos públicos de `frequencies` y `bookings` documentadas abajo; confirmación de Pablo y Leslie pendiente.
+- **Rama / PR / base comprobada:** `feature/ROUTE-SHEETS-02-integracion-operativa`; sin PR conocido; rebase completado el 1 de noviembre de 2026 sobre la referencia local `origin/develop` `efcfcf2`, con la spec en `0c6ebb4`. No se pudo refrescar la referencia desde el remoto durante esta revisión.
+- **Autorización de alcance:** David confirma excluir búsqueda pública y catálogo de viajes de esta spec. Las propuestas de contratos compartidos están redactadas; su aceptación por Pablo y Leslie y la autorización final de implementación siguen pendientes.
 
 ## 1. Objetivo
 
@@ -54,15 +54,38 @@ Flujo propuesto para verificar una vez acordadas las dependencias:
 4. Una solicitud autenticada a hojas de ruta llega al caso de uso correspondiente; las consultas usan el contexto de cooperativa de la identidad y validan las reglas ya especificadas.
 5. Las pruebas de integración y una comprobación del arranque real demuestran que la composición funciona con las dependencias acordadas.
 
-Este flujo no fija todavía el comportamiento de asignaciones cuando `fleet` no puede consultar buses o `bookings` no puede determinar si hay pasajeros.
+La consulta de buses y la validación de grupo ya están disponibles mediante FLEET-04. El comportamiento de los casos de uso que dependen de pasajeros todavía requiere un contrato aprobado de `bookings`.
 
 ## 5. Datos
 
 - No se propone crear ni alterar tablas o migraciones.
 - Se reutilizan los datos y DTO definidos en ROUTE-SHEETS-01 y FREQ-01.
-- La fábrica actual `createRouteSheetsModule` recibe `pool`, `auth`, `frequencyRepository`, `busGroupQueries`, `busQueries` y `bookingRepository`. La API pública `fleet.busQueries` (`findById`, `findByBusGroupId`, `findByCooperativeId`) está disponible en FLEET-04; su DTO `BusSummary` contiene `id`, `cooperativeId`, `busGroupId`, `plate`, `unitNumber` y `capacity`.
+- La fábrica actual `createRouteSheetsModule` recibe `pool`, `auth`, `frequencyRepository`, `busGroupQueries`, `busQueries` y `bookingRepository`. Para respetar la frontera entre módulos, la propuesta es inyectar APIs públicas de consulta (`frequencyQueries`, `busQueries`, `bookingQueries`), no repositorios/adaptadores internos de otros módulos.
 - El `cooperative_id` de solicitudes internas debe derivarse de la identidad autenticada; no se aceptará uno elegido por el body.
 - FREQ-01 expone hoy `findActiveByRoute` desde `frequencies/index.js`; ROUTE-SHEETS-01 requiere consultas de frecuencias por ID, por cooperativa y con paradas, por lo que ese contrato aún debe acordarse. FLEET-04 ya resuelve la consulta interna de buses mediante `fleet.busQueries`. No se identifica una API pública de producción de `bookings` para las consultas de pasajeros requeridas por ROUTE-SHEETS-01.
+
+### 5.1 Propuesta de consulta pública de frecuencias — pendiente de Pablo
+
+Exponer desde la API pública del módulo `frequencies` un objeto de solo lectura `frequencyQueries` con estas operaciones, siempre filtradas por `cooperativeId`:
+
+| Operación propuesta | Resultado propuesto |
+|---|---|
+| `findById(id, cooperativeId)` | Resumen de frecuencia o `null` si no existe dentro de esa cooperativa |
+| `findActiveByCooperativeId(cooperativeId)` | Lista de resúmenes activos; arreglo vacío si no hay frecuencias activas |
+| `findWithStops(id, cooperativeId)` | Detalle con paradas ordenadas o `null` si no existe dentro de esa cooperativa |
+
+DTO propuesto `FrequencySummary`: `{ id, cooperativeId, origin, destination, departureTime, antResolutionNumber, status }`. `FrequencyDetail` agrega `stops` en orden operativo. El repositorio de frecuencias actual puede seguir usando sus argumentos internos y traducirlos en la API del módulo; `route-sheets` no lo importa. Los errores técnicos se propagan y no se sustituyen con listas vacías o valores nulos. Pablo debe confirmar o proponer ajustes antes de implementar este contrato.
+
+### 5.2 Propuesta de consulta de pasajeros — pendiente de Leslie
+
+Exponer desde la API pública de `bookings` un objeto de solo lectura `bookingQueries` con las operaciones que ya requiere `BookingQueryPort`:
+
+| Operación propuesta | Entrada | Resultado propuesto |
+|---|---|---|
+| `hasPassengersForBusOnRouteSheet(routeSheetId, busId, cooperativeId)` | Hoja, bus y cooperativa | Booleano sobre pasajeros/reservas que afectan a ese bus en la hoja |
+| `hasPassengersForAssignment(assignmentId, cooperativeId)` | Asignación y cooperativa | Booleano sobre pasajeros/reservas que afectan a la asignación |
+
+Ambas consultas deben aislar por cooperativa. `false` significa que la consulta terminó correctamente y confirmó que no existen pasajeros que afecten el cambio. Si el proveedor no está disponible o la consulta falla, las operaciones que requieren esta comprobación no continúan; el error técnico se propaga con el formato HTTP común. Leslie debe precisar qué estados de reserva cuentan como pasajeros y confirmar o ajustar este contrato.
 
 ## 6. Endpoints
 
@@ -87,7 +110,7 @@ La composición de producción debe conservar los middlewares de autenticación,
 ## 8. Casos borde y errores
 
 - Error al conectar la base de datos o crear un módulo durante el arranque: definir y verificar el manejo de recursos según el patrón de `server.js`.
-- Módulo proveedor o contrato requerido ausente: definir el comportamiento esperado antes de codificarlo; los adaptadores actuales incluyen respuestas de respaldo vacías o `false`, y su validez para producción requiere acuerdo.
+- Módulo proveedor o contrato requerido ausente: definir el comportamiento esperado antes de codificarlo; en particular, no tratar la ausencia o fallo de `bookings` como “sin pasajeros”. Revisar los adaptadores de frecuencias para que la integración no convierta contratos incompletos en resultados vacíos o `null`.
 - Identificador de otra cooperativa: las operaciones internas deben preservar el comportamiento de aislamiento definido en RN-02 y ROUTE-SHEETS-01.
 - Frecuencia inexistente, inactiva o ajena a la cooperativa: conservar los errores de dominio definidos por ROUTE-SHEETS-01.
 
@@ -100,13 +123,13 @@ La composición de producción debe conservar los middlewares de autenticación,
 
 ## 10. Preguntas abiertas
 
-1. **API pública de frecuencias — Pablo y David:** `route-sheets` necesita consultar frecuencias por cooperativa, por ID y con paradas, mientras `frequencies/index.js` expone actualmente `findActiveByRoute`. ¿Se acuerda ampliar la API pública de `frequencies` con esas consultas, o existe otro contrato aprobado? Recomendación: acordar operaciones mínimas y DTOs con Pablo antes de tocar la composición; no importar el repositorio PostgreSQL de `frequencies` desde `route-sheets`.
+1. **API pública de frecuencias — Pablo y David, pendiente:** `route-sheets` necesita consultar frecuencias por cooperativa, por ID y con paradas, mientras `frequencies/index.js` expone actualmente `findActiveByRoute`. Hay que acordar operaciones y DTOs; no importar el repositorio PostgreSQL de `frequencies` desde `route-sheets`.
 2. **Consulta de buses — resuelta por FLEET-04:** `fleet.busQueries` ofrece búsquedas por ID, grupo y cooperativa con filtro multi-tenant; Route Sheets ya recibe `busQueries` en su composición y valida la pertenencia al grupo al asignar o registrar días de parada. No duplicar esas consultas ni importar infraestructura interna de Fleet.
-3. **Consulta de pasajeros — Leslie y David:** ROUTE-SHEETS-01 requiere saber si hay pasajeros antes de ciertos cambios, pero no hay todavía una API pública de producción de `bookings`. ¿Qué contrato aporta esta consulta y qué debe ocurrir mientras no esté disponible? Recomendación: no conectar operaciones sensibles ni tratar ausencia del proveedor como “sin pasajeros”; esperar contrato aprobado.
-4. **Límite de esta spec — David y equipo afectado:** ¿ROUTE-SHEETS-02 se limita a componer `frequencies` y `route-sheets` cuando sus dependencias estén disponibles, o también debe incorporar el catálogo de viajes/consulta pública por fecha? `search` aún no tiene responsable confirmado. Recomendación: mantener búsqueda y `Trip` fuera de ROUTE-SHEETS-02 y crear una spec de `search` cuando se acuerden responsable y contrato.
-5. **Aprobación — responsable y revisor:** confirmar a David como responsable de implementación y a Leslie como revisor de ROUTE-SHEETS-02; los registros actuales los presentan como referencias propuestas.
+3. **Consulta de pasajeros — Leslie, propuesta pendiente:** David propone `bookingQueries.hasPassengersForBusOnRouteSheet` y `hasPassengersForAssignment`, con aislamiento por cooperativa y resultado `false` solo ante consulta exitosa sin pasajeros que afecten el cambio. Fallo/ausencia del proveedor debe impedir el cambio. Falta que Leslie defina los estados que cuentan y confirme o ajuste el contrato.
+4. **Límite de esta spec — decisión de David:** búsqueda pública y catálogo de viajes/`Trip` quedan fuera de ROUTE-SHEETS-02 y se tratarán después en una tarea/spec separada. No se implementan en esta rama.
+5. **Revisión — Leslie, propuesta pendiente:** David propone a Leslie como revisora. Su aceptación debe registrarse antes de la revisión; no se presume por esta propuesta.
 
-Registrar las respuestas humanas reales y los contratos acordados según `docs/equipo-y-acuerdos.md`. Hasta entonces, esta spec permanece en Borrador y no autoriza la integración de dependencias no disponibles.
+Registrar las respuestas humanas reales y los contratos acordados según `docs/equipo-y-acuerdos.md`. La API de buses de FLEET-04 y el límite de búsqueda/catálogo quedan resueltos para esta spec. Mientras Pablo y Leslie no confirmen los contratos propuestos, ROUTE-SHEETS-02 permanece en Borrador y no autoriza implementar la integración dependiente.
 
 ## 11. Defecto inducido
 
@@ -125,11 +148,11 @@ No aplica a esta propuesta. No introducir defectos inducidos sin autorización d
 3. **Verificar:** ejecutar lint, formato, suite de pruebas y arranque con PostgreSQL aislado; guardar resultados reales.
 4. **Actualizar estado:** registrar evidencia de ROUTE-SHEETS-02 en `docs/estado-proyecto.md`; mantener Borrador hasta que el alcance se confirme.
 
-**Evidencia inicial:** inspección local del commit `f26415d` el 30 de octubre de 2026. `app.js` ya admite `frequencies` y `routeSheets`, pero `server.js` no instancia Route Sheets. La referencia local de `develop` `efcfcf2` añade `fleet.busQueries` y la validación del grupo del bus en FLEET-04; `frequencies` aún no publica todas las consultas que requiere Route Sheets y no se identifica un contrato público de producción para pasajeros en `bookings`. No se ejecutaron pruebas porque esta entrega modifica solo documentación.
+**Evidencia actualizada el 1 de noviembre de 2026:** rebase local completado en `0c6ebb4` sobre la referencia local `origin/develop` `efcfcf2`. `app.js` admite las rutas, pero `server.js` todavía no instancia Route Sheets. FLEET-04 expone `fleet.busQueries` y valida pertenencia al grupo. `frequencies` continúa exponiendo solo `findActiveByRoute`; no se identificó un contrato público de producción de `bookings` para consultas de pasajeros. No se ejecutaron pruebas porque esta sección modifica solo documentación.
 
 ## 14. Revisión y cierre
 
 - **Revisor humano:** propuesto Leslie; confirmación pendiente.
 - **PR e integración:** pendientes. La rama es local; no se afirma que esté publicada.
 - **Cierre:** requiere aprobación humana, integración en `develop` y verificación posterior según `docs/flujo-codex.md`.
-- **Próxima acción:** responder las preguntas 1–5; después actualizar esta spec y confirmar su autorización antes de implementar.
+- **Próxima acción:** obtener de Pablo y Leslie la aceptación o cambios a las propuestas de las secciones 5.1 y 5.2, y confirmar si Leslie acepta revisar. Luego aprobar el alcance y autorizar la implementación.
