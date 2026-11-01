@@ -69,17 +69,18 @@ beforeAll(async () => {
   });
   const fleet = createFleetModule({ pool, auth, env: { BUS_PHOTO_STORAGE_DIR: os.tmpdir() } });
   // Contrato de frecuencias fuera de FLEET-04. Solo este proveedor usa un doble.
-  const frequencyRepository = {
+  const frequencyQueries = {
     findById: async (id, cooperativeId) =>
       id === frequencyId && cooperativeId === fixtures.first.cooperativeId
         ? { id, status: 'ACTIVE' }
         : null,
     findActiveByCooperativeId: async () => [{ id: frequencyId, status: 'ACTIVE' }],
+    findWithStops: async () => null,
   };
   const routeSheets = createRouteSheetsModule({
     pool,
     auth,
-    frequencyRepository,
+    frequencyQueries,
     busGroupQueries: fleet.busGroupQueries,
     busQueries: fleet.busQueries,
   });

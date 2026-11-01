@@ -5,10 +5,12 @@ const listFrequenciesUseCase = require('./application/list-frequencies.use-case'
 const changeFrequencyStatusUseCase = require('./application/change-frequency-status.use-case');
 const findActiveByRouteUseCase = require('./application/find-active-by-route.use-case');
 const createRouter = require('./interfaces/frequency-router');
+const createFrequencyQueries = require('./application/create-frequency-queries');
 
 function createFrequenciesModule({ pool, auth }) {
   const repository = new PgFrequencyRepository(pool);
   const findActiveByRoute = findActiveByRouteUseCase({ repository });
+  const frequencyQueries = createFrequencyQueries({ repository });
   return {
     router: createRouter({
       createFrequencyUseCase: createFrequencyUseCase({ repository }),
@@ -18,6 +20,7 @@ function createFrequenciesModule({ pool, auth }) {
       auth,
     }),
     findActiveByRoute,
+    frequencyQueries,
   };
 }
 
