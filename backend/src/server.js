@@ -15,7 +15,7 @@ async function start(env = process.env) {
     await pool.query('SELECT 1');
     const auth = await createAuthModule({ pool, env });
     const tenants = createTenantsModule({ pool, auth });
-    const fleet = createFleetModule({ pool, auth });
+    const fleet = createFleetModule({ pool, auth, env });
     const frequencies = createFrequenciesModule({ pool, auth });
     const payments = createPaymentsModule({ pool, auth, env });
     const app = createApp({

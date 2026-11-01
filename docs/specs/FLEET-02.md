@@ -3,7 +3,7 @@
 - **ID local:** FLEET-02 (nuevo identificador local, no ticket externo).
 - **Responsable:** Edwin, responsable de Fleet.
 - **Revisor propuesto:** David; aceptación pendiente.
-- **Estado:** En revisión. T1/T2 publicados en PR #27; T3 en 36b9255 y T4 preparados para actualizar esa PR por petición de Edwin el 31 de octubre. Implementación backend verificada con 985 pruebas; revisión humana e integración pendientes. FLEET-03/PR #26 ya integrada en develop 4937892 al comprobarla.
+- **Estado:** Código integrado en develop `4f34748` mediante PR #27; el `env` perdido en `server.js` se corrige en [FLEET-02-env-fotos](FLEET-02-env-fotos.md). Historial previo: T1/T2 publicados en PR #27; T3 en 36b9255 y T4 preparados para actualizar esa PR por petición de Edwin el 31 de octubre. Implementación backend verificada con 985 pruebas; revisión humana e integración pendientes. FLEET-03/PR #26 ya integrada en develop 4937892 al comprobarla.
 - **Fecha:** 29 de octubre de 2026, America/Guayaquil.
 - **Base de implementación:** `d1d3542`, rama `feature/FLEET-02-contrato-alta`, que conserva la dependencia FLEET-03. Origin/develop comprobado en `56dc55a` el 31 de octubre, sin incorporarlo mediante merge/rebase.
 - **Autorización:** aprobación explícita de Edwin el 31 de octubre de 2026 para comenzar FLEET-02; se entrega T1 primero conforme al plan de incrementos pequeños. No supone aprobación de Leslie/David ni revisión humana de código.
