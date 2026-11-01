@@ -7,7 +7,7 @@
 - **Revisor propuesto / confirmado:** Leslie / aceptación reportada por David; revisión de código pendiente
 - **Estado:** En desarrollo
 - **Prioridad y dependencias:** ROUTE-SHEETS-01, FREQ-01 y FLEET-04. Contratos públicos de consulta de frecuencias y reservas confirmados según lo reportado por David el 1 de noviembre de 2026. La implementación productiva de consultas de reservas depende de que BOOK-03 defina y persista sus datos.
-- **Rama / PR / base comprobada:** `feature/ROUTE-SHEETS-02-integracion-operativa`; sin PR conocido; rebase completado el 1 de noviembre de 2026 sobre la referencia local `origin/develop` `efcfcf2`, con la spec en `0c6ebb4`. No se pudo refrescar la referencia desde el remoto durante esta revisión.
+- **Rama / PR / base comprobada:** `feature/ROUTE-SHEETS-02-integracion-operativa`; sin PR conocido; rebase completado el 1 de noviembre de 2026 sobre la referencia local `origin/develop` `efcfcf2`. Commits de ROUTE-SHEETS-02 en la rama hasta `d6c3bf9`; no se pudo refrescar la referencia desde el remoto durante esta revisión.
 - **Autorización de alcance:** David confirma excluir búsqueda pública y catálogo de viajes de esta spec y autoriza implementar la integración, incluidos cambios mínimos a módulos proveedores. David reporta que Pablo aceptó el contrato de frecuencias y Leslie aceptó el contrato de reservas el 1 de noviembre de 2026. No se atribuye a ellos una definición de esquema que BOOK-03 mantiene pendiente.
 
 ## 1. Objetivo
@@ -68,7 +68,7 @@ La consulta de buses y la validación de grupo ya están disponibles mediante FL
 
 Exponer desde la API pública del módulo `frequencies` un objeto de solo lectura `frequencyQueries` con estas operaciones, siempre filtradas por `cooperativeId`:
 
-| Operación propuesta | Resultado propuesto |
+| Operación | Resultado |
 |---|---|
 | `findById(id, cooperativeId)` | Resumen de frecuencia o `null` si no existe dentro de esa cooperativa |
 | `findActiveByCooperativeId(cooperativeId)` | Lista de resúmenes activos; arreglo vacío si no hay frecuencias activas |
@@ -80,7 +80,7 @@ DTO `FrequencySummary`: `{ id, cooperativeId, origin, destination, departureTime
 
 Exponer desde la API pública de `bookings` un objeto de solo lectura `bookingQueries` con las operaciones que ya requiere `BookingQueryPort`:
 
-| Operación propuesta | Entrada | Resultado propuesto |
+| Operación | Entrada | Resultado |
 |---|---|---|
 | `hasPassengersForBusOnRouteSheet(routeSheetId, busId, cooperativeId)` | Hoja, bus y cooperativa | Booleano sobre pasajeros/reservas que afectan a ese bus en la hoja |
 | `hasPassengersForAssignment(assignmentId, cooperativeId)` | Asignación y cooperativa | Booleano sobre pasajeros/reservas que afectan a la asignación |
@@ -159,13 +159,13 @@ No aplica a esta propuesta. No introducir defectos inducidos sin autorización d
 4. **Verificar:** ejecutar lint, formato, suite de pruebas y arranque con PostgreSQL aislado; guardar resultados reales.
 5. **Actualizar estado:** registrar evidencia y dependencias pendientes en `docs/estado-proyecto.md`.
 
-**Evidencia actualizada el 1 de noviembre de 2026:** base local de la rama en `ceef33b`; se mantiene la referencia histórica del rebase en `0c6ebb4` sobre `origin/develop` `efcfcf2`. FLEET-04 expone `fleet.busQueries` y valida pertenencia al grupo. `server.js` compone ahora `frequencies` y `route-sheets`; `app.js` ya monta su router. `frequencies` expone `frequencyQueries` mediante su API pública. `bookings` no tiene repositorio/esquema de producción para reservas y ocupaciones; Route Sheets responde 503 solo cuando una operación necesita consultar pasajeros y la API no está disponible. La consulta SQL real queda pendiente de BOOK-03.
+**Evidencia actualizada el 1 de noviembre de 2026:** rama en `d6c3bf9`, sobre la base local `origin/develop` `efcfcf2`. FLEET-04 expone `fleet.busQueries` y valida pertenencia al grupo. `server.js` compone `frequencies` y `route-sheets`; `app.js` monta `/api/v1/route-sheets`. `frequencies` expone `frequencyQueries` mediante su API pública. `bookings` no tiene repositorio ni esquema de producción para reservas y ocupaciones; cuando una operación requiere esa consulta y no existe proveedor, Route Sheets falla con 503. La consulta SQL real queda pendiente de BOOK-03.
 
-**Sección 1, consumidor de frecuencias:** `FrequencyQueryAdapter` ahora recibe `frequencyQueries` y delega las operaciones de ID, frecuencias activas por cooperativa y detalle con paradas. Valida que estén presentes las tres funciones requeridas al componer y propaga errores del proveedor; se eliminaron respaldos que devolvían `[]`, `null` o consultaban directamente un repositorio. `createRouteSheetsModule` recibe el nuevo argumento. No se modificó `frequencies/index.js`: el proveedor aún no expone este contrato y su confirmación por Pablo sigue pendiente, por lo que no se declara integrada la composición de producción.
-
-Verificación de la sección 1, registrada antes de este incremento: 8 suites/54 pruebas unitarias de Route Sheets aprobadas; lint aprobado; Prettier individual de los archivos modificados aprobado; `git diff --check` aprobado. `npm test` no completó: 52 suites/54 pasaron y 3 pruebas fallaron en dos suites ajenas al cambio (falta `busboy` en `fleet/bus-upload.test.js` y errores `EACCES` de loopback en `payments/payment-proof.routes.test.js`); integración no llegó a ejecutarse. La prueba enfocada `fleet/route-sheet-buses.test.js` tampoco pudo iniciar por la dependencia ausente `busboy`. `npm run format:check` global continúa fallando en 44 archivos preexistentes no modificados. No se instaló ninguna dependencia.
+**Sección 1, consumidor de frecuencias:** `FrequencyQueryAdapter` recibe `frequencyQueries`, delega las consultas por ID, frecuencias activas por cooperativa y detalle con paradas, valida el contrato al componer y propaga los errores del proveedor. No accede al repositorio de Frequencies.
 
 **Sección 2, proveedor de frecuencias y composición operativa:** se añade `frequencyQueries` a la API pública de frequencies con consulta por ID, listado activo aislado y detalle con paradas. `server.js` instancia Route Sheets e inyecta `frequencyQueries`, `fleet.busQueries` y `fleet.busGroupQueries`; `app.js` ya monta `/api/v1/route-sheets`. La dependencia de reservas cambia a `bookingQueries`, exige ambas operaciones si hay proveedor, valida respuestas booleanas y propaga fallos. Si no existe proveedor, las operaciones afectadas fallan con 503 en vez de continuar como si no hubiera pasajeros.
+
+**Verificación de código registrada el 1 de noviembre de 2026:** `npm run lint` aprobado; 20 suites unitarias dirigidas de Frequencies, Route Sheets y arranque aprobadas (196 pruebas); Prettier de los archivos modificados y `git diff --check` aprobados. `npm test` ejecutó las unitarias: 54 suites aprobaron y 2 suites fallaron (765 pruebas aprobadas, 3 fallidas) por `busboy` ausente en `fleet/bus-upload.test.js` y errores `EACCES` de loopback en `payments/payment-proof.routes.test.js`; por el fallo de la etapa unitaria no se ejecutaron integraciones. `npm run format:check` global señala 43 archivos preexistentes, ninguno de esta sección. Docker Compose no pudo iniciar PostgreSQL porque Docker Desktop no estaba disponible; la integración y el arranque real con PostgreSQL siguen sin verificar.
 
 **Dependencia pendiente:** no se implementa una consulta PostgreSQL de reservas porque BOOK-03 no tiene esquema ni relación persistida con hojas de ruta/asignaciones. Los estados de ocupación que deberán contarse (`RESERVED`, `SOLD`) vienen de BOOK-02. Al completar BOOK-03, Leslie debe exponer estas consultas en la API pública de bookings e inyectarlas al componer Route Sheets. Esta rama no crea tablas ni migraciones.
 
