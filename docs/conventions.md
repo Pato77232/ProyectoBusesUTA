@@ -33,7 +33,7 @@
 - Cobertura mínima de `domain` y `application`: a acordar por el equipo (propuesta: 70 %).
 
 ## 5. Ramas
-Gitflow: `main`, `develop`, `feature/*`, `bugfix/*`, `release/*`, `hotfix/*`.
+Gitflow: `main`, `develop`, `feature/*`, `release/*`, `hotfix/*`.
 Formato: `feature/<ID-spec>-<descripcion-corta>`; cuando se elija el gestor, se acordará el uso de su identificador.
 Hasta la primera revisión del 4 de noviembre de 2026, usa el ID de la spec, sin exigir un ticket externo. Después de esa revisión se decidirá e implementará Jira o GitHub Issues por petición del docente. No inventes claves.
 
@@ -54,7 +54,7 @@ docs(adr): registra la decisión sobre la estrategia multi-tenant
 ```
 
 ## 7. Pull Requests
-- Salen de una rama `feature/*` o `bugfix/*` hacia `develop`.
+- Salen de una rama `feature/*` hacia `develop`.
 - Título en formato de commit. Descripción con resumen, reglas RN-xx, cómo probar y nota de uso de IA.
 - CI en verde y al menos 1 aprobación de otro integrante. Para la entrega académica, documentar explícitamente la excepción de aceptación de fallos inducidos según `docs/errores-inducidos.md`; no presentarlos como pruebas aprobadas. Nadie aprueba su propio PR.
 
