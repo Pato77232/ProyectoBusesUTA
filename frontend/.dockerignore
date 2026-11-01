@@ -1,4 +1,4 @@
-# Lista de inclusión: solo configuración y recursos usados por T1.
+# Lista de inclusión: configuración, recursos y cliente API compartido.
 **
 !Dockerfile
 !nginx.conf
@@ -8,6 +8,8 @@
 !src/
 !src/styles/
 !src/styles/app.css
+!src/api/
+!src/api/*.js
 !assets/
 !assets/**
 **/*.md

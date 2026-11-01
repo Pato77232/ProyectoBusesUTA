@@ -2,10 +2,10 @@
 
 - **ID local:** FRONT-01
 - **Responsable:** Pablo
-- **Revisión:** T1 aprobada por Shirley; T3b aprobada por Pato77232 en PR #24. Revisión humana de T3c pendiente.
-- **Estado:** T1, T2, T3a y T3b integradas; T3c implementada y auditada localmente; T3d y T4 pendientes.
-- **Fecha / base comprobada:** 30 de octubre de 2026; origin/develop 1d9381d, integración de T3b mediante PR #24.
-- **Rama actual:** `feature/FRONT-01-T3c-cliente-http`, creada desde 1d9381d.
+- **Revisión:** T3c aprobada por Pato77232 y Shirley, integrada en PR #30. T3d pendiente de revisión humana.
+- **Estado:** T1/T2/T3a–T3c integradas; T3d implementada localmente; T4 pendiente.
+- **Fecha / base comprobada:** 1 de noviembre de 2026; origin/develop 2b8a543, integración de T3c.
+- **Rama actual:** feature/FRONT-01-T3d-integracion, desde 2b8a543.
 - **Prioridad propuesta:** Alta, para desbloquear las pantallas de los cinco integrantes.
 - **Dependencias:** ADR 0003/0004, INFRA-01 y contratos de autenticación existentes. El enfoque de [frontend-acuerdos.md](../frontend-acuerdos.md) está confirmado por reporte humano; completar los detalles técnicos de cada paso antes de ejecutarlo, sin volver a pedir el mismo acuerdo general.
 
@@ -578,3 +578,69 @@ Fetch comprobó develop b1e6720; T3c conserva base 1d9381d, sin merge/rebase.
 Los resultados del 30 de octubre corresponden a esta rama; no certifican la
 combinación con los avances de flota/frecuencias. Publicación y PR se confirman
 externamente; sin integración ni aprobación humana de T3c inferidas.
+
+## 31. T3d — empaquetado y navegador con backend real
+
+Pablo autorizó T3d el 1 de noviembre de 2026. Base develop 2b8a543, PR #30
+integrada; rama feature/FRONT-01-T3d-integracion. T3c no se reimplementa.
+Contrato acotado antes de modificar producto:
+- Incluir los cuatro módulos API en la imagen, verificar MIME y excluir pruebas.
+- Reproducido en la imagen actual: nginx -t -c /etc/nginx/nginx-proxy.conf falla
+  porque falta el archivo. Recuperar ambos modos documentados: nginx.conf
+  estático por defecto, nginx-proxy.conf separado; Compose principal y dev
+  seleccionan el proxy explícitamente. La portada principal conserva su API.
+- Configurar BUS_PHOTO_STORAGE_DIR también en dev/QA, ruta creada en la imagen
+  backend; permite comprobar modo production sin omitir requisitos de Fleet.
+  Sin cambiar almacenamiento/producto de Fleet ni prometer persistencia en QA.
+- Nueva prueba con cliente servido por la imagen, Chrome real y backend/BD
+  efímeros: registro QA Customer, login/me/logout, errores, cookies y renovación
+  CSRF, sin duplicar mutaciones ni persistir credenciales/tokens fuera de memoria.
+  No es una pantalla de login ni acredita permisos de administrador de Fleet.
+- Conservar las pruebas existentes, no cambiar expectativas 503/502. Verificar
+  arranque real de las composiciones modificadas, sin .env ni recursos ajenos.
+- RN-01/02 y ADR 0004 vigentes. Aplica DESIGN.md sin cambios visuales: separación
+  transporte/presentación; comprobación técnica sin acreditar nueva usabilidad.
+- Documentar uso del cliente y su alcance JSON; multipart/proxy de fotos siguen
+  en coordinación con Edwin. PR #31 de FLEET-05 continúa en borrador, no integrada.
+  AUTH-WEB-01 y F-A7–F-A9 permanecen en el commit local 63ce51c de otra rama;
+  no se copian a esta entrega ni se inventa respuesta de Edwin.
+- Sin dependencias nuevas, cambios de backend, defectos inducidos, commits o push.
+
+### Evidencia final de T3d — 1 de noviembre de 2026
+
+- api-client-smoke.cjs aprobado: cuatro módulos servidos con MIME JavaScript,
+  pruebas excluidas, registro de un Customer QA, error de credenciales, login/me,
+  cookie de acceso HttpOnly/Lax en HTTP development, CSRF renovado tras login y
+  logout, rechazo CSRF real sin reintento, sesión revocada, cancelación/offline y
+  caída de backend normalizadas. BD comprobada: un usuario, una sesión revocada.
+- container-smoke.cjs aprobado sin cambiar aserciones: imagen estática, nginx -t,
+  usuario sin root, MIME, licencias, exclusiones, API 503 y portada 360/1280 con
+  zoom CSS 200 %/teclado. No acredita zoom nativo ni lector de pantalla.
+- csrf-smoke.cjs aprobado intacto: cookies/CSRF con dos perfiles, atributos de
+  producción Secure/__Host y receptor QA de transporte. No acredita TLS real.
+- Compose principal comprobado con override QA exclusivo: puerto frontend
+  aleatorio, backend sin puerto publicado, DB tmpfs y NODE_ENV=development para
+  HTTP. Build, frontend sin backend, migraciones, server.js real, health 200,
+  auth/me 401, API 404, módulo cliente 200 y caída de backend con portada 200
+  aprobados. No es una validación de despliegue productivo.
+- Frontend: lint, npm test y enumeración sin aislamiento aprobados: 81 contratos.
+  Node 24.21.0; Chrome 153.0.8010.36 local. Sintaxis y Prettier del script nuevo aprobados.
+- Backend idéntico al HEAD, probado en copia temporal con dependencias del mismo
+  lockfile: lint aprobado; 786 unitarias y 239 integraciones aprobadas (1.025).
+  PostgreSQL 16.13 efímero en tmpfs; sin .env ni datos reales.
+- format:check global falla en 20 archivos preexistentes; no se modifican ni
+  clasifican como defectos inducidos. Diff y 20 enlaces locales comprobados.
+- Contenedores, redes, volúmenes QA y perfiles retirados; imágenes quedan en
+  caché. Sin cambios a pruebas anteriores o backend, commits, push o revisión
+  humana. T3d está verificada localmente, no integrada ni cerrada.
+- Edwin: FLEET-05 T1/PR #31 sigue en borrador; la revisión previa no equivale a
+  aprobación/integración. Multipart, límites/tiempos de fotos y reparto siguen
+  pendientes de confirmación. Login visual está en AUTH-WEB-01 (63ce51c); esta
+  prueba usa Customer y no certifica el alta por COOPERATIVE_ADMIN.
+
+### Guardado y publicación autorizados de T3d
+Pablo solicitó commit atómico, publicación y preparación de PR el 1 de noviembre
+de 2026. El commit que contiene esta constancia guarda empaquetado, prueba y
+guía como un único cambio lógico. Fetch confirmó develop 2b8a543 sin avances
+posteriores. Sin cambios de producto desde la verificación; no se repitió la
+batería para el guardado. Confirmar push/PR en GitHub; sin integración inferida.

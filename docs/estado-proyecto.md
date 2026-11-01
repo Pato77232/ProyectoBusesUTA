@@ -2,10 +2,10 @@
 
 ## Alcance y frescura de esta fotografía
 
-- **Fecha de comprobación:** 30 de octubre de 2026, America/Guayaquil.
-- **Base integrada examinada:** `origin/develop` en `1d9381d`, actualizada mediante `git fetch origin`; incluye T3b, PR #24, aprobada por Pato77232 y fusionada el 30 de octubre de 2026.
-- **Cambio local actual:** FRONT-01 T3c en `feature/FRONT-01-T3c-cliente-http`, desde 1d9381d. Cliente HTTP y pruebas propias; pendiente de revisión humana e integración.
-- **Alcance de esta actualización:** FRONT-01 y próximos pasos de Pablo contrastados hoy. Las demás filas conservan sus fuentes y pueden requerir conciliación; no se certifica el estado completo de otros módulos.
+- **Fecha de comprobación:** 1 de noviembre de 2026, America/Guayaquil.
+- **Base integrada examinada:** origin/develop 2b8a543; T3c integrada en PR #30. La rama documental de login se conserva aparte en 63ce51c, sin publicar.
+- **Cambio local actual:** FRONT-01 T3d en feature/FRONT-01-T3d-integracion; empaquetado y navegador con API real, revisión humana pendiente.
+- **Alcance:** base frontend y dependencias de Pablo/Edwin; otras filas conservan sus fuentes históricas, sin certificar todo el sistema.
 - **Fuentes:** árbol y composición de esa base, specs versionadas y distribución de referencia en [equipo-y-acuerdos.md](equipo-y-acuerdos.md). No se inspeccionaron todas las ramas remotas ni se certifica el trabajo privado de otros integrantes.
 
 Este archivo orienta; la spec es la fuente del alcance y business-rules.md la de reglas funcionales. Si el código y la spec difieren, mostrar ambas evidencias y pedir resolver el conflicto, sin inventar acuerdos.
@@ -40,7 +40,8 @@ Antes de orientar a alguien:
 | [FLEET-04](specs/FLEET-04.md) | Edwin | En revisión, PR #29 | T1 3ddfc26 y T2 782c4b0 publicados sobre b1e6720. Lint y 786 unitarias + 239 integraciones aprobadas (1025), formato propio correcto; 20 archivos previos pendientes. Contrato confirmado por David según Edwin; revisión humana de código e integración pendientes |
 | [INFRA-02](specs/INFRA-02.md), [INFRA-03](specs/INFRA-03.md) | Shirley; revisor indicado Pablo | Cambios presentes; cierre documental pendiente | cross-env y .gitattributes presentes, lock actualizado en historial; no implica aprobación humana ni validación Windows actual |
 | [INFRA-04](specs/INFRA-04.md) | Pablo; revisora propuesta Shirley | Integrada: su código documental está contenido en c89b1b9 | La presencia en develop está comprobada; no se inventa evidencia de revisión humana/cierre |
-| [FRONT-01](specs/FRONT-01.md) | Pablo; revisión humana de T3c pendiente | T3b integrada en PR #24/1d9381d; T3c implementada localmente | Cliente de rutas/métodos conectado a transporte y caché; 81 contratos frontend aprobados (51 nuevos); auditoría local completada, matriz en sección 30. Referencia histórica de 45 contratos no verificable; ya no se exige localizarla para la entrega. T3d pendiente; sección 29 de la spec. |
+| [FRONT-01](specs/FRONT-01.md) | Pablo | T3c integrada en PR #30/2b8a543; T3d local | Módulos API incluidos en imagen y modos estático/proxy explícitos; prueba de sesión/CSRF en Chrome con Customer QA y backend real. Pruebas de imagen, cliente real, cookies/CSRF y Compose principal aprobadas; 81 contratos frontend y 1.025 backend aprobados, formato global fallido en 20 archivos previos. Sección 31; sin integración de T3d. |
+| [FLEET-05](https://github.com/Pato77232/ProyectoBusesUTA/pull/31) | Edwin | T1 en PR #31, borrador | Formulario sin API, revisado en 20d7b54. Multipart/proxy y conexión real requieren coordinación con Pablo; no inventar aceptación del reparto. |
 | search, bookings, payments y tickets | Según propuesta inferior | Sin implementación en la base examinada | Confirmar ramas de los responsables antes de crear tareas |
 | [PAGOS-01](specs/PAGOS-01.md) | Shirley | En desarrollo; T4 verificada localmente, revisión humana pendiente | Base `origin/develop` `e556e59`; lint y formato de sus archivos aprobados; 41 suites/564 unitarias y 13 suites/116 de integración aprobadas. `bookings` sigue simulado conforme al alcance T4. |
 | CI | Pablo | Sin workflow versionado en la base | Proponer una spec propia; no afirmar protecciones remotas sin consultarlas |
@@ -72,7 +73,7 @@ Orden recomendado para discutir con el equipo. Cada fila es **Propuesta sin spec
 |---|---|---|
 | Pablo | 1. Registrar la revisión/cierre de INFRA-04 cuando exista evidencia humana | Su contenido ya está en develop; no repetir implementación ni autoaprobar |
 | Pablo | 2. Preparar publicación/revisión de AUTH-BOOTSTRAP-01 | Corrección local verificada en 9b65e9f; comprobar integración con develop antes de cerrarla |
-| Pablo | 3. FRONT-01: completar publicación y revisión humana de T3c | Rama feature/FRONT-01-T3c-cliente-http desde 1d9381d; guardado/publicación autorizados el 1 de noviembre, commit con constancia en la spec; confirmar publicación/PR en GitHub. Matriz ejecutada y cinco brechas de evidencia cubiertas, sección 30; contrato anterior registrado como no verificable. Tras revisión/integración, continuar T3d desde develop. |
+| Pablo | 3. FRONT-01: publicar T3d y completar revisión humana | Guardado/publicación autorizados en el commit con constancia en la sección 31; confirmar push/PR. Tras integrar, continuar login con AUTH-WEB-01 (63ce51c); coordinar multipart/proxy con Edwin. No mezclar el alta de buses con esta entrega ni declarar acuerdos pendientes como confirmados. |
 | Pablo | 4. Crear endpoint de alta de oficinista | Acordar quién lo autoriza y alcance con Shirley; no inferir permisos |
 | Pablo | 5. Preparar CI y luego pantallas de acceso/cooperativas, una por tarea | Specs separadas; CI depende del entorno de integración, pantallas de la base frontend |
 | Edwin | 1. Registrar un bus con los datos RN-10 | Spec y acuerdo de fotografías/almacenamiento; grupo de buses existente |

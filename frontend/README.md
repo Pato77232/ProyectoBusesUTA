@@ -23,8 +23,11 @@ docker build -t busesuta-web01-frontend frontend
 docker run --rm -p 127.0.0.1:8080:8080 busesuta-web01-frontend
 ```
 
-El proxy requiere una red Docker donde `backend` sea resoluble. El segundo comando
-solo permite revisar estáticos; la API fallará sin ese servicio.
+Esta ejecución aislada usa nginx.conf estático: API 503 explícita. Compose
+selecciona nginx-proxy.conf y conecta la API; ambos archivos están en la imagen.
+
+El proxy de Compose requiere una red Docker donde `backend` sea resoluble.
+El segundo comando solo sirve estáticos, incluso si existe otro backend.
 Nginx 1.30.6 alpine3.24-slim se fija por digest en Dockerfile, reutilizado de la
 rama FRONT-01-T2-proxy. Bootstrap conserva su licencia MIT y la fuente su OFL.
 La configuración de cookies de producción no cambia: una futura pantalla de acceso
