@@ -28,7 +28,7 @@ function createRouteSheetsModule({
   auth,
   frequencyRepository,
   busGroupQueries,
-  busRepository,
+  busQueries,
   bookingRepository,
 } = {}) {
   const routeSheetRepository = new PgRouteSheetRepository(pool);
@@ -39,7 +39,7 @@ function createRouteSheetsModule({
 
   const frequencyQueryPort = new FrequencyQueryAdapter({ frequencyRepository });
   const busGroupQueryPort = new BusGroupQueryAdapter({ busGroupQueries });
-  const busQueryPort = new BusQueryAdapter({ busRepository });
+  const busQueryPort = new BusQueryAdapter({ busQueries });
   const bookingQueryPort = new BookingQueryAdapter({ bookingRepository });
 
   const createRouteSheetUseCase = createRouteSheetUseCaseFactory({

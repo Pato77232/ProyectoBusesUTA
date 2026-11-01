@@ -24,8 +24,9 @@ function createFleetModule({ pool, auth, env = process.env }) {
   const storage = new LocalBusPhotoStorage({
     root: env.BUS_PHOTO_STORAGE_DIR || path.join(os.homedir(), '.busesuta', 'fleet-photos'),
   });
+  const busRepository = new PgBusRepository(pool);
   const persist = createPersistBusWithPhotos({
-    repository: new PgBusRepository(pool),
+    repository: busRepository,
     storage,
     logger,
   });
@@ -44,6 +45,12 @@ function createFleetModule({ pool, auth, env = process.env }) {
     busGroupQueries: {
       findByCooperativeId: (cooperativeId) => repository.listByCooperative(cooperativeId),
       findById: (id, cooperativeId) => repository.findById(id, cooperativeId),
+    },
+    busQueries: {
+      findById: (id, cooperativeId) => busRepository.findById(id, cooperativeId),
+      findByCooperativeId: (cooperativeId) => busRepository.listByCooperative(cooperativeId),
+      findByBusGroupId: (busGroupId, cooperativeId) =>
+        busRepository.listByBusGroup(busGroupId, cooperativeId),
     },
   };
 }

@@ -17,6 +17,10 @@ const BUS_UNIQUE_CONSTRAINTS = [
   'buses_vin_unique',
   'buses_cooperative_unit_unique',
 ];
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const BUS_SUMMARY_COLUMNS = 'id, cooperative_id, bus_group_id, plate, unit_number, capacity';
+
+const isUuid = (value) => typeof value === 'string' && UUID_PATTERN.test(value);
 
 async function insertBus(client, request) {
   const { id, cooperativeId, data, configuration } = request;
@@ -109,6 +113,17 @@ function presentBus(row, photos) {
   };
 }
 
+function presentBusSummary(row) {
+  return {
+    id: row.id,
+    cooperativeId: row.cooperative_id,
+    busGroupId: row.bus_group_id,
+    plate: formatBusPlate(row.plate),
+    unitNumber: Number(row.unit_number),
+    capacity: row.capacity,
+  };
+}
+
 class PgBusRepository extends BusRepository {
   constructor(pool, { newId = randomUUID } = {}) {
     super();
@@ -168,6 +183,34 @@ class PgBusRepository extends BusRepository {
     } finally {
       client.release(discardClient);
     }
+  }
+
+  async findById(id, cooperativeId) {
+    if (!isUuid(id) || !isUuid(cooperativeId)) return null;
+    const { rows } = await this.pool.query(
+      `SELECT ${BUS_SUMMARY_COLUMNS} FROM buses WHERE id = $1 AND cooperative_id = $2`,
+      [id, cooperativeId],
+    );
+    return rows[0] ? presentBusSummary(rows[0]) : null;
+  }
+
+  async listByCooperative(cooperativeId) {
+    if (!isUuid(cooperativeId)) return [];
+    const { rows } = await this.pool.query(
+      `SELECT ${BUS_SUMMARY_COLUMNS} FROM buses WHERE cooperative_id = $1 ORDER BY unit_number`,
+      [cooperativeId],
+    );
+    return rows.map(presentBusSummary);
+  }
+
+  async listByBusGroup(busGroupId, cooperativeId) {
+    if (!isUuid(busGroupId) || !isUuid(cooperativeId)) return [];
+    const { rows } = await this.pool.query(
+      `SELECT ${BUS_SUMMARY_COLUMNS} FROM buses
+       WHERE bus_group_id = $1 AND cooperative_id = $2 ORDER BY unit_number`,
+      [busGroupId, cooperativeId],
+    );
+    return rows.map(presentBusSummary);
   }
 }
 
