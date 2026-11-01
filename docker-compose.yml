@@ -24,6 +24,9 @@ services:
       JWT_SECRET: ${JWT_SECRET:?Define JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-30m}
       PORT: 3000
+      BUS_PHOTO_STORAGE_DIR: /home/node/fleet-photos
+    volumes:
+      - fleet_photos:/home/node/fleet-photos
     ports:
       - "127.0.0.1:3000:3000"
     depends_on:
@@ -31,3 +34,4 @@ services:
         condition: service_healthy
 volumes:
   database:
+  fleet_photos:

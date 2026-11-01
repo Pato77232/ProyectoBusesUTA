@@ -6,6 +6,14 @@ class BusRegistrationValidationError extends Error {
   }
 }
 
+class BusRegistrationForbiddenError extends Error {
+  constructor() {
+    super('Acceso no permitido.');
+    this.name = 'BusRegistrationForbiddenError';
+    this.code = 'FORBIDDEN';
+  }
+}
+
 class BusSeatLayoutNotFoundError extends Error {
   constructor() {
     super('La plantilla o su versión no está disponible.');
@@ -43,6 +51,7 @@ class BusRegistrationCommitUnknownError extends Error {
 
 module.exports = {
   BusRegistrationValidationError,
+  BusRegistrationForbiddenError,
   BusSeatLayoutNotFoundError,
   BusGroupNotFoundError,
   BusAlreadyExistsError,
