@@ -5,6 +5,7 @@ const { createAuthModule } = require('./modules/auth');
 const { createTenantsModule } = require('./modules/tenants');
 const { createFleetModule } = require('./modules/fleet');
 const { createFrequenciesModule } = require('./modules/frequencies');
+const { createRouteSheetsModule } = require('./modules/route-sheets');
 const { createPaymentsModule } = require('./modules/payments');
 async function start(env = process.env) {
   const port = env.PORT === undefined ? 3000 : Number(env.PORT);
@@ -17,12 +18,20 @@ async function start(env = process.env) {
     const tenants = createTenantsModule({ pool, auth });
     const fleet = createFleetModule({ pool, auth, env });
     const frequencies = createFrequenciesModule({ pool, auth });
+    const routeSheets = createRouteSheetsModule({
+      pool,
+      auth,
+      frequencyQueries: frequencies.frequencyQueries,
+      busGroupQueries: fleet.busGroupQueries,
+      busQueries: fleet.busQueries,
+    });
     const payments = createPaymentsModule({ pool, auth, env });
     const app = createApp({
       auth,
       tenants,
       fleet,
       frequencies,
+      routeSheets,
       payments,
       pool,
       trustProxy: env.TRUST_PROXY === 'loopback',

@@ -75,6 +75,7 @@ beforeAll(async () => {
         ? { id, status: 'ACTIVE' }
         : null,
     findActiveByCooperativeId: async () => [{ id: frequencyId, status: 'ACTIVE' }],
+    findWithStops: async () => null,
   };
   const routeSheets = createRouteSheetsModule({
     pool,
