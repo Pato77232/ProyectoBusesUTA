@@ -24,4 +24,6 @@ function createFleetModule({ pool, auth }) {
   };
 }
 
-module.exports = { createFleetModule };
+const inspectFleetPhotoOperation = require('./infrastructure/inspect-fleet-photo-operation');
+
+module.exports = { createFleetModule, inspectFleetPhotoOperation };
