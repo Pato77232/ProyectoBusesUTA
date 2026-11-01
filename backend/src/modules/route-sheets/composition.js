@@ -26,7 +26,7 @@ const BookingQueryAdapter = require('./infrastructure/adapters/booking-query-ada
 function createRouteSheetsModule({
   pool,
   auth,
-  frequencyRepository,
+  frequencyQueries,
   busGroupQueries,
   busQueries,
   bookingRepository,
@@ -37,7 +37,7 @@ function createRouteSheetsModule({
   const routeSheetCycleRepository = new PgRouteSheetCycleRepository(pool);
   const routeSheetModificationLogRepository = new PgRouteSheetModificationLogRepository(pool);
 
-  const frequencyQueryPort = new FrequencyQueryAdapter({ frequencyRepository });
+  const frequencyQueryPort = new FrequencyQueryAdapter({ frequencyQueries });
   const busGroupQueryPort = new BusGroupQueryAdapter({ busGroupQueries });
   const busQueryPort = new BusQueryAdapter({ busQueries });
   const bookingQueryPort = new BookingQueryAdapter({ bookingRepository });

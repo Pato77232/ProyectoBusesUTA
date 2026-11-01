@@ -60,7 +60,7 @@ La consulta de buses y la validación de grupo ya están disponibles mediante FL
 
 - No se propone crear ni alterar tablas o migraciones.
 - Se reutilizan los datos y DTO definidos en ROUTE-SHEETS-01 y FREQ-01.
-- La fábrica actual `createRouteSheetsModule` recibe `pool`, `auth`, `frequencyRepository`, `busGroupQueries`, `busQueries` y `bookingRepository`. Para respetar la frontera entre módulos, la propuesta es inyectar APIs públicas de consulta (`frequencyQueries`, `busQueries`, `bookingQueries`), no repositorios/adaptadores internos de otros módulos.
+- La fábrica de `createRouteSheetsModule` recibe `pool`, `auth`, `frequencyQueries`, `busGroupQueries`, `busQueries` y `bookingRepository`. La API pública de `fleet.busQueries` está implementada por FLEET-04. La propuesta para completar la frontera de `frequencies` y `bookings` es inyectar sus APIs públicas de consulta, no repositorios/adaptadores internos de otros módulos.
 - El `cooperative_id` de solicitudes internas debe derivarse de la identidad autenticada; no se aceptará uno elegido por el body.
 - FREQ-01 expone hoy `findActiveByRoute` desde `frequencies/index.js`; ROUTE-SHEETS-01 requiere consultas de frecuencias por ID, por cooperativa y con paradas, por lo que ese contrato aún debe acordarse. FLEET-04 ya resuelve la consulta interna de buses mediante `fleet.busQueries`. No se identifica una API pública de producción de `bookings` para las consultas de pasajeros requeridas por ROUTE-SHEETS-01.
 
@@ -149,6 +149,10 @@ No aplica a esta propuesta. No introducir defectos inducidos sin autorización d
 4. **Actualizar estado:** registrar evidencia de ROUTE-SHEETS-02 en `docs/estado-proyecto.md`; mantener Borrador hasta que el alcance se confirme.
 
 **Evidencia actualizada el 1 de noviembre de 2026:** rebase local completado en `0c6ebb4` sobre la referencia local `origin/develop` `efcfcf2`. `app.js` admite las rutas, pero `server.js` todavía no instancia Route Sheets. FLEET-04 expone `fleet.busQueries` y valida pertenencia al grupo. `frequencies` continúa exponiendo solo `findActiveByRoute`; no se identificó un contrato público de producción de `bookings` para consultas de pasajeros. No se ejecutaron pruebas porque esta sección modifica solo documentación.
+
+**Sección 1, consumidor de frecuencias:** `FrequencyQueryAdapter` ahora recibe `frequencyQueries` y delega las operaciones de ID, frecuencias activas por cooperativa y detalle con paradas. Valida que estén presentes las tres funciones requeridas al componer y propaga errores del proveedor; se eliminaron respaldos que devolvían `[]`, `null` o consultaban directamente un repositorio. `createRouteSheetsModule` recibe el nuevo argumento. No se modificó `frequencies/index.js`: el proveedor aún no expone este contrato y su confirmación por Pablo sigue pendiente, por lo que no se declara integrada la composición de producción.
+
+Verificación de la sección 1: 8 suites/54 pruebas unitarias de Route Sheets aprobadas; lint aprobado; Prettier individual de los archivos modificados aprobado; `git diff --check` aprobado. `npm test` no completó: 52 suites/54 pasaron y 3 pruebas fallaron en dos suites ajenas al cambio (falta `busboy` en `fleet/bus-upload.test.js` y errores `EACCES` de loopback en `payments/payment-proof.routes.test.js`); integración no llegó a ejecutarse. La prueba enfocada `fleet/route-sheet-buses.test.js` tampoco pudo iniciar por la dependencia ausente `busboy`. `npm run format:check` global continúa fallando en 44 archivos preexistentes no modificados. No se instaló ninguna dependencia.
 
 ## 14. Revisión y cierre
 

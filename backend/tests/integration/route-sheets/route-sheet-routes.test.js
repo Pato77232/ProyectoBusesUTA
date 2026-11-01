@@ -95,6 +95,11 @@ beforeAll(async () => {
   const routeSheets = createRouteSheetsModule({
     pool,
     auth,
+    frequencyQueries: {
+      findById: async () => null,
+      findActiveByCooperativeId: async () => [],
+      findWithStops: async () => null,
+    },
     busGroupQueries: fleet.busGroupQueries,
   });
   server = http.createServer(createApp({ auth, tenants, fleet, routeSheets, pool }));
