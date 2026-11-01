@@ -5,9 +5,9 @@
 - **Módulo:** `fleet`; ajuste acotado en `route-sheets`
 - **Responsable:** Edwin, responsable de Fleet y solicitante de completar esta tarea
 - **Revisor propuesto / confirmado:** David propuesto para revisión de código, pendiente. Edwin comunicó su confirmación del contrato y los cambios de T2; no equivale a revisión de código aprobada
-- **Estado:** Implementación T1/T2 verificada y preparada para PR por petición de Edwin; revisión humana e integración pendientes
+- **Estado:** En revisión, PR #29 abierta por petición de Edwin; implementación verificada, aprobación humana e integración pendientes
 - **Prioridad y dependencias:** FLEET-01, FLEET-02 (PR #27) y ROUTE-SHEETS-01 (PR #13), presentes en develop. Prioritaria para que hojas de ruta opere con buses reales.
-- **Rama / PR / base comprobada:** `feature/FLEET-04-consulta-buses`, creada desde `origin/develop` en `4f34748` el 31 de octubre de 2026; actualizada por avance directo a `b1e6720` el 1 de noviembre; sin PR.
+- **Rama / PR / base comprobada:** `feature/FLEET-04-consulta-buses`, creada desde `origin/develop` en `4f34748` el 31 de octubre de 2026; actualizada por avance directo a `b1e6720` el 1 de noviembre; PR #29: https://github.com/Pato77232/ProyectoBusesUTA/pull/29.
 - **Autorización de alcance:** el 31 de octubre de 2026 se aprobó por chat iniciar solo T1 (Fleet). Edwin pidió terminar FLEET-04 y comunicó expresamente que David confirmó BusSummary, los cambios de asignaciones/paradas y BUS_NOT_IN_ROUTE_SHEET_GROUP (409); T2 queda autorizado con ese alcance.
 
 ## 1. Objetivo
@@ -166,3 +166,5 @@ Resultado definitivo sobre base real b1e6720: lint aprobado; npm test aprobó 78
 ### Publicación solicitada por Edwin, 1 de noviembre de 2026
 
 Edwin pidió guardar la PR de FLEET-04. Se separó T1 (consultas Fleet) en 3ddfc26; este segundo commit contiene T2 (composición y pertenencia al grupo), pruebas y evidencia final. Base remota comprobada b1e6720 y sin PR previa para esta rama. Se publicará feature/FLEET-04-consulta-buses hacia develop con revisión humana pendiente. Los 1025 casos aprobados corresponden a los archivos funcionales finales; esta preparación solo divide los commits y actualiza documentación. Lint y formato propio correctos; formato global pendiente en 20 archivos anteriores. Asistencia de Codex en implementación, pruebas y preparación de PR; no sustituye revisión humana ni autoriza defectos inducidos.
+
+Publicación confirmada el 1 de noviembre de 2026: T1 en 3ddfc26 y T2 en 782c4b0, rama publicada y PR #29 abierta hacia develop, fuera de borrador: https://github.com/Pato77232/ProyectoBusesUTA/pull/29. Evidencia de 1025 pruebas aprobadas y 20 archivos previos pendientes de formato incluida en la descripción. No se solicitó aprobación en nombre de David ni se integraron ramas. Esta constancia documental no cambia código ni requiere repetir pruebas ya aprobadas. Revisión humana e integración pendientes.
