@@ -3,9 +3,9 @@
 ## Alcance y frescura de esta fotografía
 
 - **Fecha de comprobación:** 29 de octubre de 2026, America/Guayaquil.
-- **Base integrada examinada:** `origin/develop` en `e556e59`, actualizada mediante `git fetch origin`; incluye la corrección de rollback de Fleet `a78c750`, integrada en `4c1fbbd`.
-- **Cambio local actual:** PAGOS-01 T4 en `feature/PAGOS-01-subir-comprobante-actualizado`, basada en la referencia actual. Lint, formato de los archivos propios, 41 suites/564 unitarias y 13 suites/116 pruebas de integración aprobadas. Publicación y revisión humana pendientes.
-- **Alcance de esta actualización:** la evidencia específica de PAGOS-01 se comprobó hoy; las demás filas conservan las fechas y fuentes que indican.
+- **Base integrada examinada:** `origin/develop` en `f26415d`, actualizada mediante `git fetch origin`; incluye T2 (92d91d3), T3a (e715c86), bienvenida WEB-01 y carga de comprobantes.
+- **Cambio local actual:** FRONT-01 T3b en `feature/FRONT-01-T3b-cache-csrf`, desde f26415d. Caché CSRF y 13 contratos nuevos; pendiente de revisión humana e integración.
+- **Alcance de esta actualización:** FRONT-01 y próximos pasos de Pablo contrastados hoy con Git y PR #21. Pablo aclaró que PR #20 fue un error y se cerró por ese motivo; no se recomienda reabrirla. Las demás filas conservan sus fuentes y pueden requerir conciliación. La evidencia previa de PAGOS-01 no equivale a una ejecución nueva de esa tarea.
 - **Fuentes:** árbol y composición de esa base, specs versionadas y distribución de referencia en [equipo-y-acuerdos.md](equipo-y-acuerdos.md). No se inspeccionaron todas las ramas remotas ni se certifica el trabajo privado de otros integrantes.
 
 Este archivo orienta; la spec es la fuente del alcance y business-rules.md la de reglas funcionales. Si el código y la spec difieren, mostrar ambas evidencias y pedir resolver el conflicto, sin inventar acuerdos.
@@ -31,12 +31,12 @@ Antes de orientar a alguien:
 | [TENANTS-01](specs/TENANTS-01.md), [AUTH-FK-01](specs/AUTH-FK-01.md), [AUTH-05](specs/AUTH-05.md) | Pablo | Código integrado | Cooperativas, integridad y administrador principal; no implica pantallas ni provisión del primer SYSTEM_ADMIN |
 | AUTH-BOOTSTRAP-01 | Pablo | Trabajo en rama local, fuera de develop | Corrección del pegado de contraseña en `9b65e9f`; 98 pruebas aprobadas en su rama. Publicación/revisión/integración pendientes; no rehacer la tarea |
 | [FLEET-01](specs/FLEET-01.md) | Edwin | Código integrado, PR #10 | Crear/listar grupos; no hay registro de buses ni plantillas en la base examinada |
-| [FLEET-02](specs/FLEET-02.md) | Edwin | En revisión, PR #27 con T1–T4 por petición de Edwin | Alta HTTP y fotos privadas persistentes; T3 en 36b9255 y T4 en commit separado. 765 unitarias + 220 integraciones aprobadas (985), lint y formato del incremento correctos; 24 archivos previos pendientes de formato. Imagen real/recreación verificadas. PR #26 integrada, develop comprobado 4937892; PR lista para revisión humana; integración bloqueada por conflictos en server.js y este registro compartido |
-| [FREQ-01](specs/FREQ-01.md) | David, según distribución; spec aún «por asignar» | Código integrado; conexión al arranque pendiente | Existe módulo y montaje opcional en app.js; server.js no lo instancia |
+| [FREQ-01](specs/FREQ-01.md) | David | Código funcional integrado; conexión al arranque desarrollada en FREQ-02, pendiente de integrar en `develop` | La responsabilidad se actualizó por confirmación de David. El commit local `7026418` conecta el módulo al servidor; lint y pruebas pasan en esta rama. No atribuir este cambio local a `develop`. |
+| [FREQ-02](specs/FREQ-02.md) | David | En desarrollo en `feature/FREQ-02-arranque-frecuencias` | `npm test`: 42 suites/566 unitarias y 13 suites/116 de integración; lint y arranque real aprobados. `GET /api/v1/frequencies` sin credenciales responde 401 desde el servidor. Chequeo global de formato señala 48 archivos no modificados; archivos cambiados pasan Prettier individualmente. |
 | [ROUTE-SHEETS-01](specs/ROUTE-SHEETS-01.md) | David, según distribución; confirmar autor/responsable | Código integrado, PR #13; integración operativa pendiente | app.js admite routeSheets, pero server.js no lo instancia; la composición necesita contratos con fleet/frequencies/bookings |
 | [INFRA-02](specs/INFRA-02.md), [INFRA-03](specs/INFRA-03.md) | Shirley; revisor indicado Pablo | Cambios presentes; cierre documental pendiente | cross-env y .gitattributes presentes, lock actualizado en historial; no implica aprobación humana ni validación Windows actual |
 | [INFRA-04](specs/INFRA-04.md) | Pablo; revisora propuesta Shirley | Integrada: su código documental está contenido en c89b1b9 | La presencia en develop está comprobada; no se inventa evidencia de revisión humana/cierre |
-| [FRONT-01](specs/FRONT-01.md) | Pablo; revisión humana por confirmar | T3a verificada desde develop; pendiente de revisión | Transporte JSON/errores; 17 contratos y lint frontend aprobados. Backend: lint y 657 pruebas aprobados; formato falla en 27 archivos previos. Cambio menor de 400 líneas. T3b–T3d se retomarán desde develop tras integrar sus dependencias. Avance completo anterior conservado; sección 27 de la spec |
+| [FRONT-01](specs/FRONT-01.md) | Pablo; revisión humana de T3b pendiente | T2 y T3a integradas; T3b guardada en el commit que contiene esta constancia; pendiente de publicación/revisión | Base f26415d; T3a PR #21/e715c86. T3b: lint frontend y 30 contratos aprobados (13 nuevos); backend lint y 680 pruebas aprobados, formato global fallido en 24 archivos existentes. T3c/T3d pendientes; sección 28 de la spec. |
 | search, bookings, payments y tickets | Según propuesta inferior | Sin implementación en la base examinada | Confirmar ramas de los responsables antes de crear tareas |
 | [PAGOS-01](specs/PAGOS-01.md) | Shirley | En desarrollo; T4 verificada localmente, revisión humana pendiente | Base `origin/develop` `e556e59`; lint y formato de sus archivos aprobados; 41 suites/564 unitarias y 13 suites/116 de integración aprobadas. `bookings` sigue simulado conforme al alcance T4. |
 | CI | Pablo | Sin workflow versionado en la base | Proponer una spec propia; no afirmar protecciones remotas sin consultarlas |
@@ -68,14 +68,14 @@ Orden recomendado para discutir con el equipo. Cada fila es **Propuesta sin spec
 |---|---|---|
 | Pablo | 1. Registrar la revisión/cierre de INFRA-04 cuando exista evidencia humana | Su contenido ya está en develop; no repetir implementación ni autoaprobar |
 | Pablo | 2. Preparar publicación/revisión de AUTH-BOOTSTRAP-01 | Corrección local verificada en 9b65e9f; comprobar integración con develop antes de cerrarla |
-| Pablo | 3. FRONT-01: revisar/guardar T2.4 y preparar revisión de T2 | T2.3 en cddbe34; guía/material de PR locales. Confirmar revisor y validación de la combinación con develop antes de integrar. Mantener límites de formato, IP y autenticación visibles; T3/T4 aún pendientes |
+| Pablo | 3. FRONT-01: preparar publicación y revisión humana de T3b | Caché/invalidación CSRF implementadas en feature/FRONT-01-T3b-cache-csrf; guardadas por autorización de Pablo el 30 de octubre, en el commit que contiene esta constancia. Sin publicación. Tras integrar T3b, continuar T3c y luego T3d desde develop. PR #20 descartada por aclaración humana; no es un bloqueo de T3b. |
 | Pablo | 4. Crear endpoint de alta de oficinista | Acordar quién lo autoriza y alcance con Shirley; no inferir permisos |
 | Pablo | 5. Preparar CI y luego pantallas de acceso/cooperativas, una por tarea | Specs separadas; CI depende del entorno de integración, pantallas de la base frontend |
 | Edwin | 1. Registrar un bus con los datos RN-10 | Spec y acuerdo de fotografías/almacenamiento; grupo de buses existente |
 | Edwin | 2. Consultar buses de la cooperativa | Contrato público requerido por hojas de ruta; coordinar con David |
 | Edwin | 3. Definir y consultar plantilla de asientos, en tareas separadas | Acordar identificadores, pisos y tipos con Leslie; RN-12 |
 | Edwin | 4. Pantalla de registro y luego consulta de buses | Contratos anteriores y base frontend |
-| David | 1. Resolver composición y contratos operativos de frecuencias/hojas de ruta | Coordinar con Pablo y Edwin; crear spec acotada; no importar capas internas |
+| David | 1. Preparar revisión humana de [FREQ-02](specs/FREQ-02.md) | Registrar la sección 2; confirmar revisora y conservar pendiente la integración en `develop` hasta que haya evidencia |
 | David | 2. Exponer consulta de viajes por fecha | Acordar Trip, ventana de compra y fuente del bus con búsqueda/reservas |
 | David | 3. Pantalla de creación de frecuencia y luego listado/estado | Backend conectado y base frontend; specs separadas |
 | David | 4. Pantalla de hoja de ruta manual | Contratos y pruebas de integración operativa resueltos |

@@ -2,10 +2,10 @@
 
 - **ID local:** FRONT-01
 - **Responsable:** Pablo
-- **Revisión:** T1 aprobada por Shirley e integrada; revisión humana de T2 pendiente de confirmar.
-- **Estado:** T1 integrada; T2.1–T2.3 versionados, T2.4 documentado/verificado localmente. T2 pendiente de revisión humana/integración; T3–T4 pendientes.
-- **Fecha / base comprobada:** 26 de octubre de 2026; T1 integrada en eebfe75, remoto contrastado c8bb5d3. Pruebas de T2 sobre cddbe34, sin integrar todavía el cambio posterior de pagos.
-- **Ramas:** T1 `feature/FRONT-01-base-compartida` integrada en PR #16; T2 actual `feature/FRONT-01-T2-proxy`.
+- **Revisión:** T1 aprobada por Shirley; T2 y T3a integradas. T3b pendiente de revisión humana.
+- **Estado:** T1, T2 y T3a integradas; T3b implementada localmente; T3c/T3d y T4 pendientes.
+- **Fecha / base comprobada:** 29 de octubre de 2026; origin/develop f26415d. T2 integrada en 92d91d3 y T3a mediante PR #21 en e715c86.
+- **Rama actual:** `feature/FRONT-01-T3b-cache-csrf`, creada desde f26415d.
 - **Prioridad propuesta:** Alta, para desbloquear las pantallas de los cinco integrantes.
 - **Dependencias:** ADR 0003/0004, INFRA-01 y contratos de autenticación existentes. El enfoque de [frontend-acuerdos.md](../frontend-acuerdos.md) está confirmado por reporte humano; completar los detalles técnicos de cada paso antes de ejecutarlo, sin volver a pedir el mismo acuerdo general.
 
@@ -385,7 +385,7 @@ Se divide el mismo alcance T3 en entregas secuenciales bajo esta spec:
 | T3a | Transporte JSON, errores normalizados y pruebas de contrato | feature/FRONT-01-T3a-transporte-json desde origin/develop 92d91d3 |
 | T3b | Caché/renovación CSRF y sus contratos | Crear desde develop después de integrar T3a |
 | T3c | Cliente de rutas/métodos y los 45 contratos completos ya escritos | Crear desde develop después de integrar T3b; conservar las aserciones |
-| T3d | Empaquetado, documentación y navegador con backend real | Crear desde develop tras T3c y corrección WEB-01 integradas |
+| T3d | Empaquetado, documentación y navegador con backend real | Crear desde develop tras integrar T3c; verificar el empaquetado vigente (ver sección 28) |
 
 Cada PR tendrá menos de unas 400 líneas de cambio; el tamaño se comprueba sobre
 su diff real antes de publicarla. No basta dividir commits dentro de una PR grande.
@@ -441,3 +441,69 @@ como excepción puntual a la prohibición de push de AGENTS.md. El commit que
 contiene esta constancia guarda el transporte y su evidencia; no autoriza merge,
 rebase, tags ni publicación de las demás entregas. Confirmar el resultado del push
 con Git; esta autorización no equivale a revisión humana o integración.
+
+## 28. T3b — caché CSRF en memoria
+
+Pablo autorizó continuar el 29 de octubre de 2026 y aclaró que la PR #20 fue
+un error y se cerró por ese motivo. No se reabre ni se traslada su corrección a
+esta entrega. Esa PR no es un requisito de T3b; T3d comprobará el empaquetado
+vigente y cualquier incompatibilidad real se delimitará antes de corregirla.
+T3a está integrada mediante PR #21, commit e715c86, en la base f26415d.
+
+### Contrato y alcance
+
+- `createCsrfCache(send)` recibe el transporte JSON de T3a por inyección y expone
+  `getToken({signal})` e `invalidate()`. Son funciones internas, no el cliente
+  público para pantallas. Guarda exclusivamente en memoria, sin leer cookies,
+  JWT ni almacenamiento persistente.
+- La primera lectura obtiene `/api/v1/auth/csrf`; las posteriores reutilizan el
+  token. Invalidar obliga a una lectura nueva. No se interpreta su firma ni se
+  inventa una vigencia distinta de la validada por el servidor.
+- Las lecturas se serializan: dos consumidores simultáneos no rotan cookies en
+  paralelo. Tras invalidar se espera a que termine la lectura anterior antes de
+  obtener otra; una respuesta anterior no se devuelve ni repuebla la caché.
+  Ese consumidor recibe `CSRF_STATE_CHANGED` y puede solicitar la acción otra vez.
+- Cada lectura de red recibe el signal de su consumidor. Una operación en cola
+  comprueba la cancelación al llegar a su turno; no cancela la petición ajena.
+  Fallos, cancelaciones y respuestas sin token no se guardan ni se reintentan.
+- T3c conectará la invalidación con login/logout y `CSRF_TOKEN_INVALID`, sin
+  repetir mutaciones automáticamente. Esta entrega no realiza login/logout,
+  no añade pantallas ni cambia backend, Nginx, Compose o dependencias.
+- RN-01/02 y ADR 0004 siguen vigentes. SOLID: responsabilidad separada del
+  transporte y dependencia inyectada. Aplica DESIGN.md sin cambios visuales;
+  usabilidad en este alcance: errores distinguibles para la futura vista, sin
+  exponer detalles internos. No acredita accesibilidad de una pantalla nueva.
+- No se introduce ni corrige ningún defecto académico autorizado.
+
+### Verificación — 29 de octubre de 2026
+
+- Node 24.21.0. Frontend: lint aprobado y 30 contratos aprobados (17 existentes
+  de T3a y 13 nuevos). `npm test` aprobó ambos archivos; además se ejecutó
+  `node --test --test-isolation=none tests/api/*.test.js` para enumerar los 30.
+- Backend sin cambios: lint aprobado; `npm test` aprobado, 564 unitarias y 116
+  de integración (680 en total). PostgreSQL 16.13 aislado, base terminada en
+  `_test`, datos en tmpfs y puerto aleatorio local; sin leer .env ni datos reales.
+- Primer intento limitado por el sandbox: 3 unitarias fallaron por listen EPERM;
+  la ejecución completa con permisos para sockets locales pasó sin cambiar
+  pruebas. Docker Desktop no estaba disponible; se usó el daemon default.
+- `format:check` global falló en 24 archivos preexistentes del backend. No se
+  modificaron ni se clasifican como errores inducidos. Prettier propio y
+  `git diff --check` aprobados; diff completo revisado, incluidos archivos nuevos.
+- El avance completo citado en la sección 27 no está en las ramas locales de
+  este checkout; no se eliminó ni se modificaron sus 45 contratos. Estas 13
+  pruebas son propias de T3b y no sustituyen la verificación posterior de T3c.
+- Sin verificación nueva en navegador: corresponde a T3d. Sin commit, push,
+  aprobación humana ni integración de T3b; implementación asistida por Codex.
+
+El contenedor PostgreSQL temporal fue retirado al finalizar. La entrega completa
+abarca menos de 400 líneas de cambio, incluidos código, pruebas y documentación.
+
+### Guardado autorizado — 30 de octubre de 2026
+
+Pablo solicitó el commit atómico de T3b. El commit que contiene esta constancia
+guarda la caché, sus 13 pruebas y la documentación como un único cambio lógico,
+con el mensaje `feat(infra): agrega la caché CSRF del frontend` y referencia a
+esta spec. Diff completo y `git diff --check` revisados antes de guardar.
+El código no cambia respecto de la verificación del 29 de octubre; no se
+repitió la batería completa para este guardado. Permanecen los resultados y
+el fallo global de formato documentados arriba. Sin push, PR ni integración.
