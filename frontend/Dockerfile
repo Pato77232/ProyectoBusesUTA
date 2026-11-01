@@ -5,6 +5,8 @@ RUN rm /etc/nginx/conf.d/default.conf /usr/share/nginx/html/50x.html
 COPY nginx-proxy.conf /etc/nginx/nginx.conf
 COPY proxy-api.conf /etc/nginx/proxy-api.conf
 COPY index.html /usr/share/nginx/html/index.html
+COPY pages/registrar-bus.html /usr/share/nginx/html/pages/registrar-bus.html
+COPY src/fleet /usr/share/nginx/html/src/fleet
 COPY src/styles/app.css /usr/share/nginx/html/src/styles/app.css
 COPY assets /usr/share/nginx/html/assets
 
