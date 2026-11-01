@@ -3,7 +3,7 @@
 - **ID local:** FLEET-02 (nuevo identificador local, no ticket externo).
 - **Responsable:** Edwin, responsable de Fleet.
 - **Revisor propuesto:** David; aceptación pendiente.
-- **Estado:** En desarrollo. Edwin aprobó el contrato consolidado y autorizó comenzar la implementación el 31 de octubre de 2026. Incremento actual T1: dominio y pruebas, sin persistencia, archivos ni endpoint. Revisión técnica humana pendiente; no es funcionalidad cerrada.
+- **Estado:** En desarrollo. Edwin aprobó el contrato consolidado y autorizó comenzar la implementación el 31 de octubre de 2026. T1 guardado en 6123ca1; T2 implementado localmente con persistencia y pruebas, sin archivos ni endpoint. Revisión técnica humana pendiente; no es funcionalidad cerrada.
 - **Fecha:** 29 de octubre de 2026, America/Guayaquil.
 - **Base de implementación:** `d1d3542`, rama `feature/FLEET-02-contrato-alta`, que conserva la dependencia FLEET-03. Origin/develop comprobado en `56dc55a` el 31 de octubre, sin incorporarlo mediante merge/rebase.
 - **Autorización:** aprobación explícita de Edwin el 31 de octubre de 2026 para comenzar FLEET-02; se entrega T1 primero conforme al plan de incrementos pequeños. No supone aprobación de Leslie/David ni revisión humana de código.
@@ -262,4 +262,14 @@ Próxima comprobación pendiente: reproducir el timeout de migraciones en el ent
 
 Comprobación adicional antes del commit solicitado por Edwin el 31 de octubre: misma suite y timeout original en Docker, imagen Node 24.21.0-bookworm-slim del Dockerfile y PostgreSQL 16.13, fuente montada en solo lectura y dependencias exactas del lock instaladas mediante npm ci en volumen temporal separado. `npm test` aprobó 695 unitarias y 126 integraciones (821 total); la prueba general de migraciones aprobó en 5,105 segundos. No se editaron pruebas, timeout, lock ni versiones. Los intentos fallidos de Windows se conservan como evidencia; no se certifica su causa ni se ocultan. npm ci informó 26 alertas de dependencias existentes (3 bajas, 22 moderadas, 1 alta); no se aplicó npm audit fix ni actualizaciones fuera de alcance.
 
-T2, T3 y T4 siguen pendientes; esta entrega no acredita registro HTTP, persistencia, subida de fotos ni viajes habilitados. Sin interfaz en T1; no se declara usabilidad de pantalla verificada. No se han realizado commits ni push de esta implementación.
+T1 quedó guardado por petición de Edwin en 6123ca1. No se realizó push. La evidencia siguiente corresponde a T2, todavía sin commit; T3 y T4 siguen pendientes.
+
+### T2: persistencia transaccional, 31 de octubre de 2026
+
+- Nueva migración 1793440000000-register-buses.js: buses, bus_seats y bus_photos, unicidad global de placa/VIN y por cooperativa de unidad, claves foráneas compuestas para aislamiento. No se modificaron migraciones existentes ni su orden.
+- Puerto/repositorio de alta: snapshot de plantilla, UUID por asiento y referencias privadas de fotos en una transacción. Fallos conocidos revierten todas las filas; pérdida de confirmación de COMMIT genera error explícito y no ordena borrar archivos. T3 implementará los archivos reales; T4 el caso de uso y HTTP.
+- 58 pruebas nuevas aprobadas: 20 unitarias y 38 de integración, incluyendo concurrencia, aislamiento, reversión/reaplicación de migración sin asumir que sea la última y COMMIT efectivamente aplicado cuya confirmación se pierde.
+- Edwin autorizó expresamente modificar solo la preparación de tres suites de frecuencias: se añadieron bus_photos, bus_seats y buses a sus listas TRUNCATE, sin cambiar datos esperados ni comprobaciones.
+- Validación completa aislada en Node 24.21.0 y PostgreSQL 16.13: lint aprobado; 715 unitarias aprobadas; integración con 160 aprobadas y 4 fallidas en route-sheet-routes.test.js porque su lista TRUNCATE también debe incluir las nuevas tablas referenciadas. Edwin autorizó posteriormente agregar únicamente las tres tablas a esa lista, sin cambiar datos ni comprobaciones.
+- Formato de archivos nuevos correcto; format:check global sigue fallando en los mismos 24 archivos anteriores fuera de alcance. No se añadieron dependencias ni se modificó el lock. T2 permanece local, no integrado ni cerrado.
+- Repetición final tras el ajuste autorizado de preparación de hojas de ruta: lint aprobado y npm test aprobado, 715 unitarias + 164 integraciones = 879 pruebas, 63 suites. Incluye las pruebas afectadas de Fleet y hojas de ruta; integración completa en 48,838 segundos. Base busesuta_test aislada en Docker; sin lectura de .env ni cambios de composición. git diff --check aprobado. T2 sigue sin commit ni push.

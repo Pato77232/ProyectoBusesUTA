@@ -22,8 +22,29 @@ class BusGroupNotFoundError extends Error {
   }
 }
 
+class BusAlreadyExistsError extends Error {
+  constructor() {
+    super('El bus entra en conflicto con un registro existente.');
+    this.name = 'BusAlreadyExistsError';
+    this.code = 'BUS_ALREADY_EXISTS';
+  }
+}
+
+class BusRegistrationCommitUnknownError extends Error {
+  constructor({ busId, cooperativeId, cause }) {
+    super('No se pudo confirmar el resultado del registro.', { cause });
+    this.name = 'BusRegistrationCommitUnknownError';
+    this.code = 'BUS_REGISTRATION_COMMIT_UNKNOWN';
+    // Contexto interno de recuperación, nunca para serializar directamente al cliente.
+    this.busId = busId;
+    this.cooperativeId = cooperativeId;
+  }
+}
+
 module.exports = {
   BusRegistrationValidationError,
   BusSeatLayoutNotFoundError,
   BusGroupNotFoundError,
+  BusAlreadyExistsError,
+  BusRegistrationCommitUnknownError,
 };
