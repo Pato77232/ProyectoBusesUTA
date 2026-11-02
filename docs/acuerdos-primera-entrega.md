@@ -86,7 +86,7 @@ El pasajero aporta acreditaciones; el oficinista revisa los datos/documentos ant
 
 1. Al aceptar resumen se crea reserva y bloqueo por tramo; plazo inicial de carga configurable entre 3 y 5 minutos, inicial documentado de 5. Sin recepción aceptada dentro del plazo, expira y libera atómicamente.
 2. Todo pago no efectivo necesita comprobante y validación del oficinista. La afirmación no decide integración de tarjeta: métodos no especificados no se habilitan con simulaciones presentadas como reales.
-3. Máximo 5 MiB por comprobante. PDF/JPEG/PNG se conservan como propuesta hasta ratificar formatos.
+3. Máximo 5 MiB por comprobante. PDF/JPEG/PNG ratificados por Shirley el 2 de noviembre de 2026, según mensaje compartido por Pablo; validar contenido, extensión y MIME. Ver [registro y pendientes](dependencias-pagos.md). No acredita implementación.
 4. Tras subir el comprobante, se permiten correcciones durante 3 minutos contados desde la primera carga. El oficinista puede aprobar antes: desde la aprobación ya no se permite reemplazo.
 5. Tras esos 3 minutos, solo una solicitud de corrección del oficinista reabre la edición; el comprador dispone de 15 minutos y recibe aviso por correo. Se distingue solicitud de corrección de rechazo definitivo (que mantiene justificación obligatoria).
 6. La revisión mantiene asientos reservados y no vende antes de aprobación. En caja, el oficinista puede registrar pago en efectivo y completar la venta autorizada sin exigir al cliente un archivo de depósito.
@@ -137,3 +137,12 @@ Este registro no garantiza que todo el alcance se complete el 4 de noviembre. Or
 - Reemplazadas: porcentaje fijo del 50 %; suma obligatoria de tramos como único precio; un único comprobante no reemplazable; exclusión general de recuperación/verificación; Wallet como pendiente de alcance inmediato. La política vigente y sus pendientes están arriba.
 - Conservadas: umbrales menor de 18/desde 65, USD/redondeo, identidad de asientos, aislamiento, plazo inicial 3–5 minutos, revisión sin liberar por el plazo inicial, rechazo definitivo justificado, venta idempotente y rol Chofer/Controlador fuera de fase.
 - Cambios a producto todavía no ejecutados: restricciones de asignación múltiple, tarifario configurable/congelado, flota VIP/accesible, correcciones, identidad/historial, correo/boletos y nuevas pantallas. Las pruebas históricas verifican contratos anteriores, no este nuevo alcance.
+
+
+## Seguimiento del 2 de noviembre: dependencias de Pagos
+
+[Registro compartido](dependencias-pagos.md): aceptación de Shirley del diseño
+base de correo/acceso invitado, formatos ratificados y coordinación CLERK/QA/UI.
+Specs candidatas [AUTH-06](specs/AUTH-06.md), [CORREO-01](specs/CORREO-01.md) y
+[AUTH-INVITADO-01](specs/AUTH-INVITADO-01.md). Contratos técnicos todavía en borrador;
+no se atribuye confirmación nueva de Leslie ni implementación de estas dependencias.

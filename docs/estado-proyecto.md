@@ -1,5 +1,27 @@
 # Estado compartido del proyecto
 
+## Seguimiento comprobado — 2 de noviembre de 2026: dependencias de Pagos
+
+Base origin/develop 8fdf7e4 actualizada por fetch. Rama documental
+feature/ACUERDOS-01-contratos-pagos. Alcance limitado a coordinación de Pablo,
+Shirley y dependencias con Leslie; filas históricas inferiores no certifican
+el estado actual de todo el sistema. [Registro y consultas](dependencias-pagos.md).
+
+| Tarea | Responsable y revisión | Estado comprobado / próximo paso |
+|---|---|---|
+| [AUTH-WEB-01](specs/AUTH-WEB-01.md) | Pablo; Shirley aprobó controlador/lint | PR #42 integrada en 8fdf7e4; pantalla en PR #45, revisión propia pendiente. Persisten 17 avisos de formato previos. |
+| [AUTH-06](specs/AUTH-06.md) | Pablo prepara; Shirley revisa necesidades de Pagos | Spec técnica en borrador. Autoridad CLERK confirmada; revisar ruta/respuesta/errores antes de implementar. |
+| [CORREO-01](specs/CORREO-01.md) | Pablo prepara; Shirley revisa | Diseño base aceptado por Shirley; proveedor, contrato, confirmaciones y reintentos abiertos. Sin implementación. |
+| [AUTH-INVITADO-01](specs/AUTH-INVITADO-01.md) | Pablo prepara; Leslie/Shirley participantes | Diseño base aceptado por Shirley; contexto, vencimiento, revocación, reenvío y CSRF pendientes con Leslie. Sin implementación. |
+| [PAGOS-01](specs/PAGOS-01.md), formatos | Shirley; revisión Pablo según confirmación reportada | PDF/JPEG/PNG hasta 5 MiB ratificados; validación de contenido/extensión/MIME. No se acredita adaptación del código. |
+| [Lectura Reservas–Pagos](contratos/lectura-reservas-pagos.md) | Pablo prepara; Leslie/Shirley concilian | Propuesta de contexto mínimo desde Auth y errores 400/401/403/404/500/503; sin lector implementado. Inicio de plazo, ausencia de recepción y contrato exacto pendientes. |
+
+Pablo pidió registrar y preparar las dependencias; no se infiere aprobación de
+los detalles técnicos ni respuesta de Leslie. Specs de Pagos adicionales citadas
+en chat no encontradas en las ramas consultadas: solicitar ubicación antes de
+recrearlas. Pablo solicitó publicar esta entrega documental; no se hace merge ni
+se ejecutan pruebas de producto. Asistencia de Codex.
+
 ## ROUTE-SHEETS-05 — adaptación de pruebas de publicación, 2 de noviembre de 2026
 
 Rama `feature/ROUTE-SHEETS-05-corrige-pruebas-publicacion`, base comprobada `7ef2f25`, inicialmente limpia; contiene tarifario integrado en `1fb0ade`/PR #39. Tras el reporte humano de Pablo, David autorizó adaptar las dos pruebas antiguas al puerto transaccional vigente. Se conserva publicación con tarifa y error de hoja inexistente (404), añadiendo comprobaciones de contexto, frecuencia y congelación. Sin cambios de producción, migraciones, dependencias o D-03. Sin commit/PR nuevos ni revisión humana inferidos; no se inspeccionó remotamente PR #42.
@@ -113,7 +135,7 @@ Antes de orientar a alguien:
 | [INFRA-02](specs/INFRA-02.md), [INFRA-03](specs/INFRA-03.md) | Shirley; revisor indicado Pablo | Cambios presentes; cierre documental pendiente | cross-env y .gitattributes presentes, lock actualizado en historial; no implica aprobación humana ni validación Windows actual |
 | [INFRA-04](specs/INFRA-04.md) | Pablo; revisora propuesta Shirley | Integrada: su código documental está contenido en c89b1b9 | La presencia en develop está comprobada; no se inventa evidencia de revisión humana/cierre |
 | [FRONT-01](specs/FRONT-01.md) | Pablo | T3c/T3d integradas; T4 pendiente | PR #32 aprobada por David22x e integrada en d0a5f8d. Login funcional se verifica aparte mediante AUTH-WEB-01; no implica cierre de toda la base frontend. |
-| [AUTH-WEB-01](specs/AUTH-WEB-01.md) | Pablo; revisor humano por confirmar | PR #42 en borrador; guardado/publicación de corrección portable solicitados | 2 de noviembre: lint portable y globals Fleet preparados; 106 pruebas locales y 115 combinadas con develop 1e9d956 aprobadas. Backend actualizado: lint y npm test completo aprobados (1068 unitarias + 275 integraciones); formato falla en 17 archivos previos. Revisión asistida de Shirley reportada, sin aprobación humana. Spec sección 18; Windows y aprobación humana pendientes. |
+| [AUTH-WEB-01](specs/AUTH-WEB-01.md) | Pablo; Shirley aprobó controlador/lint | PR #42 integrada en 8fdf7e4; pantalla en PR #45, revisión propia pendiente | Aprobación 58d4cbe por shirley6126 comprobada; 17 avisos de formato previos no resueltos. Esta rama solo documenta dependencias de Pagos. |
 | [FLEET-05](specs/FLEET-05.md) | Edwin | T1 en división: T1a y T1b reemplazan a PR #31, en borrador | Formulario sin API. Pablo integró T3c/T3d y propuso que Edwin haga multipart y proxy como T2; decisión en la spec. T3 espera el login. |
 | [FLEET-06](specs/FLEET-06.md) | Edwin | T1 en [PR #41](https://github.com/Pato77232/ProyectoBusesUTA/pull/41) en borrador; implementación 7d6353a sobre 1fb0ade | listByBus entrega todos los asientos con identidad propia, layoutSeatKey y offered; confirmación de Leslie pendiente. 21 pruebas específicas aprobadas. Global: 1066 unitarias aprobadas/2 fallidas; integración 274 aprobadas/1 timeout en user-cooperative-integrity. Versión por hoja, VIP y accesibilidad pendientes; detalles en la spec. |
 | search, bookings, payments y tickets | Según propuesta inferior | Sin implementación en la base examinada | Confirmar ramas de los responsables antes de crear tareas |

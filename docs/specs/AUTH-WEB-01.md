@@ -338,3 +338,23 @@ Repetición Windows y aprobación humana pendientes; se actualizará la descripc
 de la PR con los resultados actuales sin dar por aprobada la revisión. Sin pruebas de pantalla o
 arranque nuevas: este incremento solo afecta herramientas de análisis.
 Preparado y verificado con asistencia de Codex.
+
+
+## Seguimiento de coordinación documental de Pagos
+
+PR [#42](https://github.com/Pato77232/ProyectoBusesUTA/pull/42), head 58d4cbe:
+GitHub registra APPROVED por shirley6126 a las 15:15:59 UTC (10:15:59 Ecuador).
+La revisora confirma en Windows/PowerShell lint y 106 pruebas en la rama, lint
+y 115 pruebas con develop 1e9d956 y formato de los archivos frontend revisados.
+Esta evidencia es reportada por la revisora; no es ejecución nueva de Codex.
+PR #42 integrada posteriormente en 8fdf7e4, comprobada por fetch el 2 de
+noviembre. Descripción corregida
+para reflejar aprobación y Windows, manteniendo los 17 avisos de formato del
+backend. La aprobación no resuelve esa comprobación global ni autoriza pantalla.
+Registro en [dependencias de Pagos](../dependencias-pagos.md); esta entrega no
+altera código de Auth; el controlador ya está integrado en develop.
+
+Pantalla y empaquetado preparados separadamente en PR #45, con prueba real
+y evidencia propias. Esta rama no cambia producto ni repite esas pruebas;
+la revisión humana de pantalla es independiente de estos contratos de Pagos.
+Sin cierre global de AUTH-WEB-01. Asistencia de Codex.

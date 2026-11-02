@@ -69,4 +69,5 @@ SOLID: responsabilidad única e inyección proporcional; sin interfaz en este al
 Usabilidad: errores consistentes permitirán explicar el resultado sin revelar
 cuentas ajenas; no se acredita pantalla ni accesibilidad visual.
 Defecto inducido: ninguno autorizado. Evidencia actual solo documental; sin
-pruebas de producto, commits, PR o integración de AUTH-06. Asistencia de Codex.
+pruebas de producto ni implementación/integración de AUTH-06. Esta publicación
+es documental, no disponibilidad del endpoint. Asistencia de Codex.

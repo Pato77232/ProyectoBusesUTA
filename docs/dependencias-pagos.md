@@ -81,3 +81,13 @@ Publicación documental solicitada por Pablo tras la consulta de Shirley;
 no equivale a aprobar contratos abiertos. Sin cambios de producto, pruebas o
 dependencias. No se atribuyen pruebas nuevas
 a esta documentación. Asistencia de Codex; revisión humana documental pendiente.
+
+
+## Conciliación del lector con la consulta nueva de Shirley
+
+[Contrato propuesto](contratos/lectura-reservas-pagos.md): origen/proyección de
+authContext, vigencia por solicitud, matriz y traducción de errores. Los códigos
+nuevos, contexto y DTO siguen por confirmar con Leslie/Shirley. La propuesta
+separa reintentos durables; no entrega autorización de servicio al lector.
+Referencia y huella del adjunto preservadas en el contrato, sin atribuir código
+privado o pruebas de PAGOS-02 a develop. Consulta conjunta lista, no enviada.

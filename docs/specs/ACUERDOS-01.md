@@ -32,3 +32,35 @@ Se leyeron apuntes adjuntos y documentos versionados sin secretos. Diff document
 ## Próxima acción
 
 Revisar el diff documental y elegir revisor humano. Resolver cada pendiente antes de su spec de producto; luego dividir implementación por caso de uso/endpoint. PR y commit solo mediante petición/autorización correspondiente; no declarar cierre por terminar esta redacción.
+
+
+## Seguimiento documental — 2 de noviembre de 2026
+
+Pablo pidió realizar el orden de trabajo tras compartir la aceptación de Shirley.
+Se registra evidencia en [dependencias de Pagos](../dependencias-pagos.md), se
+ratifican formatos sin reescribir evidencia histórica y se preparan tres specs
+en borrador (AUTH-06, CORREO-01, AUTH-INVITADO-01). Sin producto ni decisiones
+pendientes inventadas; Leslie todavía debe responder el contrato de invitado.
+Revisión APPROVED de PR #42 verificada en GitHub; no implica merge ni aprobación
+de estas nuevas specs. Rama feature/ACUERDOS-01-contratos-pagos desde 8fdf7e4.
+Pablo solicitó posteriormente publicar esta documentación para revisión.
+Sin cambios de producto ni integración. Asistencia de Codex.
+
+Validación documental: diff completo revisado, git diff --check aprobado y
+112 enlaces locales comprobados sin destinos faltantes. No se encontraron specs
+homónimas de los tres IDs nuevos en las referencias remotas consultadas.
+No se ejecutan lint/Jest ni se reutilizan conteos como pruebas nuevas: únicamente
+cambian documentos. Revisiones y mensajes humanos se distinguen de propuestas.
+
+
+## Publicación y conciliación del lector
+
+Se recuperó el trabajo resguardado en stash sin borrarlo; nueva rama documental
+feature/ACUERDOS-01-contratos-pagos desde develop 8fdf7e4 para conservar PR #42.
+Specs/registro guardados por cambio lógico separado de la conciliación de
+[lectura Reservas–Pagos](../contratos/lectura-reservas-pagos.md), ratificación de
+formatos y seguimiento. Se publicará PR documental en borrador para revisión;
+no autoriza implementación dependiente ni sustituye respuestas de Leslie/Shirley.
+Validación final: diff completo revisado y enlaces locales comprobados, sin
+destinos faltantes. No lint/Jest nuevos: solo cambian documentos. Se conservan
+como históricos los resultados anteriores y el formato backend pendiente.
