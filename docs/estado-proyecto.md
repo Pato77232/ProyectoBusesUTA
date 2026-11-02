@@ -1,5 +1,17 @@
 # Estado compartido del proyecto
 
+## Programación multifrecuencia D-01 — 1 de noviembre de 2026
+
+| Spec / responsable | Estado y evidencia | Próxima acción |
+|---|---|---|
+| [ROUTE-SHEETS-04](specs/ROUTE-SHEETS-04.md) / David | Contrato definido por delegación del solicitante tras aceptación de propuestas con Edwin/Leslie reportada en chat. Rama feature/programacion-multifrecuencia-spec, base b60201e/PR #35, inicialmente limpia. Sin implementación, commit ni PR nueva. Se examinaron referencias locales, sin refresco remoto; no se certifican cambios externos posteriores. | El usuario autoriza secciones una a una: 1 validación pura de agenda; 2 patrón/ciclos/ventana. D-03 persistencia/HTTP, D-04 viajes y D-05 excepciones requieren sus propias specs antes de implementar. |
+
+Decisiones: dos ciclos totales incluida base; confirmación antes de venta; ciclo en días y patrón manual; preparación explícita y traslados fechados; disponibilidad y cobertura completas; ventana referida al inicio del patrón, cierre al embarque. Ya no se tratan esos puntos como preguntas abiertas de D-01. Pendientes independientes: tarifas, inventario accesible, reubicación y contratos productivos. Revisor de código por confirmar; el acuerdo no equivale a revisión de PR.
+
+Reparto aclarado por el usuario: tres secciones, un commit por sección. Sección 0 documental completada localmente, sin commit; secciones 1 (agenda) y 2 (patrón/ventana) pendientes de autorización de implementación. Cada futuro commit funcional incluye código, pruebas y su evidencia; no tres commits por sección.
+
+Validación documental: `git diff --check` aprobado; 48 referencias locales en los documentos afectados comprobadas sin destinos inexistentes, excluyendo enlaces externos/anclas. Cuatro documentos existentes modificados y una spec nueva; ningún archivo funcional. No se ejecutan lint/Jest: sin código ni configuración ejecutable; ninguna prueba funcional nueva acreditada.
+
 ## Actualización documental de acuerdos — 1 de noviembre de 2026
 
 Base local comprobada `0b4041e` (PR #33), coincidente con la referencia local origin/develop; no se refrescó el remoto en esta revisión. Rama limpia inicial `feature/acuerdos-funcionales-primera-entrega`. Las filas inferiores conservan evidencia histórica, no la fotografía de estos nuevos acuerdos.

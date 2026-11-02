@@ -1,5 +1,9 @@
 # Acuerdos funcionales para la primera entrega
 
+## Cierre del contrato de programación D-01 — 1 de noviembre de 2026
+
+El solicitante reportó revisión conjunta con Edwin y Leslie, aceptación de las propuestas y delegó concretar los detalles. Registro completo en [ROUTE-SHEETS-04](specs/ROUTE-SHEETS-04.md): intervalos fechados, margen explícito por actividad, ubicación inicial, traslados, bloqueos, patrón manual repetible en días, dos ciclos totales incluida base, horizonte desde inicio del patrón y cierre en la hora de embarque. Renovación explícita mantiene máximo de dos períodos no terminados confirmados. Este registro reemplaza los pendientes incompatibles de §§1 y 3 para ese contrato; no acredita aprobación de código ni implementación. La planificación de las secciones 0–2 está autorizada, la ejecución de cada una espera petición humana. Tarifas, accesibilidad y reubicación de pasajeros conservan sus pendientes propios.
+
 ## Fuente, alcance y estado
 
 Registro del 1 de noviembre de 2026, America/Guayaquil. Fuente: respuestas humanas del solicitante en el chat y apuntes adjuntos «actividades» leídos en esta sesión. Se registra lo comunicado por el solicitante; no se atribuyen respuestas individuales ni revisión de código a los otros integrantes. Base local examinada: `develop`/`origin/develop` `0b4041e`. No se pudo refrescar el remoto en la revisión previa; no se certifican cambios posteriores.
