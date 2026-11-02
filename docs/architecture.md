@@ -1,5 +1,7 @@
 # Arquitectura
 
+> Fronteras de información propuestas para los acuerdos del 1 de noviembre: [acuerdos §8](acuerdos-primera-entrega.md). No altera estas reglas de dependencia ni crea un módulo trips. Contratos nuevos se precisan antes de implementar; no importar tablas/repositorios ajenos. Programación de viajes se propone en la API pública de route-sheets, pendiente de su spec.
+
 ## 1. Estilo
 Monolito modular con **arquitectura limpia**. Cada módulo funcional es dueño de sus cuatro capas. Un integrante del equipo es dueño de uno o varios módulos.
 

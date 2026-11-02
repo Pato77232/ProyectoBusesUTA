@@ -1,5 +1,20 @@
 # Estado compartido del proyecto
 
+## Actualización documental de acuerdos — 1 de noviembre de 2026
+
+Base local comprobada `0b4041e` (PR #33), coincidente con la referencia local origin/develop; no se refrescó el remoto en esta revisión. Rama limpia inicial `feature/acuerdos-funcionales-primera-entrega`. Las filas inferiores conservan evidencia histórica, no la fotografía de estos nuevos acuerdos.
+
+| Spec | Responsable / estado | Evidencia y pendiente |
+|---|---|---|
+| [ACUERDOS-01](specs/ACUERDOS-01.md) | Preparación solicitada en chat; revisión documental local | Respuestas y apuntes consolidados en [acuerdos](acuerdos-primera-entrega.md); reglas/specs afectadas enlazadas. Sin código, commits, publicación, integración ni aprobación individual de otros integrantes. Revisor humano por designar. |
+| [ACADEMICA-01](specs/ACADEMICA-01.md) | Borrador; responsable de introducción por confirmar | Dos candidatos visuales propuestos, ninguno introducido ni autorizado individualmente. Versión/revisor y selección pendientes. |
+
+FREQ-02 ya tiene integración histórica en `56dc55a`/PR #25 y el arranque actual crea frecuencias. ROUTE-SHEETS-02 está presente en `0b4041e`/PR #33 y compone hojas; esto corrige el pendiente de integración de las filas históricas, sin inventar cierre humano ni nueva prueba. Sigue ausente la inyección productiva de bookingQueries. Las nuevas reglas requieren implementación posterior; no se marca el sistema listo para el 4 de noviembre.
+
+Prioridades propuestas: contratos de programación/viaje y tarifario → inventario VIP/accesible → reserva persistida/correcciones/efectivo → boleto/correo/acceso → pantallas y prueba completa Docker. Mantener tareas pequeñas y confirmar contratos/revisores. Wallet y rol Chofer/Controlador fuera de primera entrega. No reclasificar funcionalidad faltante como defecto inducido.
+
+Verificación de esta tarea: diff documental revisado, `git diff --check` aprobado y 130 referencias locales comprobadas sin destinos inexistentes (excluidos enlaces externos y anclas). Solo Markdown: 26 archivos existentes modificados y tres nuevos. No se ejecutan lint/Jest/arranque, sin código ni configuración ejecutable; las suites históricas no validan los nuevos contratos. Git avisa de normalización CRLF→LF en tres documentos; no son fallos funcionales. El intento inicial de edición con Python no se ejecutó por el alias de Windows inaccesible; la actualización se realizó con herramientas de texto y PowerShell.
+
 ## Alcance y frescura de esta fotografía
 
 - **Fecha de comprobación:** 1 de noviembre de 2026, America/Guayaquil.

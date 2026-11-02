@@ -1,5 +1,7 @@
 # Catálogo orientativo de pantallas
 
+> Actualización de alcance del 1 de noviembre: [acuerdos de primera entrega](../acuerdos-primera-entrega.md). Recuperación de contraseña/verificación de correo pasan al alcance solicitado mediante specs nuevas; Wallet se aplaza después de la entrega. Comprobantes admiten corrección, y efectivo presencial está confirmado. Las descripciones antiguas de preguntas abiertas/exclusiones incompatibles son históricas; no acreditan implementación.
+
 Fuente: [mockups originales](references/mockups-transviaje-original.pdf), aportados por Pablo. Fecha de registro: 25 de octubre de 2026. **Solo guía, sin obligación de reproducir páginas, funciones, datos o distribución.** La aclaración humana confirma ese carácter orientativo; una spec puede adoptar, adaptar o descartar elementos justificándolo contra las reglas vigentes.
 
 Identidad confirmada por Pablo: transViaje, logo adjunto definitivo y blanco/negro/violeta. Esto no equivale a aprobar las funcionalidades de este catálogo ni a asignar nuevas tareas. [Procedencia y decisiones](README.md).

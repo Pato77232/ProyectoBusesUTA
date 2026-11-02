@@ -1,5 +1,8 @@
 # BOOK-07: Confirmar reserva desde pagos
 
+> Actualización documental del 1 de noviembre de 2026: aplicar las [reglas vigentes](../business-rules.md) y los [acuerdos de primera entrega](../acuerdos-primera-entrega.md), bajo [ACUERDOS-01](ACUERDOS-01.md). Los contratos anteriores incompatibles son evidencia histórica, no autorización para implementar la regla reemplazada. Esta actualización no modifica código ni acredita adaptación funcional. Las propuestas técnicas y pendientes conservan ese estado.
+> Política vigente: edición 3 minutos desde primera carga salvo aprobación previa; solicitud de corrección permite 15 minutos con correo. Reemplaza archivo no reemplazable. Vencimiento de corrección pendiente; no equivale a rechazo definitivo.
+
 - **Responsable:** Leslie; coordinación de contrato con Shirley
 - **Revisor:** Edwin
 - **Módulo:** bookings
