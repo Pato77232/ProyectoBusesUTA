@@ -1,5 +1,18 @@
 # ROUTE-SHEETS-05: Tarifario congelado por hoja de ruta
 
+## Corrección posterior: pruebas de publicación — 2 de noviembre de 2026
+
+Petición humana expresa tras el reporte de Pablo sobre PR #42; rama separada `feature/ROUTE-SHEETS-05-corrige-pruebas-publicacion`, base local comprobada `7ef2f25`, inicialmente limpia, que contiene la integración del tarifario `1fb0ade`/PR #39. No se verificó el contenido remoto de PR #42. Esta evidencia posterior actualiza los pendientes históricos de las secciones inferiores.
+
+Causa: las dos pruebas de `publish-route-sheet.use-case.test.js` seguían inyectando `routeSheetRepository`, mientras el caso de uso exige `tariffRepository.withLockedSheet`. La corrección autorizada adapta sus datos y dobles al contrato vigente: UUID válidos, tarifario explícito completo, frecuencia activa y congelación dentro de la operación transaccional. Se conserva el objetivo de publicar y se comprueban la identidad, el contexto de cooperativa, la consulta de frecuencia y una única congelación del snapshot. La ausencia de hoja conserva el error funcional `ROUTE_SHEET_NOT_FOUND`/404 y propaga la instancia `TariffNotFoundError` del puerto actual; no se sustituye por `TariffSourceError` ni por éxito.
+
+No se cambia producción, migraciones, dependencias, timeouts ni reglas de negocio. Permanecen intactas las pruebas que rechazan publicar sin tarifa o sin proveedor; no hay fallback ni pruebas omitidas. Sin frontend ni defecto inducido. Alcance: una adaptación de contrato en pruebas, con esta evidencia y el registro compartido; D-03 sigue sin implementar.
+
+Verificación: las dos pruebas corregidas y la suite de publicación/consulta congelada aprueban (31 pruebas). Lint aprobado; formato del archivo cambiado aprobado. Formato global falla en 41 archivos previos, incluidas cuatro migraciones que no se modifican. Node local 22.19.0 frente al engine 24 requerido. `npm test` inicial: 1019 aprobadas/3 fallidas por acceso HTTP local EACCES y una suite que no carga por busboy ausente. Repetición unitaria con acceso HTTP permitido: 1022 pruebas aprobadas, 61 suites aprobadas/una que no carga por busboy ausente; no se declara suite global aprobada.
+
+Integración independiente: 179 pruebas aprobadas/una fallida, 15 suites aprobadas/8 fallidas; siete no cargan por busboy ausente y almacenamiento de fotos supera el timeout existente de 20 segundos. PostgreSQL aislado mediante `docker compose --env-file NUL -f docker-compose.test.yml -p busesuta-publish-fix up -d --wait`, con credenciales ficticias versionadas y recursos retirados al finalizar. No se leyó .env. Composición sin cambios: no requiere nuevo arranque por esta corrección de pruebas. Diff completo revisado y `git diff --check` aprobado. Pendientes: entorno/dependencias conforme al lock y Node requerido, revisión humana y PR; sin commit ni publicación ejecutados. Mensaje sugerido: `test(hojas-ruta): actualiza las pruebas de publicación con tarifa`.
+
+
 - **Referencia de planificación:** D-02; referencia local, sin ticket externo.
 - **Responsable:** David, conforme a distribución y tarea seleccionada por el solicitante.
 - **Módulo:** route-sheets; FrequencyQueries como fuente de recorrido y Bookings como consumidor de política comercial.
