@@ -26,7 +26,10 @@ function createPaymentsModule({ pool, auth, env = process.env } = {}) {
     paymentProofRepository,
     bookingPaymentProofNotifier,
   });
-  const listPendingPaymentProofs = new ListPendingPaymentProofs({ paymentProofRepository });
+  const listPendingPaymentProofs = new ListPendingPaymentProofs({
+    paymentProofRepository,
+    bookingReader,
+  });
   const readPaymentProofFile = new ReadPaymentProofFile({
     paymentProofRepository,
     fileReader: fileStorage,

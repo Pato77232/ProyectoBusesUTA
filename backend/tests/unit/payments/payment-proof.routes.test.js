@@ -26,6 +26,7 @@ describe('POST /api/v1/payment-proofs', () => {
           {
             id: 'proof-1',
             booking_id: BOOKING_ID,
+            total_cents: 2550,
             status: 'UPLOADED',
             file_key: 'private-key',
             original_file_name: 'transferencia.pdf',
@@ -191,6 +192,8 @@ describe('POST /api/v1/payment-proofs', () => {
       expect.objectContaining({
         id: 'proof-1',
         bookingId: BOOKING_ID,
+        totalCents: 2550,
+        currency: 'USD',
         fileName: 'transferencia.pdf',
       }),
     );

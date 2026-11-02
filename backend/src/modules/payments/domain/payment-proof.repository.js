@@ -15,6 +15,11 @@ class PaymentProofRepository {
     throw new Error('PaymentProofRepository.findByIdAndCooperativeId debe implementarse.');
   }
 
+  /** Guarda de forma condicional la intención y devuelve su actor original. */
+  async markApprovalRequestedIfPending() {
+    throw new Error('PaymentProofRepository.markApprovalRequestedIfPending debe implementarse.');
+  }
+
   /** markApprovedIfPending registra una aprobación condicional; null indica carrera/estado cambiado. */
   async markApprovedIfPending() {
     throw new Error('PaymentProofRepository.markApprovedIfPending debe implementarse.');

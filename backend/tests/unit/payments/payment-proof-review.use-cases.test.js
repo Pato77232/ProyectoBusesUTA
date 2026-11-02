@@ -7,6 +7,7 @@ const {
   PaymentProofApprovalPersistenceUncertainError,
   PaymentProofNotFoundError,
   PaymentProofNotPendingError,
+  PaymentProofTotalUnavailableError,
   PaymentProofValidationError,
 } = require('../../../src/modules/payments/domain/payment-proof-error');
 
@@ -22,6 +23,8 @@ const pendingProof = Object.freeze({
   uploaded_at: new Date('2026-10-29T17:00:00.000Z'),
   approved_at: null,
   approved_by: null,
+  approval_requested_at: null,
+  approval_requested_by: null,
 });
 
 const PAYMENT_PROOF_ID = 'a80a2c4d-8aa8-4a1f-b7b0-e8d0f002bc42';
@@ -30,10 +33,19 @@ function createRepository(overrides = {}) {
   return {
     listPendingByCooperative: jest.fn().mockResolvedValue({ items: [], nextCursor: null }),
     findByIdAndCooperativeId: jest.fn().mockResolvedValue(pendingProof),
+    markApprovalRequestedIfPending: jest
+      .fn()
+      .mockImplementation(async ({ requestedBy, requestedAt }) => ({
+        ...pendingProof,
+        approval_requested_by: requestedBy,
+        approval_requested_at: requestedAt,
+      })),
     markApprovedIfPending: jest.fn().mockImplementation(async ({ approvedBy, approvedAt }) => ({
       ...pendingProof,
       approved_by: approvedBy,
       approved_at: approvedAt,
+      approval_requested_by: approvedBy,
+      approval_requested_at: approvedAt,
     })),
     ...overrides,
   };
@@ -41,25 +53,73 @@ function createRepository(overrides = {}) {
 
 test('lista pendientes con la cooperativa verificada y paginación acotada', async () => {
   const paymentProofRepository = createRepository();
-  const useCase = new ListPendingPaymentProofs({ paymentProofRepository });
+  const bookingReader = {
+    findForPayment: jest.fn().mockResolvedValue({ cooperativeId: 'coop-1', total: 2550 }),
+  };
+  paymentProofRepository.listPendingByCooperative.mockResolvedValue({
+    items: [pendingProof],
+    nextCursor: 'next',
+  });
+  const useCase = new ListPendingPaymentProofs({ paymentProofRepository, bookingReader });
 
-  await expect(useCase.execute({ cooperativeId: 'coop-1', cursor: 'opaque' })).resolves.toEqual({
-    items: [],
-    nextCursor: null,
+  await expect(
+    useCase.execute({ cooperativeId: 'coop-1', cursor: 'opaque' }),
+  ).resolves.toMatchObject({
+    items: [{ id: PAYMENT_PROOF_ID, total_cents: 2550 }],
+    nextCursor: 'next',
   });
   expect(paymentProofRepository.listPendingByCooperative).toHaveBeenCalledWith({
     cooperativeId: 'coop-1',
     limit: 50,
     cursor: 'opaque',
   });
+  expect(bookingReader.findForPayment).toHaveBeenCalledWith(pendingProof.booking_id);
 });
 
 test('rechaza el listado si no recibe la cooperativa autenticada', async () => {
-  const useCase = new ListPendingPaymentProofs({ paymentProofRepository: createRepository() });
+  const useCase = new ListPendingPaymentProofs({
+    paymentProofRepository: createRepository(),
+    bookingReader: { findForPayment: jest.fn() },
+  });
 
   await expect(useCase.execute({ cooperativeId: '' })).rejects.toBeInstanceOf(
     PaymentProofValidationError,
   );
+});
+
+test('no muestra comprobantes si no puede verificar cooperativa y total de reserva', async () => {
+  const paymentProofRepository = createRepository({
+    listPendingByCooperative: jest
+      .fn()
+      .mockResolvedValue({ items: [pendingProof], nextCursor: null }),
+  });
+  const useCase = new ListPendingPaymentProofs({
+    paymentProofRepository,
+    bookingReader: {
+      findForPayment: jest.fn().mockResolvedValue({ cooperativeId: 'coop-2', total: 2550 }),
+    },
+  });
+
+  await expect(useCase.execute({ cooperativeId: 'coop-1' })).rejects.toBeInstanceOf(
+    PaymentProofTotalUnavailableError,
+  );
+});
+
+test('responde temporalmente si bookings no entrega el total autoritativo', async () => {
+  const paymentProofRepository = createRepository({
+    listPendingByCooperative: jest
+      .fn()
+      .mockResolvedValue({ items: [pendingProof], nextCursor: null }),
+  });
+  const useCase = new ListPendingPaymentProofs({
+    paymentProofRepository,
+    bookingReader: { findForPayment: jest.fn().mockRejectedValue(new Error('timeout')) },
+  });
+
+  await expect(useCase.execute({ cooperativeId: 'coop-1' })).rejects.toMatchObject({
+    code: 'PAYMENT_PROOF_TOTAL_UNAVAILABLE',
+    httpStatus: 503,
+  });
 });
 
 test('lee el archivo solo después de consultar el comprobante dentro de la cooperativa', async () => {
@@ -157,6 +217,67 @@ test('confirma la venta por el puerto y persiste la identidad del oficinista', a
     approvedBy: 'clerk-1',
     approvedAt: now,
   });
+  expect(paymentProofRepository.markApprovalRequestedIfPending).toHaveBeenCalledWith({
+    paymentProofId: PAYMENT_PROOF_ID,
+    cooperativeId: 'coop-1',
+    requestedBy: 'clerk-1',
+    requestedAt: now,
+  });
+  expect(
+    paymentProofRepository.markApprovalRequestedIfPending.mock.invocationCallOrder[0],
+  ).toBeLessThan(bookingSaleConfirmer.confirmSale.mock.invocationCallOrder[0]);
+});
+
+test('recupera la intención pendiente con el mismo comprobante y conserva al oficinista original', async () => {
+  const requestedAt = new Date('2026-10-29T17:30:00.000Z');
+  const approvalIntent = {
+    ...pendingProof,
+    approval_requested_at: requestedAt,
+    approval_requested_by: 'clerk-original',
+  };
+  const paymentProofRepository = createRepository({
+    markApprovalRequestedIfPending: jest.fn().mockResolvedValue(approvalIntent),
+  });
+  const bookingSaleConfirmer = { confirmSale: jest.fn().mockResolvedValue(true) };
+  const useCase = new ApprovePaymentProof({ paymentProofRepository, bookingSaleConfirmer });
+
+  await useCase.execute({
+    paymentProofId: PAYMENT_PROOF_ID,
+    cooperativeId: 'coop-1',
+    approverId: 'clerk-retry',
+    now: new Date('2026-10-29T18:00:00.000Z'),
+  });
+
+  expect(bookingSaleConfirmer.confirmSale).toHaveBeenCalledWith({
+    bookingId: pendingProof.booking_id,
+    cooperativeId: pendingProof.cooperative_id,
+    paymentProofId: PAYMENT_PROOF_ID,
+  });
+  expect(paymentProofRepository.markApprovedIfPending).toHaveBeenCalledWith(
+    expect.objectContaining({ approvedBy: 'clerk-original' }),
+  );
+});
+
+test('no invoca bookings si no pudo persistir la intención de aprobación', async () => {
+  const bookingSaleConfirmer = { confirmSale: jest.fn() };
+  const useCase = new ApprovePaymentProof({
+    paymentProofRepository: createRepository({
+      markApprovalRequestedIfPending: jest
+        .fn()
+        .mockRejectedValue(new Error('database unavailable')),
+    }),
+    bookingSaleConfirmer,
+  });
+
+  await expect(
+    useCase.execute({
+      paymentProofId: PAYMENT_PROOF_ID,
+      cooperativeId: 'coop-1',
+      approverId: 'clerk-1',
+      now: new Date(),
+    }),
+  ).rejects.toMatchObject({ code: 'PAYMENT_PROOF_APPROVAL_INTENT_PERSISTENCE_FAILED' });
+  expect(bookingSaleConfirmer.confirmSale).not.toHaveBeenCalled();
 });
 
 test('un comprobante ya aprobado devuelve su decisión sin confirmar otra venta', async () => {

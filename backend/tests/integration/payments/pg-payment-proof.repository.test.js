@@ -121,6 +121,8 @@ test('las migraciones crean payment_proofs sin duplicar plazo ni total', async (
     'updated_at',
     'approved_at',
     'approved_by',
+    'approval_requested_at',
+    'approval_requested_by',
   ]);
   const { rows: indexRows } = await pool.query(
     `SELECT indexdef FROM pg_indexes WHERE tablename = 'payment_proofs'
@@ -337,13 +339,27 @@ test('lista comprobantes pendientes aislados por cooperativa y oculta file_key',
 
 test('la aprobación condicional solo registra al primer oficinista y oculta el comprobante', async () => {
   const proof = await repository.save(createUploaded());
+  const requestedAt = new Date('2026-10-26T11:55:00.000Z');
+  const requestedBy = randomUUID();
   const approvedAt = new Date('2026-10-26T12:00:00.000Z');
-  const approvedBy = randomUUID();
+
+  const intent = await repository.markApprovalRequestedIfPending({
+    paymentProofId: proof.id,
+    cooperativeId,
+    requestedBy,
+    requestedAt,
+  });
+  const repeatedIntent = await repository.markApprovalRequestedIfPending({
+    paymentProofId: proof.id,
+    cooperativeId,
+    requestedBy: randomUUID(),
+    requestedAt: new Date('2026-10-26T11:59:00.000Z'),
+  });
 
   const approved = await repository.markApprovedIfPending({
     paymentProofId: proof.id,
     cooperativeId,
-    approvedBy,
+    approvedBy: requestedBy,
     approvedAt,
   });
   const repeated = await repository.markApprovedIfPending({
@@ -359,9 +375,39 @@ test('la aprobación condicional solo registra al primer oficinista y oculta el 
   });
 
   expect(approved.approved_at).toEqual(approvedAt);
-  expect(approved.approved_by).toBe(approvedBy);
+  expect(intent.approval_requested_by).toBe(requestedBy);
+  expect(repeatedIntent.approval_requested_by).toBe(requestedBy);
+  expect(approved.approval_requested_at).toEqual(requestedAt);
+  expect(approved.approval_requested_by).toBe(requestedBy);
+  expect(approved.approved_by).toBe(requestedBy);
   expect(repeated).toBeNull();
   expect(inbox.items).toEqual([]);
+});
+
+test('dos solicitudes concurrentes conservan una sola intención y un actor original', async () => {
+  const proof = await repository.save(createUploaded());
+  const requestedAt = new Date('2026-10-26T11:55:00.000Z');
+  const requests = await Promise.all([
+    repository.markApprovalRequestedIfPending({
+      paymentProofId: proof.id,
+      cooperativeId,
+      requestedBy: '10000000-0000-4000-8000-000000000001',
+      requestedAt,
+    }),
+    repository.markApprovalRequestedIfPending({
+      paymentProofId: proof.id,
+      cooperativeId,
+      requestedBy: '10000000-0000-4000-8000-000000000002',
+      requestedAt: new Date('2026-10-26T11:56:00.000Z'),
+    }),
+  ]);
+  const persisted = await repository.findByIdAndCooperativeId(proof.id, cooperativeId);
+
+  expect(requests).toHaveLength(2);
+  expect(new Set(requests.map(({ approval_requested_by: actorId }) => actorId)).size).toBe(1);
+  expect(requests[0].approval_requested_by).toBe(requests[1].approval_requested_by);
+  expect(persisted.approval_requested_by).toBe(requests[0].approval_requested_by);
+  expect(persisted.approval_requested_at).toBeInstanceOf(Date);
 });
 
 test('rechaza cursores corruptos', async () => {
@@ -376,6 +422,7 @@ test('la migración se revierte y puede aplicarse otra vez en su propio esquema'
   const migrationNames = [
     '1793123000000-payment-proofs-and-outbox.js',
     '1793130000000-payment-proof-approvals.js',
+    '1793140000000-payment-proof-approval-intents.js',
   ];
   migrationNames.forEach((migrationName) =>
     copyFileSync(
@@ -383,7 +430,7 @@ test('la migración se revierte y puede aplicarse otra vez en su propio esquema'
       path.join(migrationDirectory, migrationName),
     ),
   );
-  const runIsolatedMigration = (direction) =>
+  const runIsolatedMigration = (direction, count) =>
     execFileSync(
       process.execPath,
       [
@@ -391,6 +438,7 @@ test('la migración se revierte y puede aplicarse otra vez en su propio esquema'
         direction,
         schema,
         migrationDirectory,
+        ...(count ? [String(count)] : []),
       ],
       { env: process.env, stdio: 'pipe' },
     );
@@ -398,7 +446,28 @@ test('la migración se revierte y puede aplicarse otra vez en su propio esquema'
   try {
     assertTestDatabase();
     await pool.query(`CREATE SCHEMA "${schema}"`);
-    runIsolatedMigration('up');
+    runIsolatedMigration('up', 2);
+    const paymentProofId = randomUUID();
+    const approvedBy = randomUUID();
+    const approvedAt = new Date('2026-10-27T12:00:00.000Z');
+    await pool.query(
+      `INSERT INTO "${schema}".payment_proofs(
+        booking_id, cooperative_id, status, file_key, original_file_name,
+        media_type, file_size_bytes, uploaded_at, approved_at, approved_by
+      ) VALUES ($1, $2, 'UPLOADED', $3, $4, $5, $6, $7, $8, $9)`,
+      [
+        randomUUID(),
+        randomUUID(),
+        'private/approved-proof',
+        'transferencia.pdf',
+        'application/pdf',
+        128,
+        new Date('2026-10-27T11:59:00.000Z'),
+        approvedAt,
+        approvedBy,
+      ],
+    );
+    runIsolatedMigration('up', 1);
     const { rows: createdTables } = await pool.query(
       'SELECT to_regclass($1) AS payment_proofs, to_regclass($2) AS outbox',
       [`${schema}.payment_proofs`, `${schema}.payment_proof_notification_outbox`],
@@ -413,7 +482,19 @@ test('la migración se revierte y puede aplicarse otra vez en su propio esquema'
       [schema],
     );
     expect(isolatedColumns.map(({ column_name }) => column_name)).toContain('approved_at');
+    expect(isolatedColumns.map(({ column_name }) => column_name)).toContain(
+      'approval_requested_by',
+    );
+    const { rows: migratedApprovalRows } = await pool.query(
+      `SELECT approval_requested_at, approval_requested_by FROM "${schema}".payment_proofs
+       WHERE approved_at = $1 AND approved_by = $2`,
+      [approvedAt, approvedBy],
+    );
+    expect(migratedApprovalRows).toEqual([
+      { approval_requested_at: approvedAt, approval_requested_by: approvedBy },
+    ]);
 
+    runIsolatedMigration('down');
     runIsolatedMigration('down');
     runIsolatedMigration('down');
     const { rows: removedTables } = await pool.query(

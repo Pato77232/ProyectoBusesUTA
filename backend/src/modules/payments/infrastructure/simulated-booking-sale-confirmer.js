@@ -6,10 +6,20 @@ class SimulatedBookingSaleConfirmer extends BookingSaleConfirmer {
     super();
     this.rejections = new Set(rejections);
     this.confirmedProofIds = new Set();
+    this.confirmedSales = new Map();
   }
 
-  async confirmSale({ paymentProofId }) {
+  async confirmSale(sale) {
+    const { bookingId, cooperativeId, paymentProofId } = sale;
     if (this.rejections.has(paymentProofId)) throw new BookingSaleRejectedError();
+    const previousSale = this.confirmedSales.get(paymentProofId);
+    if (
+      previousSale &&
+      (previousSale.bookingId !== bookingId || previousSale.cooperativeId !== cooperativeId)
+    ) {
+      throw new BookingSaleRejectedError();
+    }
+    this.confirmedSales.set(paymentProofId, Object.freeze({ ...sale }));
     this.confirmedProofIds.add(paymentProofId);
     return true;
   }

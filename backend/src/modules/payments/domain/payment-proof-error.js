@@ -60,6 +60,17 @@ class PaymentProofNotPendingError extends PaymentProofError {
   }
 }
 
+class PaymentProofTotalUnavailableError extends PaymentProofError {
+  constructor() {
+    super(
+      'PAYMENT_PROOF_TOTAL_UNAVAILABLE',
+      503,
+      'No se pudo consultar el total vigente de la reserva; intente nuevamente.',
+    );
+    this.name = 'PaymentProofTotalUnavailableError';
+  }
+}
+
 class BookingSaleRejectedError extends PaymentProofError {
   constructor() {
     super('BOOKING_SALE_REJECTED', 409, 'La reserva no puede confirmarse como venta.');
@@ -86,6 +97,17 @@ class PaymentProofApprovalPersistenceUncertainError extends PaymentProofError {
       'La venta puede estar confirmada; reintente la aprobación con el mismo comprobante.',
     );
     this.name = 'PaymentProofApprovalPersistenceUncertainError';
+  }
+}
+
+class PaymentProofApprovalIntentPersistenceError extends PaymentProofError {
+  constructor() {
+    super(
+      'PAYMENT_PROOF_APPROVAL_INTENT_PERSISTENCE_FAILED',
+      503,
+      'No se pudo registrar la intención de aprobación; reintente la solicitud.',
+    );
+    this.name = 'PaymentProofApprovalIntentPersistenceError';
   }
 }
 
@@ -145,9 +167,11 @@ module.exports = {
   PaymentProofCannotExpireError,
   PaymentProofNotFoundError,
   PaymentProofNotPendingError,
+  PaymentProofTotalUnavailableError,
   BookingSaleRejectedError,
   BookingSaleUncertainError,
   PaymentProofApprovalPersistenceUncertainError,
+  PaymentProofApprovalIntentPersistenceError,
   BookingNotFoundOrNotOwnedError,
   BookingNotPayableError,
   BookingPaymentProofRejectedError,

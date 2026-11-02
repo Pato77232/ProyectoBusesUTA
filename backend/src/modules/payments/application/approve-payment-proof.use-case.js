@@ -2,6 +2,7 @@ const { approvePaymentProof } = require('../domain/payment-proof-approval');
 const {
   BookingSaleRejectedError,
   BookingSaleUncertainError,
+  PaymentProofApprovalIntentPersistenceError,
   PaymentProofApprovalPersistenceUncertainError,
   PaymentProofNotFoundError,
   PaymentProofNotPendingError,
@@ -39,6 +40,27 @@ class ApprovePaymentProof {
     if (proof.approved_at && proof.approved_by) return proof;
     if (proof.status !== 'UPLOADED') throw new PaymentProofNotPendingError();
 
+    let approvalIntent;
+    try {
+      approvalIntent = await this.paymentProofRepository.markApprovalRequestedIfPending({
+        paymentProofId: proofId,
+        cooperativeId: tenantId,
+        requestedBy: clerkId,
+        requestedAt: decisionDate,
+      });
+    } catch {
+      throw new PaymentProofApprovalIntentPersistenceError();
+    }
+
+    if (!approvalIntent) {
+      proof = await this.paymentProofRepository.findByIdAndCooperativeId(proofId, tenantId);
+      if (proof?.approved_at && proof.approved_by) return proof;
+      throw new PaymentProofNotPendingError();
+    }
+
+    const originalApproverId = approvalIntent.approval_requested_by;
+    if (!originalApproverId) throw new PaymentProofApprovalIntentPersistenceError();
+
     try {
       const confirmed = await this.bookingSaleConfirmer.confirmSale({
         bookingId: proof.booking_id,
@@ -53,12 +75,12 @@ class ApprovePaymentProof {
       throw new BookingSaleUncertainError();
     }
 
-    approvePaymentProof(proof, clerkId, decisionDate);
+    approvePaymentProof(approvalIntent, originalApproverId, decisionDate);
     try {
       const saved = await this.paymentProofRepository.markApprovedIfPending({
         paymentProofId: proofId,
         cooperativeId: tenantId,
-        approvedBy: clerkId,
+        approvedBy: originalApproverId,
         approvedAt: decisionDate,
       });
       if (saved) return saved;

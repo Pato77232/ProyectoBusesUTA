@@ -12,7 +12,8 @@ const {
 
 const PAYMENT_PROOF_COLUMNS = `id, booking_id, cooperative_id, status, file_key,
   original_file_name, media_type, file_size_bytes, uploaded_at, expired_at,
-  approved_at, approved_by, created_at, updated_at`;
+  approved_at, approved_by, approval_requested_at, approval_requested_by,
+  created_at, updated_at`;
 
 const MAX_PAGE_SIZE = 50;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -53,6 +54,8 @@ function withPersistenceDates(paymentProof, row) {
     ...paymentProof,
     approved_at: asDate(row.approved_at),
     approved_by: row.approved_by,
+    approval_requested_at: asDate(row.approval_requested_at),
+    approval_requested_by: row.approval_requested_by,
     created_at: asDate(row.created_at),
     updated_at: asDate(row.updated_at),
   });
@@ -145,12 +148,33 @@ class PgPaymentProofRepository extends PaymentProofRepository {
 
   async markApprovedIfPending({ paymentProofId, cooperativeId, approvedBy, approvedAt }) {
     const { rows } = await this.pool.query(
-      `UPDATE payment_proofs SET approved_by = $3, approved_at = $4,
+      `UPDATE payment_proofs SET approved_by = approval_requested_by, approved_at = $4,
          updated_at = CURRENT_TIMESTAMP
        WHERE id = $1 AND cooperative_id = $2 AND status = 'UPLOADED'
-         AND approved_at IS NULL
+         AND approved_at IS NULL AND approval_requested_by = $3
+         AND approval_requested_at IS NOT NULL
        RETURNING ${PAYMENT_PROOF_COLUMNS}`,
       [paymentProofId, cooperativeId, approvedBy, approvedAt],
+    );
+    return rows.length === 0 ? null : toPaymentProof(rows[0]);
+  }
+
+  async markApprovalRequestedIfPending({
+    paymentProofId,
+    cooperativeId,
+    requestedBy,
+    requestedAt,
+  }) {
+    const { rows } = await this.pool.query(
+      `UPDATE payment_proofs
+       SET approval_requested_by = COALESCE(approval_requested_by, $3),
+           approval_requested_at = COALESCE(approval_requested_at, $4),
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1 AND cooperative_id = $2 AND status = 'UPLOADED'
+         AND approved_at IS NULL
+         AND (approval_requested_at IS NULL OR approval_requested_by IS NOT NULL)
+       RETURNING ${PAYMENT_PROOF_COLUMNS}`,
+      [paymentProofId, cooperativeId, requestedBy, requestedAt],
     );
     return rows.length === 0 ? null : toPaymentProof(rows[0]);
   }
@@ -172,6 +196,7 @@ class PgPaymentProofRepository extends PaymentProofRepository {
         expired_at = EXCLUDED.expired_at,
         updated_at = CURRENT_TIMESTAMP
       WHERE payment_proofs.approved_at IS NULL
+        AND payment_proofs.approval_requested_at IS NULL
       RETURNING ${PAYMENT_PROOF_COLUMNS}`,
       [
         paymentProof.booking_id,

@@ -25,6 +25,7 @@ test('lista solo metadatos permitidos y usa tenant autenticado y cursor solicita
         {
           id: 'proof-1',
           booking_id: 'booking-1',
+          total_cents: 2550,
           cooperative_id: 'cooperative-1',
           status: 'UPLOADED',
           file_key: 'private-key',
@@ -52,6 +53,7 @@ test('lista solo metadatos permitidos y usa tenant autenticado y cursor solicita
   });
   expect(response.body.items[0]).not.toHaveProperty('file_key');
   expect(response.body.items[0]).not.toHaveProperty('cooperative_id');
+  expect(response.body.items[0]).toMatchObject({ totalCents: 2550, currency: 'USD' });
   expect(response.body.nextCursor).toBe('next');
 });
 

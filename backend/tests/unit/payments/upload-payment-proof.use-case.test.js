@@ -46,10 +46,11 @@ function createHarness({
   };
   const persistProof = async (paymentProof) => {
     if (saveError) throw saveError;
-    proofs.set(paymentProof.booking_id, paymentProof);
+    const savedProof = { ...paymentProof, id: paymentProof.id || 'proof-1' };
+    proofs.set(paymentProof.booking_id, savedProof);
     outbox.set(paymentProof.booking_id, { status: 'PENDING', attemptCount: 0 });
     if (saveUncertainError) throw saveUncertainError;
-    return paymentProof;
+    return savedProof;
   };
   const paymentProofRepository = {
     findByBookingId: jest.fn(async (bookingId) => proofs.get(bookingId) || null),
@@ -124,7 +125,11 @@ test('carga el comprobante usando la cooperativa, fecha límite y total de la re
   expect(result.total).toBe(BOOKING.total);
   expect(harness.bookingReader.findForPayment).toHaveBeenCalledWith(BOOKING.bookingId);
   expect(harness.bookingPaymentProofNotifier.markPaymentProofReceived).toHaveBeenCalledWith(
-    BOOKING.bookingId,
+    expect.objectContaining({
+      bookingId: BOOKING.bookingId,
+      cooperativeId: BOOKING.cooperativeId,
+      paymentProofId: expect.any(String),
+    }),
   );
   expect(
     harness.paymentProofRepository.saveWithPendingNotification.mock.invocationCallOrder[0],

@@ -1,5 +1,5 @@
 async function runMigration() {
-  const [direction, schema, directory] = process.argv.slice(2);
+  const [direction, schema, directory, requestedCount] = process.argv.slice(2);
   if (!['up', 'down'].includes(direction) || !schema || !directory) {
     throw new Error('Argumentos de migración de pagos inválidos.');
   }
@@ -12,7 +12,7 @@ async function runMigration() {
     databaseUrl: process.env.DATABASE_URL,
     dir: directory,
     direction,
-    count: direction === 'down' ? 1 : Infinity,
+    count: requestedCount ? Number(requestedCount) : direction === 'down' ? 1 : Infinity,
     migrationsTable: 'pgmigrations',
     schema,
     log: () => {},
