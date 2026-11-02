@@ -3,7 +3,7 @@
 - **Referencia de planificación:** D-01; no es un ticket externo.
 - **Módulo:** route-sheets; frecuencias y Fleet como proveedores públicos.
 - **Responsable:** David, según distribución y actividad elegida en el chat.
-- **Estado:** En desarrollo; sección 1 implementada localmente por autorización expresa del solicitante. Sección 2 pendiente de autorización. Revisión humana de código no realizada.
+- **Estado:** En desarrollo; secciones 1 y 2 implementadas por petición expresa. Sección 1 guardada en 7be2587; sección 2 local sin commit. Revisión humana de código e integración pendientes.
 - **Fecha:** 1 de noviembre de 2026, America/Guayaquil.
 - **Rama / base:** feature/programacion-multifrecuencia-spec, b60201e. Árbol inicialmente limpio. Ramas locales y referencias remotas almacenadas examinadas; no se refrescó remoto en esta sesión ni se certifica trabajo privado de otros integrantes.
 - **Participantes del acuerdo:** David/solicitante, Edwin y Leslie según reporte humano del solicitante. El usuario informó que revisaron preguntas/propuestas juntos, las aceptaron y delegó concretar el contrato. No hubo comunicación directa del asistente con Edwin/Leslie ni se inventan actas o aprobaciones de PR.
@@ -103,7 +103,7 @@ Fecha común: 2026-11-02; preparación de 15 minutos solo para estos ejemplos, n
 
 ## 7. Alcance ejecutable: tres secciones, un commit por sección
 
-Por aclaración humana posterior, esta tarea tiene tres secciones (0, 1 y 2) y cada sección corresponde a un único commit lógico. Cada sección funcional reúne código, pruebas y evidencia relacionada; no se separan en commits adicionales. Implementar una sección y ejecutar su commit son autorizaciones distintas: los commits solo se ejecutan si el humano los pide. Sección 0 guardada por el humano en f1a347f; sección 1 autorizada e implementada localmente; sección 2 espera petición expresa.
+Por aclaración humana posterior, esta tarea tiene tres secciones (0, 1 y 2) y cada sección corresponde a un único commit lógico. Cada sección funcional reúne código, pruebas y evidencia relacionada; no se separan en commits adicionales. Implementar una sección y ejecutar su commit son autorizaciones distintas: los commits solo se ejecutan si el humano los pide. Sección 0 guardada en f1a347f y sección 1 en 7be2587 por el humano; sección 2 solicitada expresamente e implementada localmente, sin commit ejecutado.
 
 ### Sección 0 — Contrato y acuerdos (documentación actual)
 
@@ -115,7 +115,7 @@ Incluye esta spec, reglas funcionales, registro del acuerdo, dependencias, plan 
 
 ### Sección 1 — Validar agenda de un bus (primera implementación autorizable)
 
-**Estado:** implementada localmente; sin commit, revisión humana ni conexión HTTP.
+**Estado:** guardada por el humano en 7be2587; sin revisión humana ni conexión HTTP comprobadas.
 
 **Resultado:** validador puro de actividades fechadas, preparación, disponibilidad inicial, bloqueos y continuidad. Sin BD, Express ni nuevos endpoints; todavía no se relaja la restricción actual de persistencia.
 
@@ -126,6 +126,8 @@ Incluye intervalos, preparación, orden cronológico, solapamientos, ubicación 
 **Archivos previstos:** nuevos componentes de domain de route-sheets y tests/unit/route-sheets; nombres precisos al implementar según convenciones. Errores de dominio explícitos, funciones cortas, sin dependencias nuevas por defecto.
 
 ### Sección 2 — Validar patrón y ventana de dos ciclos
+
+**Estado:** implementada localmente por petición expresa posterior a 7be2587; pendiente de commit, revisión humana e integración.
 
 **Resultado:** funciones puras que verifican cobertura, repetibilidad y límites comerciales a partir de datos explícitos; no generación/persistencia productiva ni catálogo de viajes.
 
@@ -146,10 +148,10 @@ Incluye cobertura de requeridos frente a asignados, ciclo en días, repetibilida
 
 - [x] Intervalos/fechas inválidos, falta de offset y preparación omitida se rechazan; orden de actividades de entrada no altera resultado y no se mutan argumentos.
 - [x] Igualdad con readyAt permite continuar; un minuto antes rechaza; servicios nocturnos conservan día real.
-- [x] Continuidad inicial/intermedia, traslados y bloqueos de agenda satisfacen ejemplos de §5. El cierre final al repetir patrón pertenece a sección 2 y sigue pendiente.
-- [ ] Cobertura exige cada salida requerida una vez; más servicios que buses puede ser válido.
-- [ ] L entero en días; patrón no se corta ni se repite desde otra ciudad sin traslado.
-- [ ] Base incluida en dos ciclos; borrador no vende; inicio inclusivo y fin exclusivo; reloj explícito, cierre exacto en embarque; renovación no altera IDs antiguos ni excede límite.
+- [x] Continuidad inicial/intermedia/final, traslados y bloqueos de agenda satisfacen ejemplos de §5, incluida la repetición del patrón.
+- [x] Cobertura exige cada salida requerida una vez; más servicios que buses puede ser válido.
+- [x] L entero en días; patrón no se corta ni se repite desde otra ciudad sin traslado.
+- [x] Funciones puras: base incluida en dos ciclos; borrador no vende; inicio inclusivo y fin exclusivo; reloj explícito, cierre exacto en embarque; cálculo de renovación conserva IDs y rechaza exceso. No implementa transición/publicación persistida.
 - [ ] Si se integra producción posteriormente, comprobar multi-tenant, concurrencia de asignaciones y conflictos entre hojas en PostgreSQL aislado.
 - [ ] Por sección funcional ejecutar lint, format:check y npm test desde backend con evidencia real; integración según testing-database.md. Arranque real si cambia composición.
 - [ ] Revisión humana de cada incremento y evidencia de integración antes de cerrar.
@@ -179,3 +181,27 @@ Repetición unitaria con acceso HTTP local permitido: **56 suites aprobadas/1 fa
 PostgreSQL aislado iniciado tras intervención humana para encender Docker Desktop: proyecto busesuta-rs04-s1, docker-compose.test.yml con `--env-file NUL`, base busesuta_test y credenciales ficticias versionadas. Integración ejecutada por separado con acceso local permitido: **13 suites aprobadas/8 fallidas; 151 pruebas aprobadas/1 fallida**. Siete suites no cargan por busboy ausente; bus-photo-storage.test.js supera el timeout existente de 20 s al promover bytes (no se modifica su timeout/prueba). Ejecución global fallida; no se atribuyen estos problemas al nuevo validador sin evidencia. Recursos temporales de pruebas retirados al finalizar. Sin cambio de composición: no se requiere arranque funcional nuevo por esta sección. Próxima sección autorizable: **sección 2**, después de revisar estas limitaciones.
 
 Revisión local del incremento: dominio solo depende de archivos domain del módulo y JavaScript estándar; no Express/pg/shared. Resultado independiente del reloj de sistema, validaciones por responsabilidad, sin mutación de entradas. `git diff --check` aprobado; no cambios a pruebas existentes, lock, dependencias, migraciones ni otros módulos. Revisión humana, restauración de dependencias locales y suite global satisfactoria siguen pendientes antes de integrar. Sin commit ejecutado.
+
+### Sección 2 — contrato interno y evidencia posterior
+
+Base local 7be2587; rama feature/programacion-multifrecuencia-spec, inicialmente limpia. El solicitante autorizó implementar sección 2 y pidió sugerir el mensaje de commit; no autorizó ejecutar commits. Se agregan cinco archivos de dominio (validadores de patrón/ventana, período en días, validación de entradas y errores) y dos archivos de pruebas. Sin cambios a sección 1, CyclePeriod, consumidores actuales, pruebas existentes, migraciones, dependencias ni composición.
+
+**Patrón:** `validateRoutePattern({ cooperativeId, busGroupId, cycleStartDate, cycleLengthDays, requiredServices, agendas })`. Inicio local YYYY-MM-DD a medianoche continental (-05:00 para el alcance actual), duración positiva explícita en días. Cada agenda incluye busGroupId y el snapshot de sección 1. Solo permite un snapshot por bus; el llamador reúne sus actividades, no separa conflictos entre snapshots. Un mismo id de actividad no se reutiliza entre buses.
+
+`requiredServices` es una lista explícita de `{ id, frequencyId, departureAt }`. La clave de cobertura es frecuencia + instante normalizado: admite la misma frecuencia en otras fechas y rechaza una salida asignada dos veces, faltante o no requerida. Un traslado no cubre una salida comercial. Agendas/servicios vacíos validan estructura vacía, sin acreditar publicación ni disponibilidad comercial.
+
+Valida agenda mediante sección 1, encierra actividad/preparación/bloqueos en el período y comprueba repetición desplazando todas las actividades y bloqueos L días. La última ubicación del bus debe permitir la primera actividad repetida. Terminar preparación exactamente en el fin exclusivo es válido; empezar una actividad en ese límite corresponde al siguiente ciclo. Devuelve snapshot inmutable, sin generar viajes ni asignaciones nuevas.
+
+**Ventana:** `calculateConfirmedCycleWindow({ cooperativeId, busGroupId, cycleStartDate, cycleLengthDays, cycles, now, boardingAt })`. `cycleStartDate` conserva el ancla histórica de la serie. Cada ciclo contiene `{ id, cooperativeId, busGroupId, startDate, status }`, DRAFT/PUBLISHED, duración común L; el proveedor debe entregar la serie completa de ese grupo desde el ancla, incluido historial, no un subconjunto elegido por el comprador. Rechaza huecos, solapamientos, fechas/IDs repetidos, publicación posterior a borrador o contexto ajeno. Exige reloj y embarque con offset explícito; no lee Date.now/process.env.
+
+Como concreción del máximo de dos ciclos generados, cuenta todos los períodos no terminados (incluidos borradores); así no puede prepararse un tercer período futuro para eludir el límite. Historial terminado no consume cupo ni pierde IDs. Devuelve copias congeladas, `remainingCycleSlots`, `renewalAllowed` y `nextCycleStartAt`; son información para una futura acción humana, no ejecutan confirmación, generación ni renovación. Renovación permitida al acabar algún ciclo si hay cupo y no hay borradores pendientes de confirmar.
+
+`confirmedFromInclusive`/`confirmedThroughExclusive` delimitan los ciclos publicados aún no terminados; sin ellos son null aunque exista historia. `boardingAllowed` solo comprueba pertenencia temporal a ciclo publicado y `now < boardingAt`; **no es autorización completa de compra** ni verifica frecuencia activa, tarifas, inventario o identidad. `boardingCycleId` identifica el período temporal correspondiente; el caso de uso futuro debe comprobar que el viaje realmente pertenece a él y verificar los demás contratos de D-04/Bookings.
+
+Errores propios: `ROUTE_PROGRAMMING_INVALID` (400); conflictos `ROUTE_PATTERN_OUTSIDE_PERIOD`, `ROUTE_PATTERN_COVERAGE_CONFLICT`, `ROUTE_CYCLE_SEQUENCE_CONFLICT`, `ROUTE_CYCLE_LIMIT_EXCEEDED` (409). Reutiliza errores temporales/geográficos/bloqueos de sección 1 y su parser de instantes. Los errores no incluyen información personal de pasajeros.
+
+**Verificación dirigida:** 93 pruebas nuevas de sección 2 aprobadas y 79 de sección 1 aprobadas (172, tres suites). Se prueba cobertura real por salida, fechas/offset equivalentes, varios servicios/buses, bloqueos, medianoche, febrero bisiesto, cierre exacto, repetición abierta y renovación conservando historia. La primera ejecución de los tests nuevos tuvo 76 aprobadas/6 fallidas por parametrización de listas en Jest: se corrigió el empaquetado de fixtures, manteniendo expectativas/reglas; no se modificaron pruebas previas. Después se añadieron casos de borde y todos los dirigidos pasan.
+
+Lint global y formato de los siete JS nuevos aprobados; formato global falla en 43 archivos previos ajenos a la sección. `npm test` ejecutado con acceso local permitido falló por carga de busboy ausente en Fleet; la ejecución antes del último caso de borde aprobó 939 pruebas y 58 suites/1 fallida, sin alcanzar integración. Repetición unitaria final: **940 pruebas aprobadas, 58 suites aprobadas/1 fallida por carga de busboy**; cero casos fallidos entre los ejecutados, sin declarar suite global aprobada. Integración aislada independiente: **151 pruebas aprobadas/1 fallida, 13 suites aprobadas/8 fallidas**: siete no cargan por busboy y una supera el timeout existente de fotos (20 s). No dependencias instaladas/actualizadas, no saltos ni expectativas debilitadas. Faltan busboy/sharp en node_modules, ya declarados en el proyecto.
+
+Integración usa PostgreSQL efímero del proyecto busesuta-rs04-s2, docker-compose.test.yml, `--env-file NUL` y credenciales ficticias versionadas; no .env de desarrollo. Recursos temporales retirados al terminar. No arranque funcional nuevo porque no cambia composición. Revisión SOLID local: dominio puro, funciones separadas por cobertura, repetición y calendario; sin Express, pg, shared ni reloj implícito. Sin interfaz visual en este alcance. Diff comprobado sin errores de espacios; solo cinco archivos de dominio nuevos, dos de pruebas nuevos y dos documentos modificados. Próxima acción: revisión humana del diff, commit si se solicita y spec de D-03 para persistencia/HTTP; no declarar el módulo operativo completo ni integrar sin resolver fallos globales.

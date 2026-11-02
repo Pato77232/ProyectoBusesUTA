@@ -1,5 +1,11 @@
 # Estado compartido del proyecto
 
+## ROUTE-SHEETS-04 sección 2 — implementación local
+
+David solicitó sección 2 tras guardar sección 1 en 7be2587. Rama feature/programacion-multifrecuencia-spec inicialmente limpia. Patrón con cobertura por frecuencia/instante, agenda por bus, período explícito en días, límites de preparación/bloqueos y repetibilidad; ventana con reloj explícito, base incluida en dos ciclos, borradores excluidos de venta, límite exclusivo y renovación informativa sin renumerar historia. Cinco archivos nuevos de dominio y dos de pruebas; snapshots inmutables. Sin endpoints, persistencia, generación productiva, dependencias ni pruebas anteriores modificadas. Secciones 0–2 preparadas/implementadas; no equivalen a integración operativa de D-03/04/05.
+
+93 pruebas nuevas aprobadas; 172 dirigidas aprobadas incluyendo sección 1. Lint global/formato nuevo aprobados; formato global fallido en 43 archivos previos. npm test falló por busboy ausente, sin alcanzar integración; repetición unitaria final con acceso local: 940 pruebas aprobadas, 58 suites aprobadas/1 fallida por carga de busboy. Integración separada en PostgreSQL aislado: 151 pruebas aprobadas/1 fallida; 13 suites aprobadas/8 fallidas (siete por busboy y una por timeout de fotos). Sin cambios a expectativas/timeouts. Docker temporal busesuta-rs04-s2 retirado; detalles en [spec](specs/ROUTE-SHEETS-04.md). Diff revisado y comprobado; commit de sección 2, revisión humana, restauración del entorno y suite global satisfactoria pendientes antes de integrar. No se ejecutaron commits.
+
 ## ROUTE-SHEETS-04 sección 1 — implementación local
 
 David solicitó implementar sección 1 en feature/programacion-multifrecuencia-spec sobre f1a347f (sección 0 guardada por el humano). Validador puro de agenda implementado: fechas con offset, preparación, continuidad/traslados, disponibilidad inicial, REST/MAINTENANCE, aislamiento de snapshots y resultado inmutable; 79 pruebas nuevas aprobadas. No endpoints, BD, asignaciones persistidas, dependencias ni pruebas existentes modificadas. Sección 2 todavía sin autorización ni implementación.
