@@ -113,6 +113,10 @@ const invalidFields = [
   ['disabledSeatKeys', '1'],
   ['disabledSeatKeys', [1]],
   ['disabledSeatKeys', [' ']],
+  ['vipSeatKeys', null],
+  ['vipSeatKeys', '1'],
+  ['vipSeatKeys', [1]],
+  ['vipSeatKeys', ['deck-1-0-0', 'deck-1-0-0']],
   ['disabledSeatKeys', ['deck-1-0-0', 'deck-1-0-0']],
 ];
 

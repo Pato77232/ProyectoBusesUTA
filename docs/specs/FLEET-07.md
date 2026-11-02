@@ -5,10 +5,10 @@
 - **Módulo:** `fleet`; lo consume `bookings` mediante la API pública de Fleet
 - **Responsable:** Edwin
 - **Revisor propuesto / confirmado:** Leslie propuesta, por consumir el inventario; sin confirmación registrada
-- **Estado:** Borrador; decisión de Fleet tomada, falta avisar a Leslie del cambio de contrato
+- **Estado:** En desarrollo, T1 local sin commit; falta avisar a Leslie del cambio de contrato y revisión humana
 - **Prioridad y dependencias:** depende de FLEET-02 y FLEET-03, en develop, y de FLEET-06, en `e37051e` sin publicar. T2 depende de la PR #37 de FLEET-05. Accesibilidad se trata en [FLEET-08](FLEET-08.md), como piden los acuerdos.
-- **Rama / PR / base comprobada:** sin rama propia; borrador local en `feature/FLEET-06-T1-lectura-asientos` sobre `e37051e`, 2 de noviembre de 2026; sin PR.
-- **Autorización de alcance:** el 2 de noviembre de 2026 Edwin pidió agregar VIP y eligió marcarlo por bus. Esta spec no autoriza implementar hasta que Edwin lo pida.
+- **Rama / PR / base comprobada:** `feature/FLEET-07-T1-vip`, sobre `979fad4` el 2 de noviembre de 2026, que parte de FLEET-06 en `447fcce`; sin PR.
+- **Autorización de alcance:** el 2 de noviembre de 2026 Edwin pidió agregar VIP y eligió marcarlo por bus. El mismo día Edwin pidió comenzar la implementación e informó que Leslie aprobó FLEET-06.
 
 ## 1. Objetivo
 
@@ -60,18 +60,18 @@ Sin rutas nuevas. `POST /api/v1/buses` acepta `vipSeatKeys`, con 400 si es invá
 
 ## 7. Criterios de aceptación
 
-- [ ] Dada una clave VIP válida, cuando se registra el bus, entonces ese asiento llega con `category: 'VIP'` y los demás conservan `NORMAL`.
-- [ ] Dada una clave inexistente en la plantilla, cuando se registra el bus, entonces responde 400 y no crea nada.
-- [ ] Dada una clave repetida, cuando se registra el bus, entonces responde 400.
-- [ ] Dado un bus registrado antes de este cambio, cuando se consulta, entonces sus asientos siguen en `NORMAL`.
-- [ ] Dado un alta sin `vipSeatKeys`, cuando se registra el bus, entonces el resultado es igual al actual.
-- [ ] Dados dos buses con la misma plantilla, cuando marcan asientos VIP distintos, entonces cada uno conserva los suyos.
+- [x] Dada una clave VIP válida, cuando se registra el bus, entonces ese asiento llega con `category: 'VIP'` y los demás conservan `NORMAL`.
+- [x] Dada una clave inexistente en la plantilla, cuando se registra el bus, entonces responde 400 y no crea nada.
+- [x] Dada una clave repetida, cuando se registra el bus, entonces responde 400.
+- [x] Dado un bus registrado antes de este cambio, cuando se consulta, entonces sus asientos siguen en `NORMAL`.
+- [x] Dado un alta sin `vipSeatKeys`, cuando se registra el bus, entonces el resultado es igual al actual.
+- [x] Dados dos buses con la misma plantilla, cuando marcan asientos VIP distintos, entonces cada uno conserva los suyos.
 
 ## 8. Casos borde y errores
 
 | Caso | Comportamiento |
 |---|---|
-| Posición desactivada y marcada como VIP | Pendiente; se propone aceptarla y conservar `offered: false` |
+| Posición desactivada y marcada como VIP | T1 aplica la propuesta: se acepta y conserva `offered: false`; falta confirmarla |
 | Bus sin asientos VIP | Todo `NORMAL`, igual que hoy |
 
 ## 9. Pruebas esperadas
@@ -117,8 +117,8 @@ No aplica.
 | T1: VIP en backend | Alta y consulta con categoría VIP, con migración nueva | `bus-registration.js`, `bus-seat-configuration.js`, `pg-bus.repository.js` |
 | T2: formulario | Selección en la pantalla de registro | `bus-form.js`, `bus-form-view.js`, de la PR #37 |
 
-**Evidencias:** pendientes; no hay implementación.
+**Evidencias (2 de noviembre de 2026, PostgreSQL aislado):** T1 sin commit. Lint sin errores y Prettier correcto en los archivos tocados. Integración: 280 de 280 aprobadas en 25 suites. Unitarias: 1074 aprobadas y 2 fallidas de 1076, las mismas de `publish-route-sheet.use-case.test.js`, ajenas a este cambio; por eso `npm test` no queda en verde y la integración se ejecutó aparte. Edwin autorizó cambiar en `bus.migration.test.js` el valor `VIP` por `OTRA`, porque esa prueba exigía el contrato anterior; la comprobación de rechazo se conserva.
 
 ## 14. Revisión y cierre
 
-Pendientes. Próxima acción: avisar a Leslie del cambio de contrato y que Edwin autorice T1.
+Pendientes. Próxima acción: avisar a Leslie del cambio de contrato, integrar FLEET-06 y conseguir revisión humana. T2 espera la PR #37.

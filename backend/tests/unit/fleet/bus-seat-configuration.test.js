@@ -117,3 +117,36 @@ test('snapshot y asientos son copias inmutables de datos del servidor', () => {
     result.seats.pop();
   }).toThrow(TypeError);
 });
+
+test('marca como VIP solo las posiciones indicadas y no altera capacidad ni plantilla', () => {
+  const result = createBusSeatConfiguration(
+    { ...metadata, vipSeatKeys: ['deck-1-0-0', 'deck-1-0-1'] },
+    base,
+  );
+  const vip = result.seats.filter((seat) => seat.category === 'VIP');
+  expect(vip.map((seat) => seat.layoutSeatKey)).toEqual(['deck-1-0-0', 'deck-1-0-1']);
+  expect(result.capacity).toBe(42);
+  expect(result.seats.filter((seat) => seat.category === 'NORMAL')).toHaveLength(40);
+  expect(JSON.stringify(result.layout)).not.toContain('VIP');
+});
+
+test('sin vipSeatKeys el resultado es igual al de una lista vacía', () => {
+  expect(createBusSeatConfiguration(metadata, base)).toEqual(
+    createBusSeatConfiguration({ ...metadata, vipSeatKeys: [] }, base),
+  );
+});
+
+test('rechaza una clave VIP que no existe en la plantilla', () => {
+  expect(() =>
+    createBusSeatConfiguration({ ...metadata, vipSeatKeys: ['deck-9-0-0'] }, base),
+  ).toThrow(BusRegistrationValidationError);
+});
+
+test('un asiento VIP desactivado conserva su categoría y no se ofrece', () => {
+  const { seats, capacity } = createBusSeatConfiguration(
+    { ...metadata, disabledSeatKeys: ['deck-1-0-0'], vipSeatKeys: ['deck-1-0-0'] },
+    base,
+  );
+  expect(seats[0]).toMatchObject({ category: 'VIP', offered: false });
+  expect(capacity).toBe(41);
+});
