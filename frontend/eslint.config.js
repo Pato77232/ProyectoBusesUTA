@@ -8,6 +8,8 @@ export default [
         fetch: 'readonly',
         URL: 'readonly',
         Response: 'readonly',
+        Request: 'readonly',
+        FormData: 'readonly',
         DOMException: 'readonly',
         AbortSignal: 'readonly',
         AbortController: 'readonly',

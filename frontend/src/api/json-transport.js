@@ -3,10 +3,16 @@ import { ApiError, connectionError, httpError } from './api-error.js';
 const JSON_CONTENT_TYPE = /^application\/(?:[\w.-]+\+)?json(?:\s*;|$)/i;
 
 export function createJsonTransport(fetchImpl) {
-  return async function send(url, { method = 'GET', data, signal, csrfToken } = {}) {
+  return async function send(url, { method = 'GET', data, formData, signal, csrfToken } = {}) {
     const headers = { Accept: 'application/json' };
     let body;
-    if (data !== undefined) {
+    if (formData !== undefined) {
+      if (data !== undefined || !(formData instanceof FormData)) {
+        throw new ApiError('REQUEST_INVALID', 'Los datos del formulario no son válidos.');
+      }
+      // Sin Content-Type: fetch debe fijarlo con el boundary del multipart.
+      body = formData;
+    } else if (data !== undefined) {
       try {
         body = JSON.stringify(data);
         if (body === undefined) throw new Error();
