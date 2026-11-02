@@ -199,7 +199,9 @@ Una sesión por paso. T1b y T2 no pueden integrarse antes de T1a y de la revisi�
 
 ## 14. Revisión y cierre
 
-Pendientes. Próxima acción: publicar T1a y T1b, cerrar PR #31 y confirmar a Pablo el reparto de T2.
+T1a publicada para revisión en [PR #36](https://github.com/Pato77232/ProyectoBusesUTA/pull/36), commit `303b630`. T1b publicada en borrador en [PR #37](https://github.com/Pato77232/ProyectoBusesUTA/pull/37), incremento `f1c6cac`, dependiente de integrar T1a primero. Ambas apuntan a develop; T1b incluye temporalmente el commit de T1a. Reemplazan PR #31. Sin aprobación humana ni integración verificadas.
+
+Por solicitud de Edwin se repitió la revisión de T1b: 92 pruebas frontend, ESLint directo, Prettier con configuración backend, ocho comprobaciones del formulario en Chrome, smoke de portada, container-smoke y api-client-smoke aprobados. Este último usó Docker con PostgreSQL aislado y eliminó sus recursos temporales. La página real sigue deshabilitada; las pruebas del formulario usan datos ficticios y no acreditan un alta real. No se modificó código ni se ejecutó una nueva suite completa backend. El script lint mantiene la incompatibilidad de ruta POSIX en Windows. Revisión/publicación asistidas por Codex; implementar T2 y T3 sigue pendiente según sus acuerdos y dependencias.
 
 ### Revisión de T1 para publicación, 1 de noviembre de 2026
 
