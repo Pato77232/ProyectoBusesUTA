@@ -5,7 +5,7 @@
 - **Módulo:** `frontend`; consume la API de `fleet`
 - **Responsable:** Edwin, responsable de Fleet y solicitante de revisión/publicación
 - **Revisor propuesto / confirmado:** Pablo propuesto, por ser responsable de la base frontend; sin confirmación registrada
-- **Estado:** T1 en división: T1a y T1b reemplazan a PR #31, en borrador. T2 acordada con Pablo y sin iniciar; T3 espera el login. No es un alta funcional desde la pantalla
+- **Estado:** T1a integrada por PR #36; T1b en revisión en PR #37. T2a/T2b implementadas y verificadas para publicación; revisión humana pendiente. T3 pendiente; no es un alta funcional desde la pantalla.
 - **Prioridad y dependencias:** FLEET-01, FLEET-02, FLEET-03 y FRONT-01 T3c/T3d, presentes en develop. T3 requiere además la pantalla de inicio de sesión (sección 10).
 - **Rama / PR / base comprobada:** `feature/FLEET-05-T1a-validacion` y `feature/FLEET-05-T1b-formulario`, creadas desde `origin/develop` en `b60201e` el 1 de noviembre de 2026. Reemplazan a `feature/FLEET-05-pantalla-registro-buses` y a PR #31: https://github.com/Pato77232/ProyectoBusesUTA/pull/31.
 - **Autorización de alcance:** el 31 de octubre de 2026 se aprobó por chat esta spec e iniciar solo T1. El 1 de noviembre Edwin aprobó dividir PR #31. La decisión sobre T2 consta en la sección 10.
@@ -185,6 +185,19 @@ Una sesión por paso. T1b y T2 no pueden integrarse antes de T1a y de la revisi�
 **Límites:** T1 no consulta la API ni envía datos. La página publicada muestra el formulario deshabilitado y avisa que no está conectada; los datos de prueba solo existen en la prueba. No se comprobó zoom nativo del 200 %, lector de pantalla ni recorrido completo por teclado. `npm run lint` no funciona en Windows porque invoca `../backend/node_modules/.bin/eslint`; es un problema previo.
 
 ## 14. Revisión y cierre
+
+### Revisión de T2a/T2b para publicación, 2 de noviembre de 2026
+
+Edwin solicitó comprobar T2b y publicar PR si correspondía. Rama `feature/FLEET-05-T2b-proxy`: incluye su dependencia multipart T2a (`ac6e613`) y el proxy/prueba de carga T2b (`12e1882`), conservados en commits separados para revisión conjunta. Base de implementación `8886553`; referencia remota comprobada `origin/develop` `1fb0ade`. Sin merge/rebase ni cambios de producto durante esta revisión. No había PR de T2a/T2b al consultarlo.
+
+- `npm test` frontend: 101 pruebas aprobadas (9 nuevas sobre las 92 anteriores).
+- ESLint directo de `src/api` y `tests/api`: aprobado. El script lint conserva la incompatibilidad de ruta POSIX en Windows.
+- Prettier con configuración backend sobre los JS del incremento: aprobado; `git diff --check` aprobado.
+- `bus-upload-smoke.cjs`: alta real desde Chrome por Nginx y cliente multipart, diez JPEG de 24 MP y 4 789 180 bytes cada uno, completada en 7 720 ms; un bus persistido. Cargas excesivas reciben 413 tanto en `/api/v1/buses` como en otra ruta, sin crear otro bus.
+- `container-smoke.cjs`: aprobado, incluyendo Nginx sin root, recursos/MIME, exclusiones y comportamiento API.
+- `api-client-smoke.cjs`: aprobado con sesión real, CSRF, cookies, errores y caída del backend.
+
+Los smokes usaron servicios Docker y PostgreSQL efímeros mediante el runtime de pruebas sin leer `.env`; sus recursos fueron eliminados. La medición es local, no garantiza tiempos en otros equipos o con concurrencia. Se mantienen los tiempos del proxy de 10 s: esta carga pasó sin ampliarlos. Solo `/api/v1/buses` admite 50 065 536 bytes y desactiva el buffering del cuerpo para evitar el tmpfs de 16 MB. No se cambió el backend ni se ejecutó su suite completa. No se modificaron pruebas para hacerlas pasar. Sin dependencias nuevas ni defectos inducidos. Implementación asistida por Claude Code; revisión/publicación asistidas por Codex. Revisión de Pablo pendiente; T3 y la pantalla conectada siguen fuera de este incremento.
 
 Pendientes. Próxima acción: publicar T1a y T1b, cerrar PR #31 y confirmar a Pablo el reparto de T2.
 
