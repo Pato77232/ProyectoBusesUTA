@@ -1,5 +1,11 @@
 # Estado compartido del proyecto
 
+## ROUTE-SHEETS-04 sección 1 — implementación local
+
+David solicitó implementar sección 1 en feature/programacion-multifrecuencia-spec sobre f1a347f (sección 0 guardada por el humano). Validador puro de agenda implementado: fechas con offset, preparación, continuidad/traslados, disponibilidad inicial, REST/MAINTENANCE, aislamiento de snapshots y resultado inmutable; 79 pruebas nuevas aprobadas. No endpoints, BD, asignaciones persistidas, dependencias ni pruebas existentes modificadas. Sección 2 todavía sin autorización ni implementación.
+
+Lint global aprobado y formato de los cuatro JS nuevos aprobado. Formato global fallido en 43 archivos ajenos. npm test inicial: 844 pruebas unitarias aprobadas/3 fallidas, 55 suites aprobadas/2 fallidas (busboy ausente y EACCES HTTP); no alcanzó integración. Repetición unitaria con acceso local permitido: 847 pruebas aprobadas, 56 suites aprobadas/1 fallida por carga de busboy. Integración independiente en PostgreSQL efímero aislado: 151 aprobadas/1 fallida, 13 suites aprobadas/8 fallidas (siete no cargan por busboy y una supera timeout de fotos). No se cambiaron expectativas ni timeouts. Suite global sigue fallida; detalles/reproducción en [spec](specs/ROUTE-SHEETS-04.md). Contenedor/red del proyecto de pruebas busesuta-rs04-s1 retirados al terminar. Diff comprobado sin errores; sin commit/PR/revisión humana ni integración de sección 1.
+
 ## Programación multifrecuencia D-01 — 1 de noviembre de 2026
 
 | Spec / responsable | Estado y evidencia | Próxima acción |

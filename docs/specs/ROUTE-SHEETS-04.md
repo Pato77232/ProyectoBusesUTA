@@ -3,7 +3,7 @@
 - **Referencia de planificación:** D-01; no es un ticket externo.
 - **Módulo:** route-sheets; frecuencias y Fleet como proveedores públicos.
 - **Responsable:** David, según distribución y actividad elegida en el chat.
-- **Estado:** Aprobada para planificación y definición técnica por solicitud humana; implementación por secciones pendiente de autorización. Revisión de código no realizada.
+- **Estado:** En desarrollo; sección 1 implementada localmente por autorización expresa del solicitante. Sección 2 pendiente de autorización. Revisión humana de código no realizada.
 - **Fecha:** 1 de noviembre de 2026, America/Guayaquil.
 - **Rama / base:** feature/programacion-multifrecuencia-spec, b60201e. Árbol inicialmente limpio. Ramas locales y referencias remotas almacenadas examinadas; no se refrescó remoto en esta sesión ni se certifica trabajo privado de otros integrantes.
 - **Participantes del acuerdo:** David/solicitante, Edwin y Leslie según reporte humano del solicitante. El usuario informó que revisaron preguntas/propuestas juntos, las aceptaron y delegó concretar el contrato. No hubo comunicación directa del asistente con Edwin/Leslie ni se inventan actas o aprobaciones de PR.
@@ -103,17 +103,19 @@ Fecha común: 2026-11-02; preparación de 15 minutos solo para estos ejemplos, n
 
 ## 7. Alcance ejecutable: tres secciones, un commit por sección
 
-Por aclaración humana posterior, esta tarea tiene tres secciones (0, 1 y 2) y cada sección corresponde a un único commit lógico. Cada sección funcional reúne código, pruebas y evidencia relacionada; no se separan en commits adicionales. Implementar una sección y ejecutar su commit son autorizaciones distintas: los commits solo se ejecutan si el humano los pide. La sección 0 está preparada documentalmente; las secciones 1 y 2 esperan petición expresa.
+Por aclaración humana posterior, esta tarea tiene tres secciones (0, 1 y 2) y cada sección corresponde a un único commit lógico. Cada sección funcional reúne código, pruebas y evidencia relacionada; no se separan en commits adicionales. Implementar una sección y ejecutar su commit son autorizaciones distintas: los commits solo se ejecutan si el humano los pide. Sección 0 guardada por el humano en f1a347f; sección 1 autorizada e implementada localmente; sección 2 espera petición expresa.
 
 ### Sección 0 — Contrato y acuerdos (documentación actual)
 
-**Estado:** completada en archivos locales, sin commit ni integración.
+**Estado:** guardada en f1a347f en esta rama, sin integración comprobada.
 
 **Commit único sugerido:** `docs(hojas-ruta): define programación multifrecuencia`.
 
 Incluye esta spec, reglas funcionales, registro del acuerdo, dependencias, plan de validación, enlace desde spec anterior y evidencia en estado-proyecto.md. Todos forman el mismo cambio documental.
 
 ### Sección 1 — Validar agenda de un bus (primera implementación autorizable)
+
+**Estado:** implementada localmente; sin commit, revisión humana ni conexión HTTP.
 
 **Resultado:** validador puro de actividades fechadas, preparación, disponibilidad inicial, bloqueos y continuidad. Sin BD, Express ni nuevos endpoints; todavía no se relaja la restricción actual de persistencia.
 
@@ -142,9 +144,9 @@ Incluye cobertura de requeridos frente a asignados, ciclo en días, repetibilida
 
 ## 8. Criterios y pruebas
 
-- [ ] Intervalos/fechas inválidos, falta de offset y preparación omitida se rechazan; orden de entrada no altera resultado y no se mutan argumentos.
-- [ ] Igualdad con readyAt permite continuar; un minuto antes rechaza; servicios nocturnos conservan día real.
-- [ ] Continuidad inicial/intermedia/final, traslados y bloqueos satisfacen ejemplos de §5.
+- [x] Intervalos/fechas inválidos, falta de offset y preparación omitida se rechazan; orden de actividades de entrada no altera resultado y no se mutan argumentos.
+- [x] Igualdad con readyAt permite continuar; un minuto antes rechaza; servicios nocturnos conservan día real.
+- [x] Continuidad inicial/intermedia, traslados y bloqueos de agenda satisfacen ejemplos de §5. El cierre final al repetir patrón pertenece a sección 2 y sigue pendiente.
 - [ ] Cobertura exige cada salida requerida una vez; más servicios que buses puede ser válido.
 - [ ] L entero en días; patrón no se corta ni se repite desde otra ciudad sin traslado.
 - [ ] Base incluida en dos ciclos; borrador no vende; inicio inclusivo y fin exclusivo; reloj explícito, cierre exacto en embarque; renovación no altera IDs antiguos ni excede límite.
@@ -159,3 +161,21 @@ Dominio independiente y determinista, reloj/datos explícitos y errores específ
 ## 10. Evidencia y siguiente paso
 
 Solo documentación en esta sesión. `git diff --check` aprobado y 48 referencias locales comprobadas sin destinos inexistentes (sin validar externos/anclas); cuatro documentos existentes y esta spec nueva. No tests de producto ni cambios de algoritmo; no commits/publicación. Primera petición para continuar: **«Implementa la sección 1 de ROUTE-SHEETS-04, sin commits»**. Antes de la sección 2 presentar resultados de la 1. La delegación actual completa el contrato D-01 y permite solicitar esas secciones; no hay preguntas bloqueantes para el validador puro. Otros acuerdos (tarifas, accesibilidad y sustitución de pasajeros) permanecen en sus propias tareas.
+
+### Sección 1 — contrato implementado y evidencia posterior
+
+La sección 10 anterior conserva evidencia de sección 0. El humano guardó esa sección en f1a347f y solicitó implementar sección 1, sin pedir commit. Se agregan `domain/services/validate-bus-agenda.js`, `domain/value-objects/scheduled-instant.js`, `domain/errors/bus-agenda-errors.js` y 79 pruebas en `tests/unit/route-sheets/domain/validate-bus-agenda.test.js`. Sin dependencias nuevas, migraciones, cambios a pruebas existentes ni composición del servidor.
+
+**API interna:** `validateBusAgenda({ busId, cooperativeId, initialAvailability: { locationKey, availableAt }, activities, blocks })`. Las dos listas son obligatorias, incluso vacías. Cada actividad tiene identidad bus/tenant coincidente, `id` único en la lista, `kind` SERVICE/TRANSFER, origen/destino, salida/llegada ISO con offset y preparación entera explícita. SERVICE exige frequencyId; TRANSFER devuelve frequencyId null y no es venta. Cada bloqueo tiene identidad coincidente, id único, kind REST/MAINTENANCE e inicio/fin. STANDBY no se acepta como bloqueo: representa disponibilidad, no prohibición de servicio.
+
+Devuelve snapshot congelado con actividades ordenadas cronológicamente, instantes ISO UTC y `readyAt` calculado; también copia/congela disponibilidad y bloqueos. Normaliza lugares con trim/NFC sin fusionar tildes o mayúsculas. Agenda vacía válida para este validador; no acredita cobertura. Rechaza fechas imposibles, horas sin zona, preparación inválida/desbordamiento, elementos huecos, identidades repetidas o tenant/bus distinto.
+
+Errores derivados del DomainError del módulo: `BUS_AGENDA_INVALID` (400) y conflictos `BUS_AGENDA_TIME_CONFLICT`, `BUS_AGENDA_LOCATION_CONFLICT`, `BUS_AGENDA_BLOCKED` (409). Conflictos indican activityId y relatedId, sin datos personales. Ausencia de frecuencia activa, grupo correcto, llegada operativa confiable y completitud de snapshots entre hojas se verificará en application mediante APIs públicas en tareas posteriores; este validador no autentica un body ni consulta proveedores.
+
+**Resultados:** 79 pruebas dirigidas aprobadas; lint global aprobado; formato individual de los cuatro archivos JS aprobado. `npm run format:check` global falló en 43 archivos previos ajenos al incremento. `npm test` falló en etapa unitaria: 55 suites aprobadas/2 fallidas, 844 pruebas aprobadas/3 fallidas; Fleet no carga `busboy` (ya declarado, ausente en node_modules) y tres HTTP de Payments fallan por EACCES de loopback. Por ello npm test no alcanzó integración; no se ocultaron esos resultados ni se instalaron dependencias para corregir otros módulos.
+
+Repetición unitaria con acceso HTTP local permitido: **56 suites aprobadas/1 fallida, 847 pruebas aprobadas**, cero casos fallidos entre los ejecutados, pero sigue fallando la carga de la suite Fleet por busboy; no se declara suite global aprobada. Resuelve los tres EACCES anteriores sin modificar código ni pruebas.
+
+PostgreSQL aislado iniciado tras intervención humana para encender Docker Desktop: proyecto busesuta-rs04-s1, docker-compose.test.yml con `--env-file NUL`, base busesuta_test y credenciales ficticias versionadas. Integración ejecutada por separado con acceso local permitido: **13 suites aprobadas/8 fallidas; 151 pruebas aprobadas/1 fallida**. Siete suites no cargan por busboy ausente; bus-photo-storage.test.js supera el timeout existente de 20 s al promover bytes (no se modifica su timeout/prueba). Ejecución global fallida; no se atribuyen estos problemas al nuevo validador sin evidencia. Recursos temporales de pruebas retirados al finalizar. Sin cambio de composición: no se requiere arranque funcional nuevo por esta sección. Próxima sección autorizable: **sección 2**, después de revisar estas limitaciones.
+
+Revisión local del incremento: dominio solo depende de archivos domain del módulo y JavaScript estándar; no Express/pg/shared. Resultado independiente del reloj de sistema, validaciones por responsabilidad, sin mutación de entradas. `git diff --check` aprobado; no cambios a pruebas existentes, lock, dependencias, migraciones ni otros módulos. Revisión humana, restauración de dependencias locales y suite global satisfactoria siguen pendientes antes de integrar. Sin commit ejecutado.
