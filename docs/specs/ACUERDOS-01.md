@@ -64,3 +64,17 @@ no autoriza implementación dependiente ni sustituye respuestas de Leslie/Shirle
 Validación final: diff completo revisado y enlaces locales comprobados, sin
 destinos faltantes. No lint/Jest nuevos: solo cambian documentos. Se conservan
 como históricos los resultados anteriores y el formato backend pendiente.
+
+
+### Selección del lector por delegación — 2 de noviembre
+
+Pablo reportó aceptación general de sus decisiones por Leslie/Shirley y delegó
+la selección técnica. Se fija el diseño del lector en
+[contrato](../contratos/lectura-reservas-pagos.md), sin inventar que createdAt
+ya coincide con el inicio contractual o que recepción aceptada ya se persiste.
+Se exige inicio explícito inmutable y evidencia persistida de recepción; se
+actualizan DTO y requisitos de pruebas. No hay producto nuevo ni aprobación
+de código; la revisión humana de los incrementos sigue vigente. Pablo solicitó
+guardar/publicar esta actualización en PR #46. Diff completo revisado y 65 enlaces
+locales comprobados sin destinos faltantes. No se ejecutaron suites nuevas por
+cambiar solo Markdown. Asistencia de Codex.

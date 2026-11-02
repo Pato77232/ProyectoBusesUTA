@@ -91,3 +91,28 @@ nuevos, contexto y DTO siguen por confirmar con Leslie/Shirley. La propuesta
 separa reintentos durables; no entrega autorización de servicio al lector.
 Referencia y huella del adjunto preservadas en el contrato, sin atribuir código
 privado o pruebas de PAGOS-02 a develop. Consulta conjunta lista, no enviada.
+
+
+## Decisión del lector por delegación reportada — 2 de noviembre de 2026
+
+Pablo comunicó que Leslie/Shirley aceptan sus decisiones y delegó la selección
+técnica en esta sesión. Fuente: mensaje de Pablo; no verificación individual de
+propiedades del esquema ni aprobación de código por los otros integrantes.
+[Contrato del lector](contratos/lectura-reservas-pagos.md), §§1–4, seleccionado:
+firma de dos argumentos, contexto mínimo desde solicitud autenticada y códigos
+explícitos; inicio del plazo proofWindowStartedAt persistido, separado de createdAt;
+recepción aceptada persistida en Bookings como requisito de canUploadProof=true.
+
+Leslie prepara datos/lector; Shirley adapta consumidor/errores; Pablo revisa
+contrato y Auth. La asignación conserva responsabilidades de referencia, no
+inventa fechas ni afirma implementación. Si los datos no existen, se incorporan
+en el incremento correspondiente con migración nueva y pruebas; no se suplanta
+la ausencia con null/false ni se habilita carga con true ficticio. No hace falta
+otra aceptación genérica para este diseño; sí revisión de cada implementación.
+
+Este registro reemplaza las consultas pendientes sobre decisiones del lector;
+los detalles de correo, invitado y autorización de trabajadores siguen en sus
+especificaciones separadas. Mensaje informativo listo en el contrato; no enviado.
+Pablo solicitó guardar/publicar esta decisión en la rama de PR #46; el commit
+que incluye esta constancia reúne contrato y trazabilidad como un cambio lógico.
+Sin pruebas de producto nuevas ni comunicación enviada a terceros.

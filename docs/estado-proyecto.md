@@ -14,10 +14,11 @@ el estado actual de todo el sistema. [Registro y consultas](dependencias-pagos.m
 | [CORREO-01](specs/CORREO-01.md) | Pablo prepara; Shirley revisa | Diseño base aceptado por Shirley; proveedor, contrato, confirmaciones y reintentos abiertos. Sin implementación. |
 | [AUTH-INVITADO-01](specs/AUTH-INVITADO-01.md) | Pablo prepara; Leslie/Shirley participantes | Diseño base aceptado por Shirley; contexto, vencimiento, revocación, reenvío y CSRF pendientes con Leslie. Sin implementación. |
 | [PAGOS-01](specs/PAGOS-01.md), formatos | Shirley; revisión Pablo según confirmación reportada | PDF/JPEG/PNG hasta 5 MiB ratificados; validación de contenido/extensión/MIME. No se acredita adaptación del código. |
-| [Lectura Reservas–Pagos](contratos/lectura-reservas-pagos.md) | Pablo prepara; Leslie/Shirley concilian | Propuesta de contexto mínimo desde Auth y errores 400/401/403/404/500/503; sin lector implementado. Inicio de plazo, ausencia de recepción y contrato exacto pendientes. |
+| [Lectura Reservas–Pagos](contratos/lectura-reservas-pagos.md) | Pablo decide por delegación reportada; Leslie prepara proveedor, Shirley adapta consumidor | Diseño seleccionado el 2 de noviembre: contexto mínimo, errores explícitos, proofWindowStartedAt y recepción aceptada persistida antes de canUploadProof=true. Sin lector implementado; pruebas y conformidad de datos pendientes. Guardado/publicación de la decisión solicitados para actualizar PR #46. |
 
-Pablo pidió registrar y preparar las dependencias; no se infiere aprobación de
-los detalles técnicos ni respuesta de Leslie. Specs de Pagos adicionales citadas
+Pablo pidió registrar/preparar dependencias y posteriormente reportó delegación
+para seleccionar el lector; registro en dependencias-pagos.md. No se atribuyen
+verificaciones de datos ni aprobación de código a Leslie/Shirley. Specs de Pagos adicionales citadas
 en chat no encontradas en las ramas consultadas: solicitar ubicación antes de
 recrearlas. Pablo solicitó publicar esta entrega documental; no se hace merge ni
 se ejecutan pruebas de producto. Asistencia de Codex.
