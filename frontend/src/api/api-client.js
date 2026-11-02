@@ -6,7 +6,7 @@ const METHODS = new Set(['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE']);
 const READ_METHODS = new Set(['GET', 'HEAD']);
 const SESSION_PATHS = new Set(['/api/v1/auth/login', '/api/v1/auth/logout']);
 
-function validateRequest(path, method, data) {
+function validateRequest(path, method, data, formData) {
   const invalid = () => new ApiError('REQUEST_INVALID', 'La ruta o el método no son válidos.');
   if (
     typeof path !== 'string' ||
@@ -30,7 +30,10 @@ function validateRequest(path, method, data) {
     throw invalid();
   if (typeof method !== 'string' || !METHODS.has(method.toUpperCase())) throw invalid();
   const normalizedMethod = method.toUpperCase();
-  if (READ_METHODS.has(normalizedMethod) && data !== undefined) throw invalid();
+  const hasBody = data !== undefined || formData !== undefined;
+  if (READ_METHODS.has(normalizedMethod) && hasBody) throw invalid();
+  if (formData !== undefined && (data !== undefined || !(formData instanceof FormData)))
+    throw new ApiError('REQUEST_INVALID', 'Los datos del formulario no son válidos.');
   return { pathname: decoded.replace(/\/+$/, ''), method: normalizedMethod };
 }
 
@@ -38,14 +41,14 @@ export function createApiClient({ fetchImpl = fetch } = {}) {
   const send = createJsonTransport(fetchImpl);
   const csrf = createCsrfCache(send);
 
-  async function request(path, { method = 'GET', data, signal } = {}) {
-    const validated = validateRequest(path, method, data);
+  async function request(path, { method = 'GET', data, formData, signal } = {}) {
+    const validated = validateRequest(path, method, data, formData);
     method = validated.method;
     const changesSession = method === 'POST' && SESSION_PATHS.has(validated.pathname);
     if (validated.pathname === '/api/v1/auth/csrf') csrf.invalidate();
     try {
       const csrfToken = READ_METHODS.has(method) ? undefined : await csrf.getToken({ signal });
-      const result = await send(path, { method, data, signal, csrfToken });
+      const result = await send(path, { method, data, formData, signal, csrfToken });
       if (changesSession) csrf.invalidate();
       return result;
     } catch (error) {
