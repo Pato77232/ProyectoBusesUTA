@@ -3,9 +3,9 @@
 - **ID local:** AUTH-WEB-01; sin ticket externo antes de la revisión académica.
 - **Responsable:** Pablo, conforme a la coordinación de autenticación y F-A6.
 - **Revisora propuesta:** Shirley; aceptación de esta revisión pendiente.
-- **Estado:** Controlador preparado para revisión; pantalla e integración pendientes.
-- **Fecha / base actual:** 2 de noviembre de 2026; origin/develop 1fb0ade.
-- **Rama actual:** feature/AUTH-WEB-01-controlador-login; procedencia 5a18259.
+- **Estado:** Controlador integrado en PR #42; pantalla implementada y verificada localmente, pendiente de revisión humana.
+- **Fecha / base actual:** 2 de noviembre de 2026; origin/develop 8fdf7e4.
+- **Rama actual:** feature/AUTH-WEB-01-pantalla-login; procedencia de vista b1f3761 y prueba 99c8a91.
 - **Autorización:** preparación documental original durante la revisión de T3c;
   Pablo autorizó después el incremento visual T1, según sección 15. No implica
   fechas comprometidas ni aceptación de propuestas por parte de Edwin.
@@ -340,21 +340,76 @@ arranque nuevas: este incremento solo afecta herramientas de análisis.
 Preparado y verificado con asistencia de Codex.
 
 
-## Seguimiento de coordinación documental de Pagos
+## 19. Pantalla sobre controlador integrado — 2 de noviembre de 2026
 
-PR [#42](https://github.com/Pato77232/ProyectoBusesUTA/pull/42), head 58d4cbe:
-GitHub registra APPROVED por shirley6126 a las 15:15:59 UTC (10:15:59 Ecuador).
-La revisora confirma en Windows/PowerShell lint y 106 pruebas en la rama, lint
-y 115 pruebas con develop 1e9d956 y formato de los archivos frontend revisados.
-Esta evidencia es reportada por la revisora; no es ejecución nueva de Codex.
-PR #42 integrada posteriormente en 8fdf7e4, comprobada por fetch el 2 de
-noviembre. Descripción corregida
-para reflejar aprobación y Windows, manteniendo los 17 avisos de formato del
-backend. La aprobación no resuelve esa comprobación global ni autoriza pantalla.
-Registro en [dependencias de Pagos](../dependencias-pagos.md); esta entrega no
-altera código de Auth; el controlador ya está integrado en develop.
+Pablo solicitó continuar después de integrar PR #42. GitHub confirma merge
+8fdf7e4 a las 15:55:13 UTC (10:55:13 Ecuador); fetch de origin/develop coincide.
+La revisión APPROVED de shirley6126 corresponde al controlador/lint de 58d4cbe,
+no a esta pantalla. La documentación de dependencias de Pagos permanece
+resguardada en stash identificado desde feature/ACUERDOS-01-dependencias-pagos;
+no se mezcla ni se pierde al continuar esta tarea.
 
-Pantalla y empaquetado preparados separadamente en PR #45, con prueba real
-y evidencia propias. Esta rama no cambia producto ni repite esas pruebas;
-la revisión humana de pantalla es independiente de estos contratos de Pagos.
-Sin cierre global de AUTH-WEB-01. Asistencia de Codex.
+Alcance: recuperar vista/página y CSS local de b1f3761 sin modificar controlador,
+API común ni Fleet; añadirlos expresamente a Dockerfile/.dockerignore vigentes,
+conservar recursos Fleet y enlace real desde portada. Recuperar prueba de
+navegador de 99c8a91 y comando test:login manteniendo lint/test existentes.
+Aplicar DESIGN.md D-02/D-03/D-04/D-07, paleta/recursos locales y criterios de
+sección 12. Sin paneles por rol, registro visual, logout visual o redirecciones.
+
+Plan de verificación: lint/formato y contratos frontend; imagen real con API y
+PostgreSQL exclusivos de QA, estados/errores de login y CSRF, doble envío,
+recuperación por lectura, sesión existente, backend no disponible y recursos
+MIME. Teclado, 360/1280 y zoom CSS 200 %, sin afirmar lector de pantalla ni
+zoom nativo. Backend lint/format:check/npm test con BD aislada según guía.
+Registrar resultados actuales, sin reutilizar conteos históricos como nueva
+evidencia. No hay defecto inducido autorizado. Sin commits ni publicación
+solicitados en esta continuación. Asistencia de Codex.
+
+
+### Resultado de la verificación de pantalla
+
+Recuperados login.html, login-page.js, login-view.js y login.css; identidad textual
+con textContent, contraseña limpiada, foco y aria-live por estado, formulario
+inactivo/oculto hasta comprobar ausencia de sesión. Se añade ajuste de línea
+para correos largos en la confirmación. Docker incluye explícitamente recursos
+Auth/CSS sin quitar Fleet, y la portada enlaza la página que sirve la imagen.
+No se modifica controlador integrado, transporte común, proxy, backend o dependencias.
+
+- Frontend: lint y formato de los siete archivos HTML/CSS/JS/JSON propios
+  aprobados. npm test aprobado; ejecución sin aislamiento enumera 115 pruebas
+  aprobadas (90 API, 11 Fleet, 14 Auth).
+- test:login aprobado en Chrome con Docker Compose efímero: login/me real,
+  credenciales incorrectas, limpieza y conservación de email, CSRF inválido,
+  Enter/doble envío, sesión existente, pérdida de respuesta seguida de consulta
+  sin repetir POST y backend detenido sin afirmar sesión ausente.
+- Imagen real: módulos Auth con MIME JavaScript, CSS/página y recursos Fleet
+  presentes; enlace de portada y exclusión del archivo de pruebas verificados.
+  Arranque real de API y migraciones mediante composición QA aprobado.
+- Capturas desktop/mobile/zoom-200 en /tmp/transviaje-login-api; escritorio y
+  móvil inspeccionados visualmente. Sin desbordamiento horizontal a 360/1280
+  y zoom CSS 200 %, etiquetas y Tab/Shift+Tab/Enter/foco comprobados. Zoom nativo,
+  lector de pantalla y observación humana pendientes. Se reutilizan tokens sin
+  cambiar colores; esta sesión no ejecuta auditoría de contraste adicional.
+- Backend de HEAD 8fdf7e4 exportado a copia temporal sin modificaciones: lint
+  aprobado; npm test completo aprobado (1068 unitarias/63 suites y 275
+  integraciones/24 suites). PostgreSQL 16.13 exclusivo login_screen_test en
+  tmpfs/puerto 32774; retirado al terminar. Dependencias de npm ci anterior
+  reutilizadas con package.json/lockfile sin diferencias. Sin .env ni datos reales.
+- format:check backend sigue fallido en 17 archivos previos, incluidas dos
+  migraciones publicadas que no se tocan. No son defectos académicos autorizados.
+
+La prueba de pantalla crea otro entorno temporal con usuario aleatorio y base
+transviaje_frontend_dev exclusiva en tmpfs mediante el lanzador existente;
+ambos proyectos QA se retiraron. Esta evidencia no prueba compras ni formularios
+Fleet conectados a la sesión. No se marca AUTH-WEB-01 Cerrada ni se publica PR.
+Separar guardado de producto/empaquetado y prueba reproducible/evidencia como
+cambios lógicos al solicitarse commits; no se ejecutaron commits en esta sesión.
+
+
+### Guardado atómico solicitado
+
+Pablo pidió guardar el incremento y preparar su revisión humana. El producto
+y empaquetado se guardan en un primer commit; la prueba reproducible de navegador,
+comando, guía y evidencia se guardan en el siguiente. Se mantienen los resultados
+reales anteriores: no se repiten suites por cambios exclusivamente documentales
+y guardado Git. Sin push, PR nueva ni aprobación humana de la pantalla.

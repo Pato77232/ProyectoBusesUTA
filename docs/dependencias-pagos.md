@@ -74,8 +74,9 @@ no se implementará la integración usando valores supuestos.
    o aprobación de PR #42 no aprueba automáticamente estas nuevas specs.
 3. AUTH-06: cerrar revisión técnica y después implementar un incremento pequeño.
 4. CORREO-01 y AUTH-INVITADO-01: cerrar sus consultas antes de programar lo dependiente.
-5. Pantalla del login preparada separadamente en PR #45, pendiente de su propia
-   revisión. No se mezcla con estas dependencias ni se infiere aprobación.
+5. Pantalla del login integrada separadamente desde PR #45 en 3d053a4,
+   comprobado al resolver conflictos. No se mezcla código en estas dependencias
+   ni se infiere cierre global de AUTH-WEB-01.
 
 Publicación documental solicitada por Pablo tras la consulta de Shirley;
 no equivale a aprobar contratos abiertos. Sin cambios de producto, pruebas o

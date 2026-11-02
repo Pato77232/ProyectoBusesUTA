@@ -78,3 +78,19 @@ de código; la revisión humana de los incrementos sigue vigente. Pablo solicit�
 guardar/publicar esta actualización en PR #46. Diff completo revisado y 65 enlaces
 locales comprobados sin destinos faltantes. No se ejecutaron suites nuevas por
 cambiar solo Markdown. Asistencia de Codex.
+
+
+### Resolución de conflictos documentales — 2 de noviembre
+
+Develop avanzó a 3d053a4 al integrar PR #45. PR #46 quedó en conflicto por
+inserciones concurrentes en estado-proyecto.md y specs/AUTH-WEB-01.md.
+Se conserva la spec de login exactamente como está integrada en develop y
+se reubica el seguimiento de Pagos al final del estado, manteniendo decisiones
+y evidencia en sus documentos propios. El seguimiento actual indica PR #45
+integrada sin inventar cierre global ni pruebas nuevas.
+
+Resolución comprobada por comparación textual de tres vías: ambos archivos
+sin conflictos y resultado idéntico al contenido preparado. Diff revisado,
+enlaces locales comprobados y sin marcadores. No merge/rebase ni cambios de
+producto: el commit documental conserva ambas líneas de trabajo y permite
+actualizar la misma PR. No se ejecutaron suites por cambiar solo Markdown.
