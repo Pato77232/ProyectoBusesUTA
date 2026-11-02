@@ -292,3 +292,49 @@ La PR se prepara en borrador para revisión del incremento mientras se atienden
 los fallos globales de la base; no se recomienda integrar con comprobaciones
 obligatorias fallidas. Este commit guarda el controlador/pruebas/configuración
 y su trazabilidad como un único cambio lógico, con asistencia de Codex.
+
+
+## 18. Observación de revisión: lint portable y compatibilidad con Fleet
+
+El 2 de noviembre de 2026 Pablo compartió la revisión asistida remitida por
+Shirley sobre 037302b: reprodujo 106 pruebas frontend y 14 del controlador en
+Windows/PowerShell; indicó que el script POSIX de lint falla antes de analizar
+código. Su mensaje aclara que todavía no constituye aprobación humana de PR #42.
+No se registra una nueva asignación de revisor ni aceptación de los otros
+compromisos propuestos por el mensaje.
+
+Pablo pidió continuar con la corrección. Se cambia únicamente la invocación
+de ESLint a Node y se conservan API, Fleet y Auth. Se incorporan las declaraciones
+globales document, Option, Request y FormData que ya existen en develop para
+no perder compatibilidad con la vista Fleet y el transporte multipart. No se
+deshabilitan reglas ni se modifica el controlador, sus pruebas o dependencias.
+
+Fetch comprobado: origin/develop 1e9d956, que incorpora la adaptación de David
+a las pruebas de publicación y los cambios de Fleet. Sin merge/rebase; la rama
+sigue basada en 1fb0ade. Compatibilidad comprobada en una copia temporal de
+1e9d956 superponiendo solo package.json, eslint.config.js y controlador/pruebas
+Auth actuales. Backend de esa copia sin cambios, dependencias reutilizadas de
+la instalación npm ci anterior: package.json y lockfile idénticos entre bases.
+
+Lint frontend local y combinado aprobado; 106 pruebas locales y 115 combinadas
+aprobadas. Formato de los dos archivos de configuración aprobado. Node 24.21.0
+en Linux: no equivale a una nueva ejecución Windows. Backend actualizado: lint
+y 1068 unitarias aprobadas, incluidas las dos de publicación; formato global
+sigue fallando en 17 archivos previos, incluidas dos migraciones existentes
+que no se modifican. Primera ejecución unitaria restringida falló al abrir
+loopback (3 pruebas); repetición con acceso local permitido aprobada.
+
+npm test completo en la copia de develop aprobado: 1068 unitarias y 275
+integraciones (24 suites de integración), PostgreSQL 16.13 aislado con base
+auth_portable_test en tmpfs y puerto 32772; contenedor retirado al terminar.
+Sin .env ni datos reales. Los fallos unitarios anteriores no se reproducen en
+1e9d956; persiste la comprobación de formato fallida, por lo que no se declara
+la base completamente libre de fallos ni la PR lista para integrar.
+
+Pablo solicitó guardar y publicar la corrección en la rama de PR #42. El commit
+que contiene esta constancia reúne script portable, compatibilidad de lint y
+evidencia como un único cambio lógico. No modifica el controlador de 037302b.
+Repetición Windows y aprobación humana pendientes; se actualizará la descripción
+de la PR con los resultados actuales sin dar por aprobada la revisión. Sin pruebas de pantalla o
+arranque nuevas: este incremento solo afecta herramientas de análisis.
+Preparado y verificado con asistencia de Codex.
