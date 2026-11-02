@@ -192,7 +192,10 @@ Una sesión por paso. T1b y T2 no pueden integrarse antes de T1a y de la revisi�
 | ESLint directo y Prettier del incremento | Pasan en ambas ramas |
 | `frontend/tests/registrar-bus-smoke.cjs` en T1b | Pasa: 8 comprobaciones |
 | `frontend/tests/smoke.cjs` en T1b | Pasa |
-| `docker build`, inspección de la imagen y `container-smoke.cjs` | **Sin comprobar en esta combinación:** el servicio de Docker no estaba disponible. Hay que repetirlos antes de pedir la integración de T1b, conservando la configuración Nginx y `src/api` de T3d |
+| `docker build` e inspección de la imagen de T1b | Pasan: `pages`, `src/fleet`, `src/api` y las tres configuraciones Nginx presentes; sin `tests`; usuario `nginx` |
+| `frontend/tests/container-smoke.cjs` en T1b | Pasa. El fallo 502/503 anotado en T1 ya no aparece sobre esta base |
+| `frontend/tests/api-client-smoke.cjs` en T1b | Pasa |
+| Imagen de T1b en ejecución | Página, módulos y estilos responden 200; pruebas y documentación responden 404; el formulario sigue deshabilitado |
 
 ## 14. Revisión y cierre
 
