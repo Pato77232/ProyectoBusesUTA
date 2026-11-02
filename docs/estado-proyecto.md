@@ -1,5 +1,31 @@
 # Estado compartido del proyecto
 
+## ROUTE-SHEETS-05 sección 2 — congelación y consulta locales
+
+Rama feature/tarifario-hojas-ruta-spec sobre 4875147 (sección 1 guardada por el humano), inicialmente limpia. El solicitante pidió sección 2 y confirmó el contrato findPublishedByRouteSheetId/findPrice; sin atribuir respuesta individual nueva de Leslie. Publicación valida tarifa/asignaciones/recorrido, bloquea hoja y frecuencias por APIs públicas y congela copia/versionado/estado en una transacción. Reintentos idempotentes; lectura aislada e inmutable, null para ausencia y propagación de errores, sin precio cero ni suma de tramos como fallback. Migración nueva protege copia congelada; [ADR 0005](adr/0005-lecturas-publicas-en-transaccion.md) registra la sesión pública transaccional aplicada localmente, pendiente de revisión.
+
+43 pruebas nuevas aprobadas (29 unitarias y 14 integraciones); junto a sección 1, 110 dirigidas aprobadas. Lint/formato de archivos cambiados aprobados; formato global fallido en 41 archivos previos. Unitarias globales: 1020 aprobadas/2 fallidas; 60 suites aprobadas/2 fallidas. Fleet no carga por busboy ausente y las dos fallidas de publicación usan el puerto/expectativa antiguos (una publica sin tarifa). Conservadas sin cambios; no se habilita publicación sin tarifa para ocultarlas. Revisión y adaptación autorizada de esas pruebas pendientes antes de integrar, sin tratarlas como defectos académicos.
+
+Integración separada: 179 aprobadas/1 fallida, 15 suites aprobadas/8 fallidas (siete por busboy y una por timeout de fotos). Arranque de server.js intentado y bloqueado por busboy; Node 22.19.0 local frente a engine 24 requerido. PostgreSQL aislado busesuta-tariff-s2 con --env-file NUL; recursos temporales retirados al terminar. No .env de desarrollo, dependencias nuevas, commits ni publicación. Diff revisado/comprobado; evidencia completa y contrato en [spec §13](specs/ROUTE-SHEETS-05.md). Secciones implementadas no implican módulo integrado/cerrado ni conexión productiva con Bookings.
+
+## ROUTE-SHEETS-05 sección 1 — tarifario de borrador local
+
+En feature/tarifario-hojas-ruta-spec sobre 7519854, el solicitante confirmó mayor beneficio sin acumular, congelación al publicar, renovación a borrador, porcentajes 0–100 %/dos decimales y máximo histórico USD 99 999 999,99. No se atribuyen respuestas individuales de Leslie/Edwin. Sección 1 implementada localmente: PUT autenticado/CSRF, matriz completa por frecuencia asignada, política explícita en puntos básicos, recorrido desde API pública de Frecuencias y reemplazo transaccional con revisión esperada. Migración nueva agrega borrador/revisión/auditoría a route_sheets, sin modificar migraciones o pruebas previas. Sección 2 (congelación/publicación/consulta) sigue sin implementar; firma de lectura con Leslie pendiente.
+
+Pruebas nuevas: 53 unitarias y 14 integraciones aprobadas, con autenticación y PostgreSQL reales; incluyen dos ediciones concurrentes, rollback y tenant/rol/CSRF. Lint aprobado; formato de cambios comprobado, global fallido en 42 archivos previos ajenos (router modificado formateado). npm test: 993 pruebas aprobadas, 60 suites aprobadas/1 fallida por busboy ausente, sin alcanzar integración. Integración separada: 165 aprobadas/1 fallida, 14 suites aprobadas/8 fallidas (siete no cargan por busboy y una supera timeout de fotos). Node local 22.19.0 frente a engine 24 requerido; arranque real intentado y bloqueado al cargar Fleet por busboy ausente. No se declara suite global/arranque aprobados ni se modificaron dependencias/timeouts.
+
+PostgreSQL efímero busesuta-tariff-s1 con --env-file NUL, credenciales ficticias versionadas; recursos retirados al terminar. Evidencia y contrato en [spec](specs/ROUTE-SHEETS-05.md). Diff revisado/comprobado; sin commit, PR ni revisión humana de sección 1. Antes de integrar: restaurar entorno de dependencias/Node 24 y verificar suite/arranque; no confundir las limitaciones del entorno con defectos académicos autorizados.
+
+## D-02 — preparación del tarifario por hoja, 1 de noviembre de 2026
+
+| Spec / responsable | Estado comprobado | Próximo paso |
+|---|---|---|
+| [ROUTE-SHEETS-05](specs/ROUTE-SHEETS-05.md) / David | Borrador funcional; sección 0 documental completada en feature/tarifario-hojas-ruta-spec sobre 8886553, inicialmente limpia. Sin código, commit, revisión humana ni PR de D-02. | Resolver decisiones de §10 con Leslie/responsable comercial; luego autorizar sección 1. Sección 2 depende de configuración persistida y contrato de lectura. No requiere esperar implementación VIP para preparar dominio. |
+
+Base local 8886553/PR #38 acredita integración de ROUTE-SHEETS-04 (D-01); no convierte su validación pura en endpoints/persistencia multifrecuencia. No se refrescó remoto en esta sesión. Secciones de D-02: 0 definición; 1 configurar tarifario de borrador; 2 congelar al publicar/exponer consulta. Un commit lógico por sección, ejecutado solo a petición humana.
+
+Brechas comprobadas: precios consecutivos en Frecuencias, sin matriz pública ni copia comercial en publicación de hoja; BOOK-05 mantiene cálculo histórico que necesita contrato nuevo. No se autoriza cambiar código de Leslie/Edwin. Diff revisado, `git diff --check` aprobado y 52 referencias locales comprobadas sin destinos inexistentes (excluidos externos/anclas); cuatro documentos existentes y una spec nueva. No lint/Jest por cambio solo Markdown. No se presenta la entrega como terminada.
+
 ## ROUTE-SHEETS-04 sección 2 — implementación local
 
 David solicitó sección 2 tras guardar sección 1 en 7be2587. Rama feature/programacion-multifrecuencia-spec inicialmente limpia. Patrón con cobertura por frecuencia/instante, agenda por bus, período explícito en días, límites de preparación/bloqueos y repetibilidad; ventana con reloj explícito, base incluida en dos ciclos, borradores excluidos de venta, límite exclusivo y renovación informativa sin renumerar historia. Cinco archivos nuevos de dominio y dos de pruebas; snapshots inmutables. Sin endpoints, persistencia, generación productiva, dependencias ni pruebas anteriores modificadas. Secciones 0–2 preparadas/implementadas; no equivalen a integración operativa de D-03/04/05.
