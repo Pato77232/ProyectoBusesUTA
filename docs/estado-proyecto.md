@@ -1,5 +1,11 @@
 # Estado compartido del proyecto
 
+## D-03 — sección 2 local, 2 de noviembre de 2026
+
+David solicitó sección 2 en `feature/programacion-multifrecuencia-persistida`, limpia sobre ec9556e (sección 1 guardada por el humano). PUT/GET de programación con administrador/CSRF/tenant verificados, lectura consistente y revisiones independientes; publicar exige programación revalidada y congela tarifa/estado en la misma transacción. Se conservan snapshots/reintentos históricos; rutas antiguas y sus carreras no eluden validación integral. Composición conectada al servidor real, sin nuevos algoritmos, migraciones o dependencias en este incremento. [Spec §14](specs/ROUTE-SHEETS-06.md#14-sección-2--api-y-publicación-integradas-localmente) contiene contrato/evidencia.
+
+Preparación de pruebas antiguas adaptada con autorización expresa, sin modificar sus comprobaciones. 58 pruebas nuevas (26 unitarias/32 HTTP); 72 dirigidas aprobadas incluyendo congelación tarifaria. **Final: npm test aprobado, 1129 unitarias + 329 integraciones (1458)** y arranque real comprobado. Se conserva evidencia de un fixture nuevo duplicado corregido y de un timeout intermedio de Fleet; seis pruebas de esa suite aprobaron aisladas sin cambios y la global final también aprobó, sin modificar timeouts. Lint/formato de cambios y diff aprobados; 59 enlaces locales válidos. Formato global conserva 41 pendientes previos; repetir bajo Node 24 controlado sigue pendiente (local 22.19.0). PostgreSQL temporal busesuta-programming-s2 retirado. D-04/05 y frontend siguen pendientes; no commit, PR, aprobación humana ni integración de esta sección inferidos. La evidencia inferior conserva sus estados históricos.
+
 ## D-03 — sección 1 local, 2 de noviembre de 2026
 
 En `feature/programacion-multifrecuencia-persistida` sobre 2890d2b, David solicitó sección 1 y confirmó P1–P4 de [ROUTE-SHEETS-06](specs/ROUTE-SHEETS-06.md). Guardado transaccional de programación completa con revisión, servicios/fechas/puntos, identidades estables, disponibilidad, traslados y bloqueos; consultas públicas reales de Fleet/Frecuencias, compromisos entre hojas, rollback y auditoría. Migración nueva conserva datos legados sin tiempos inventados; [ADR 0006](adr/0006-serializacion-de-programacion.md) documenta lock de escritura global del módulo y su coste de paralelismo. No SQL de otro módulo ni nuevos endpoints.

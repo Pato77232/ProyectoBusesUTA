@@ -9,9 +9,15 @@ const { runMigration, testPool } = require('../../helpers/database');
 const { assertTestDatabase } = require('../../../scripts/test-database');
 const PgTariffRepository = require('../../../src/modules/route-sheets/infrastructure/repositories/pg-route-sheet-tariff-repository');
 const publishFactory = require('../../../src/modules/route-sheets/application/use-cases/publish-route-sheet.use-case');
+const { createFleetModule } = require('../../../src/modules/fleet');
+const PgBusRepository = require('../../../src/modules/fleet/infrastructure/pg-bus.repository');
+const PgProgrammingRepository = require('../../../src/modules/route-sheets/infrastructure/repositories/pg-route-sheet-programming-repository');
+const saveProgrammingFactory = require('../../../src/modules/route-sheets/application/use-cases/save-route-sheet-programming.use-case');
+const { busRequest } = require('../../helpers/fleet-bus');
+const { singleFrequencyProgramming } = require('../../helpers/single-frequency-programming');
 
 const PASSWORD = 'congelacion solo pruebas 2026';
-let pool, server, url, hash, browser, data, routeSheets, frequencyQueries;
+let pool, server, url, hash, browser, data, routeSheets, frequencyQueries, busQueries;
 
 class Browser {
   constructor() {
@@ -84,11 +90,36 @@ async function fixtures(name, email) {
       [coop, group],
     )
   ).rows[0].id;
+  const bus = await new PgBusRepository(pool).create(
+    busRequest({
+      cooperativeId: coop,
+      busGroupId: group,
+      data: {
+        plate: `TBF${String((await pool.query('SELECT count(*)::int n FROM buses')).rows[0].n + 1).padStart(4, '0')}`,
+        vin: randomUUID(),
+      },
+    }),
+  );
   await pool.query(
     `INSERT INTO route_sheet_assignments(route_sheet_id,cooperative_id,bus_group_id,bus_id,frequency_id)
     VALUES($1,$2,$3,$4,$5)`,
-    [sheet, coop, group, randomUUID(), frequency],
+    [sheet, coop, group, bus.id, frequency],
   );
+  await saveProgrammingFactory({
+    programmingRepository: new PgProgrammingRepository(pool, {
+      frequencySessionFactory: frequencyQueries.forTransaction,
+    }),
+    busQueryPort: busQueries,
+  })({
+    routeSheetId: sheet,
+    cooperativeId: coop,
+    modifiedBy: user,
+    ...singleFrequencyProgramming({
+      busId: bus.id,
+      frequencyId: frequency,
+      places: ['Ambato', 'Latacunga', 'Quito'],
+    }),
+  });
   return { coop, user, group, frequency, sheet };
 }
 
@@ -141,11 +172,14 @@ beforeAll(async () => {
   });
   const frequencies = createFrequenciesModule({ pool, auth });
   frequencyQueries = frequencies.frequencyQueries;
+  const fleet = createFleetModule({ pool, auth, env: { NODE_ENV: 'test' } });
+  busQueries = fleet.busQueries;
   routeSheets = createRouteSheetsModule({
     pool,
     auth,
     frequencyQueries,
-    busGroupQueries: { findById: async () => null, findByCooperativeId: async () => [] },
+    busQueries,
+    busGroupQueries: fleet.busGroupQueries,
   });
   server = http.createServer(createApp({ auth, frequencies, routeSheets, pool }));
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
@@ -221,8 +255,19 @@ test.each(['inactive', 'assignment', 'route'])(
   async (change) => {
     if (change === 'inactive')
       await pool.query("UPDATE frequencies SET status='INACTIVE' WHERE id=$1", [data.frequency]);
-    if (change === 'assignment')
-      await pool.query('DELETE FROM route_sheet_assignments WHERE route_sheet_id=$1', [data.sheet]);
+    if (change === 'assignment') {
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        await client.query("SELECT set_config('busesuta.programming_write','on',true)");
+        await client.query('DELETE FROM route_sheet_assignments WHERE route_sheet_id=$1', [
+          data.sheet,
+        ]);
+        await client.query('COMMIT');
+      } finally {
+        client.release();
+      }
+    }
     if (change === 'route')
       await pool.query("UPDATE frequency_stops SET place='Riobamba' WHERE frequency_id=$1", [
         data.frequency,
@@ -356,6 +401,7 @@ test('la frecuencia permanece bloqueada hasta que termina la publicación', asyn
   };
   const publishing = publishFactory({
     tariffRepository: new PgTariffRepository(pool, { frequencySessionFactory: factory }),
+    busQueryPort: busQueries,
   })(context());
   const client = await pool.connect();
   try {

@@ -68,6 +68,39 @@ class PgRouteSheetProgrammingRepository extends RouteSheetProgrammingRepository 
     this.frequencySessionFactory = frequencySessionFactory;
   }
 
+  async findSnapshot({ routeSheetId, cooperativeId }) {
+    const client = await this.pool.connect();
+    try {
+      await client.query('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');
+      const { rows } = await client.query(
+        'SELECT id FROM route_sheets WHERE id=$1 AND cooperative_id=$2',
+        [routeSheetId, cooperativeId],
+      );
+      if (!rows[0]) throw new ProgrammingNotFoundError();
+      const record = await readProgramming(client, routeSheetId, cooperativeId);
+      await client.query('COMMIT');
+      return (
+        record ?? {
+          routeSheetId,
+          cooperativeId,
+          revision: 0,
+          programming: null,
+          updatedBy: null,
+          updatedAt: null,
+        }
+      );
+    } catch (error) {
+      try {
+        await client.query('ROLLBACK');
+      } catch {
+        /* Preservar causa original. */
+      }
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
   async withLockedProgramming(context, operation) {
     const client = await this.pool.connect();
     try {
@@ -117,3 +150,4 @@ class PgRouteSheetProgrammingRepository extends RouteSheetProgrammingRepository 
 }
 
 module.exports = PgRouteSheetProgrammingRepository;
+module.exports.findCommitments = findCommitments;

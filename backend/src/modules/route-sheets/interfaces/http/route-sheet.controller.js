@@ -160,6 +160,7 @@ function createRouteSheetController({
           cooperativeId: req.auth.user.cooperative_id,
           publishedBy: req.auth.user.id,
           expectedRevision: req.body?.expectedRevision,
+          expectedProgrammingRevision: req.body?.expectedProgrammingRevision,
         });
         return res.status(200).json({ routeSheet: result });
       } catch (error) {

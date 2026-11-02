@@ -2,6 +2,11 @@ const createRouter = require('./interfaces/http/route-sheet.routes');
 const createTariffQueries = require('./application/create-tariff-queries');
 const configureTariffFactory = require('./application/use-cases/configure-route-sheet-tariff.use-case');
 const PgRouteSheetTariffRepository = require('./infrastructure/repositories/pg-route-sheet-tariff-repository');
+const PgProgrammingRepository = require('./infrastructure/repositories/pg-route-sheet-programming-repository');
+const saveProgrammingFactory = require('./application/use-cases/save-route-sheet-programming.use-case');
+const getProgrammingFactory = require('./application/use-cases/get-route-sheet-programming.use-case');
+const assertLegacyFactory = require('./application/use-cases/assert-legacy-programming-operation.use-case');
+const legacyProgrammingPool = require('./infrastructure/legacy-programming-pool');
 
 const createRouteSheetUseCaseFactory = require('./application/use-cases/create-route-sheet.use-case');
 const getRouteSheetByDateAndGroupUseCaseFactory = require('./application/use-cases/get-route-sheet-by-date-and-group.use-case');
@@ -34,16 +39,25 @@ function createRouteSheetsModule({
   busQueries,
   bookingQueries,
 } = {}) {
-  const routeSheetRepository = new PgRouteSheetRepository(pool);
-  const routeSheetAssignmentRepository = new PgRouteSheetAssignmentRepository(pool);
-  const routeSheetRestDayRepository = new PgRouteSheetRestDayRepository(pool);
-  const routeSheetCycleRepository = new PgRouteSheetCycleRepository(pool);
+  const legacyPool = legacyProgrammingPool(pool);
+  const routeSheetRepository = new PgRouteSheetRepository(legacyPool);
+  const routeSheetAssignmentRepository = new PgRouteSheetAssignmentRepository(legacyPool);
+  const routeSheetRestDayRepository = new PgRouteSheetRestDayRepository(legacyPool);
+  const routeSheetCycleRepository = new PgRouteSheetCycleRepository(legacyPool);
   const routeSheetModificationLogRepository = new PgRouteSheetModificationLogRepository(pool);
 
   const frequencyQueryPort = new FrequencyQueryAdapter({ frequencyQueries });
   const busGroupQueryPort = new BusGroupQueryAdapter({ busGroupQueries });
   const busQueryPort = new BusQueryAdapter({ busQueries });
   const bookingQueryPort = new BookingQueryAdapter({ bookingQueries });
+  const programmingRepository = new PgProgrammingRepository(pool, {
+    frequencySessionFactory: frequencyQueries.forTransaction,
+  });
+  const saveProgrammingUseCase = saveProgrammingFactory({ programmingRepository, busQueryPort });
+  const getProgrammingUseCase = getProgrammingFactory({ programmingRepository });
+  const assertLegacyProgrammingOperation = assertLegacyFactory({
+    getProgramming: getProgrammingUseCase,
+  });
   const tariffRepository = new PgRouteSheetTariffRepository(pool, {
     frequencySessionFactory: frequencyQueries.forTransaction,
   });
@@ -87,7 +101,10 @@ function createRouteSheetsModule({
     routeSheetAssignmentRepository,
     bookingQueryPort,
   });
-  const publishRouteSheetUseCase = publishRouteSheetUseCaseFactory({ tariffRepository });
+  const publishRouteSheetUseCase = publishRouteSheetUseCaseFactory({
+    tariffRepository,
+    busQueryPort,
+  });
   const generateAutomaticCyclesUseCase = generateAutomaticCyclesUseCaseFactory({
     routeSheetRepository,
     routeSheetAssignmentRepository,
@@ -108,6 +125,9 @@ function createRouteSheetsModule({
     router: createRouter({
       auth,
       configureTariffUseCase,
+      saveProgrammingUseCase,
+      getProgrammingUseCase,
+      assertLegacyProgrammingOperation,
       createRouteSheetUseCase,
       getRouteSheetByDateAndGroupUseCase,
       listRouteSheetsUseCase,

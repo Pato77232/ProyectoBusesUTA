@@ -24,6 +24,16 @@ function validateGenerateCycles(body) {
 }
 
 function validatePublish(body) {
+  if (
+    body !== undefined &&
+    (!body ||
+      typeof body !== 'object' ||
+      Array.isArray(body) ||
+      Object.keys(body).some(
+        (key) => !['expectedRevision', 'expectedProgrammingRevision'].includes(key),
+      ))
+  )
+    return { valid: false, message: 'Solo se permiten las revisiones de tarifa y programación.' };
   return { valid: true };
 }
 

@@ -2,12 +2,12 @@
 
 - **Referencia de planificación:** D-03; ID local, sin ticket externo.
 - **Responsable:** David, por tarea seleccionada y petición expresa del solicitante.
-- **Estado:** En desarrollo; sección 0 guardada en 2890d2b; sección 1 solicitada e implementada localmente, pendiente de revisión y commit. Sección 2 sin autorización de implementación.
+- **Estado:** En desarrollo; sección 0 guardada en 2890d2b y sección 1 en ec9556e por el humano; sección 2 implementada y verificada localmente, pendiente de revisión humana, commit e integración.
 - **Fecha:** 2 de noviembre de 2026, America/Guayaquil.
 - **Rama / base comprobada:** feature/programacion-multifrecuencia-persistida, 8fdf7e4; árbol inicialmente limpio. La referencia local origin/develop coincide; no se hizo fetch ni se verificaron PR remotas en esta sesión.
 - **Antecedentes:** D-01 integrado en 8886553; tarifario D-02 en 1fb0ade; corrección de pruebas presente en 1e9d956. Presencia en la historia local no acredita revisión humana nueva ni cierre integral.
 - **Revisora propuesta:** Leslie, aceptación de esta revisión pendiente. Edwin participa en contratos de Fleet; no se presume aprobación suya de propuestas nuevas.
-- **Autorización:** David solicitó sección 1 y confirmó expresamente P1–P4 en el chat. Autorizó después únicamente las listas TRUNCATE de cuatro suites antiguas para incorporar las tablas nuevas; no sus comprobaciones. No autorizó commits, sección 2 ni publicación.
+- **Autorización:** David confirmó P1–P4 y solicitó secciones 1 y después 2. Para sección 1 autorizó cuatro listas TRUNCATE; para sección 2 respondió «Sí, adapta solo la preparación necesaria» de las pruebas antiguas de publicación, conservando sus comprobaciones. No solicitó ejecutar commits ni publicar cambios.
 
 ## 1. Objetivo y fuentes
 
@@ -79,7 +79,7 @@ Propuesta técnica de serialización: advisory locks transaccionales con claves 
 
 Al publicar, programación, revisión de tarifa y frecuencias se revalidan bajo el mismo protocolo; congelación tarifaria y estado se confirman juntos, conservando idempotencia de D-02. `expectedProgrammingRevision` se propone opcional en publicación, análogo a `expectedRevision` del tarifario: si se envía se exige coincidencia; si no, se valida la revisión vigente bajo bloqueo. No confundir ambas revisiones.
 
-## 6. Contratos HTTP propuestos
+## 6. Contratos HTTP implementados localmente en sección 2
 
 | Método | Ruta | Rol | Respuesta |
 |---|---|---|---|
@@ -196,3 +196,37 @@ Verificación final del código revisado: `npm test` aprobado, **1103 unitarias 
 Lint aprobado; Prettier de todos los JS cambiados/nuevos aprobado. `format:check` global mantiene 41 archivos previos pendientes, incluidas cuatro migraciones históricas preservadas. Diff completo revisado, `git diff --check` aprobado y 60 enlaces locales comprobados sin destinos inexistentes (sin certificar anclas/externos). Los dos casos de colisión de UUID entre cooperativas aprueban sin lecturas globales de identidades: las consultas filtran tenant y las restricciones únicas se traducen a un conflicto genérico con rollback. Pendiente independiente: repetir suite con runtime Node 24 controlado; no presentar el resultado en Node 22 como evidencia de Node 24.
 
 Próxima sección autorizable: 2, después de revisar este incremento. Mensaje de commit sugerido: `feat(hojas-ruta): persiste la programación multifrecuencia del borrador`. Sin commit, PR, revisión humana de código o integración nueva ejecutados.
+
+## 14. Sección 2 — API y publicación integradas localmente
+
+David guardó sección 1 en ec9556e y solicitó sección 2 en la misma rama, inicialmente limpia. Autorizó adaptar **solo la preparación necesaria** de pruebas antiguas de publicación; no sus comprobaciones de precios, errores, concurrencia, rollback o idempotencia. No se verificaron PR remotas ni se atribuye aprobación de Leslie/Edwin al código. La evidencia histórica de secciones 0/1 no describe el estado actual de esta sección.
+
+### Contrato operativo
+
+Se componen los casos de uso de guardado/consulta, el repositorio de programación y el puerto público real de Fleet en el arranque existente. PUT y GET `/api/v1/route-sheets/:id/programming` requieren sesión verificada y COOPERATIVE_ADMIN; PUT exige CSRF. Tenant y actor proceden exclusivamente de req.auth, sin selección por body. PUT rechaza propiedades adicionales y devuelve directamente el contrato de §6, sin envoltorio extra. GET de hoja propia sin programación devuelve revisión 0, programming/updatedBy/updatedAt null; hoja ausente/ajena devuelve el mismo 404.
+
+La consulta usa una transacción REPEATABLE READ READ ONLY: cabecera, servicios, puntos y actividades pertenecen a la misma revisión aunque otra petición confirme una edición mientras se consulta. No toma el lock global de escritura ni usa lecturas inconexas del pool. Para editar, usar los campos permitidos de §6 y expectedRevision de la lectura; cooperativeId, updatedBy/At, schemaVersion, readyAt, lugares SERVICE y demás metadatos de la respuesta no son campos editables.
+
+POST `/:id/publish` conserva `{ routeSheet }` y acepta únicamente expectedRevision (tarifa) y expectedProgrammingRevision (programación), ambos opcionales enteros positivos cuando se envían. Revisión omitida significa validar la vigente bajo bloqueo, no confirmar automáticamente la que una pantalla anterior mostró. Para confirmar una revisión mostrada deben enviarse **ambas**. Cada contador es independiente; editar programación no cambia el tarifario.
+
+Con el mismo cliente/transacción y lock de ADR 0006, publicación valida tarifa, lee programación persistida, comprueba revisión, fecha, bus/grupo, frecuencias activas, salida autorizada, fechas de puntos, cobertura, repetición y compromisos entre hojas antes del freeze. Compara lugares persistidos con los actuales; no reinterpreta posiciones. Estado publicado y snapshot tarifario siguen siendo atómicos. Una publicación nueva sin programación responde ROUTE_PROGRAMMING_REQUIRED/409; una lectura corrupta o proveedor técnico indisponible falla cerrado, nunca equivale a agenda libre.
+
+Reintento de hoja ya publicada con copia tarifaria válida conserva actor/fecha/copia, sin consultar fuentes mutables; si se envía expectedProgrammingRevision se contrasta con la revisión persistida. Hoja histórica ya publicada sin programación conserva lectura y reintento del snapshot legado sin reconstruir servicios ni convertirla en viaje comercializable. Sigue vigente el error histórico de copia tarifaria congelada ausente. No se habilita publicar un nuevo borrador legado sin programación.
+
+### Cierre de escritores antiguos
+
+Las rutas antiguas de agregar/quitar asignaciones, agregar/quitar días de parada y generar ciclos verifican primero que la hoja propia no tenga programación; en caso contrario devuelven ROUTE_PROGRAMMING_LEGACY_OPERATION/409. Los triggers de sección 1 siguen cubriendo la carrera entre esa lectura y la escritura, además de otro borrador legado que intente utilizar un bus/grupo programado. Un adaptador de infraestructura traduce solamente los errores SQL identificados de esos guards a 409; otros errores SQL se propagan, sin ocultarlos ni exponer detalles internos. No se modifica el middleware global ni se implementa la renovación D-05.
+
+### Pruebas, alcance y evidencia
+
+26 unitarias nuevas cubren consulta, revisión, campos/actor/tenant, fuentes, corrupción, lugares, errores y traducción de guards; 32 integraciones HTTP nuevas usan autenticación/CSRF y el **start real de server.js**, sin reemplazar proveedores productivos por dobles. Cubren ausencia/404, roles, persistencia y revisión, medianoche/paradas/mantenimiento, rechazo de rutas antiguas, hojas legadas, cambio de frecuencia con reconfiguración tarifaria, concurrencia PUT/publicación, reintentos, rollback después de congelar y una lectura que conserva datos/revisión antiguos mientras otra petición confirma valores distintos.
+
+Preparación autorizada de pruebas existentes: dos suites unitarias reciben programación, horarios, resolución y puerto nuevos; frozen-route-sheet-tariff.test.js usa bus/programación y proveedores públicos reales. Su caso de asignación alterada conserva la comprobación original: la preparación de datos deliberadamente corruptos usa un marcador transaccional exclusivamente en la base aislada, sin desactivar guards en producción. Las nuevas pruebas independientes verifican que HTTP y escritores legados ordinarios no pueden usar ese camino.
+
+Primera ejecución global: 1129 unitarias aprobadas y 328 integraciones aprobadas/una fallida porque el nuevo fixture intentaba duplicar origen/destino/hora de frecuencia. Se corrigió solo el dato del escenario nuevo usando otra hora autorizada y salida coherente; no se modificó la unicidad ni se debilitó su comprobación. Después aprobaron 72 pruebas dirigidas: nuevas API/publicación y la suite tarifaria congelada anterior. Segunda global: 1129 unitarias aprobadas y 328 integraciones aprobadas/una fallida por timeout de 20 segundos en la prueba antigua de reversión/reaplicación de migraciones de fleet/bus-group.repository.test.js. Repetición aislada sin cambios: seis pruebas aprobadas, suite en 3,418 segundos. No se modificó esa suite ni su límite.
+
+**Resultado final:** `npm test` aprobado, **1129 unitarias + 329 integraciones = 1458 pruebas**, 65 suites unitarias y 26 de integración aprobadas. Incluye 58 pruebas nuevas de sección 2; no pruebas omitidas ni fallos inducidos. El arranque real y las rutas nuevas se verificaron desde start de server.js con proveedores reales y PostgreSQL aislado. Diff completo revisado, `git diff --check` aprobado, todos los JS cambiados/nuevos aprobados por Prettier y 59 enlaces locales sin destinos inexistentes (sin certificar anclas/externos).
+
+Lint y formato de todos los JS cambiados/nuevos aprobados; format:check global conserva 41 archivos previos pendientes, incluidas cuatro migraciones históricas intactas. Sin migraciones nuevas en sección 2, cambios de dependencias, lectura de .env, frontend o defectos inducidos. Node local 22.19.0; la limitación de verificación bajo Node 24 de sección 1 continúa, sin intentar nuevamente la acción rechazada. PostgreSQL aislado busesuta-programming-s2 con `--env-file NUL` y credenciales ficticias versionadas; contenedor y red temporales retirados al finalizar.
+
+No se implementan catálogo/consulta pública de viajes D-04, compra, inventario/versionado comercial del bus, renovación/sustitución D-05 ni pantallas. Revisión humana, commit, PR e integración de D-03 pendientes. Mensaje sugerido para este único cambio lógico: `feat(hojas-ruta): conecta la programación y valida su publicación`.
