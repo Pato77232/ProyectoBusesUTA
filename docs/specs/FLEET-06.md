@@ -114,12 +114,12 @@ Las decisiones siguen abiertas salvo donde se indique. `docs/acuerdos-primera-en
 
 ### Decisión: ¿qué asientos forman el inventario?
 
-- Estado: Propuesta
-- Fecha y participantes consultados: pendiente; Edwin y Leslie
+- Estado: Decidida e implementada en `7d6353a`; falta la confirmación de Leslie del contrato resultante
+- Fecha y participantes consultados: 2 de noviembre de 2026; Edwin y Leslie
 - Reglas, specs y contratos afectados: RN-12, BOOK-02 y `TripCatalog`
-- Opciones y recomendación: (A) devolver solo ofrecidos; (B) devolver todos con `offered`. Se recomienda A: Reservas recibe `seatIds` sin filtrar y no puede vender por error un asiento no ofrecido. Su costo es que el diagrama necesitará otra lectura.
-- Respuesta humana y evidencia de confirmación: pendiente
-- Decisión y justificación: pendiente
+- Opciones y recomendación: (A) devolver solo ofrecidos; (B) devolver todos con `offered`. Se recomendó A al redactar; se eligió B porque Reservas necesita conocer la condición de ofrecido.
+- Respuesta humana y evidencia de confirmación: mensaje de Leslie reportado por Edwin, que pide la condición de ofrecido; Edwin aprobó el ajuste
+- Decisión y justificación: B; `seatQueries.listByBus` devuelve todos los asientos con `layoutSeatKey` y `offered`, y Reservas solo vende los que tengan `offered: true`
 - Responsable de aplicarla y revisor: Edwin; Leslie propuesta
 - Criterios de aceptación/pruebas que cambian: primer criterio de la sección 7
 - Trabajo dependiente e independiente: depende esta spec; BOOK-02 T1 no depende
@@ -157,7 +157,7 @@ Las decisiones siguen abiertas salvo donde se indique. `docs/acuerdos-primera-en
 2. **Boleto:** Shirley puede necesitar `label` y `deck` para imprimirlos. Conviene confirmar si Reservas los copia al vender.
 3. **Revisora:** confirmar que Leslie acepta revisar.
 
-**Mensaje sugerido para Leslie:** «Leslie, preparé FLEET-06 para que BOOK-02 reciba asientos reales de un bus. Propongo `seatQueries.listOffered({ busId, cooperativeId })`, que devuelve solo los asientos ofrecidos, con `seatId`, número, piso y posición. ¿Te sirve que excluya los no ofrecidos? ¿Necesitas ahora los datos del diagrama? ¿Las reservas guardarían `seatId` con o sin clave foránea? ¿Aceptas revisar la spec? Sigue en borrador hasta tener tu respuesta.»
+**Mensaje sugerido para Leslie:** «Leslie, FLEET-06 expone `seatQueries.listByBus({ busId, cooperativeId })`, que devuelve todos los asientos del bus con `seatId`, `layoutSeatKey`, número, piso, posición, categoría y `offered`. ¿Te sirve este contrato? Versión por hoja, VIP y accesibilidad siguen pendientes.» No hay envío registrado en esta spec.
 
 ### Respuesta de Leslie recibida el 2 de noviembre de 2026
 
@@ -182,8 +182,13 @@ No aplica.
 
 Una sesión basta. Leslie implementa aparte el adaptador `TripCatalog`.
 
-**Evidencias (2 de noviembre de 2026, PostgreSQL aislado):** `seatQueries.listByBus`, sin commit: 21 pruebas nuevas aprobadas (13 unitarias y 8 integraciones). `npm run lint` sin errores y Prettier correcto en los archivos tocados. Unitarias: 1066 aprobadas y 2 fallidas de 1068, ambas en `publish-route-sheet.use-case.test.js`, ajena a este cambio: `src/modules/route-sheets` y sus pruebas unitarias son idénticos a `origin/develop` en `1fb0ade`, el caso de uso exige `tariffRepository` y la prueba no lo entrega. Integración ejecutada aparte, porque `npm test` se detiene tras ese fallo: 275 de 275 aprobadas en 24 suites.
+**Evidencias (2 de noviembre de 2026, PostgreSQL aislado):** `seatQueries.listByBus` guardado en el commit `7d6353a`; devuelve todos los asientos con `layoutSeatKey` y `offered`.
+
+- **Pruebas de FLEET-06:** 21 de 21 aprobadas (13 unitarias y 8 integraciones). `npm run lint` sin errores y Prettier correcto en los archivos tocados.
+- **Suite global: no aprobada.** Las causas no se atribuyen a Fleet mientras no se investiguen.
+  - Unitarias: 1066 aprobadas y 2 fallidas de 1068, ambas en `publish-route-sheet.use-case.test.js`. `src/modules/route-sheets` y sus pruebas unitarias son idénticos a `origin/develop` en `1fb0ade`; el caso de uso exige `tariffRepository` y la prueba no lo entrega.
+  - Integración: Edwin reportó un timeout en la última ejecución global; suite y prueba afectadas sin registrar. La ejecución aparte de esta sesión, necesaria porque `npm test` se detiene tras el fallo unitario, aprobó 275 de 275 en 24 suites. Ese resultado no anula el timeout reportado.
 
 ## 14. Revisión y cierre
 
-Pendientes. Próxima acción: compartir la sección 10 con Leslie, registrar su respuesta y conseguir revisión humana.
+Pendientes. Próxima acción: conseguir la confirmación de Leslie y revisión humana, e identificar el timeout de integración.
