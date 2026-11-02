@@ -37,6 +37,7 @@ function createRouteSheetsModule({
   frequencyQueries,
   busGroupQueries,
   busQueries,
+  seatQueries,
   bookingQueries,
 } = {}) {
   const legacyPool = legacyProgrammingPool(pool);
@@ -104,6 +105,7 @@ function createRouteSheetsModule({
   const publishRouteSheetUseCase = publishRouteSheetUseCaseFactory({
     tariffRepository,
     busQueryPort,
+    seatQueryPort: seatQueries,
   });
   const generateAutomaticCyclesUseCase = generateAutomaticCyclesUseCaseFactory({
     routeSheetRepository,

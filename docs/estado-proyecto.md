@@ -1,5 +1,11 @@
 # Estado compartido del proyecto
 
+## D-04 — sección 1 local, 2 de noviembre de 2026
+
+En feature/ROUTE-SHEETS-07-viajes-comercializables sobre 4e5c8df, David solicitó sección 1 y confirmó Q1–Q4: publicaciones nuevas, captura atómica, copia propia de asientos desde Fleet de solo lectura y vínculo explícito de serie/ciclos sin renovación automática. [ROUTE-SHEETS-07 §13](specs/ROUTE-SHEETS-07.md#13-sección-1--captura-comercial-al-publicar) documenta cuatro tablas nuevas, identidades estables, copias inmutables por hoja/bus, referencias al recorrido/tarifa y respuesta de publicación con manifiesto comercial. Hoja histórica publicada no se reconstruye; ciclo siguiente requiere seriesId explícito y período consecutivo de igual duración.
+
+53 pruebas nuevas aprobadas (34 unitarias/19 integración con servidor/proveedores reales). **Final: npm test aprobado, 1267 unitarias + 366 integraciones = 1633**, con arranque real comprobado; lint, formato de cambios y diff aprobados. Preparación de pruebas antiguas/listas de limpieza y preparación de reversión de programación adaptadas con autorización expresa, sin cambios a comprobaciones/timeouts. 74 enlaces locales válidos; PostgreSQL temporal busesuta-trips-s1 retirado. Formato global conserva 41 pendientes previos y Node 24 sigue sin verificar. Sin dependencias nuevas, migraciones históricas modificadas, commit/PR nuevo o aprobación humana atribuida. Q5 y sección 2 pendientes: no tripQueries productivo ni integración de compra con Bookings. Evidencia inferior conserva los pendientes históricos ya respondidos.
+
 ## D-04 — sección 0 documental, 2 de noviembre de 2026
 
 En `feature/ROUTE-SHEETS-07-viajes-comercializables`, inicialmente limpia sobre 1dcbd6d, David solicitó sección 0. Esa historia integra D-03/PR #48; no se confunde con una implementación de Viajes. [ROUTE-SHEETS-07](specs/ROUTE-SHEETS-07.md) queda Borrador: identidad estable, captura comercial al publicar, recorrido/embarque, contratos propuestos y tres secciones/un commit por sección. Sin código, migraciones, commit/PR nuevo ni revisión humana inferida.

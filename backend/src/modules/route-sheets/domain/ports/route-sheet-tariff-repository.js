@@ -6,6 +6,7 @@ class RouteSheetTariffRepository {
   }
 
   async withLockedSheet(context, operation) {
+    // Contrato de commercialSession y fuente de asientos: commercial-publication-ports.md.
     throw new Error('withLockedSheet debe implementar una transacción de tarifario.');
   }
 }

@@ -15,7 +15,7 @@ const makeFixture = require('../../helpers/route-programming');
 const Browser = require('../../helpers/session-browser');
 
 const PASSWORD = 'solo pruebas programacion HTTP 2026';
-let pool, server, url, hash, admin, other, f, signals, busQueries, frequencyQueries;
+let pool, server, url, hash, admin, other, f, signals, busQueries, frequencyQueries, seatQueries;
 const pass = (_req, _res, next) => next();
 const auth = { authenticate: pass, authorize: () => pass, csrfProtection: pass };
 const path = (suffix = 'programming') => `/api/v1/route-sheets/${f.context.routeSheetId}/${suffix}`;
@@ -73,7 +73,9 @@ beforeAll(async () => {
   pool = running.pool;
   server = running.server;
   url = `http://127.0.0.1:${server.address().port}`;
-  busQueries = createFleetModule({ pool, auth, env: { NODE_ENV: 'test' } }).busQueries;
+  const fleet = createFleetModule({ pool, auth, env: { NODE_ENV: 'test' } });
+  busQueries = fleet.busQueries;
+  seatQueries = fleet.seatQueries;
   frequencyQueries = createFrequenciesModule({ pool, auth }).frequencyQueries;
 });
 beforeEach(async () => {
@@ -331,6 +333,7 @@ test('fallo después de congelar revierte también publicación y conserva progr
         frequencySessionFactory: frequencyQueries.forTransaction,
       }),
       busQueryPort: busQueries,
+      seatQueryPort: seatQueries,
     })({
       routeSheetId: f.context.routeSheetId,
       cooperativeId: f.cooperativeId,

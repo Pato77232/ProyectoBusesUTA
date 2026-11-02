@@ -66,6 +66,10 @@ function programmingSessionFixture({
   programming.agendas[0].activities[0].points.forEach((point, index) => {
     point.locationKey = places[index];
   });
+  programming.cooperativeId = cooperativeId;
+  programming.busGroupId = busGroupId;
+  programming.startAt = new Date(`${date}T00:00:00-05:00`).toISOString();
+  programming.endExclusive = new Date(Date.parse(programming.startAt) + 86_400_000).toISOString();
   return {
     record: { revision: 1, programming },
     busQueryPort: { findById: jest.fn(async () => ({ id: busId, cooperativeId, busGroupId })) },

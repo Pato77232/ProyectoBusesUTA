@@ -4,6 +4,11 @@ const { toRouteSheet } = require('../mappers/route-sheet-mapper');
 const lockProgrammingWrites = require('../programming-write-lock');
 const { readProgramming } = require('./programming-records');
 const { findCommitments } = require('./pg-route-sheet-programming-repository');
+const {
+  listCommercialSeries,
+  readCommercialManifest,
+  writeCommercialPublication,
+} = require('./commercial-trip-records');
 
 function toResult(row) {
   return {
@@ -83,6 +88,18 @@ class PgRouteSheetTariffRepository extends RouteSheetTariffRepository {
           findCommitments: (candidate) =>
             findCommitments(client, { routeSheetId, cooperativeId }, candidate),
         }),
+        commercialSession: {
+          listSeries: () =>
+            listCommercialSeries(client, { cooperativeId, busGroupId: sheet.bus_group_id }),
+          findPublished: () => readCommercialManifest(client, { routeSheetId, cooperativeId }),
+          save: (capture) =>
+            writeCommercialPublication(
+              client,
+              { routeSheetId, cooperativeId, modifiedBy },
+              sheet,
+              capture,
+            ),
+        },
       });
       await client.query('COMMIT');
       return result;

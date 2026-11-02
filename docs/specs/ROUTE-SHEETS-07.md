@@ -2,11 +2,11 @@
 
 - **Referencia de planificación:** D-04; referencia local, sin ticket externo.
 - **Responsable:** David, por actividad seleccionada por el solicitante.
-- **Estado:** Borrador; sección 0 documental preparada. Secciones 1 y 2 sin autorización de implementación.
+- **Estado:** En desarrollo; sección 0 guardada en 4e5c8df por el humano; sección 1 implementada y verificada localmente, pendiente de revisión humana y commit. Sección 2 sin autorización.
 - **Fecha:** 2 de noviembre de 2026, America/Guayaquil.
 - **Rama / base comprobada:** feature/ROUTE-SHEETS-07-viajes-comercializables, 1dcbd6d; inicialmente limpia. La base contiene integración de D-03 mediante PR #48. No se refrescó remoto en esta sección; en la revisión anterior origin/develop se comprobó en ese mismo commit.
 - **Revisora propuesta:** Leslie; aceptación de revisar esta tarea pendiente. Edwin participa en el contrato de inventario. No se atribuyen aprobaciones individuales nuevas.
-- **Autorización:** el solicitante pidió únicamente sección 0. Las propuestas de §10 no equivalen a respuestas humanas ni permiten implementar contratos pendientes.
+- **Autorización:** David solicitó sección 1 y confirmó Q1/Q3 (publicaciones nuevas y captura atómica), Q2 (copia propia desde Fleet de solo lectura) y Q4 (vínculo explícito de serie/ciclos sin renovación automática). Autorizó solo la preparación necesaria de pruebas anteriores/listas de limpieza y, en una consulta aparte, la preparación de la prueba de reversión de programación. No solicitó commits ni publicación. Q5 sigue pendiente para sección 2.
 
 ## 1. Objetivo y fuentes
 
@@ -55,7 +55,7 @@ Recomendación Q2: Route Sheets conserva una copia comercial inmutable por hoja/
 
 inventorySnapshotId/revision de Route Sheets identifican **su copia comercial**, no una supuesta revisión de Fleet. schemaVersion solo identifica formato; seatLayoutVersion identifica plantilla y no demuestra que offered/categorías permanezcan iguales. No rellenar una versión de origen inventada ni afirmar atomicidad de una lectura mutable realizada por otro pool.
 
-Con Edwin debe precisarse si la captura usa una sesión transaccional pública compatible con ADR 0005/0006 o una revisión de configuración inmutable consultable por versión. La API actual no ofrece esos contratos. Si los atributos son inmutables en producción durante esta fase, documentar exactamente cuáles y qué operaciones futuras invalidarían esa garantía antes de depender de ella.
+Alcance inicial confirmado por el solicitante en Q2: la API actual de Fleet solo crea/consulta bus y asientos. Su consulta obtiene bus/posiciones en una sentencia SQL consistente; atributos de identidad, propiedad, plantilla, categoría y offered no tienen operación productiva de edición en el código examinado. Se captura desde esa API pública sin inventar una revisión de origen. Cualquier futura edición requiere acordar antes sesión transaccional pública o lectura de configuración inmutable por versión; el lock de Route Sheets no protege tablas ajenas. No se atribuye una aprobación individual nueva a Edwin.
 
 ### 4.3. Hojas ya publicadas
 
@@ -73,7 +73,7 @@ Además: hoja/ciclo confirmado, viaje realmente vinculado a ese período, frecue
 
 Dos ciclos siguen siendo **dos totales, incluida la base**, no base más dos. Borradores no amplían horizonte ni puede confirmarse por inferencia un ciclo posterior a un borrador. No usar hoy+28/hoy+2L, ni crear o renovar ciclos por consultar.
 
-**Pendiente Q4:** D-03 no guarda identidad de serie/relación entre sus hojas-ciclo. Por ello no basta ordenar dos hojas y llamarles C1/C2. Se recomienda introducir el vínculo mínimo explícito de serie, inicio base y duración común necesario para acreditar períodos consecutivos confirmados, sin implementar generación/renovación D-05. Alternativa: limitar la entrega inicial a un ciclo base explícitamente identificado y postergar ampliación al segundo. Elegir una antes de implementar horizonte; nunca anunciar una ventana acumulada sin relación persistida verificable.
+**Q4 confirmado:** persistir el vínculo explícito de serie, hoja base, inicio y duración común, sin inferirlo por fechas ni generar programación. La primera publicación de una nueva base crea la serie en servidor. Para enlazar una hoja siguiente ya programada se envía seriesId al publicar; debe pertenecer al mismo grupo/tenant, continuar exactamente el último fin exclusivo y conservar L días. No crear otra serie mientras exista una vigente en el grupo ni superponer una nueva base al cierre histórico. La numeración preserva historia y puede superar dos solo cuando hay cupo: el límite es dos períodos no terminados, no dos durante toda la vida de la serie. Una publicación manual puede enlazar una hoja existente; no copia, crea o renueva hojas automáticamente. La consulta del horizonte se implementará en sección 2 sobre estas relaciones persistidas.
 
 ## 6. APIs públicas propuestas — pendientes de Leslie
 
@@ -146,7 +146,9 @@ Unitarias de identidad, proyección, elegibilidad y reloj; integración PostgreS
 
 Un commit lógico incluye código, pruebas y evidencia de su sección. Implementar no autoriza ejecutar commit/push/merge. La sección 0 no acredita que el contrato de Fleet/Bookings ya exista. No ampliar automáticamente a D-05 para suplir una decisión pendiente de series.
 
-## 10. Acuerdos pendientes
+## 10. Acuerdos confirmados y pendiente de sección 2
+
+El 2 de noviembre el solicitante confirmó las recomendaciones de publicación nueva/atómica y copia comercial bajo la inmutabilidad actual de Fleet, y eligió «Vínculo explícito de serie y ciclos, sin renovación automática». Quedan confirmados Q1–Q4 en ese alcance por David; no son respuestas individuales de Leslie o Edwin ni revisión humana del código. La tabla conserva alternativas/recomendaciones históricas. Q5 conserva estado pendiente y no se modifica Bookings en sección 1.
 
 | ID / participantes | Pregunta concreta y alternativas | Recomendación / impacto |
 |---|---|---|
@@ -171,3 +173,41 @@ No aplica defecto inducido. Respetar [protocolo](../errores-inducidos.md); error
 Consultados programación/publicación/tarifa, API pública de Fleet, consumidor y puertos actuales de Bookings, reglas/specs y guía del proyecto. ROUTE-SHEETS-07 no estaba en las specs examinadas. Rama válida y árbol inicialmente limpio en 1dcbd6d. No se certifica ausencia de trabajo privado/remoto posterior ni se enviaron mensajes a otros integrantes.
 
 Cambios solo Markdown: esta spec, seguimiento y referencia desde D-03. Sin algoritmo, endpoints, migraciones, dependencias, pruebas ejecutables, commits ni publicación. No se ejecutan lint/Jest por esta sección documental; la evidencia previa de 1458 pruebas pertenece a D-03, no valida D-04. Diff documental revisado y git diff --check aprobado; 86 enlaces locales comprobados sin destinos inexistentes (sin certificar anclas/externos). Próximo paso: responder Q1–Q5 y confirmar el contrato técnico de Q2 con Edwin; luego autorizar sección 1.
+
+## 13. Sección 1 — captura comercial al publicar
+
+La sección 12 conserva evidencia histórica. Base local 4e5c8df, rama feature/ROUTE-SHEETS-07-viajes-comercializables inicialmente limpia. El solicitante autorizó sección 1 y resolvió Q1–Q4 como consta arriba. No se refrescó remoto ni se certifica trabajo privado de otros integrantes. No hay aprobación de PR nueva.
+
+### Comportamiento implementado
+
+El POST existente `/:id/publish` admite seriesId opcional, además de las dos revisiones existentes. Si falta al publicar una base nueva, el servidor crea serie/ciclo 1; si existe una serie vigente del grupo se exige su ID explícito para continuar. UUID inválido: COMMERCIAL_TRIP_INVALID/400; serie desconocida, de otro tenant/grupo, fecha no consecutiva, distinta duración o falta de cupo: COMMERCIAL_SERIES_CONFLICT/409. No se deduce serie por ordenar hojas. Los períodos y límite de borradores de D-03 siguen siendo autoridad previa de agenda; el enlace no genera hojas ni elude esos límites.
+
+La respuesta conserva `{ routeSheet }` y añade dentro de routeSheet `commercial: { seriesId, cycleId, cycleNumber, tripIds }`. Así el administrador obtiene el identificador necesario para vincular la siguiente hoja ya programada. En reintento se devuelve el mismo manifiesto, actor/fecha y copia; no se consulta Fleet ni se generan UUID nuevos. Si se envía seriesId distinto del original, se rechaza. Hoja publicada histórica sin manifiesto devuelve commercial:null y mantiene su copia tarifaria; no reconstruye viajes ni asientos actuales.
+
+La sesión transaccional de publicación, bajo el lock de ADR 0006, revalida programación/tarifa y captura inventario real mediante seatQueries.listByBus. Copia solo offered:true, con seatId, layoutSeatKey, label, deck, row, column y category reales, respetando orden del proveedor. Datos inválidos/duplicados o fallo técnico: COMMERCIAL_TRIP_SOURCE_UNAVAILABLE/503; inventario ausente/vacío: conflicto 409. Categoría NORMAL/VIP se conserva si la fuente la proporciona; no se implementa por ello edición VIP/accesibilidad en Fleet, ni se inventa accesibilidad o revisión de configuración. Las versiones schemaVersion=1 y revision=1 pertenecen a la copia nueva e inmutable de Route Sheets, no a Fleet.
+
+Cada SERVICE genera un tripId UUID de servidor distinto de la identidad de frecuencia/asignación. Varios servicios del mismo bus/hoja comparten un inventario comercial; otro ciclo tiene otra copia, manteniendo los IDs reales de asiento. TRANSFER y bloqueos no generan viajes. Recorrido, posiciones y fechas se copian de la programación validada; tarifa se referencia por hoja/revisión congelada, sin recalcular ni sumar tramos.
+
+Se insertan serie/ciclo, inventarios, viajes y auditoría antes del freeze tarifario/estado, con el mismo cliente/transacción. Un fallo revierte todos los registros, incluida una serie recién creada. Solo el commit conjunto hace visible la publicación. Series y número de ciclo permanecen estables; no existe tarea periódica, copia automática de patrón ni sustitución D-05.
+
+### Persistencia y fronteras
+
+Migración nueva `1793730000000-commercial-trips.js`: route_sheet_commercial_series, route_sheet_commercial_cycles, route_sheet_commercial_inventories y route_sheet_trips. Referencias compuestas a tablas propias evitan mezclar hoja/tenant/asignación/servicio/ciclo/inventario. Unicidad por asignación, hoja/ciclo, serie/número e inventario hoja/bus. Ningún FK ni SQL sobre tablas privadas de Fleet/Bookings. UUID generados con gen_random_uuid en servidor; timestamps de captura/auditoría proceden de la transacción.
+
+Triggers rechazan UPDATE/DELETE de los registros comerciales; reintentar no los actualiza. Down rechaza información comercial persistida, sin destruir historia para restaurar el esquema. No se editan migraciones históricas. Los datos comerciales se insertan únicamente desde publicación normal en este incremento; los catálogos de lectura de sección 2 deberán exigir estado publicado, integridad y elegibilidad, no tratar filas aisladas como autorización de venta.
+
+Application recibe puertos y prepara datos; domain valida inventario/serie; infrastructure persiste y controla commit. [Contratos internos](../../backend/src/modules/route-sheets/domain/ports/commercial-publication-ports.md). server.js inyecta la API pública real de asientos de Fleet. No se añade un módulo trips independiente ni se importan capas ajenas. El código de Bookings, sus firmas y consultas por embarque permanecen intactos; no hay tripQueries público en sección 1.
+
+### Verificación y límites
+
+53 pruebas nuevas aprobadas: 34 unitarias y 19 integraciones con arranque real de server.js, sesiones/CSRF, Fleet/Frecuencias reales y PostgreSQL aislado. Incluyen identidad estable, solo ofrecidos, copia por bus/ciclo, dos buses con traslados sin viajes extra, continuación explícita, rechazo de series ajenas/no consecutivas, reintentos simultáneos, inmutabilidad SQL, referencias compuestas, error de fuente, rollback tras insertar viajes, historia sin backfill y down protegido. Pruebas unitarias de política permiten historia terminada sin consumir cupo ni renumerarla; no ejecutan renovación automática.
+
+Se adaptó únicamente preparación autorizada de pruebas anteriores: puerto de asientos/sesión comercial en dobles unitarios; proveedor real en integración; cuatro listas TRUNCATE incorporan las cuatro tablas nuevas. La prueba de reversión de programación retira temporalmente la migración posterior vacía para seguir comprobando que su migración original rechaza pérdida de datos y restaura el esquema; comprobaciones y límites conservados. Los fixtures alteran offered/estado directamente solo para probar independencia de fuentes en la base aislada, sin habilitar una operación de edición productiva.
+
+**Verificación final:** npm test aprobado con **1267 unitarias + 366 integraciones = 1633 pruebas**, 70 suites unitarias y 28 de integración aprobadas. Incluye las 53 nuevas (34 unitarias/19 integraciones); las pruebas existentes de publicación, programación y tarifa mantienen sus comprobaciones y aprueban. Arranque real de server.js y uso de APIs públicas reales de Fleet/Frecuencias verificados. Sin pruebas omitidas ni fallos inducidos.
+
+Lint y formato de todos los JS cambiados/nuevos aprobados; format:check global conserva 41 archivos previos pendientes, incluidas cuatro migraciones históricas intactas. Diff completo revisado, git diff --check aprobado y 74 enlaces locales comprobados sin destinos inexistentes (sin certificar anclas/externos). Sin dependencias nuevas ni .env leído. Node local 22.19.0; sigue pendiente verificar el runtime 24 requerido, sin repetir la acción rechazada documentada en D-03. PostgreSQL efímero busesuta-trips-s1 con --env-file NUL y credenciales ficticias versionadas; contenedor y red retirados al terminar.
+
+Pendientes propios de esta tarea: Q5 y sección 2 (consultas comerciales/elegibilidad por embarque), no autorizar compra por disponer solo de un tripId. La conciliación de hojas históricas y la recuperación de borradores creados con una fecha incompatible necesitan tarea/alcance explícito; este incremento no añade edición de fecha ni eliminación de borradores. No se implementan reservas, búsqueda consolidada, pantallas, cobros o defectos inducidos.
+
+Mensaje sugerido: `feat(hojas-ruta): persiste los viajes de las hojas publicadas`. Sin commit, PR, revisión humana ni integración nueva ejecutados por el asistente.

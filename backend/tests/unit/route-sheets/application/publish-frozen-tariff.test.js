@@ -6,6 +6,7 @@ const {
 } = require('../../../../src/modules/route-sheets/domain/value-objects/draft-tariff');
 const RouteSheet = require('../../../../src/modules/route-sheets/domain/entities/route-sheet');
 const { programmingSessionFixture } = require('../../../helpers/single-frequency-programming');
+const commercialFixture = require('../../../helpers/commercial-publication');
 
 const id = '10000000-0000-4000-8000-000000000001';
 const otherId = '20000000-0000-4000-8000-000000000002';
@@ -68,6 +69,7 @@ function fixture() {
     cooperativeId: id,
     busGroupId: id,
   });
+  const commercial = commercialFixture();
   const tariffRepository = {
     withLockedSheet: jest.fn(async (_context, operation) =>
       operation({
@@ -77,6 +79,7 @@ function fixture() {
         freeze,
         toEntity,
         programmingSession: async () => session,
+        commercialSession: commercial.commercialSession,
       }),
     ),
   };
@@ -87,7 +90,11 @@ function fixture() {
     freeze,
     toEntity,
     tariffRepository,
-    publish: publishFactory({ tariffRepository, busQueryPort: session.busQueryPort }),
+    publish: publishFactory({
+      tariffRepository,
+      busQueryPort: session.busQueryPort,
+      seatQueryPort: commercial.seatQueryPort,
+    }),
   };
 }
 

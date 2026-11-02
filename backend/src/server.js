@@ -24,6 +24,7 @@ async function start(env = process.env) {
       frequencyQueries: frequencies.frequencyQueries,
       busGroupQueries: fleet.busGroupQueries,
       busQueries: fleet.busQueries,
+      seatQueries: fleet.seatQueries,
     });
     const payments = createPaymentsModule({ pool, auth, env });
     const app = createApp({
