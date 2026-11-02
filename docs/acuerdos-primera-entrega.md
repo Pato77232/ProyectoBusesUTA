@@ -1,5 +1,9 @@
 # Acuerdos funcionales para la primera entrega
 
+## Cierre del contrato de programación D-01 — 1 de noviembre de 2026
+
+El solicitante reportó revisión conjunta con Edwin y Leslie, aceptación de las propuestas y delegó concretar los detalles. Registro completo en [ROUTE-SHEETS-04](specs/ROUTE-SHEETS-04.md): intervalos fechados, margen explícito por actividad, ubicación inicial, traslados, bloqueos, patrón manual repetible en días, dos ciclos totales incluida base, horizonte desde inicio del patrón y cierre en la hora de embarque. Renovación explícita mantiene máximo de dos períodos no terminados confirmados. Este registro reemplaza los pendientes incompatibles de §§1 y 3 para ese contrato; no acredita aprobación de código ni implementación. La planificación de las secciones 0–2 está autorizada, la ejecución de cada una espera petición humana. Tarifas, accesibilidad y reubicación de pasajeros conservan sus pendientes propios.
+
 ## Fuente, alcance y estado
 
 Registro del 1 de noviembre de 2026, America/Guayaquil. Fuente: respuestas humanas del solicitante en el chat y apuntes adjuntos «actividades» leídos en esta sesión. Se registra lo comunicado por el solicitante; no se atribuyen respuestas individuales ni revisión de código a los otros integrantes. Base local examinada: `develop`/`origin/develop` `0b4041e`. No se pudo refrescar el remoto en la revisión previa; no se certifican cambios posteriores.
@@ -24,6 +28,12 @@ Estados: **Confirmado** = respuesta humana comunicada; **Propuesto** = recomenda
 **Propuesta de seguridad operativa:** vender solo viajes generados y confirmados dentro del horizonte, nunca salidas hipotéticas. Usar publicación como confirmación de programación comercializable. Requiere validación en la spec de viajes.
 
 ## 2. Tarifas y beneficios — confirmado
+
+**Implementación local posterior:** ROUTE-SHEETS-05 sección 2 incorpora congelación transaccional, lectura aislada y contrato de consulta confirmado expresamente por el solicitante: findPublishedByRouteSheetId y findPrice. Null para copia/par autorizado ausente; errores técnicos se propagan. La antigua mención de firma pendiente es histórica; integración con Bookings y revisión humana siguen pendientes. No se atribuye respuesta individual nueva de Leslie. Ver [spec §13](specs/ROUTE-SHEETS-05.md).
+
+Plan de ejecución D-02: [ROUTE-SHEETS-05](specs/ROUTE-SHEETS-05.md), sección 0 documental preparada sobre 8886553. Las propuestas pendientes de esta sección siguen sin aprobación adicional; la nueva spec las delimita, no las convierte en decisiones humanas. Tres secciones: definición, configuración de borrador y congelación/consulta al publicar; un commit por sección si el humano lo solicita.
+
+**Confirmación posterior del solicitante, 1 de noviembre:** mayor descuento acreditado sin acumular; congelar al publicar por administrador de cooperativa; renovación copia a borrador editable; porcentajes VIP/beneficios entre 0 y 100 % con dos decimales, cero explícito; máximo base USD 99 999 999,99; matriz completa ingresada sin deducir precios. Reemplaza los pendientes incompatibles que se conservan abajo como historia. Contrato público de lectura aún debe acordarse con Leslie; no se le atribuye respuesta individual nueva ni revisión del código. Implementación local de configuración en ROUTE-SHEETS-05 §12; congelación efectiva pendiente de sección 2.
 
 - Frecuencia directa: tarifa origen–destino. Con paradas: precio explícito para cada combinación válida de subida y bajada en orden de recorrido. No suponer que se obtiene sumando tramos contiguos.
 - El administrador de cooperativa define importes, porcentaje de recargo VIP y porcentajes de descuento. Se conserva minoría de edad **menor de 18 años**, tercera edad desde 65 y discapacidad acreditada. Reemplaza la propuesta intermedia de menores de 12 años y el porcentaje fijo del 50 % registrado anteriormente.

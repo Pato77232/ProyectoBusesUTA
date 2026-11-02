@@ -1,5 +1,55 @@
 # Estado compartido del proyecto
 
+## ROUTE-SHEETS-05 sección 2 — congelación y consulta locales
+
+Rama feature/tarifario-hojas-ruta-spec sobre 4875147 (sección 1 guardada por el humano), inicialmente limpia. El solicitante pidió sección 2 y confirmó el contrato findPublishedByRouteSheetId/findPrice; sin atribuir respuesta individual nueva de Leslie. Publicación valida tarifa/asignaciones/recorrido, bloquea hoja y frecuencias por APIs públicas y congela copia/versionado/estado en una transacción. Reintentos idempotentes; lectura aislada e inmutable, null para ausencia y propagación de errores, sin precio cero ni suma de tramos como fallback. Migración nueva protege copia congelada; [ADR 0005](adr/0005-lecturas-publicas-en-transaccion.md) registra la sesión pública transaccional aplicada localmente, pendiente de revisión.
+
+43 pruebas nuevas aprobadas (29 unitarias y 14 integraciones); junto a sección 1, 110 dirigidas aprobadas. Lint/formato de archivos cambiados aprobados; formato global fallido en 41 archivos previos. Unitarias globales: 1020 aprobadas/2 fallidas; 60 suites aprobadas/2 fallidas. Fleet no carga por busboy ausente y las dos fallidas de publicación usan el puerto/expectativa antiguos (una publica sin tarifa). Conservadas sin cambios; no se habilita publicación sin tarifa para ocultarlas. Revisión y adaptación autorizada de esas pruebas pendientes antes de integrar, sin tratarlas como defectos académicos.
+
+Integración separada: 179 aprobadas/1 fallida, 15 suites aprobadas/8 fallidas (siete por busboy y una por timeout de fotos). Arranque de server.js intentado y bloqueado por busboy; Node 22.19.0 local frente a engine 24 requerido. PostgreSQL aislado busesuta-tariff-s2 con --env-file NUL; recursos temporales retirados al terminar. No .env de desarrollo, dependencias nuevas, commits ni publicación. Diff revisado/comprobado; evidencia completa y contrato en [spec §13](specs/ROUTE-SHEETS-05.md). Secciones implementadas no implican módulo integrado/cerrado ni conexión productiva con Bookings.
+
+## ROUTE-SHEETS-05 sección 1 — tarifario de borrador local
+
+En feature/tarifario-hojas-ruta-spec sobre 7519854, el solicitante confirmó mayor beneficio sin acumular, congelación al publicar, renovación a borrador, porcentajes 0–100 %/dos decimales y máximo histórico USD 99 999 999,99. No se atribuyen respuestas individuales de Leslie/Edwin. Sección 1 implementada localmente: PUT autenticado/CSRF, matriz completa por frecuencia asignada, política explícita en puntos básicos, recorrido desde API pública de Frecuencias y reemplazo transaccional con revisión esperada. Migración nueva agrega borrador/revisión/auditoría a route_sheets, sin modificar migraciones o pruebas previas. Sección 2 (congelación/publicación/consulta) sigue sin implementar; firma de lectura con Leslie pendiente.
+
+Pruebas nuevas: 53 unitarias y 14 integraciones aprobadas, con autenticación y PostgreSQL reales; incluyen dos ediciones concurrentes, rollback y tenant/rol/CSRF. Lint aprobado; formato de cambios comprobado, global fallido en 42 archivos previos ajenos (router modificado formateado). npm test: 993 pruebas aprobadas, 60 suites aprobadas/1 fallida por busboy ausente, sin alcanzar integración. Integración separada: 165 aprobadas/1 fallida, 14 suites aprobadas/8 fallidas (siete no cargan por busboy y una supera timeout de fotos). Node local 22.19.0 frente a engine 24 requerido; arranque real intentado y bloqueado al cargar Fleet por busboy ausente. No se declara suite global/arranque aprobados ni se modificaron dependencias/timeouts.
+
+PostgreSQL efímero busesuta-tariff-s1 con --env-file NUL, credenciales ficticias versionadas; recursos retirados al terminar. Evidencia y contrato en [spec](specs/ROUTE-SHEETS-05.md). Diff revisado/comprobado; sin commit, PR ni revisión humana de sección 1. Antes de integrar: restaurar entorno de dependencias/Node 24 y verificar suite/arranque; no confundir las limitaciones del entorno con defectos académicos autorizados.
+
+## D-02 — preparación del tarifario por hoja, 1 de noviembre de 2026
+
+| Spec / responsable | Estado comprobado | Próximo paso |
+|---|---|---|
+| [ROUTE-SHEETS-05](specs/ROUTE-SHEETS-05.md) / David | Borrador funcional; sección 0 documental completada en feature/tarifario-hojas-ruta-spec sobre 8886553, inicialmente limpia. Sin código, commit, revisión humana ni PR de D-02. | Resolver decisiones de §10 con Leslie/responsable comercial; luego autorizar sección 1. Sección 2 depende de configuración persistida y contrato de lectura. No requiere esperar implementación VIP para preparar dominio. |
+
+Base local 8886553/PR #38 acredita integración de ROUTE-SHEETS-04 (D-01); no convierte su validación pura en endpoints/persistencia multifrecuencia. No se refrescó remoto en esta sesión. Secciones de D-02: 0 definición; 1 configurar tarifario de borrador; 2 congelar al publicar/exponer consulta. Un commit lógico por sección, ejecutado solo a petición humana.
+
+Brechas comprobadas: precios consecutivos en Frecuencias, sin matriz pública ni copia comercial en publicación de hoja; BOOK-05 mantiene cálculo histórico que necesita contrato nuevo. No se autoriza cambiar código de Leslie/Edwin. Diff revisado, `git diff --check` aprobado y 52 referencias locales comprobadas sin destinos inexistentes (excluidos externos/anclas); cuatro documentos existentes y una spec nueva. No lint/Jest por cambio solo Markdown. No se presenta la entrega como terminada.
+
+## ROUTE-SHEETS-04 sección 2 — implementación local
+
+David solicitó sección 2 tras guardar sección 1 en 7be2587. Rama feature/programacion-multifrecuencia-spec inicialmente limpia. Patrón con cobertura por frecuencia/instante, agenda por bus, período explícito en días, límites de preparación/bloqueos y repetibilidad; ventana con reloj explícito, base incluida en dos ciclos, borradores excluidos de venta, límite exclusivo y renovación informativa sin renumerar historia. Cinco archivos nuevos de dominio y dos de pruebas; snapshots inmutables. Sin endpoints, persistencia, generación productiva, dependencias ni pruebas anteriores modificadas. Secciones 0–2 preparadas/implementadas; no equivalen a integración operativa de D-03/04/05.
+
+93 pruebas nuevas aprobadas; 172 dirigidas aprobadas incluyendo sección 1. Lint global/formato nuevo aprobados; formato global fallido en 43 archivos previos. npm test falló por busboy ausente, sin alcanzar integración; repetición unitaria final con acceso local: 940 pruebas aprobadas, 58 suites aprobadas/1 fallida por carga de busboy. Integración separada en PostgreSQL aislado: 151 pruebas aprobadas/1 fallida; 13 suites aprobadas/8 fallidas (siete por busboy y una por timeout de fotos). Sin cambios a expectativas/timeouts. Docker temporal busesuta-rs04-s2 retirado; detalles en [spec](specs/ROUTE-SHEETS-04.md). Diff revisado y comprobado; commit de sección 2, revisión humana, restauración del entorno y suite global satisfactoria pendientes antes de integrar. No se ejecutaron commits.
+
+## ROUTE-SHEETS-04 sección 1 — implementación local
+
+David solicitó implementar sección 1 en feature/programacion-multifrecuencia-spec sobre f1a347f (sección 0 guardada por el humano). Validador puro de agenda implementado: fechas con offset, preparación, continuidad/traslados, disponibilidad inicial, REST/MAINTENANCE, aislamiento de snapshots y resultado inmutable; 79 pruebas nuevas aprobadas. No endpoints, BD, asignaciones persistidas, dependencias ni pruebas existentes modificadas. Sección 2 todavía sin autorización ni implementación.
+
+Lint global aprobado y formato de los cuatro JS nuevos aprobado. Formato global fallido en 43 archivos ajenos. npm test inicial: 844 pruebas unitarias aprobadas/3 fallidas, 55 suites aprobadas/2 fallidas (busboy ausente y EACCES HTTP); no alcanzó integración. Repetición unitaria con acceso local permitido: 847 pruebas aprobadas, 56 suites aprobadas/1 fallida por carga de busboy. Integración independiente en PostgreSQL efímero aislado: 151 aprobadas/1 fallida, 13 suites aprobadas/8 fallidas (siete no cargan por busboy y una supera timeout de fotos). No se cambiaron expectativas ni timeouts. Suite global sigue fallida; detalles/reproducción en [spec](specs/ROUTE-SHEETS-04.md). Contenedor/red del proyecto de pruebas busesuta-rs04-s1 retirados al terminar. Diff comprobado sin errores; sin commit/PR/revisión humana ni integración de sección 1.
+
+## Programación multifrecuencia D-01 — 1 de noviembre de 2026
+
+| Spec / responsable | Estado y evidencia | Próxima acción |
+|---|---|---|
+| [ROUTE-SHEETS-04](specs/ROUTE-SHEETS-04.md) / David | Contrato definido por delegación del solicitante tras aceptación de propuestas con Edwin/Leslie reportada en chat. Rama feature/programacion-multifrecuencia-spec, base b60201e/PR #35, inicialmente limpia. Sin implementación, commit ni PR nueva. Se examinaron referencias locales, sin refresco remoto; no se certifican cambios externos posteriores. | El usuario autoriza secciones una a una: 1 validación pura de agenda; 2 patrón/ciclos/ventana. D-03 persistencia/HTTP, D-04 viajes y D-05 excepciones requieren sus propias specs antes de implementar. |
+
+Decisiones: dos ciclos totales incluida base; confirmación antes de venta; ciclo en días y patrón manual; preparación explícita y traslados fechados; disponibilidad y cobertura completas; ventana referida al inicio del patrón, cierre al embarque. Ya no se tratan esos puntos como preguntas abiertas de D-01. Pendientes independientes: tarifas, inventario accesible, reubicación y contratos productivos. Revisor de código por confirmar; el acuerdo no equivale a revisión de PR.
+
+Reparto aclarado por el usuario: tres secciones, un commit por sección. Sección 0 documental completada localmente, sin commit; secciones 1 (agenda) y 2 (patrón/ventana) pendientes de autorización de implementación. Cada futuro commit funcional incluye código, pruebas y su evidencia; no tres commits por sección.
+
+Validación documental: `git diff --check` aprobado; 48 referencias locales en los documentos afectados comprobadas sin destinos inexistentes, excluyendo enlaces externos/anclas. Cuatro documentos existentes modificados y una spec nueva; ningún archivo funcional. No se ejecutan lint/Jest: sin código ni configuración ejecutable; ninguna prueba funcional nueva acreditada.
+
 ## Actualización documental de acuerdos — 1 de noviembre de 2026
 
 Base local comprobada `0b4041e` (PR #33), coincidente con la referencia local origin/develop; no se refrescó el remoto en esta revisión. Rama limpia inicial `feature/acuerdos-funcionales-primera-entrega`. Las filas inferiores conservan evidencia histórica, no la fotografía de estos nuevos acuerdos.
@@ -58,7 +108,7 @@ Antes de orientar a alguien:
 | [INFRA-04](specs/INFRA-04.md) | Pablo; revisora propuesta Shirley | Integrada: su código documental está contenido en c89b1b9 | La presencia en develop está comprobada; no se inventa evidencia de revisión humana/cierre |
 | [FRONT-01](specs/FRONT-01.md) | Pablo | T3c/T3d integradas; T4 pendiente | PR #32 aprobada por David22x e integrada en d0a5f8d. Login funcional se verifica aparte mediante AUTH-WEB-01; no implica cierre de toda la base frontend. |
 | [AUTH-WEB-01](specs/AUTH-WEB-01.md) | Pablo; revisión por confirmar | Plan documentado; producto en incrementos separados | Base 0b4041e; procedencia local 1d7e0db/ffbe32b. Guardado de T2 autorizado; no implica integración ni publicación. |
-| [FLEET-05](specs/FLEET-05.md) | Edwin | T1a en [PR #36](https://github.com/Pato77232/ProyectoBusesUTA/pull/36) para revisión; T1b en [PR #37](https://github.com/Pato77232/ProyectoBusesUTA/pull/37) en borrador, dependiente de T1a; reemplazan PR #31 | 92 pruebas frontend, lint directo, formato, Chrome y smokes Docker aprobados al revisar. Formulario sin API. Sin aprobación humana ni integración. T2 según acuerdo con Pablo; T3 espera el login. |
+| [FLEET-05](specs/FLEET-05.md) | Edwin | T1a integrada mediante PR #36 (`0a83e9c`); T1b en [PR #37](https://github.com/Pato77232/ProyectoBusesUTA/pull/37), lista para revisión | El 2 de noviembre se sincroniza T1b con develop `1fb0ade`, sin conflictos, por descarte de aprobaciones al cambiar la base común. Nueva aprobación pendiente; protecciones conservadas. Formulario sin API; T2/T3 se gestionan aparte. |
 | search, bookings, payments y tickets | Según propuesta inferior | Sin implementación en la base examinada | Confirmar ramas de los responsables antes de crear tareas |
 | [PAGOS-01](specs/PAGOS-01.md) | Shirley | En desarrollo; T4 verificada localmente, revisión humana pendiente | Base `origin/develop` `e556e59`; lint y formato de sus archivos aprobados; 41 suites/564 unitarias y 13 suites/116 de integración aprobadas. `bookings` sigue simulado conforme al alcance T4. |
 | CI | Pablo | Sin workflow versionado en la base | Proponer una spec propia; no afirmar protecciones remotas sin consultarlas |

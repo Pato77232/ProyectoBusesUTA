@@ -1,5 +1,7 @@
 # SPEC-ROUTE-SHEETS-01 (ACTUALIZADA) - Módulo `route-sheets` (Hojas de ruta)
 
+> Contrato de programación posterior: [ROUTE-SHEETS-04](ROUTE-SHEETS-04.md) precisa servicios múltiples compatibles por bus, patrón manual en días y dos ciclos totales incluida base. Las restricciones anteriores incompatibles son históricas; no están adaptadas por este cambio documental. No alterar migraciones/pruebas antiguas para ocultar la diferencia.
+
 > Actualización documental del 1 de noviembre de 2026: aplicar las [reglas vigentes](../business-rules.md) y los [acuerdos de primera entrega](../acuerdos-primera-entrega.md), bajo [ACUERDOS-01](ACUERDOS-01.md). Los contratos anteriores incompatibles son evidencia histórica, no autorización para implementar la regla reemplazada. Esta actualización no modifica código ni acredita adaptación funcional. Las propuestas técnicas y pendientes conservan ese estado.
 > Adaptación pendiente: varias frecuencias compatibles por bus, patrón/ciclo, dos ciclos máximos y congelación tarifaria. Las restricciones históricas de un bus por hoja y comparación de conteos no acreditan el nuevo alcance.
 

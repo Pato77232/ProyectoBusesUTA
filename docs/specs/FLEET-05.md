@@ -5,7 +5,7 @@
 - **Módulo:** `frontend`; consume la API de `fleet`
 - **Responsable:** Edwin, responsable de Fleet y solicitante de revisión/publicación
 - **Revisor propuesto / confirmado:** Pablo propuesto, por ser responsable de la base frontend; sin confirmación registrada
-- **Estado:** T1 en división: T1a y T1b reemplazan a PR #31, en borrador. T2 acordada con Pablo y sin iniciar; T3 espera el login. No es un alta funcional desde la pantalla
+- **Estado:** T1a integrada mediante PR #36 (`0a83e9c`); T1b en revisión en PR #37. T2/T3 se gestionan en sus incrementos; esta PR no ofrece un alta funcional desde la pantalla.
 - **Prioridad y dependencias:** FLEET-01, FLEET-02, FLEET-03 y FRONT-01 T3c/T3d, presentes en develop. T3 requiere además la pantalla de inicio de sesión (sección 10).
 - **Rama / PR / base comprobada:** `feature/FLEET-05-T1a-validacion` y `feature/FLEET-05-T1b-formulario`, creadas desde `origin/develop` en `b60201e` el 1 de noviembre de 2026. Reemplazan a `feature/FLEET-05-pantalla-registro-buses` y a PR #31: https://github.com/Pato77232/ProyectoBusesUTA/pull/31.
 - **Autorización de alcance:** el 31 de octubre de 2026 se aprobó por chat esta spec e iniciar solo T1. El 1 de noviembre Edwin aprobó dividir PR #31. La decisión sobre T2 consta en la sección 10.
@@ -198,6 +198,10 @@ Una sesión por paso. T1b y T2 no pueden integrarse antes de T1a y de la revisi�
 | Imagen de T1b en ejecución | Página, módulos y estilos responden 200; pruebas y documentación responden 404; el formulario sigue deshabilitado |
 
 ## 14. Revisión y cierre
+
+El 2 de noviembre Edwin solicitó resolver el descarte repetido de aprobaciones de PR #37. Los cuatro eventos de GitHub indicaban `The merge-base changed after approval`, todos sobre `f9e0cb4`. Se incorporó `origin/develop` en `1fb0ade` mediante merge autorizado en la rama de T1b, sin conflictos ni cambios a las reglas de protección. El diff respecto de develop conserva únicamente T1b y documentación; no hay cambios propios en backend. La aprobación humana debe repetirse sobre la nueva cabeza publicada. No se declara resuelto un fallo interno de GitHub ni se garantiza conservar aprobaciones si vuelve a cambiar la base.
+
+Validación repetida de esta combinación: 92 pruebas frontend, ESLint directo, formato del incremento, ocho comprobaciones del formulario en Chrome, container-smoke y api-client-smoke aprobados; este último con PostgreSQL aislado, arranque real y limpieza de sus recursos. Sin nueva suite completa backend; sus archivos son idénticos a develop. Sin cambios a producción ni pruebas existentes para conseguir esos resultados.
 
 T1a publicada para revisión en [PR #36](https://github.com/Pato77232/ProyectoBusesUTA/pull/36), commit `303b630`. T1b publicada en borrador en [PR #37](https://github.com/Pato77232/ProyectoBusesUTA/pull/37), incremento `f1c6cac`, dependiente de integrar T1a primero. Ambas apuntan a develop; T1b incluye temporalmente el commit de T1a. Reemplazan PR #31. Sin aprobación humana ni integración verificadas.
 

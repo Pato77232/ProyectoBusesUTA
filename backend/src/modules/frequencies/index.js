@@ -20,7 +20,19 @@ function createFrequenciesModule({ pool, auth }) {
       auth,
     }),
     findActiveByRoute,
-    frequencyQueries,
+    frequencyQueries: Object.freeze({
+      ...frequencyQueries,
+      forTransaction(executor) {
+        const scopedRepository = new PgFrequencyRepository(executor);
+        const scopedQueries = createFrequencyQueries({ repository: scopedRepository });
+        return Object.freeze({
+          async findWithStops(id, cooperativeId) {
+            await scopedRepository.lockForRead(id, cooperativeId);
+            return scopedQueries.findWithStops(id, cooperativeId);
+          },
+        });
+      },
+    }),
   };
 }
 
