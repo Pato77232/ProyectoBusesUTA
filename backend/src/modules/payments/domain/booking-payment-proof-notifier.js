@@ -1,7 +1,7 @@
 /** Puerto para avisar a reservas que se recibió un comprobante. */
 class BookingPaymentProofNotifier {
   /**
-   * markPaymentProofReceived(bookingId) registra el aviso de forma idempotente.
+   * markPaymentProofReceived({ bookingId, cooperativeId, paymentProofId }) registra el vínculo de forma idempotente.
    * bookings verifica el plazo con la hora del servidor y puede rechazarlo con
    * PaymentProofUploadDeadlineExpiredError cuando el plazo ya venció.
    */

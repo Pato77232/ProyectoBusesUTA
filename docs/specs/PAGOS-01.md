@@ -14,6 +14,8 @@
 
 > Propuesta pendiente de revisión. Las decisiones pendientes de confirmación deben resolverse antes de implementar los puntos que afectan.
 
+> Conciliación del 2 de noviembre de 2026: el [contrato propuesto de lectura autorizada](../pagos-reservas-find-for-payment.md) concreta entradas, contexto, DTO y errores de `findForPayment` para revisión con Leslie/Pablo. No modifica todavía la firma del puerto ni autoriza código. Las ventanas 3/15 minutos y el efectivo mediante reserva ya constan en los acuerdos integrados de la PR #35; este documento conserva evidencia histórica y no reemplaza las reglas remotas vigentes por sus preguntas antiguas.
+
 ## 1. Objetivo
 
 Permitir que un cliente envíe el comprobante de depósito o transferencia de su reserva dentro del plazo configurable. `payments` persiste el archivo y un aviso durable; solo la aceptación transaccional de `bookings` cuenta como recepción. Si la expiración gana la coordinación por reserva, `bookings` libera los asientos y rechaza definitivamente el aviso; `payments` compensa únicamente ante ese rechazo definitivo.
@@ -24,7 +26,7 @@ Permitir que un cliente envíe el comprobante de depósito o transferencia de su
 - **RN-50:** el plazo configurable para subir el comprobante es de 180 a 300 segundos. BOOK-06 §2 y §4 concretan la unidad/rango, el cálculo a partir de un instante de inicio explícito y que no hay valor por defecto oculto.
 - **RN-51:** vencido el plazo sin comprobante, la reserva expira y sus asientos vuelven a estar disponibles. La transición de reserva y liberación de asientos se coordina con `bookings`.
 
-Las tres reglas citadas existen en `docs/business-rules.md` (RN-02, §2; RN-50 y RN-51, §7). BOOK-06 §2 aclara que un comprobante aceptado y en revisión no equivale a ausencia; `docs/reservas-decisiones.md`, “Reserva y pago”, especifica que los asientos se mantienen reservados mientras se revisa. Leslie y Shirley acordaron que la aceptación del comprobante y la expiración se serializan transaccionalmente por reserva; persistir un archivo en `payments` no constituye aceptación. Las firmas, parámetros y contexto autorizado del contrato quedan pendientes. Ver [BOOK-06](BOOK-06.md), [BOOK-07](BOOK-07.md) y la verificación de contrato de `docs/reservas-contratos.md`. PAGOS-01 no cubre bandeja, aprobación/rechazo ni emisión de boleto.
+Las tres reglas citadas existen en `docs/business-rules.md` (RN-02, §2; RN-50 y RN-51, §7). BOOK-06 §2 aclara que un comprobante aceptado y en revisión no equivale a ausencia; `docs/reservas-decisiones.md`, “Reserva y pago”, especifica que los asientos se mantienen reservados mientras se revisa. Leslie y Shirley acordaron que la aceptación del comprobante y la expiración se serializan transaccionalmente por reserva; persistir un archivo en `payments` no constituye aceptación. El contrato aceptado para la notificación es `markPaymentProofReceived({ bookingId, cooperativeId, paymentProofId })`; su implementación pública sigue pendiente en BOOK-07. Ver [BOOK-06](BOOK-06.md), [BOOK-07](BOOK-07.md) y la verificación de contrato de `docs/reservas-contratos.md`. PAGOS-01 no cubre bandeja, aprobación/rechazo ni emisión de boleto.
 
 ## 3. Alcance
 
@@ -46,7 +48,7 @@ La spec puede dividirse después en specs independientes para carga y expiració
 2. El cliente autenticado solicita la carga enviando el ID de reserva y un único archivo, con CSRF válido.
 3. El caso de uso consulta la reserva mediante `findForPayment` (API pública de `bookings`) y comprueba propietario, estado vigente, cooperativa derivada de la reserva y fecha límite leída de esa misma reserva.
 4. Si `now < expiresAt`, `payments` guarda primero el archivo y sus metadatos como `UPLOADED`, junto con un aviso pendiente persistente en un outbox, dentro de una transacción local. Si falla la persistencia, no notifica a `bookings` y limpia cualquier archivo temporal.
-5. Después de confirmar esa persistencia, un proceso reintentable entrega el aviso mediante la operación pública que se acuerde con `bookings` (nombre propuesto: `markPaymentProofReceived`). La repetición usa la misma identidad idempotente. Los nombres de parámetros y el contexto autorizado siguen pendientes del contrato técnico.
+5. Después de confirmar esa persistencia, un proceso reintentable entrega el aviso mediante `markPaymentProofReceived({ bookingId, cooperativeId, paymentProofId })`. La repetición conserva los tres identificadores. `bookings` registra idempotentemente el vínculo aceptado para que luego pueda validar `confirmSale`.
 6. `bookings` serializa por reserva la recepción y la expiración en su coordinación transaccional. Si acepta antes del vencimiento, conserva los asientos durante la revisión. Si la reserva ya expiró o el plazo venció antes de aceptar, responde con rechazo definitivo.
 7. Ante timeout o resultado incierto, `payments` conserva el comprobante y el outbox, y reintenta la misma operación; no compensa. Si la primera llamada ya fue aceptada, el reintento devuelve ese resultado aceptado aunque llegue después del vencimiento.
 8. Solo ante rechazo definitivo `payments` compensa el archivo y el estado persistido. La decisión de compensar no se deriva de un timeout.
@@ -74,7 +76,7 @@ La spec puede dividirse después en specs independientes para carga y expiració
 
 Definir en `payments/domain` un puerto de lectura llamado `findForPayment`, que consulte una reserva por `bookingId`. Devuelve solo los datos necesarios: identificador de reserva, comprador, cooperativa, estado, instante de inicio explícito, plazo en segundos, `expiresAt` y total guardados/calculados por `bookings`; el total se expresa en centavos enteros. La operación valida el contexto autorizado y la cooperativa de la reserva. El dominio de reservas aplica BOOK-06 §4: plazo entero entre 180 y 300 segundos, inicio explícito, reloj inyectado y cálculo de vencimiento sin valor por defecto oculto. `payments` consulta esos valores y no los recalcula ni mantiene copias en `payment_proofs`. El puerto no expone capas internas de `bookings`.
 
-**Contrato según las specs de reservas:** BOOK-03 nombra la tabla `bookings` y una tabla/relación de ocupaciones sin definir su nombre ni esquema; indica que columnas y FKs con módulos ajenos están por definir. BOOK-06/07 describen plazo, expiración y confirmación; el mensaje de Leslie del 25 de octubre de 2026 acuerda los nombres `findForPayment`, `markPaymentProofReceived`, `confirmSale` y `releaseBooking`, pero no fija firmas, columnas, IDs o FKs. La tabla `payment_proofs`, sus columnas y su FK a `bookings` son propuestas de PAGOS-01, no identificadores fijados por Leslie. La integración usará la API pública de `bookings`.
+**Contrato según las specs de reservas:** BOOK-03 nombra la tabla `bookings` y una tabla/relación de ocupaciones sin definir su nombre ni esquema; indica que columnas y FKs con módulos ajenos están por definir. El 29 de octubre de 2026 Leslie y Shirley acordaron `markPaymentProofReceived({ bookingId, cooperativeId, paymentProofId })` y `confirmSale({ bookingId, cooperativeId, paymentProofId })`, usando `paymentProofId` como clave idempotente. `bookings` conserva el vínculo aceptado de recepción y la autoridad del total final; `payments` contrasta ese total con el comprobante. La tabla `payment_proofs`, sus columnas y sus relaciones siguen siendo internas a `payments`; la integración usará la API pública de `bookings`.
 
 ### Migración propuesta
 
@@ -143,7 +145,7 @@ La solicitud usa `multipart/form-data` con `bookingId` y `file`. Respuesta `201`
 - El archivo no puede servirse públicamente ni ejecutarse desde el servidor; nombre original, extensión o MIME enviados por el cliente no se consideran confiables.
 - Si la reserva expiró pero su aviso a `payments` aún no llegó, una carga posterior no debe revivirla; payments consulta el estado con `findForPayment` y acepta el aviso idempotente de `bookings`.
 - Si `bookings` devuelve rechazo definitivo porque expiró la reserva o venció el plazo antes de aceptar, `payments` compensa el archivo y revierte/no persiste el cambio a `UPLOADED`; nunca compensa por timeout o respuesta incierta.
-- `findForPayment`, `markPaymentProofReceived`, `confirmSale` y `releaseBooking` validan el contexto autorizado y la cooperativa correspondiente antes de consultar o modificar la reserva.
+- `findForPayment`, `markPaymentProofReceived`, `confirmSale` y `releaseBooking` validan el contexto autorizado y la cooperativa correspondiente antes de consultar o modificar la reserva. `markPaymentProofReceived` recibe `bookingId`, `cooperativeId` y `paymentProofId`.
 - `releaseBooking` no libera una reserva si tiene un comprobante en revisión ni si la venta ya fue confirmada.
 
 ## 9. Pruebas esperadas
@@ -162,9 +164,9 @@ La solicitud usa `multipart/form-data` con `bookingId` y `file`. Respuesta `201`
 | Total | El cálculo se determina en servidor; el resumen de reserva registra base, descuento y total. Los nombres de las columnas no constan en estas specs. | [BOOK-03 §4–7](BOOK-03.md); [reservas-decisiones.md, “Tarifas y acreditación”](../reservas-decisiones.md) |
 | Comprobante en revisión | La regla de reserva es que un comprobante recibido a tiempo mantiene los asientos reservados durante la revisión y no es ausencia de comprobante. | [BOOK-06 §2, §7](BOOK-06.md); [reservas-decisiones.md, “Reserva y pago”](../reservas-decisiones.md) |
 | Expiración y liberación | BOOK-06 asigna a reservas T2 (expiración atómica e idempotente) y T3 (ejecución periódica); la expiración por RN-51 libera asientos transaccionalmente. | [BOOK-06 §3, §7](BOOK-06.md); [reservas-decisiones.md, “Reserva y pago”](../reservas-decisiones.md) |
-| Coordinación de recepción y expiración | Ambas operaciones se serializan transaccionalmente por reserva. Si `bookings` acepta la recepción antes del vencimiento, conserva los asientos durante la revisión; si la reserva expiró o venció el plazo antes de aceptar, responde rechazo definitivo. Un reintento idempotente de una recepción aceptada devuelve aceptación aunque llegue después del plazo. Ante timeout, payments conserva el comprobante y reintenta; solo compensa por rechazo definitivo. Las firmas, parámetros y contexto autorizado siguen pendientes. | Respuesta de Leslie compartida por Shirley, 26 de octubre de 2026; [BOOK-06](BOOK-06.md) y [BOOK-07](BOOK-07.md). |
+| Coordinación de recepción y expiración | Ambas operaciones se serializan transaccionalmente por reserva. Si `bookings` acepta la recepción antes del vencimiento, conserva los asientos durante la revisión; si la reserva expiró o venció el plazo antes de aceptar, responde rechazo definitivo. Un reintento idempotente de una recepción aceptada devuelve aceptación aunque llegue después del plazo. Ante timeout, payments conserva el comprobante y reintenta; solo compensa por rechazo definitivo. La firma y los tres identificadores acordados se detallan en la fila de operaciones públicas. | Respuesta de Leslie compartida por Shirley, 26 de octubre de 2026; [BOOK-06](BOOK-06.md) y [BOOK-07](BOOK-07.md). |
 | Persistencia del aviso | El aviso pendiente se guarda en un outbox durable junto con `UPLOADED`, en la misma transacción local, para sobrevivir reinicios y reintentarse con identidad estable. | Respuesta de Leslie compartida por Shirley, 26 de octubre de 2026. |
-| Operaciones públicas de reservas para pagos | Nombres propuestos: `findForPayment`, `markPaymentProofReceived`, `confirmSale` y `releaseBooking`; las operaciones deben validar contexto autorizado y cooperativa. `findForPayment` devuelve el total en centavos enteros. Los parámetros y contexto se cierran en el contrato entre módulos. | Mensaje de Leslie, 25 de octubre de 2026, y coordinación posterior del 26 de octubre de 2026. |
+| Operaciones públicas de reservas para pagos | `markPaymentProofReceived({ bookingId, cooperativeId, paymentProofId })` registra el vínculo aceptado; `confirmSale({ bookingId, cooperativeId, paymentProofId })` confirma idempotentemente con la misma clave y vínculos. `bookings` es autoridad del total en centavos/USD; `payments` lo contrasta con el comprobante. | Acuerdo de Leslie y Shirley, 29 de octubre de 2026; [BOOK-07](BOOK-07.md). Implementación productiva pendiente en BOOK-07. |
 | Confirmación de venta | La conversión a vendido por `confirmSale` es transaccional e idempotente. | [BOOK-07 §1, §3, §7](BOOK-07.md); mensaje de Leslie, 25 de octubre de 2026. |
 
 ### Supuestos de implementación T4
@@ -191,7 +193,7 @@ Estos son supuestos técnicos para completar PAGOS-01; no cambian BOOK-06/07 ni 
 | Invitado (P8) | La política de invitado definida en reservas-decisiones.md se conserva. Para este endpoint, el acceso solo `CUSTOMER` queda como propuesta hasta confirmar cómo se autoriza al invitado. | El endpoint de reserva BOOK-03 §6 mantiene identidad/propiedad invitada pendiente; la decisión de producto de invitado está en reservas-decisiones.md, “Pasajeros e invitados”. Limitar carga a `CUSTOMER` no está resuelto por esas fuentes. |
 | Endpoint de carga | `POST /api/v1/payment-proofs`, multipart con campos `bookingId` y `file`. | BOOK-03 §6 propone `POST /api/v1/bookings` para crear reservas, pero no define endpoint de pagos; esta ruta y sus campos son propuestas de PAGOS-01. |
 | Archivo | PDF/JPEG/PNG, máximo 5 MiB, validando contenido; disco local privado fuera del directorio público, con puerto de almacenamiento y adaptador local sustituible. | No definido en BOOK-01/03/06/07. |
-| Nombre y firma de la operación de recepción | `markPaymentProofReceived` es nombre propuesto para el puerto; parámetros, contexto autorizado, resultado tipado y correlación exacta se cerrarán en el contrato técnico. | BOOK-06 y BOOK-07; Leslie confirmó el comportamiento transaccional el 26 de octubre de 2026, no la firma. |
+| Nombre y firma de la operación de recepción | `markPaymentProofReceived({ bookingId, cooperativeId, paymentProofId })`; los tres identificadores forman el vínculo idempotente aceptado de recepción. | Acuerdo de Leslie y Shirley, 29 de octubre de 2026; [BOOK-07](BOOK-07.md). |
 | Aviso de expiración hacia payments | Propuesta: reservas notifica la expiración y payments registra `EXPIRED`; payments no ejecuta ni programa la tarea de expiración. | BOOK-06 §3/6 no define la notificación entrante ni su función/firma; es una coordinación técnica por concretar en BOOK-06/07. |
 | Coordinación de aprobación | El aviso de aprobación desde payments a reservas, incluida la llamada a `confirmSale`, pertenece a PAGOS-02; PAGOS-01 solo notifica recepción. `confirmSale` valida contexto autorizado y cooperativa, y es transaccional e idempotente. | Mensaje de Leslie, 25 de octubre de 2026; BOOK-07 §1/3 define la confirmación desde pagos como integración posterior. |
 | Rechazo justificado y liberación | Un rechazo autorizado con justificación libera la reserva transaccionalmente; una reserva que sigue en revisión conserva sus asientos y una venta confirmada no se libera. La operación, firma y autorización concreta pertenecen a una spec de rechazo separada. | Confirmación de Leslie compartida por Shirley, 26 de octubre de 2026; regla de rechazo en `docs/reservas-decisiones.md`. |
@@ -225,7 +227,7 @@ Comprobaciones de `docs/reservas-contratos.md`, “Verificación que se necesita
 ## 12. Dependencias
 
 - **Requiere:** AUTH-01/AUTH-02 y la API pública existente de `auth/index.js` para autenticación, autorización y CSRF; INFRA-01 y migraciones/BD disponibles.
-- **Requiere coordinación con `bookings`:** contrato público idempotente de consulta, expiración/liberación, confirmación de venta y aviso de comprobante recibido; BOOK-01/03/06/07 todavía no documentan nombres ni firmas.
+- **Requiere coordinación con `bookings`:** implementar el contrato público idempotente de consulta, expiración/liberación, confirmación de venta y aviso de comprobante recibido; los nombres y firmas de recepción y confirmación se acordaron con Leslie y se registran en BOOK-07.
 - **Requiere la tarea de reservas BOOK-06:** un único coordinador de expiración; payments procesa el aviso y no programa su propio proceso.
 - **Propone para etapa posterior:** PAGOS-02 consume comprobantes `UPLOADED`; PAGOS-03 y BOLETOS-01/02 dependen de la aprobación que corresponda; la venta en caja necesita una spec separada.
 
@@ -235,7 +237,7 @@ Comprobaciones de `docs/reservas-contratos.md`, “Verificación que se necesita
 
 ## 14. Evidencia local de implementación T4
 
-La rama `feature/PAGOS-01-subir-comprobante-actualizado` parte de `origin/develop` en `e556e59`. La integración de Edwin para la reversión por migración objetivo está presente en esa base. El adaptador de lectura/notificación de `bookings` permanece simulado conforme al alcance T4; las firmas y el contexto autorizado del contrato real siguen pendientes.
+La rama `feature/PAGOS-01-subir-comprobante-actualizado` parte de `origin/develop` en `e556e59`. La integración de Edwin para la reversión por migración objetivo está presente en esa base. El adaptador de lectura/notificación de `bookings` permanece simulado conforme al alcance T4. Leslie y Shirley acordaron las firmas y el contexto autorizado; BOOK-07 aún debe publicar la implementación productiva.
 
 - Lint: aprobado en la rama actualizada.
 - Pruebas unitarias: 41 suites y 564 pruebas aprobadas.
@@ -243,3 +245,35 @@ La rama `feature/PAGOS-01-subir-comprobante-actualizado` parte de `origin/develo
 - Formato: todos los archivos JavaScript cambiados por PAGOS-01 pasan Prettier. El chequeo global informa 48 archivos de otros módulos o infraestructura con formato previo pendiente; no se modificaron.
 - La prueba de Fleet `a78c750` está integrada en la base `origin/develop` examinada. No se editaron suites ni pruebas de otros módulos.
 - No se ha publicado la rama ni abierto PR. Corresponde publicar la rama para revisión humana.
+
+## 15. Conciliación de lectura con BOOK-07-L05 — 2 de noviembre de 2026
+
+La publicación histórica pendiente de §14 fue posterior: PAGOS-01 quedó integrado por PR #23 en `f26415d`. Eso no demuestra conexión productiva con Reservas ni aplicación de las reglas nuevas de correcciones.
+
+Leslie compartió completos BOOK-06-L04 y BOOK-07-L05, posteriores a su HEAD reportado `c7ceed9`, sin commit/publicación, y consideró adecuado cerrar primero `findForPayment`. El envío autoriza conciliación documental, no implementación ni aprobación de las nuevas firmas. Se redactó [una propuesta completa](../pagos-reservas-find-for-payment.md) con separación de carga del comprador y revisión del oficinista, autorización, campos mínimos, resultados y casos verificables. El puerto actual sigue recibiendo solo `bookingId` y su proveedor de Reservas sigue simulado.
+
+Confirmado por Leslie y reconocido en la versión compartida: acreditación antes del total aceptado y pago. Quién verifica, documentos y registro quedan pendientes; no se entrega una cotización provisional como importe definitivo autorizado.
+
+Pendientes que no se cierran por esta lectura: protocolo de versiones; registro del importe observado y resolución de diferencias; contexto de invitado; evento de los 15 minutos, rondas, correo y efecto del vencimiento; plazo/abandono/cancelación de caja; firmas/resultados de recepción, venta y liberación. Se conserva la coordinación recepción–expiración y la recuperación idempotente de una aceptación previa.
+
+Evidencia de esta entrega: revisión de los adjuntos, código consumidor y referencias remotas; cambio documental. No se ejecutaron pruebas funcionales nuevas ni se modificó código, migraciones o dependencias. La propuesta de lectura espera confirmación explícita de sus secciones 4–9 antes de adaptar consumidores/proveedor.
+
+### Segunda propuesta concreta de Leslie — 2 de noviembre
+
+Se recibió como texto la propuesta pública `bookings.paymentQueries.findForPayment({ bookingId, purpose }, authContext)` con 20 escenarios. Se recomienda conciliar sobre esa base: IDs opacos no vacíos sin imponer UUID nuevo; `UPLOAD_PROOF`/`REVIEW_PAYMENT`; fechas ISO UTC; `totalPriceCents` y `canUploadProof`. El [documento principal](../pagos-reservas-find-for-payment.md) reemplaza la primera propuesta de nombres y contiene cinco puntos de cierre en §9.
+
+El consumidor actual usa `total`, `acceptsPaymentProof` y la firma antigua; admite ISO para vencimientos. La futura adaptación debe transmitir contexto verificado, mapear los datos explícitamente y conservar propiedad/tenant, sin una sobrecarga antigua sin autorización. Falta confirmar con Leslie que `createdAt` coincide con el inicio contractual y que su estado/esquema permite comprobar ausencia de recepción aceptada. No inventar vínculo o elegibilidad a partir de datos ausentes. Auth/Pablo debe revisar la frontera de contexto y su vigencia.
+
+Este texto sigue siendo conciliación, no una aceptación humana de las nuevas firmas ni autorización de implementación. No se resolvieron por ello los contratos de escritura, corrección, caja o invitado.
+
+### Respuesta posterior de Pablo
+
+El 2 de noviembre Pablo confirmó origen público de autenticación y matriz de permisos; propuso proyectar `{ userId, role, cooperativeId }` desde la solicitud autenticada, sin un adaptador público ya disponible. Propuso códigos concretos de lectura y traducción en consumidor, pues BookingValidationError no tiene httpStatus; cierre con Leslie pendiente. El [documento principal](../pagos-reservas-find-for-payment.md) registra la respuesta y su procedencia.
+
+Pablo confirmó ratificación de PDF/JPEG/PNG y 5 MiB, con validación de contenido, extensión y MIME. Este acuerdo no acredita validación completa implementada. AUTH-INVITADO-01, CORREO-01 y AUTH-06 son borradores locales reportados, sin publicación ni endpoint/proveedor disponible; no se duplican ni se conectan mediante identidades ficticias de producción. La prueba HTTP independiente de PAGOS-02 solo usa identidades sintéticas en PostgreSQL aislado y conserva simulado el límite de Reservas.
+
+### Diseño seleccionado en PR #46 y preparación del consumidor
+
+GitHub confirma conformidad documental APPROVED de Shirley sobre `ad74d25` de PR #46. El [estado actual del contrato](../pagos-reservas-find-for-payment.md#12-decisión-publicada-y-siguiente-incremento-consumidor) reemplaza las preguntas genéricas anteriores: inicio explícito proofWindowStartedAt persistido, contexto mínimo y errores seleccionados. No se presupone que createdAt sea el inicio ni que una columna ausente demuestre ausencia de recepción.
+
+Shirley autorizó continuar el adaptador consumidor acotado en PAGOS-02 §17. Está implementado y probado, pero no conectado a la carga de PAGOS-01, que conserva su firma anterior y proveedor simulado. La conexión real se hará tras disponer del proveedor publicado y probar ambos módulos; no habilitar carga mediante elegibilidad ficticia. Los borradores AUTH-06/CORREO-01/AUTH-INVITADO-01 ya están publicados como documentación en PR #46, sin que ello ofrezca endpoints/proveedor operativos.
