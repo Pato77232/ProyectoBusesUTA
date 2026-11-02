@@ -1,6 +1,7 @@
 const RouteSheetTariffRepository = require('../../domain/ports/route-sheet-tariff-repository');
 const { TariffNotFoundError } = require('../../domain/errors/route-tariff-errors');
 const { toRouteSheet } = require('../mappers/route-sheet-mapper');
+const lockProgrammingWrites = require('../programming-write-lock');
 
 function toResult(row) {
   return {
@@ -36,6 +37,7 @@ class PgRouteSheetTariffRepository extends RouteSheetTariffRepository {
     const client = await this.pool.connect();
     try {
       await client.query('BEGIN');
+      await lockProgrammingWrites(client);
       const { rows } = await client.query(
         'SELECT * FROM route_sheets WHERE id = $1 AND cooperative_id = $2 FOR UPDATE',
         [routeSheetId, cooperativeId],

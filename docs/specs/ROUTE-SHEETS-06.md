@@ -2,12 +2,12 @@
 
 - **Referencia de planificación:** D-03; ID local, sin ticket externo.
 - **Responsable:** David, por tarea seleccionada y petición expresa del solicitante.
-- **Estado:** Borrador; sección 0 documental preparada. Secciones 1 y 2 sin autorización de implementación.
+- **Estado:** En desarrollo; sección 0 guardada en 2890d2b; sección 1 solicitada e implementada localmente, pendiente de revisión y commit. Sección 2 sin autorización de implementación.
 - **Fecha:** 2 de noviembre de 2026, America/Guayaquil.
 - **Rama / base comprobada:** feature/programacion-multifrecuencia-persistida, 8fdf7e4; árbol inicialmente limpio. La referencia local origin/develop coincide; no se hizo fetch ni se verificaron PR remotas en esta sesión.
 - **Antecedentes:** D-01 integrado en 8886553; tarifario D-02 en 1fb0ade; corrección de pruebas presente en 1e9d956. Presencia en la historia local no acredita revisión humana nueva ni cierre integral.
 - **Revisora propuesta:** Leslie, aceptación de esta revisión pendiente. Edwin participa en contratos de Fleet; no se presume aprobación suya de propuestas nuevas.
-- **Autorización:** David solicitó únicamente sección 0. Preparar el contrato no autoriza código, migraciones, commits ni publicación.
+- **Autorización:** David solicitó sección 1 y confirmó expresamente P1–P4 en el chat. Autorizó después únicamente las listas TRUNCATE de cuatro suites antiguas para incorporar las tablas nuevas; no sus comprobaciones. No autorizó commits, sección 2 ni publicación.
 
 ## 1. Objetivo y fuentes
 
@@ -30,17 +30,17 @@ Código observado: asignaciones sin fechas, índices únicos por hoja/bus y hoja
 - Dos ciclos totales, base incluida; borradores no habilitan compra, no renovación automática ni renumeración histórica. Límite máximo de dos períodos no terminados por grupo, incluidos borradores según el validador de D-01.
 - Tarifas explícitas por combinación, política y copia congeladas al publicar. No recalcular precios sumando tramos.
 
-## 4. Propuesta de representación — pendiente de confirmar §10
+## 4. Representación confirmada — registro humano en §10
 
 ### 4.1. Hoja, patrón y ciclo
 
-Recomendación P1: una hoja nueva representa la realización de un patrón durante **un ciclo**. `routeDate` se conserva como fecha de inicio del ciclo; `cycleLengthDays` es su duración explícita. No se crean hojas diarias duplicadas para cada actividad. La programación contiene el patrón fechado del ciclo y permite validar su repetibilidad sin generar el siguiente.
+Decisión P1 confirmada: una hoja nueva representa la realización de un patrón durante **un ciclo**. `routeDate` se conserva como fecha de inicio del ciclo; `cycleLengthDays` es su duración explícita. No se crean hojas diarias duplicadas para cada actividad. La programación contiene el patrón fechado del ciclo y permite validar su repetibilidad sin generar el siguiente.
 
 El identificador de hoja sigue siendo estable y conserva su tarifario propio. La relación de serie/renovación y materialización del segundo ciclo se implementarán en D-05; no reutilizar silenciosamente `cycle_number IN (1,2)` como contador histórico ilimitado. Hasta esa continuación no se declarará operativa la ventana móvil completa ni se usará el endpoint antiguo como prueba de elegibilidad. D-03 debe rechazar períodos incompatibles con registros actuales, sin series paralelas para evadir límites.
 
 ### 4.2. Persistencia propuesta
 
-Nombres y estructura previstos para una **migración nueva**, no tablas existentes ni autorización de aplicarla:
+Representación definida para una **migración nueva**, implementada localmente en sección 1 tras la confirmación humana:
 
 | Registro | Datos y restricciones previstas |
 |---|---|
@@ -62,14 +62,14 @@ La migración agrega campos opcionales a datos antiguos, sin inventar tiempos, d
 
 El conjunto distinto de frecuencias SERVICE es la fuente del tarifario de D-02; repetir una frecuencia en distintas fechas no exige matrices duplicadas. Guardar programación no modifica tarifas ni su revisión. Un cambio de conjunto/recorrido que desajuste la matriz bloquea publicar hasta reconfigurarla; cambiar solo bus u horas no cambia el precio congelado de otra hoja.
 
-Una vez programada la hoja, los endpoints antiguos de agregar/quitar asignaciones, días de parada y generar ciclos deben rechazar cambios que omitan la validación integral. La adopción exige sustituir explícitamente las asignaciones/días de parada legados de un borrador, dentro de una transacción; nunca mantener dos fuentes de verdad. No inferir un intervalo de un día de parada sin fechas. Política de adopción/publicación antigua pendiente P3.
+Una vez programada la hoja, los endpoints antiguos de agregar/quitar asignaciones, días de parada y generar ciclos deben rechazar cambios que omitan la validación integral. La adopción exige sustituir explícitamente las asignaciones/días de parada legados de un borrador, dentro de una transacción; nunca mantener dos fuentes de verdad. No inferir un intervalo de un día de parada sin fechas. Política de adopción/publicación antigua confirmada en P3; su conexión HTTP corresponde a sección 2.
 
 ## 5. Caso de uso y concurrencia propuestos
 
 `saveRouteSheetProgramming({ routeSheetId, cooperativeId, modifiedBy, expectedRevision, programming })` recibe identidad verificada. `getRouteSheetProgramming({ routeSheetId, cooperativeId })` permite recuperar la revisión tras recargar la pantalla. Aplicación recibe puertos propios, nunca cliente pg.
 
 1. Validar estructura/UUID/fechas/revisión; obtener hoja y grupo propios; exigir DRAFT.
-2. Abrir transacción. Serializar cambios por cooperativa/grupo y por UUID de bus (incluidos buses retirados y añadidos, orden canónico), antes de bloquear hojas/filas. Consultar de nuevo datos bajo bloqueo; todos los escritores afectados deben respetar el mismo protocolo para evitar carreras y deadlocks.
+2. Abrir transacción y tomar el lock transaccional de escrituras de Route Sheets antes de bloquear hojas/filas. La implementación local serializa globalmente escrituras del módulo, incluidos escritores legados, según ADR 0006; sacrifica paralelismo para evitar carreras de inserción y mantener orden compatible con publicación tarifaria.
 3. Comparar revisión esperada; obtener frecuencias por API pública transaccional de ADR 0005 y buses por API pública de Fleet. Si un dato mutable de Fleet necesita protección hasta commit, acordar sesión/versionado con Edwin; no simular garantía ni consultar sus tablas desde Route Sheets.
 4. Leer compromisos externos según P2/P3, incluidos preparación, bloqueos y vecinos anterior/posterior, aunque estén fuera del intervalo de la hoja. No validar continuidad solamente contra la ubicación declarada por el cliente.
 5. Derivar recorrido autorizado y validar fechas de puntos, hora local de salida, agendas, cobertura y repetibilidad con validadores de D-01. La validación de un patrón completo se separa de la agenda real combinada con otras hojas: esta última no exige repetir las obligaciones ajenas.
@@ -89,7 +89,7 @@ Al publicar, programación, revisión de tarifa y frecuencias se revalidan bajo 
 
 PUT contiene `{ expectedRevision, programming: { cycleStartDate, cycleLengthDays, requiredServices, agendas } }`. El contrato normalizado reutiliza los campos de ROUTE-SHEETS-04: cada agenda tiene busId, initialAvailability, activities y blocks; SERVICE añade `requiredServiceId` y `points`. HTTP no acepta cooperativeId, actor, status, readyAt ni metadatos derivados. El servidor añade contexto y obtiene ubicaciones SERVICE de Frecuencias. TRANSFER sí declara sus lugares explícitos. Rechazar campos adicionales, no permitir selección de tenant.
 
-Propuesta P4 para points: lista explícita por posición; origen tiene departureAt del servicio, destino arrivalAt del servicio y paradas intermedias arrivalAt/departureAt (igualdad permitida). Orden temporal no decreciente entre puntos, arrivalAt <= departureAt en parada y todo dentro del intervalo total; embarque intermedio toma departureAt. No inferir fechas por comparación de horas. No duplicar/fusionar posiciones con nombres iguales. Frecuencias actual devuelve lugares ordenados y hora de origen, sin horas de parada: estas son datos operativos expresos, no modificación de la frecuencia.
+Contrato P4 confirmado para points: lista explícita por posición; origen tiene departureAt del servicio, destino arrivalAt del servicio y paradas intermedias arrivalAt/departureAt (igualdad permitida). Orden temporal no decreciente entre puntos, arrivalAt <= departureAt en parada y todo dentro del intervalo total; embarque intermedio toma departureAt. No inferir fechas por comparación de horas. No duplicar/fusionar posiciones con nombres iguales. Frecuencias actual devuelve lugares ordenados y hora de origen, sin horas de parada: estas son datos operativos expresos, no modificación de la frecuencia.
 
 GET y PUT devuelven `{ routeSheetId, cooperativeId, revision, programming, updatedBy, updatedAt }`, con las identidades persistidas, puntos, fechas y lugares autorizados. Primera escritura exige expectedRevision 0; edición exige la revisión leída. PUT es reemplazo atómico con control de revisión, sin prometer que reintentar un body con revisión vieja sea exitoso: consultar GET tras respuesta incierta. No endpoint público de compra ni `tripQueries` en D-03.
 
@@ -130,9 +130,9 @@ Por sección funcional ejecutar lint, format:check y npm test desde backend; [ba
 
 Sección 1 no habilita una ruta productiva hasta sección 2. Cada commit funcional incluye evidencia y pruebas; no ejecutar commits por inferir autorización de implementar. No repetir D-01/D-02 ni ampliar a D-04/D-05.
 
-## 10. Decisiones nuevas pendientes y coordinación
+## 10. Decisiones confirmadas y coordinación
 
-Estas propuestas no se registran como respuestas humanas. No iniciar sección 1 mientras su contrato dependa de ellas.
+El 2 de noviembre, tras solicitar sección 1, David respondió «Confirmo las cuatro propuestas» a la consulta conjunta P1–P4. Se registran como decisiones confirmadas por el solicitante, sin atribuir una respuesta individual nueva de Leslie o Edwin. La tabla conserva las alternativas evaluadas; sus recomendaciones quedan aceptadas. No equivale a revisión humana del código ni a autorización de sección 2.
 
 | ID / participantes | Pregunta y alternativas | Recomendación e impacto |
 |---|---|---|
@@ -158,3 +158,41 @@ No aplica defecto inducido. Respetar [protocolo](../errores-inducidos.md); ning�
 Se consultaron reglas, specs 04/05, arquitectura, convenciones, calidad, guía/equipo, ADR 0005, migración original, APIs públicas y validadores existentes. ROUTE-SHEETS-06 libre en archivos/referencias examinados; no se certifica ausencia de trabajo privado o remoto no actualizado. Cambios exclusivamente Markdown: esta spec, referencias relacionadas y fila propia de estado. No código, migraciones, dependencias, pruebas ejecutables nuevas ni algoritmo implementados.
 
 Sección 0 preparada para revisión; §10 conserva propuestas pendientes, no acuerdo cerrado. Diff documental revisado y `git diff --check` aprobado; 63 enlaces locales comprobados sin destinos inexistentes en los cuatro documentos afectados (sin certificar anclas ni enlaces externos). No se ejecutan lint/Jest por este cambio documental ni se reutiliza evidencia histórica como prueba de D-03. Próximo paso: respuesta humana a P1–P4 y coordinación técnica de Fleet si corresponde; después solicitar sección 1. Revisión humana, commits, PR e integración de D-03 pendientes.
+
+## 13. Sección 1 — implementación local y evidencia posterior
+
+La sección 12 conserva la evidencia histórica de sección 0. David guardó esa sección en 2890d2b, solicitó implementar sección 1 y confirmó P1–P4. Posteriormente respondió «Sí, solo las listas de limpieza» para adaptar cuatro TRUNCATE existentes. No hubo comunicación directa con Edwin/Leslie ni aprobación individual de código por ellos.
+
+### Resultado y contratos internos
+
+`save-route-sheet-programming.use-case.js` recibe `{ routeSheetId, cooperativeId, modifiedBy, expectedRevision, programming }`. Contexto con UUID canónicos; revisión entera desde cero, campos explícitos/estrictos y copia normalizada sin mutar entrada. Los puntos SERVICE reciben lugares de la frecuencia y salida exacta a su hora autorizada, sin segundos/fracciones ocultos. Llegada/salida de paradas son expresas. Dominio valida ciclo, cobertura, agendas, continuidad, bloqueos y repetición; aplicación consulta puertos, dominio decide conflictos e identidades, infraestructura solo adapta/persiste.
+
+`PgRouteSheetProgrammingRepository.withLockedProgramming(context, operation)` abre la transacción y ofrece sheet, revision, frequencyQueryPort, findCommitments, findIdentities y save; ningún ejecutor pg llega a application/domain. Ante hoja ajena/ausente devuelve ROUTE_SHEET_NOT_FOUND/404. Escritura solo DRAFT, fecha inicial igual a routeDate, revisión coincidente; devuelve programación persistida, auditoría y revisión incrementada. Edición con revisión vieja no sobrescribe. La revisión tarifaria es independiente.
+
+La migración nueva `1793650000000-route-sheet-programming.js` crea siete tablas: cabecera, libro de identidades, servicios requeridos, disponibilidad inicial, puntos del servicio, traslados y bloqueos. Extiende asignaciones existentes con servicio/fechas/preparación. Sustituye índices históricos mediante índices parciales legados y unicidad por servicio/salida programados; FK compuestas evitan mezclar hoja/tenant. No cambia migraciones anteriores ni inventa tiempos de registros históricos.
+
+El libro de identidades conserva IDs retirados; prohíbe cambiar hoja, tenant, clase o identidad frecuencia/salida comercial al reutilizarlos. Las filas retenidas conservan UUID; el reemplazo de hijos es transaccional, sin autorización para retirar referencias comerciales futuras (sus FK impedirían borrarlas). Auditoría conserva programación anterior/nueva y revisión. Una adopción legada usa nuevas identidades y reemplazo explícito completo, incluidos días de parada; no mantiene dos fuentes operativas. Down se rechaza si existen programaciones; no destruir información para restablecer índices antiguos.
+
+### Concurrencia, proveedores y límites
+
+Se implementa [ADR 0006](../adr/0006-serializacion-de-programacion.md): lock transaccional global del módulo antes de filas/frecuencias, compartido con la sesión de tarifario y con escritores legados mediante triggers BEFORE STATEMENT. Serializa también cooperativas distintas; es un coste conocido, sin prometer rendimiento no medido. Triggers bloquean cambios legados sobre hojas programadas, nuevas asignaciones/paradas legadas de buses programados y ciclos legados del grupo. La sección 2 traducirá esos errores defensivos a HTTP y conectará publicación con la programación; aún no hay ruta productiva nueva.
+
+Se consultan compromisos de todas las hojas programadas de la cooperativa, incluso vecinos anteriores/posteriores fuera del intervalo candidato; no se filtran solamente por fecha de inicio. Se validan ciclos superpuestos y máximo de dos no terminados con reloj inyectable, además de la agenda combinada sin exigir repetición de obligaciones ajenas. Compromisos legados del mismo bus, sin duración conocida, fallan conservadoramente cerrado: no se presupone que un registro antiguo carezca de efectos. Ciclos legados potencialmente pertinentes también bloquean adopción. Relación de serie, generación/renovación y ventana móvil productiva siguen en D-05.
+
+Frecuencias usa API pública transaccional real de ADR 0005. En Fleet se contrastaron index.js, bus-router y PgBusRepository: bus/cooperativa/grupo solo se crean y consultan en el código productivo examinado, sin edición de esos atributos. No se añade bloqueo/versionado ajeno inexistente, ni se afirma congelar inventario de asientos. Si aparece edición concurrente, revisar ese contrato antes de habilitarla.
+
+### Pruebas y entorno
+
+Nuevas pruebas unitarias cubren estructura/contexto, revisión, rol de estado, ausencia/fallos de proveedores, cobertura, preparación, medianoche, paradas, traslados y bloqueos. Integración usa APIs públicas reales de Fleet/Frecuencias y PostgreSQL: upgrade con asignaciones legadas, IDs, revisión, tenant, bus, frecuencias activas, concurrencia del mismo borrador y de dos hojas, vecino temporal, rollback tras insertar, protección de escrituras legadas y de down, dos ciclos, frecuencia repetida y conservación de tarifa.
+
+Primera ejecución global: 1101 unitarias aprobadas; 249 integraciones aprobadas/41 fallidas por limpieza de cuatro suites, antes de autorizar su adaptación. Solo se añadieron las siete tablas nuevas a las listas TRUNCATE de frequencies/http.test.js, frequencies/pg-frequency.repository.test.js, frequencies/migration.test.js y route-sheets/route-sheet-routes.test.js. No cambios a escenarios, comprobaciones, timeouts ni pruebas omitidas. Corrigidos fallos iniciales de lint del incremento y preparación de la base efímera; no se debilitaron expectativas.
+
+`npm ci` restauró versiones exactas del lock tras avisar/justificar; package.json y package-lock.json intactos. Node local 22.19.0 frente al engine 24 requerido. La imagen local permitió comprobar versión 24.21.0 sin código montado, pero revisión automática rechazó montar/copiar código y pasar credencial de pruebas a esa imagen no verificada; no se ejecutó la acción rechazada ni se certifica la suite en Node 24.
+
+PostgreSQL efímero: docker-compose.test.yml con `--env-file NUL`, proyecto busesuta-programming-s1, PostgreSQL 16.13 y credenciales ficticias versionadas. No .env leído ni base de desarrollo utilizada. Sección 1 no cambia composición ni añade HTTP; la publicación tarifaria solo comparte el orden de lock, no incorpora anticipadamente sección 2. Recursos efímeros retirados al finalizar.
+
+Verificación final del código revisado: `npm test` aprobado, **1103 unitarias y 297 integraciones (1400 pruebas)**; 64 suites unitarias y 25 de integración aprobadas. Incluye **57 pruebas nuevas** (35 unitarias y 22 integraciones), sin pruebas omitidas ni fallos inducidos. Comprobación dirigida adicional de programación aprobada; las suites existentes de tarifario/congelación también aprobaron. Las pruebas globales ejecutan el arranque real usado por las integraciones existentes, sin cambios de composición de este incremento.
+
+Lint aprobado; Prettier de todos los JS cambiados/nuevos aprobado. `format:check` global mantiene 41 archivos previos pendientes, incluidas cuatro migraciones históricas preservadas. Diff completo revisado, `git diff --check` aprobado y 60 enlaces locales comprobados sin destinos inexistentes (sin certificar anclas/externos). Los dos casos de colisión de UUID entre cooperativas aprueban sin lecturas globales de identidades: las consultas filtran tenant y las restricciones únicas se traducen a un conflicto genérico con rollback. Pendiente independiente: repetir suite con runtime Node 24 controlado; no presentar el resultado en Node 22 como evidencia de Node 24.
+
+Próxima sección autorizable: 2, después de revisar este incremento. Mensaje de commit sugerido: `feat(hojas-ruta): persiste la programación multifrecuencia del borrador`. Sin commit, PR, revisión humana de código o integración nueva ejecutados.

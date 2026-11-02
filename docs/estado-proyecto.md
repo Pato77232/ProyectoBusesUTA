@@ -1,5 +1,11 @@
 # Estado compartido del proyecto
 
+## D-03 — sección 1 local, 2 de noviembre de 2026
+
+En `feature/programacion-multifrecuencia-persistida` sobre 2890d2b, David solicitó sección 1 y confirmó P1–P4 de [ROUTE-SHEETS-06](specs/ROUTE-SHEETS-06.md). Guardado transaccional de programación completa con revisión, servicios/fechas/puntos, identidades estables, disponibilidad, traslados y bloqueos; consultas públicas reales de Fleet/Frecuencias, compromisos entre hojas, rollback y auditoría. Migración nueva conserva datos legados sin tiempos inventados; [ADR 0006](adr/0006-serializacion-de-programacion.md) documenta lock de escritura global del módulo y su coste de paralelismo. No SQL de otro módulo ni nuevos endpoints.
+
+El solicitante autorizó solo listas TRUNCATE de cuatro suites antiguas para las siete tablas nuevas; escenarios y comprobaciones intactos. Dependencias restauradas del lock, sin cambios de versiones. Verificación final: **1103 unitarias + 297 integraciones aprobadas (1400)**, incluidas 57 nuevas; lint y formato de cambios aprobados. Formato global mantiene 41 archivos previos pendientes, cuatro migraciones históricas preservadas. Diff revisado/comprobado; 60 enlaces locales válidos. PostgreSQL efímero busesuta-programming-s1 retirado. Node local 22.19.0; repetir bajo Node 24 controlado sigue pendiente: revisión automática rechazó el montaje/copia del código en la imagen local no verificada, acción no ejecutada. Sección 2 (HTTP/publicación) y D-04/05 no implementadas; no commit/PR nuevo ni aprobación humana inferida. La evidencia de sección 0 inferior conserva su contexto histórico y sus decisiones ya fueron respondidas.
+
 ## D-03 — sección 0 documental, 2 de noviembre de 2026
 
 David solicitó preparar sección 0 en `feature/programacion-multifrecuencia-persistida`, base `8fdf7e4`, inicialmente limpia y coincidente con la referencia local origin/develop (sin fetch). La historia contiene corrección de publicación `1e9d956`; no se atribuye nueva verificación del login ni inspección remota de PR. [ROUTE-SHEETS-06](specs/ROUTE-SHEETS-06.md) queda Borrador: contrato de persistencia/HTTP, identidad estable, revisión, compatibilidad tarifaria, conflictos entre hojas y migraciones nuevas, sin implementarlos.
