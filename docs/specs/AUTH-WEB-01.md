@@ -3,9 +3,9 @@
 - **ID local:** AUTH-WEB-01; sin ticket externo antes de la revisión académica.
 - **Responsable:** Pablo, conforme a la coordinación de autenticación y F-A6.
 - **Revisora propuesta:** Shirley; aceptación de esta revisión pendiente.
-- **Estado:** Plan autorizado; producto de T2 pendiente de guardado separado.
-- **Fecha / base actual:** 1 de noviembre de 2026; origin/develop 0b4041e.
-- **Rama actual:** feature/AUTH-WEB-01-login-integracion; T1 conservada en ffbe32b.
+- **Estado:** Controlador preparado para revisión; pantalla e integración pendientes.
+- **Fecha / base actual:** 2 de noviembre de 2026; origin/develop 1fb0ade.
+- **Rama actual:** feature/AUTH-WEB-01-controlador-login; procedencia 5a18259.
 - **Autorización:** preparación documental original durante la revisión de T3c;
   Pablo autorizó después el incremento visual T1, según sección 15. No implica
   fechas comprometidas ni aceptación de propuestas por parte de Edwin.
@@ -252,3 +252,43 @@ en este commit documental. Guardar controlador/pruebas, pantalla/empaquetado y
 prueba de navegador/evidencia como incrementos separados menores de ~400 líneas.
 No se hace push ni se infiere revisión humana. El siguiente commit incorpora
 el controlador; la conexión usará el cliente compartido y la confirmación me.
+
+
+## 17. Entrega del controlador sobre develop actual — 2 de noviembre
+
+Pablo solicitó preparar/publicar su siguiente incremento. Plan integrado en
+PR #34/954f812; base actual 1fb0ade con validación Fleet T1a y tarifario de hojas.
+Se recuperaron controlador y pruebas de 5a18259 sin modificar su contenido.
+Los scripts/configuración añaden Auth y conservan API y Fleet; no se copia
+package.json antiguo ni se incorpora PR #40, todavía abierta en af27d5b.
+
+Solo controlador puro con cliente y vista inyectados: consulta me, formulario
+tras 401, confirmación de sesión tras POST, validación Unicode, envío único,
+limpieza de contraseña y recuperación de resultado incierto sin reintentar POST.
+Sin HTML, DOM, CSS, Docker o cambios del cliente HTTP, backend o dependencias.
+Aplica separación de responsabilidades de calidad.md; DESIGN.md se mantiene
+como referencia para la futura vista, sin cambios visuales en esta entrega.
+
+Verificación: lint frontend aprobado; 106 pruebas frontend aprobadas (81 API,
+11 Fleet y 14 controlador). Copia QA con diff frontend de PR #40: 115 aprobadas;
+compatibilidad local no equivale a integración ni aprobación de multipart.
+Backend 1fb0ade exportado sin cambios, npm ci con lockfile en copia temporal:
+lint aprobado; format:check fallido en 17 archivos previos. npm test falla en
+dos pruebas de publish-route-sheet.use-case por TariffSourceError: 1053 unitarias
+aprobadas y dos fallidas. El mismo backend base se probó sin código de login;
+fallos ajenos al controlador, no defectos inducidos ni pruebas aprobadas.
+Integraciones ejecutadas por separado: 267 aprobadas en 23 suites. PostgreSQL
+16.13 exclusivo, auth_controller_test en tmpfs y puerto aleatorio 32771;
+contenedor retirado al terminar. npm test global sigue FALLIDO por las dos
+unitarias; no sumar conteos como si toda la suite hubiera pasado.
+Sin .env ni nuevas versiones de dependencias. Asistencia de Codex.
+
+Pantalla/empaquetado b1f3761 y navegador/evidencia 99c8a91 permanecen como
+procedencia local de incrementos siguientes; deben adaptarse a la base vigente
+sin perder cambios Fleet. Enlace desde portada y revisión humana pendientes.
+Guardado/publicación autorizados en esta sesión; no implica integración.
+
+La PR se prepara en borrador para revisión del incremento mientras se atienden
+los fallos globales de la base; no se recomienda integrar con comprobaciones
+obligatorias fallidas. Este commit guarda el controlador/pruebas/configuración
+y su trazabilidad como un único cambio lógico, con asistencia de Codex.
