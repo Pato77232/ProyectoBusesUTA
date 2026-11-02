@@ -234,3 +234,37 @@ for (const [path, status] of [
     assert.equal(calls.length, 3);
   });
 }
+test('multipart comparte la caché CSRF sin duplicar el token', async () => {
+  const { request, calls } = fixture(() => json({ bus: {} }, 201));
+  const formData = new FormData();
+  await request('/api/v1/buses', { method: 'POST', formData });
+  await request('/api/v1/buses', { method: 'POST', formData });
+  assert.deepEqual(
+    calls.map((call) => call.path),
+    ['/api/v1/auth/csrf', '/api/v1/buses', '/api/v1/buses'],
+  );
+  assert.equal(calls[1].body, formData);
+  assert.equal(calls[2].headers['X-CSRF-Token'], 'token-1');
+});
+test('multipart invalida el token ante CSRF rechazado y no reintenta el alta', async () => {
+  const { request, calls } = fixture(() =>
+    json({ error: { code: 'CSRF_TOKEN_INVALID', message: 'Token no válido.' } }, 403),
+  );
+  await assert.rejects(request('/api/v1/buses', { method: 'POST', formData: new FormData() }), {
+    code: 'CSRF_TOKEN_INVALID',
+  });
+  assert.equal(calls.filter((call) => call.path === '/api/v1/buses').length, 1);
+  await assert.rejects(request('/api/v1/buses', { method: 'POST', formData: new FormData() }));
+  assert.equal(calls.filter((call) => call.path === '/api/v1/auth/csrf').length, 2);
+});
+for (const options of [
+  { method: 'GET', formData: new FormData() },
+  { method: 'POST', formData: { photos: [] } },
+  { method: 'POST', formData: new FormData(), data: {} },
+]) {
+  test('rechaza multipart inválido sin pedir token', async () => {
+    const { request, calls } = fixture();
+    await assert.rejects(request('/api/v1/buses', options), { code: 'REQUEST_INVALID' });
+    assert.equal(calls.length, 0);
+  });
+}

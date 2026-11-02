@@ -5,7 +5,7 @@
 - **Módulo:** `frontend`; consume la API de `fleet`
 - **Responsable:** Edwin, responsable de Fleet y solicitante de revisión/publicación
 - **Revisor propuesto / confirmado:** Pablo propuesto, por ser responsable de la base frontend; sin confirmación registrada
-- **Estado:** T1a integrada mediante PR #36 (`0a83e9c`); T1b en revisión en PR #37. T2/T3 se gestionan en sus incrementos; esta PR no ofrece un alta funcional desde la pantalla.
+- **Estado:** T1a integrada por PR #36; T1b en revisión en PR #37. T2a/T2b implementadas y verificadas para publicación; revisión humana pendiente. T3 pendiente; no es un alta funcional desde la pantalla.
 - **Prioridad y dependencias:** FLEET-01, FLEET-02, FLEET-03 y FRONT-01 T3c/T3d, presentes en develop. T3 requiere además la pantalla de inicio de sesión (sección 10).
 - **Rama / PR / base comprobada:** `feature/FLEET-05-T1a-validacion` y `feature/FLEET-05-T1b-formulario`, creadas desde `origin/develop` en `b60201e` el 1 de noviembre de 2026. Reemplazan a `feature/FLEET-05-pantalla-registro-buses` y a PR #31: https://github.com/Pato77232/ProyectoBusesUTA/pull/31.
 - **Autorización de alcance:** el 31 de octubre de 2026 se aprobó por chat esta spec e iniciar solo T1. El 1 de noviembre Edwin aprobó dividir PR #31. La decisión sobre T2 consta en la sección 10.
@@ -105,7 +105,8 @@ Rutas comprobadas en `backend/src/app.js`. El 201 devuelve `bus` con `plate` for
 | 404 | Indicar que el grupo ya no existe y recargar grupos |
 | 409 | Indicar que placa, chasis o número de unidad ya están registrados |
 | 413 | Indicar que la carga supera el tamaño permitido |
-| Red, 502, 503 o 504 | Mantener el formulario. No reintentar solo: el alta pudo haberse completado |
+| Red, 502 o 503 | Mantener el formulario. No reintentar solo: el alta pudo haberse completado |
+| 504 al registrar | Mantener datos y fotos, indicar resultado incierto y pedir comprobar si el bus existe antes de reenviar; sin reintento automático |
 | Salir con cambios sin enviar | Sin aviso en este incremento |
 
 Tras un error de red, reintentar puede responder 409 si el primer envío se completó. El mensaje debe advertirlo.
@@ -137,7 +138,7 @@ Tras un error de red, reintentar puede responder 409 si el primer envío se comp
 
 1. **Inicio de sesión (bloqueante para T3).** Pablo continúa con el login; la pantalla visual está lista, falta conectarla y verificarla, y no hay fecha confirmada.
 2. **FRONT-01 T3c/T3d.** Resuelta: integradas en `d0a5f8d`. No se crea una política propia.
-3. **Tiempos del proxy.** `proxy_read_timeout` es 10 s, y decodificar 10 fotos puede acercarse a ese tiempo. Se validan con pruebas de carga en T2.
+3. **Tiempos del proxy.** Acuerdo de Pablo reenviado por Edwin el 2 de noviembre: `proxy_read_timeout 60s` solo para `/api/v1/buses`, 10 s para el resto y sin reintentos. Decisión y evidencia en la sección 14.
 4. **Transporte multipart.** Resuelta en la decisión anterior; el diseño concreto se define en T2.
 5. **Posiciones no ofrecidas.** Recomendación: incluir casillas por piso. Omitirlas registraría todos los asientos, y hoy no hay forma de corregirlo después. Si se prefiere posponerlas, el bus se envía con lista vacía. Decide el responsable.
 6. **Acceso a la pantalla.** La portada no debe enlazar destinos no disponibles para el visitante. El menú por rol queda por definir con Pablo. Recomendación: acceder por URL directa hasta que exista ese menú.
@@ -199,13 +200,29 @@ Una sesión por paso. T1b y T2 no pueden integrarse antes de T1a y de la revisi�
 
 ## 14. Revisión y cierre
 
-El 2 de noviembre Edwin solicitó resolver el descarte repetido de aprobaciones de PR #37. Los cuatro eventos de GitHub indicaban `The merge-base changed after approval`, todos sobre `f9e0cb4`. Se incorporó `origin/develop` en `1fb0ade` mediante merge autorizado en la rama de T1b, sin conflictos ni cambios a las reglas de protección. El diff respecto de develop conserva únicamente T1b y documentación; no hay cambios propios en backend. La aprobación humana debe repetirse sobre la nueva cabeza publicada. No se declara resuelto un fallo interno de GitHub ni se garantiza conservar aprobaciones si vuelve a cambiar la base.
+### Acuerdo de timeout de PR #40, 2 de noviembre de 2026
 
-Validación repetida de esta combinación: 92 pruebas frontend, ESLint directo, formato del incremento, ocho comprobaciones del formulario en Chrome, container-smoke y api-client-smoke aprobados; este último con PostgreSQL aislado, arranque real y limpieza de sus recursos. Sin nueva suite completa backend; sus archivos son idénticos a develop. Sin cambios a producción ni pruebas existentes para conseguir esos resultados.
+- Participantes: Pablo y Edwin; evidencia: mensaje de Pablo reenviado por Edwin en este chat. Pablo propone y autoriza ampliar a 60 s únicamente el timeout de lectura de buses, conservar 10 s en las demás rutas y no habilitar reintentos.
+- Decisión aplicada: el valor general de 10 s se declara en el contexto `http` de `nginx-proxy.conf`; la ubicación exacta de buses lo sustituye por 60 s. Se retira la declaración del include `proxy-api.conf` para evitar duplicados. El timeout de conexión/envío y `proxy_next_upstream off` se conservan.
+- Comprobación exigida: `nginx -t`, alta real demorada entre 10 y 60 s y exactamente un bus persistido. La demora se induce mediante un bloqueo de 15 s exclusivamente sobre la tabla de buses de la BD efímera; no se añade una pausa al backend de producción.
+- Contrato de pantalla para T3: ante 504, conservar datos/fotos y mostrar «No pudimos confirmar si el bus se registró. Comprueba si ya existe antes de volver a enviarlo». Sin reenvío automático. La pantalla conectada aún no está implementada en esta PR; este comportamiento queda como criterio pendiente de T3, no como funcionalidad ya verificada. El estado HTTP 504 sigue disponible en el error del cliente común.
+- Revisión de Pablo y nueva aprobación sobre el commit actualizado pendientes. El acuerdo de timeout no equivale a aprobar el código completo.
+- Resultado real de la comprobación demorada: `nginx -t -c /etc/nginx/nginx-proxy.conf` aprobado; diez fotos de 4 787 782 bytes y alta en 12 847 ms (más de 10 y menos de 60 s), un único bus persistido antes y después de las cargas rechazadas con 413. Las 101 pruebas frontend y ESLint directo aprobaron. Esta verificación sustituye la conclusión anterior de mantener 10 s por la medición local de 7 720 ms.
 
-T1a publicada para revisión en [PR #36](https://github.com/Pato77232/ProyectoBusesUTA/pull/36), commit `303b630`. T1b publicada en borrador en [PR #37](https://github.com/Pato77232/ProyectoBusesUTA/pull/37), incremento `f1c6cac`, dependiente de integrar T1a primero. Ambas apuntan a develop; T1b incluye temporalmente el commit de T1a. Reemplazan PR #31. Sin aprobación humana ni integración verificadas.
+### Revisión de T2a/T2b para publicación, 2 de noviembre de 2026
 
-Por solicitud de Edwin se repitió la revisión de T1b: 92 pruebas frontend, ESLint directo, Prettier con configuración backend, ocho comprobaciones del formulario en Chrome, smoke de portada, container-smoke y api-client-smoke aprobados. Este último usó Docker con PostgreSQL aislado y eliminó sus recursos temporales. La página real sigue deshabilitada; las pruebas del formulario usan datos ficticios y no acreditan un alta real. No se modificó código ni se ejecutó una nueva suite completa backend. El script lint mantiene la incompatibilidad de ruta POSIX en Windows. Revisión/publicación asistidas por Codex; implementar T2 y T3 sigue pendiente según sus acuerdos y dependencias.
+Edwin solicitó comprobar T2b y publicar PR si correspondía. Rama `feature/FLEET-05-T2b-proxy`: incluye su dependencia multipart T2a (`ac6e613`) y el proxy/prueba de carga T2b (`12e1882`), conservados en commits separados para revisión conjunta. Base de implementación `8886553`; referencia remota comprobada `origin/develop` `1fb0ade`. Sin merge/rebase ni cambios de producto durante esta revisión. No había PR de T2a/T2b al consultarlo.
+
+- `npm test` frontend: 101 pruebas aprobadas (9 nuevas sobre las 92 anteriores).
+- ESLint directo de `src/api` y `tests/api`: aprobado. El script lint conserva la incompatibilidad de ruta POSIX en Windows.
+- Prettier con configuración backend sobre los JS del incremento: aprobado; `git diff --check` aprobado.
+- `bus-upload-smoke.cjs`: alta real desde Chrome por Nginx y cliente multipart, diez JPEG de 24 MP y 4 789 180 bytes cada uno, completada en 7 720 ms; un bus persistido. Cargas excesivas reciben 413 tanto en `/api/v1/buses` como en otra ruta, sin crear otro bus.
+- `container-smoke.cjs`: aprobado, incluyendo Nginx sin root, recursos/MIME, exclusiones y comportamiento API.
+- `api-client-smoke.cjs`: aprobado con sesión real, CSRF, cookies, errores y caída del backend.
+
+Los smokes usaron servicios Docker y PostgreSQL efímeros mediante el runtime de pruebas sin leer `.env`; sus recursos fueron eliminados. La medición es local, no garantiza tiempos en otros equipos o con concurrencia. Se mantienen los tiempos del proxy de 10 s: esta carga pasó sin ampliarlos. Solo `/api/v1/buses` admite 50 065 536 bytes y desactiva el buffering del cuerpo para evitar el tmpfs de 16 MB. No se cambió el backend ni se ejecutó su suite completa. No se modificaron pruebas para hacerlas pasar. Sin dependencias nuevas ni defectos inducidos. Implementación asistida por Claude Code; revisión/publicación asistidas por Codex. Revisión de Pablo pendiente; T3 y la pantalla conectada siguen fuera de este incremento.
+
+Pendientes. Próxima acción: publicar T1a y T1b, cerrar PR #31 y confirmar a Pablo el reparto de T2.
 
 ### Revisión de T1 para publicación, 1 de noviembre de 2026
 
