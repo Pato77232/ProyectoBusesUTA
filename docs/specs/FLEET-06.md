@@ -84,14 +84,14 @@ No aplica. El contrato es la API pública de `backend/src/modules/fleet/index.js
 
 ## 7. Criterios de aceptación
 
-- [ ] Dado un bus con asientos no ofrecidos, cuando se consulta, entonces aparecen todos y los no ofrecidos llevan `offered: false`.
-- [ ] Dados dos buses con la misma plantilla, cuando se consultan, entonces comparten `layoutSeatKey` y no `seatId`.
-- [ ] Dado un bus de otra cooperativa, cuando se consulta, entonces la respuesta es igual a la de un bus inexistente.
-- [ ] Dadas dos consultas del mismo bus, cuando se comparan, entonces `seatId`, `label` y orden coinciden.
-- [ ] Dado un bus de dos pisos, cuando se consulta, entonces el piso 2 va primero y cada piso sigue la numeración.
-- [ ] Dado un bus con todos sus asientos no ofrecidos, cuando se consulta, entonces devuelve sus asientos con `offered: false` y no `null`.
-- [ ] Dado un fallo de base de datos, cuando se consulta, entonces el error se propaga y nunca se devuelve una lista vacía.
-- [ ] Dada la salida, cuando se inspecciona, entonces no contiene VIN, placa, fotografías ni datos de la cooperativa.
+- [x] Dado un bus con asientos no ofrecidos, cuando se consulta, entonces aparecen todos y los no ofrecidos llevan `offered: false`.
+- [x] Dados dos buses con la misma plantilla, cuando se consultan, entonces comparten `layoutSeatKey` y no `seatId`.
+- [x] Dado un bus de otra cooperativa, cuando se consulta, entonces la respuesta es igual a la de un bus inexistente.
+- [x] Dadas dos consultas del mismo bus, cuando se comparan, entonces `seatId`, `label` y orden coinciden.
+- [x] Dado un bus de dos pisos, cuando se consulta, entonces el piso 2 va primero y cada piso sigue la numeración.
+- [x] Dado un bus con todos sus asientos no ofrecidos, cuando se consulta, entonces devuelve sus asientos con `offered: false` y no `null`.
+- [x] Dado un fallo de base de datos, cuando se consulta, entonces el error se propaga y nunca se devuelve una lista vacía.
+- [x] Dada la salida, cuando se inspecciona, entonces no contiene VIN, placa, fotografías ni datos de la cooperativa.
 
 ## 8. Casos borde y errores
 
@@ -190,8 +190,10 @@ Una sesión basta. Leslie implementa aparte el adaptador `TripCatalog`.
   - Integración: la ejecución anterior registrada aprobó 275 de 275 en 24 suites. La repetición realizada por Codex al revisar el mismo código el 2 de noviembre terminó con 274 aprobadas y una fallida en 24 suites: `tests/integration/user-cooperative-integrity.test.js`, caso «datos previos incompatibles (null) hacen fallar up sin pérdida ni restricciones parciales», superó el límite de 20 000 ms. Usó PostgreSQL 16.13 efímero exclusivo con puerto dinámico y base `busesuta_test`, sin leer `.env`; el contenedor fue eliminado. La ejecución aprobada anterior no anula este fallo; su causa no se atribuye a Fleet sin investigarla.
   - Formato global de la revisión de Codex: fallido en 17 archivos ajenos al incremento; formato de los siete JS de Fleet tocados aprobado. Los tres fallos iniciales EACCES de HTTP local desaparecieron al repetir las unitarias con acceso permitido; permanecieron los dos fallos de hojas de ruta indicados arriba.
 
+Repetición dirigida del 2 de noviembre de 2026 sobre PostgreSQL aislado: `user-cooperative-integrity.test.js` aprobó 8 de 8 en tres ejecuciones seguidas, unos 45 s cada una, y el archivo es idéntico a `origin/develop`. Sugiere un fallo intermitente, sin demostrarlo ni explicar su causa; el timeout sigue sin resolverse y no se amplió el límite.
+
 La revisión documental posterior no cambió código ni pruebas desde `7d6353a`; no se repitieron suites para estos cambios exclusivamente documentales. Implementación asistida por Claude Code; revisión y preparación de publicación asistidas por Codex. La PR se prepara en borrador para acordar el contrato, sin declarar aprobación de Leslie ni integración.
 
 ## 14. Revisión y cierre
 
-Pendientes. Próxima acción: conseguir la confirmación de Leslie y revisión humana; investigar el timeout identificado sin debilitar la prueba ni ampliar su límite incidentalmente.
+Pendientes. Los criterios de la sección 7 están cubiertos por pruebas; eso no equivale a revisión humana. Antes de integrar: confirmación de Leslie, revisión humana y suite global en verde, que depende de corregir `publish-route-sheet.use-case.test.js` y de investigar el timeout sin debilitar la prueba ni ampliar su límite incidentalmente.
