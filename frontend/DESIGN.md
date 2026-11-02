@@ -43,6 +43,8 @@ Fuente ejecutable: [src/styles/app.css](src/styles/app.css), bloque `:root`. No 
 | `--color-border` | `#e8e8e8` | Separadores decorativos |
 | `--color-surface` | `#f8f9fa` | Superficie neutra |
 | `--color-accent-surface` | `#f1edff` | Fondo de insignias |
+| `--color-error` | `#b3261e` | Texto y borde de error de formularios ([FLEET-05](../docs/specs/FLEET-05.md), pendiente de revisión) |
+| `--color-error-surface` | `#fdecea` | Fondo de avisos de error ([FLEET-05](../docs/specs/FLEET-05.md), pendiente de revisión) |
 
 El gris `#838383` y azul `#0091ff` de la referencia no se usan como texto normal sobre blanco por contraste. Los bordes claros son decorativos; los controles no dependen de ellos para reconocerse. Estados de error, éxito, formularios, tablas y bandejas se definirán con las specs de sus pantallas; esta guía no los da por implementados.
 
@@ -56,6 +58,6 @@ Tipografía: [Plus Jakarta Sans](assets/vendor/plus-jakarta-sans/README.md), fue
 4. Al solicitarse el commit, usar Conventional Commits y `Refs: docs/specs/FRONT-01.md`. La PR debe enlazar guía y spec, explicar las adaptaciones y adjuntar capturas de escritorio/móvil y resultados reales. Git conserva autor, diff y commit; no se necesita un número de versión independiente para DESIGN.md.
 5. Registrar quién revisó y qué se aceptó, cuando exista esa respuesta. Solo después de comprobar su integración actualizar el estado. Una recomendación de Codex o una prueba automática no equivale a aprobación del equipo.
 
-T1 se publicó desde `feature/FRONT-01-base-compartida` y se integró en eebfe75 mediante PR #16. La base técnica de T2 continúa en `feature/FRONT-01-T2-proxy`, sin cambios visuales. La captura anterior es una referencia temporal local, no historial Git. Tras integrar T1, un rediseño posterior se delimita con otra spec y rama `feature/*` o `bugfix/*` según corresponda, siguiendo Gitflow. No crear una rama por cada edición de este documento ni atribuirle aprobación general por los acuerdos técnicos anteriores.
+T1 se publicó desde `feature/FRONT-01-base-compartida` y se integró en eebfe75 mediante PR #16. La base técnica de T2 continúa en `feature/FRONT-01-T2-proxy`, sin cambios visuales. La captura anterior es una referencia temporal local, no historial Git. Tras integrar T1, un rediseño posterior se delimita con otra spec y rama `feature/*`, siguiendo Gitflow. No crear una rama por cada edición de este documento ni atribuirle aprobación general por los acuerdos técnicos anteriores.
 
 Para futuras pantallas: leer esta guía como base de la propuesta visual y declarar su adopción o excepción en la spec. Pablo coordina cambios compartidos; la persona que implemente una pantalla no debe inferir nuevos permisos o reglas desde un mockup.

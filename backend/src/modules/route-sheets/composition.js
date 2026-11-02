@@ -1,4 +1,7 @@
 const createRouter = require('./interfaces/http/route-sheet.routes');
+const createTariffQueries = require('./application/create-tariff-queries');
+const configureTariffFactory = require('./application/use-cases/configure-route-sheet-tariff.use-case');
+const PgRouteSheetTariffRepository = require('./infrastructure/repositories/pg-route-sheet-tariff-repository');
 
 const createRouteSheetUseCaseFactory = require('./application/use-cases/create-route-sheet.use-case');
 const getRouteSheetByDateAndGroupUseCaseFactory = require('./application/use-cases/get-route-sheet-by-date-and-group.use-case');
@@ -26,10 +29,10 @@ const BookingQueryAdapter = require('./infrastructure/adapters/booking-query-ada
 function createRouteSheetsModule({
   pool,
   auth,
-  frequencyRepository,
+  frequencyQueries,
   busGroupQueries,
-  busRepository,
-  bookingRepository,
+  busQueries,
+  bookingQueries,
 } = {}) {
   const routeSheetRepository = new PgRouteSheetRepository(pool);
   const routeSheetAssignmentRepository = new PgRouteSheetAssignmentRepository(pool);
@@ -37,10 +40,17 @@ function createRouteSheetsModule({
   const routeSheetCycleRepository = new PgRouteSheetCycleRepository(pool);
   const routeSheetModificationLogRepository = new PgRouteSheetModificationLogRepository(pool);
 
-  const frequencyQueryPort = new FrequencyQueryAdapter({ frequencyRepository });
+  const frequencyQueryPort = new FrequencyQueryAdapter({ frequencyQueries });
   const busGroupQueryPort = new BusGroupQueryAdapter({ busGroupQueries });
-  const busQueryPort = new BusQueryAdapter({ busRepository });
-  const bookingQueryPort = new BookingQueryAdapter({ bookingRepository });
+  const busQueryPort = new BusQueryAdapter({ busQueries });
+  const bookingQueryPort = new BookingQueryAdapter({ bookingQueries });
+  const tariffRepository = new PgRouteSheetTariffRepository(pool, {
+    frequencySessionFactory: frequencyQueries.forTransaction,
+  });
+  const configureTariffUseCase = configureTariffFactory({
+    tariffRepository,
+    frequencyQueryPort,
+  });
 
   const createRouteSheetUseCase = createRouteSheetUseCaseFactory({
     routeSheetRepository,
@@ -77,7 +87,7 @@ function createRouteSheetsModule({
     routeSheetAssignmentRepository,
     bookingQueryPort,
   });
-  const publishRouteSheetUseCase = publishRouteSheetUseCaseFactory({ routeSheetRepository });
+  const publishRouteSheetUseCase = publishRouteSheetUseCaseFactory({ tariffRepository });
   const generateAutomaticCyclesUseCase = generateAutomaticCyclesUseCaseFactory({
     routeSheetRepository,
     routeSheetAssignmentRepository,
@@ -94,8 +104,10 @@ function createRouteSheetsModule({
   });
 
   return {
+    tariffQueries: createTariffQueries({ tariffRepository }),
     router: createRouter({
       auth,
+      configureTariffUseCase,
       createRouteSheetUseCase,
       getRouteSheetByDateAndGroupUseCase,
       listRouteSheetsUseCase,

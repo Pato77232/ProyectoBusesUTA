@@ -1,5 +1,9 @@
 # PAGOS-01: Subir comprobante de depósito o transferencia
 
+> Ratificación del 2 de noviembre de 2026: PDF, JPEG y PNG, máximo 5 MiB por archivo, validando contenido, extensión y MIME. Shirley lo confirmó en mensaje compartido por Pablo; [registro](../dependencias-pagos.md). Reemplaza la condición de formatos propuestos en los apartados históricos; no acredita adaptación o pruebas nuevas del código.
+> Actualización documental del 1 de noviembre de 2026: aplicar las [reglas vigentes](../business-rules.md) y los [acuerdos de primera entrega](../acuerdos-primera-entrega.md), bajo [ACUERDOS-01](ACUERDOS-01.md). Los contratos anteriores incompatibles son evidencia histórica, no autorización para implementar la regla reemplazada. Esta actualización no modifica código ni acredita adaptación funcional. Las propuestas técnicas y pendientes conservan ese estado.
+> Política vigente: edición 3 minutos desde primera carga salvo aprobación previa; solicitud de corrección permite 15 minutos con correo. Reemplaza archivo no reemplazable. Vencimiento de corrección pendiente; no equivale a rechazo definitivo.
+
 - **ID local:** PAGOS-01
 - **Ticket externo:** pendiente de elegir gestor después del 4 de noviembre de 2026
 - **Módulo:** `payments`

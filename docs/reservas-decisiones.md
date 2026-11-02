@@ -1,5 +1,7 @@
 # Decisiones de reservas — Leslie
 
+> Actualización del 1 de noviembre de 2026: [acuerdos de primera entrega](acuerdos-primera-entrega.md) y [reglas vigentes](business-rules.md). Se conservan abajo decisiones y evidencia históricas. Porcentajes configurables/tarifas por combinación sustituyen 50 % fijo/suma obligatoria y se incorpora corrección de comprobantes. Contratos nuevos y propuestas requieren sus specs y validación de responsables; no están implementados por este registro.
+
 Fecha: 20 de octubre de 2026. Leslie autorizó al asistente a seleccionar las decisiones pendientes basándose en Ecuador. No equivale a aprobación del contrato de otro integrante ni a certificación legal de la aplicación.
 
 ## Tarifas y acreditación

@@ -44,10 +44,10 @@ Linux fue comprobado; Windows/Docker Desktop y ayudas técnicas siguen sin prueb
 |---|---|---|
 | Revisar solo apariencia/teclado | Servidor Python de [README.md](README.md) | Portada estática, sin API |
 | Verificar imagen estática de T1 | `node frontend/tests/container-smoke.cjs` | Empaquetado, MIME, exclusiones, 404 y API 503 explícita del modo estático |
-| Probar conexión real | `node frontend/tests/proxy-smoke.cjs` | Stack real, migraciones, health, 404/401 y recuperación con nueva IP |
+| Probar un stack ya activo | `node frontend/tests/proxy-smoke.cjs`, con FRONTEND_URL | Portada, health y 404; con API_UNAVAILABLE=1 verifica caída. No construye ni retira el stack |
 | Probar cookies/CSRF | `node frontend/tests/csrf-smoke.cjs` | Navegador y backend reales; receptor QA separado para observar transporte |
 
-Las tres pruebas de contenedor requieren Chrome además de Node/Docker y se ejecutan desde la raíz. Crean proyectos exclusivos, puertos libres y perfiles temporales; retiran sus contenedores/redes/perfiles al terminar. Sus imágenes quedan locales. Los scripts muestran resultados sin tokens o credenciales. Se pueden repetir sin el proyecto interactivo; no usan sus datos.
+Las pruebas container-smoke, csrf-smoke y api-client-smoke requieren Chrome, Node y Docker y se ejecutan desde la raíz. Crean proyectos exclusivos, puertos libres y perfiles temporales; retiran sus contenedores/redes/perfiles al terminar. Sus imágenes quedan locales. Los scripts muestran resultados sin tokens o credenciales. Se pueden repetir sin el proyecto interactivo; no usan sus datos.
 
 El smoke de T1 se ejecuta sobre la portada y exige enlaces internos de esa página. No acredita recorridos de futuras pantallas ni debe modificarse para aceptar enlaces rotos. Cada pantalla tendrá sus pruebas de comportamiento propias.
 
@@ -58,15 +58,15 @@ Antes de programar una pantalla:
 1. Confirmar tarea y spec pequeña, responsable y revisor; citar RN y el contrato real del endpoint (método, ruta, entrada, éxito y errores). Consultar el estado y ramas del autor para no duplicar trabajo. No crear una spec por conversación ni inferir permisos por el nombre de la persona.
 2. Indicar si será pública o requerirá sesión/rol/cooperativa. La autorización permanece en el backend; ocultar un enlace no protege una operación. Confirmar que el módulo está conectado al arranque real: health exitoso no acredita otros endpoints.
 3. Consultar [DESIGN.md](DESIGN.md), identidad transViaje y [catálogo orientativo](../docs/design/pantallas.md). Elegir qué adoptar/adaptar/descartar; el PDF no obliga a reproducir campos o funciones. No recalcular descuentos, vencimientos, precios o disponibilidad en la vista.
-4. Separar la tarea de su implementación: el cliente HTTP común es T3 y todavía no existe. Para conectar operaciones, acordar ese cliente y su contrato antes; no escribir un fetch/CSRF distinto por integrante. Login y renovación ligada a sesión autenticada no quedan resueltos por estas pruebas de T2.
+4. Usar el cliente compartido de la sección 6; no escribir fetch/CSRF por integrante. La sesión real se comprueba en T3d, pero cada pantalla conserva sus pruebas de autorización/rol y recuperación.
 
 Cuando la pantalla esté autorizada:
 
 - Definir en su spec un archivo de página, por ejemplo `frontend/pages/<pantalla>.html`, y un módulo ES propio si lo necesita. Son ejemplos de rutas futuras, no directorios implementados en esta entrega.
 - Reutilizar recursos locales con rutas desde raíz, como `/src/styles/app.css` y `/assets/…`, para que una página dentro de pages no busque assets en la carpeta equivocada. Mantener lang=es, viewport, título, un h1, main, enlace de salto, etiquetas y foco visible. La navegación debe llevar únicamente a destinos reales.
 - Especificar estados de carga, vacío, error, éxito y recuperación según el contrato. No ofrecer acciones de fases futuras como disponibles ni convertir un error en éxito. Los permisos y el tenant los verifica el servidor.
-- Coordinar con Pablo cualquier modificación de navegación, tokens, configuración Nginx/Compose o futuro cliente HTTP. Evitar que varias personas editen los archivos comunes en paralelo sin acuerdo.
-- **Actualizar el empaquetado dentro de la tarea de la pantalla:** el Dockerfile y .dockerignore actuales incluyen index.html, app.css, assets y configuraciones concretas. Una nueva página o módulo ES no se copiará automáticamente. Añadir solo las rutas necesarias a ambas listas, conservar exclusión de documentación/tests/configuración sensible y comprobar el archivo servido desde la imagen real. No ampliar la copia a todo el repositorio para evitar ese paso.
+- Coordinar con Pablo cualquier modificación de navegación, tokens, configuración Nginx/Compose o cliente HTTP. Evitar que varias personas editen los archivos comunes en paralelo sin acuerdo.
+- **Actualizar el empaquetado dentro de la tarea de la pantalla:** el Dockerfile y .dockerignore actuales incluyen index.html, app.css, assets, src/api y configuraciones concretas. Una nueva página o módulo ES no se copiará automáticamente. Añadir solo las rutas necesarias a ambas listas, conservar exclusión de documentación/tests/configuración sensible y comprobar el archivo servido desde la imagen real. No ampliar la copia a todo el repositorio para evitar ese paso.
 - Crear pruebas de la pantalla y sus errores usando datos ficticios controlados; conservar las pruebas anteriores. Verificar teclado, foco, lectura, contraste, 360/1280 px y zoom nativo del 200 %. No sustituir la autorización del backend por una prueba visual.
 
 ## 4. Diagnosticar un problema local
@@ -85,6 +85,40 @@ Al pedir ayuda, compartir comando, versiones, status HTTP y resultado esperado/o
 
 ## 5. Qué falta antes de pantallas autenticadas
 
-T3: cliente común, respuestas vacías, normalización de errores, CSRF y recuperación de sesión. Una tarea específica debe definir confianza de proxy/IP antes de validar login completo o rate limiting individual; el backend sigue viendo la IP de Nginx. T4 comprobará la integración de la base completa. TLS, otros navegadores y Windows no se certifican con el entorno HTTP actual.
+T3a–T3c están integradas; T3d comprueba cliente e imagen con backend real.
+La confianza de proxy/IP sigue requiriendo una tarea propia: el backend ve la IP
+de Nginx. El login QA no acredita rate limiting por cliente. T4 y las pantallas
+tienen criterios propios; TLS, otros navegadores y Windows no se certifican.
 
 El resultado de T2 puede revisarse como un incremento propio, conservando estos límites. No implica aprobación humana, integración o cierre de FRONT-01.
+
+## 6. Cliente HTTP compartido — FRONT-01 T3d
+
+La imagen incluye /src/api/{api-client,api-error,csrf-cache,json-transport}.js.
+Cada pantalla crea **una instancia** de createApiClient; no una por petición:
+
+```js
+import { createApiClient } from '/src/api/api-client.js';
+const api = createApiClient();
+const { user } = await api.request('/api/v1/auth/me');
+```
+
+La lectura puede fallar con 401: la vista decide cómo mostrarlo, sin asumir un
+rol. Para mutaciones, request acepta method y data JSON; el cliente añade CSRF.
+No adjuntar cookies/token ni leer JWT. Tras login/logout invalida el token en
+memoria y lo renueva para la siguiente mutación. CSRF_TOKEN_INVALID o 401 se
+propagan sin repetirla. Ante resultado incierto de login, comprobar auth/me.
+
+No enviar FormData a este transporte JSON. Multipart/proxy de fotos requieren
+acuerdo con Edwin y una entrega separada que reutilice la misma política CSRF.
+Login visual AUTH-WEB-01 sigue en planificación; FLEET-05 T1/PR #31 en borrador.
+
+Comprobación reproducible desde la raíz con Docker y Chrome:
+`node frontend/tests/api-client-smoke.cjs`. Construye imagen y stack efímero,
+registra un Customer QA y prueba sesión/cookies/renovación, red/cancelación y
+caída del backend. Retira perfiles, contenedores y red incluso ante fallos.
+No usa .env ni acredita permisos de administrador de cooperativa o TLS.
+
+El modo estático de container-smoke devuelve API 503; Compose principal/dev
+seleccionan el proxy explícitamente. Actualizar Dockerfile **y** .dockerignore
+al añadir páginas/módulos. Mantener excluidos pruebas y documentos.

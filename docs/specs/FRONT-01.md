@@ -2,10 +2,10 @@
 
 - **ID local:** FRONT-01
 - **Responsable:** Pablo
-- **Revisión:** T1 aprobada por Shirley e integrada; revisión humana de T2 pendiente de confirmar.
-- **Estado:** T1 integrada; T2.1–T2.3 versionados, T2.4 documentado/verificado localmente. T2 pendiente de revisión humana/integración; T3–T4 pendientes.
-- **Fecha / base comprobada:** 26 de octubre de 2026; T1 integrada en eebfe75, remoto contrastado c8bb5d3. Pruebas de T2 sobre cddbe34, sin integrar todavía el cambio posterior de pagos.
-- **Ramas:** T1 `feature/FRONT-01-base-compartida` integrada en PR #16; T2 actual `feature/FRONT-01-T2-proxy`.
+- **Revisión:** T3c aprobada por Pato77232 y Shirley, integrada en PR #30. T3d pendiente de revisión humana.
+- **Estado:** T1/T2/T3a–T3c integradas; T3d implementada localmente; T4 pendiente.
+- **Fecha / base comprobada:** 1 de noviembre de 2026; origin/develop 2b8a543, integración de T3c.
+- **Rama actual:** feature/FRONT-01-T3d-integracion, desde 2b8a543.
 - **Prioridad propuesta:** Alta, para desbloquear las pantallas de los cinco integrantes.
 - **Dependencias:** ADR 0003/0004, INFRA-01 y contratos de autenticación existentes. El enfoque de [frontend-acuerdos.md](../frontend-acuerdos.md) está confirmado por reporte humano; completar los detalles técnicos de cada paso antes de ejecutarlo, sin volver a pedir el mismo acuerdo general.
 
@@ -384,8 +384,8 @@ Se divide el mismo alcance T3 en entregas secuenciales bajo esta spec:
 |---|---|---|
 | T3a | Transporte JSON, errores normalizados y pruebas de contrato | feature/FRONT-01-T3a-transporte-json desde origin/develop 92d91d3 |
 | T3b | Caché/renovación CSRF y sus contratos | Crear desde develop después de integrar T3a |
-| T3c | Cliente de rutas/métodos y los 45 contratos completos ya escritos | Crear desde develop después de integrar T3b; conservar las aserciones |
-| T3d | Empaquetado, documentación y navegador con backend real | Crear desde develop tras T3c y corrección WEB-01 integradas |
+| T3c | Cliente de rutas/métodos y contratos según requisitos vigentes; auditoría en sección 30 | Crear desde develop después de integrar T3b; conservar las pruebas existentes |
+| T3d | Empaquetado, documentación y navegador con backend real | Crear desde develop tras integrar T3c; verificar el empaquetado vigente (ver sección 28) |
 
 Cada PR tendrá menos de unas 400 líneas de cambio; el tamaño se comprueba sobre
 su diff real antes de publicarla. No basta dividir commits dentro de una PR grande.
@@ -441,3 +441,206 @@ como excepción puntual a la prohibición de push de AGENTS.md. El commit que
 contiene esta constancia guarda el transporte y su evidencia; no autoriza merge,
 rebase, tags ni publicación de las demás entregas. Confirmar el resultado del push
 con Git; esta autorización no equivale a revisión humana o integración.
+
+## 28. T3b — caché CSRF en memoria
+
+Pablo autorizó continuar el 29 de octubre de 2026 y aclaró que la PR #20 fue
+un error y se cerró por ese motivo. No se reabre ni se traslada su corrección a
+esta entrega. Esa PR no es un requisito de T3b; T3d comprobará el empaquetado
+vigente y cualquier incompatibilidad real se delimitará antes de corregirla.
+T3a está integrada mediante PR #21, commit e715c86, en la base f26415d.
+
+### Contrato y alcance
+
+- `createCsrfCache(send)` recibe el transporte JSON de T3a por inyección y expone
+  `getToken({signal})` e `invalidate()`. Son funciones internas, no el cliente
+  público para pantallas. Guarda exclusivamente en memoria, sin leer cookies,
+  JWT ni almacenamiento persistente.
+- La primera lectura obtiene `/api/v1/auth/csrf`; las posteriores reutilizan el
+  token. Invalidar obliga a una lectura nueva. No se interpreta su firma ni se
+  inventa una vigencia distinta de la validada por el servidor.
+- Las lecturas se serializan: dos consumidores simultáneos no rotan cookies en
+  paralelo. Tras invalidar se espera a que termine la lectura anterior antes de
+  obtener otra; una respuesta anterior no se devuelve ni repuebla la caché.
+  Ese consumidor recibe `CSRF_STATE_CHANGED` y puede solicitar la acción otra vez.
+- Cada lectura de red recibe el signal de su consumidor. Una operación en cola
+  comprueba la cancelación al llegar a su turno; no cancela la petición ajena.
+  Fallos, cancelaciones y respuestas sin token no se guardan ni se reintentan.
+- T3c conectará la invalidación con login/logout y `CSRF_TOKEN_INVALID`, sin
+  repetir mutaciones automáticamente. Esta entrega no realiza login/logout,
+  no añade pantallas ni cambia backend, Nginx, Compose o dependencias.
+- RN-01/02 y ADR 0004 siguen vigentes. SOLID: responsabilidad separada del
+  transporte y dependencia inyectada. Aplica DESIGN.md sin cambios visuales;
+  usabilidad en este alcance: errores distinguibles para la futura vista, sin
+  exponer detalles internos. No acredita accesibilidad de una pantalla nueva.
+- No se introduce ni corrige ningún defecto académico autorizado.
+
+### Verificación — 29 de octubre de 2026
+
+- Node 24.21.0. Frontend: lint aprobado y 30 contratos aprobados (17 existentes
+  de T3a y 13 nuevos). `npm test` aprobó ambos archivos; además se ejecutó
+  `node --test --test-isolation=none tests/api/*.test.js` para enumerar los 30.
+- Backend sin cambios: lint aprobado; `npm test` aprobado, 564 unitarias y 116
+  de integración (680 en total). PostgreSQL 16.13 aislado, base terminada en
+  `_test`, datos en tmpfs y puerto aleatorio local; sin leer .env ni datos reales.
+- Primer intento limitado por el sandbox: 3 unitarias fallaron por listen EPERM;
+  la ejecución completa con permisos para sockets locales pasó sin cambiar
+  pruebas. Docker Desktop no estaba disponible; se usó el daemon default.
+- `format:check` global falló en 24 archivos preexistentes del backend. No se
+  modificaron ni se clasifican como errores inducidos. Prettier propio y
+  `git diff --check` aprobados; diff completo revisado, incluidos archivos nuevos.
+- El avance completo citado en la sección 27 no está en las ramas locales de
+  este checkout; no se eliminó ni se modificaron sus 45 contratos. Estas 13
+  pruebas son propias de T3b y no sustituyen la verificación posterior de T3c.
+- Sin verificación nueva en navegador: corresponde a T3d. Sin commit, push,
+  aprobación humana ni integración de T3b; implementación asistida por Codex.
+
+El contenedor PostgreSQL temporal fue retirado al finalizar. La entrega completa
+abarca menos de 400 líneas de cambio, incluidos código, pruebas y documentación.
+
+### Guardado autorizado — 30 de octubre de 2026
+
+Pablo solicitó el commit atómico de T3b. El commit que contiene esta constancia
+guarda la caché, sus 13 pruebas y la documentación como un único cambio lógico,
+con el mensaje `feat(infra): agrega la caché CSRF del frontend` y referencia a
+esta spec. Diff completo y `git diff --check` revisados antes de guardar.
+El código no cambia respecto de la verificación del 29 de octubre; no se
+repitió la batería completa para este guardado. Permanecen los resultados y
+el fallo global de formato documentados arriba. Sin push, PR ni integración.
+
+## 29. T3c — cliente HTTP compartido
+
+Pablo autorizó implementar T3c y ejecutar su auditoría el 30 de octubre de 2026.
+Base origin/develop 1d9381d; T3b integrada en PR #24, aprobada por Pato77232.
+Rama feature/FRONT-01-T3c-cliente-http. Transporte/caché y pruebas existentes intactos.
+
+Contrato técnico:
+- createApiClient({fetchImpl}) expone request(path, {method, data, signal}).
+  Acepta rutas relativas bajo /api/v1/ y GET/HEAD/POST/PUT/PATCH/DELETE.
+- Valida antes de obtener CSRF: rechaza rutas externas, fragmentos, controles,
+  barras invertidas, recorrido de directorios codificado y cuerpos GET/HEAD.
+  Normaliza método; opciones ajenas no sobrescriben cookies/cabeceras internas.
+- GET/HEAD no piden CSRF. Las mutaciones usan la caché; pedir auth/csrf
+  explícitamente la invalida para evitar reutilizar cookies rotadas.
+- Login/logout exitosos invalidan CSRF; la próxima mutación obtiene otro token.
+  También lo invalidan 401, CSRF_TOKEN_INVALID y cambios de sesión inciertos por
+  red, cancelación, respuesta ilegible o fallo de servidor. Conserva el error
+  sin repetir la mutación; ante incertidumbre la vista deberá consultar auth/me.
+- SOLID: composición/validación separadas del transporte inyectado. RN-01/02,
+  ADR 0004 y DESIGN.md aplican; sin cambios visuales, roles/tenant en backend.
+  Sin dependencias nuevas, almacenamiento persistente ni defectos académicos.
+
+Verificación final: 81 pruebas frontend aprobadas (30 existentes y 51 nuevas),
+lint frontend y formato propio aprobados. Comandos desde frontend: npm run lint,
+npm test y node --test --test-isolation=none tests/api/*.test.js para enumerarlas.
+Backend: resultados de la auditoría abajo. Sin commit, push ni revisión humana.
+
+## 30. Auditoría de cobertura y resolución de la referencia antigua
+
+Plan solicitado y ejecutado por autorización de Pablo el 30 de octubre de 2026.
+Las afirmaciones históricas de sección 27 sobre 45 contratos no se pudieron
+verificar en las fuentes accesibles. No se certifica recuperación/equivalencia,
+ni se exige reconstruir un archivo desconocido o alcanzar ese número de casos.
+La entrega se evalúa contra los requisitos vigentes; si aparece el avance anterior,
+se contrastará conservando sus aserciones válidas. No se borraron pruebas existentes.
+
+Matriz: A = json-transport.test.js, B = csrf-cache.test.js, C = api-client.test.js,
+todos bajo frontend/tests/api. Resultado de cada fila local: aprobado en la batería.
+
+| Requisito (secciones 4/5/29, ADR 0004) | Evidencia concreta por nombre de prueba |
+|---|---|
+| Rutas/métodos y validación previa | C: rechaza ruta insegura / método inválido / cuerpo en GET y HEAD |
+| Cookies/origen, señal y opciones públicas | C: GET/HEAD conserva origen; GET por defecto ignora opciones |
+| JSON, vacíos, cuerpos inválidos | A: devuelve JSON, éxito vacío, rechaza JSON no serializable; C: conserva éxito vacío |
+| CSRF en mutaciones y reutilización | C: POST/PUT/PATCH/DELETE obtiene CSRF y reutiliza; si falla obtener CSRF no envía |
+| Caché en memoria, concurrencia e invalidación | B: cada instancia, solicitudes simultáneas, respuesta de sesión anterior |
+| Cambio de sesión y registro sin login | C: renueva CSRF tras login/logout; login 400 y registro 201 conserva token |
+| 401/403/429 y prohibición de reintentos | C: propaga UNAUTHENTICATED, CSRF_TOKEN_INVALID, FORBIDDEN, TOO_MANY_ATTEMPTS sin repetir |
+| Red, respuesta ilegible y detalles internos | A: normaliza NETWORK_ERROR, oculta detalles 500; C: cambio de sesión incierto |
+| Cancelación y resultado incierto | B: signal/cancelación; C: cancelar antes de mutación y durante login/logout |
+
+Se añadieron cinco pruebas de opciones públicas, cancelación durante login/logout,
+login rechazado y registro sin cambio de sesión. Todas pasaron sin corregir producto.
+Navegador, cookies reales, login/logout real y empaquetado siguen pendientes de T3d;
+mensajes, carga y usabilidad en pantalla siguen sujetos a T4/specs de pantallas.
+Backend: npm run lint, npm run format:check y npm test ejecutados de nuevo con BD
+PostgreSQL 16.13 efímera en tmpfs: lint aprobado y 680 pruebas aprobadas
+(564 unitarias, 116 integración). Formato global fallido en 24 archivos previos,
+sin modificar ni clasificar como defectos inducidos. Base temporal retirada.
+Node 24.21.0, sin .env ni datos reales; Prettier propio y diff --check aprobados.
+Diff completo revisado: 4 archivos y menos de 400 líneas; sin commit ni push.
+Auditoría local resuelta; revisión humana e integración de T3c pendientes.
+
+### Guardado y publicación autorizados — 1 de noviembre de 2026
+Pablo autorizó commit atómico, publicación y PR hacia develop con revisión humana.
+El commit que contiene esta constancia guarda código, pruebas y documentación.
+Fetch comprobó develop b1e6720; T3c conserva base 1d9381d, sin merge/rebase.
+Los resultados del 30 de octubre corresponden a esta rama; no certifican la
+combinación con los avances de flota/frecuencias. Publicación y PR se confirman
+externamente; sin integración ni aprobación humana de T3c inferidas.
+
+## 31. T3d — empaquetado y navegador con backend real
+
+Pablo autorizó T3d el 1 de noviembre de 2026. Base develop 2b8a543, PR #30
+integrada; rama feature/FRONT-01-T3d-integracion. T3c no se reimplementa.
+Contrato acotado antes de modificar producto:
+- Incluir los cuatro módulos API en la imagen, verificar MIME y excluir pruebas.
+- Reproducido en la imagen actual: nginx -t -c /etc/nginx/nginx-proxy.conf falla
+  porque falta el archivo. Recuperar ambos modos documentados: nginx.conf
+  estático por defecto, nginx-proxy.conf separado; Compose principal y dev
+  seleccionan el proxy explícitamente. La portada principal conserva su API.
+- Configurar BUS_PHOTO_STORAGE_DIR también en dev/QA, ruta creada en la imagen
+  backend; permite comprobar modo production sin omitir requisitos de Fleet.
+  Sin cambiar almacenamiento/producto de Fleet ni prometer persistencia en QA.
+- Nueva prueba con cliente servido por la imagen, Chrome real y backend/BD
+  efímeros: registro QA Customer, login/me/logout, errores, cookies y renovación
+  CSRF, sin duplicar mutaciones ni persistir credenciales/tokens fuera de memoria.
+  No es una pantalla de login ni acredita permisos de administrador de Fleet.
+- Conservar las pruebas existentes, no cambiar expectativas 503/502. Verificar
+  arranque real de las composiciones modificadas, sin .env ni recursos ajenos.
+- RN-01/02 y ADR 0004 vigentes. Aplica DESIGN.md sin cambios visuales: separación
+  transporte/presentación; comprobación técnica sin acreditar nueva usabilidad.
+- Documentar uso del cliente y su alcance JSON; multipart/proxy de fotos siguen
+  en coordinación con Edwin. PR #31 de FLEET-05 continúa en borrador, no integrada.
+  AUTH-WEB-01 y F-A7–F-A9 permanecen en el commit local 63ce51c de otra rama;
+  no se copian a esta entrega ni se inventa respuesta de Edwin.
+- Sin dependencias nuevas, cambios de backend, defectos inducidos, commits o push.
+
+### Evidencia final de T3d — 1 de noviembre de 2026
+
+- api-client-smoke.cjs aprobado: cuatro módulos servidos con MIME JavaScript,
+  pruebas excluidas, registro de un Customer QA, error de credenciales, login/me,
+  cookie de acceso HttpOnly/Lax en HTTP development, CSRF renovado tras login y
+  logout, rechazo CSRF real sin reintento, sesión revocada, cancelación/offline y
+  caída de backend normalizadas. BD comprobada: un usuario, una sesión revocada.
+- container-smoke.cjs aprobado sin cambiar aserciones: imagen estática, nginx -t,
+  usuario sin root, MIME, licencias, exclusiones, API 503 y portada 360/1280 con
+  zoom CSS 200 %/teclado. No acredita zoom nativo ni lector de pantalla.
+- csrf-smoke.cjs aprobado intacto: cookies/CSRF con dos perfiles, atributos de
+  producción Secure/__Host y receptor QA de transporte. No acredita TLS real.
+- Compose principal comprobado con override QA exclusivo: puerto frontend
+  aleatorio, backend sin puerto publicado, DB tmpfs y NODE_ENV=development para
+  HTTP. Build, frontend sin backend, migraciones, server.js real, health 200,
+  auth/me 401, API 404, módulo cliente 200 y caída de backend con portada 200
+  aprobados. No es una validación de despliegue productivo.
+- Frontend: lint, npm test y enumeración sin aislamiento aprobados: 81 contratos.
+  Node 24.21.0; Chrome 153.0.8010.36 local. Sintaxis y Prettier del script nuevo aprobados.
+- Backend idéntico al HEAD, probado en copia temporal con dependencias del mismo
+  lockfile: lint aprobado; 786 unitarias y 239 integraciones aprobadas (1.025).
+  PostgreSQL 16.13 efímero en tmpfs; sin .env ni datos reales.
+- format:check global falla en 20 archivos preexistentes; no se modifican ni
+  clasifican como defectos inducidos. Diff y 20 enlaces locales comprobados.
+- Contenedores, redes, volúmenes QA y perfiles retirados; imágenes quedan en
+  caché. Sin cambios a pruebas anteriores o backend, commits, push o revisión
+  humana. T3d está verificada localmente, no integrada ni cerrada.
+- Edwin: FLEET-05 T1/PR #31 sigue en borrador; la revisión previa no equivale a
+  aprobación/integración. Multipart, límites/tiempos de fotos y reparto siguen
+  pendientes de confirmación. Login visual está en AUTH-WEB-01 (63ce51c); esta
+  prueba usa Customer y no certifica el alta por COOPERATIVE_ADMIN.
+
+### Guardado y publicación autorizados de T3d
+Pablo solicitó commit atómico, publicación y preparación de PR el 1 de noviembre
+de 2026. El commit que contiene esta constancia guarda empaquetado, prueba y
+guía como un único cambio lógico. Fetch confirmó develop 2b8a543 sin avances
+posteriores. Sin cambios de producto desde la verificación; no se repitió la
+batería para el guardado. Confirmar push/PR en GitHub; sin integración inferida.

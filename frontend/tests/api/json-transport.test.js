@@ -49,6 +49,7 @@ for (const reply of [
 for (const [status, code] of [
   [401, 'UNAUTHENTICATED'],
   [403, 'FORBIDDEN'],
+  [413, 'PAYLOAD_TOO_LARGE'],
   [429, 'TOO_MANY_ATTEMPTS'],
   [502, 'SERVER_ERROR'],
 ]) {
@@ -108,6 +109,27 @@ test('serializa JSON y adjunta el CSRF recibido sin obtener otro token', async (
   assert.equal(calls[0].headers['Content-Type'], 'application/json');
   assert.equal(calls[0].body, JSON.stringify({ name: 'QA' }));
 });
+test('envía FormData sin fijar Content-Type y adjunta el CSRF recibido', async () => {
+  const { send, calls } = fixture(json({ bus: {} }, 201));
+  const formData = new FormData();
+  formData.set('data', '{}');
+  await send('/api/v1/buses', { method: 'POST', formData, csrfToken: 'token-ficticio' });
+  assert.equal(calls[0].body, formData);
+  assert.equal(calls[0].headers['Content-Type'], undefined);
+  assert.equal(calls[0].headers['X-CSRF-Token'], 'token-ficticio');
+  assert.equal(calls[0].credentials, 'same-origin');
+  const { headers } = new Request('http://127.0.0.1/', { method: 'POST', body: calls[0].body });
+  assert.match(headers.get('Content-Type'), /^multipart\/form-data; boundary=/);
+});
+for (const options of [{ formData: { data: '{}' } }, { formData: new FormData(), data: {} }]) {
+  test('rechaza un cuerpo multipart inválido antes de enviar datos', async () => {
+    const { send, calls } = fixture(json({}));
+    await assert.rejects(send('/api/v1/buses', { method: 'POST', ...options }), {
+      code: 'REQUEST_INVALID',
+    });
+    assert.equal(calls.length, 0);
+  });
+}
 test('rechaza JSON no serializable antes de enviar datos', async () => {
   const circular = {};
   circular.self = circular;

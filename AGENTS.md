@@ -59,7 +59,7 @@ Arquitectura limpia por módulos: `backend/src/modules/<modulo>/{domain,applicat
 - Commits atómicos con Conventional Commits: tipo en inglés; alcance y descripción en español, verbo en imperativo.
 
 ## Git
-- Trabajas solo en ramas `feature/*`, `bugfix/*` o `hotfix/*`. Nunca en `main` ni `develop`.
+- Trabajas solo en ramas `feature/*` o `hotfix/*`. Nunca en `main` ni `develop`.
 - **No ejecutes** `git push`, `merge`, `rebase`, `tag` ni cambies a `main`/`develop`.
 - **No hagas commits** salvo que el humano lo pida. Sugiere el mensaje con el formato de `docs/conventions.md`: `tipo(alcance): descripción` con tipo en inglés, alcance y descripción en español, verbo en imperativo.
 - Un commit = un cambio lógico. Si el cambio mezcla temas, propón cómo dividirlo.

@@ -1,5 +1,7 @@
 # Equipo, tareas pequeñas y acuerdos
 
+> Registro nuevo: [acuerdos funcionales de primera entrega](acuerdos-primera-entrega.md), 1 de noviembre de 2026. Fuente: respuestas del solicitante, sin atribuir aceptación individual adicional. Comité rotativo se discutirá después de la primera entrega; entretanto siguen vigentes revisión por otro humano y autorización concreta de defectos académicos. No se designan miembros temporales por inferencia.
+
 ## Referencia de responsabilidades
 
 Origen: propuesta `Division.md` aportada por el solicitante, fuera del repositorio, incorporada aquí en forma de referencia mantenible por INFRA-04. La migración está autorizada por el solicitante; las personas afectadas deben confirmar las nuevas asignaciones y revisiones. No hay aprobaciones colectivas implícitas.
@@ -52,3 +54,12 @@ No pedir un acuerdo colectivo por nombres internos o detalles reversibles que el
 ```
 
 Ejemplo de consulta, sin decisión tomada: «Leslie y Shirley, necesitamos acordar cuándo comienza el plazo configurable RN-50 y qué sucede si el comprobante llega al vencer. Propongo revisar un ejemplo con horas concretas y definir el resultado esperado para ambos lados. ¿Qué opción confirmamos y qué pruebas debemos compartir?». No elegir una duración ni resolver una regla por este ejemplo.
+
+
+## Confirmación de coordinación con Pagos — 2 de noviembre de 2026
+
+Shirley confirmó la revisión de sus incrementos de Pagos por Pablo en PR separadas,
+la coordinación CLERK/QA y pantallas, según mensaje compartido por Pablo. Detalles
+y límites en [dependencias-pagos.md](dependencias-pagos.md); no se cambia el resto
+del equipo ni se inventan fechas de entrega. La aprobación de un incremento no
+es aprobación anticipada del siguiente.

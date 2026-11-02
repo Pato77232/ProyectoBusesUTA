@@ -1,13 +1,24 @@
 export default [
   {
-    files: ['src/api/**/*.js', 'tests/api/**/*.js'],
+    files: [
+      'src/api/**/*.js',
+      'src/fleet/**/*.js',
+      'tests/api/**/*.js',
+      'tests/fleet/**/*.js',
+      'src/auth/**/*.js',
+      'tests/auth/**/*.js',
+    ],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
       globals: {
+        document: 'readonly',
+        Option: 'readonly',
         fetch: 'readonly',
         URL: 'readonly',
         Response: 'readonly',
+        Request: 'readonly',
+        FormData: 'readonly',
         DOMException: 'readonly',
         AbortSignal: 'readonly',
         AbortController: 'readonly',

@@ -1,13 +1,23 @@
-# Lista de inclusión: solo configuración y recursos usados por T1.
+# Lista de inclusión: configuración, recursos y cliente API compartido.
 **
 !Dockerfile
 !nginx.conf
 !nginx-proxy.conf
 !proxy-api.conf
 !index.html
+!pages/
+!pages/registrar-bus.html
+!pages/login.html
 !src/
 !src/styles/
 !src/styles/app.css
+!src/styles/login.css
+!src/auth/
+!src/auth/*.js
+!src/api/
+!src/api/*.js
+!src/fleet/
+!src/fleet/*.js
 !assets/
 !assets/**
 **/*.md

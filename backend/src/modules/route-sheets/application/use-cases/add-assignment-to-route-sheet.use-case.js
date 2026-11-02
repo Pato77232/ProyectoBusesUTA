@@ -5,6 +5,7 @@ const {
   RouteSheetNotFoundError,
   FrequencyNotFromCooperativeError,
   BusNotFromCooperativeError,
+  BusNotInRouteSheetGroupError,
 } = require('../../domain/errors/route-sheet-errors');
 
 function addAssignmentToRouteSheetUseCase({
@@ -16,7 +17,15 @@ function addAssignmentToRouteSheetUseCase({
 }) {
   const validationService = new RouteSheetValidationService();
 
-  return async ({ routeSheetId, cooperativeId, busId, frequencyId, modifiedBy, reason, forceWithPassengersWarning }) => {
+  return async ({
+    routeSheetId,
+    cooperativeId,
+    busId,
+    frequencyId,
+    modifiedBy,
+    reason,
+    forceWithPassengersWarning,
+  }) => {
     const routeSheet = await routeSheetRepository.findById(routeSheetId, cooperativeId);
     if (!routeSheet) {
       throw new RouteSheetNotFoundError();
@@ -33,19 +42,30 @@ function addAssignmentToRouteSheetUseCase({
     if (!bus) {
       throw new BusNotFromCooperativeError();
     }
-    if (bus.bus_group_id && bus.bus_group_id !== routeSheet.busGroupId) {
-      throw new BusNotFromCooperativeError();
+    if (bus.busGroupId !== routeSheet.busGroupId) {
+      throw new BusNotInRouteSheetGroupError();
     }
 
-    const assignments = await routeSheetAssignmentRepository.findByRouteSheetId(routeSheetId, cooperativeId);
+    const assignments = await routeSheetAssignmentRepository.findByRouteSheetId(
+      routeSheetId,
+      cooperativeId,
+    );
     validationService.validateBusNotAssigned(assignments, busId);
 
     const activeFrequencies = await frequencyQueryPort.findActiveByCooperativeId(cooperativeId);
     validationService.validateMaxBusesForFrequencies(assignments.length, activeFrequencies.length);
 
     if (bookingQueryPort && !routeSheet.isEditable()) {
-      const hasPassengers = await bookingQueryPort.hasPassengersForBusOnRouteSheet(routeSheetId, busId, cooperativeId);
-      validationService.validatePassengersConflict(hasPassengers, forceWithPassengersWarning, reason);
+      const hasPassengers = await bookingQueryPort.hasPassengersForBusOnRouteSheet(
+        routeSheetId,
+        busId,
+        cooperativeId,
+      );
+      validationService.validatePassengersConflict(
+        hasPassengers,
+        forceWithPassengersWarning,
+        reason,
+      );
     }
 
     const assignment = new RouteSheetAssignment({
@@ -56,7 +76,9 @@ function addAssignmentToRouteSheetUseCase({
       frequencyId,
     });
 
-    const savedAssignment = await routeSheetAssignmentRepository.save ? await routeSheetAssignmentRepository.save(assignment) : assignment;
+    const savedAssignment = (await routeSheetAssignmentRepository.save)
+      ? await routeSheetAssignmentRepository.save(assignment)
+      : assignment;
     const updatedAssignments = [...assignments, savedAssignment];
     const restDays = [];
 

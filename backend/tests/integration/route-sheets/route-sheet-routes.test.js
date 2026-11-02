@@ -95,6 +95,11 @@ beforeAll(async () => {
   const routeSheets = createRouteSheetsModule({
     pool,
     auth,
+    frequencyQueries: {
+      findById: async () => null,
+      findActiveByCooperativeId: async () => [],
+      findWithStops: async () => null,
+    },
     busGroupQueries: fleet.busGroupQueries,
   });
   server = http.createServer(createApp({ auth, tenants, fleet, routeSheets, pool }));
@@ -105,7 +110,7 @@ beforeAll(async () => {
 beforeEach(async () => {
   assertTestDatabase();
   await pool.query(
-    'TRUNCATE route_sheet_modification_logs, route_sheet_cycles, route_sheet_rest_days, route_sheet_assignments, route_sheets, bus_groups, auth_sessions, users, frequency_segment_prices, frequency_stops, frequencies, cooperatives',
+    'TRUNCATE bus_photos, bus_seats, buses, route_sheet_modification_logs, route_sheet_cycles, route_sheet_rest_days, route_sheet_assignments, route_sheets, bus_groups, auth_sessions, users, frequency_segment_prices, frequency_stops, frequencies, cooperatives',
   );
   cooperativeId = await createCooperative('Cooperativa de prueba');
   anotherCooperativeId = await createCooperative('Otra cooperativa');

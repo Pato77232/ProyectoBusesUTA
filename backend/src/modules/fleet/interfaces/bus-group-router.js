@@ -21,15 +21,10 @@ function createRouter({ createBusGroup, listBusGroups, auth }) {
     },
   );
 
-  router.get(
-    '/',
-    auth.authenticate,
-    auth.authorize('COOPERATIVE_ADMIN'),
-    async (req, res) => {
-      const busGroups = await listBusGroups(req.auth.user);
-      res.status(200).json({ busGroups });
-    },
-  );
+  router.get('/', auth.authenticate, auth.authorize('COOPERATIVE_ADMIN'), async (req, res) => {
+    const busGroups = await listBusGroups(req.auth.user);
+    res.status(200).json({ busGroups });
+  });
 
   router.use((error, req, res, next) => {
     if (!(error instanceof BusGroupError) || !ERRORS[error.code]) return next(error);
