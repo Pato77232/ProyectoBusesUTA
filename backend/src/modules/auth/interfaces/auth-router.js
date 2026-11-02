@@ -2,7 +2,7 @@ const express = require('express');
 const { cookieOptions } = require('./cookies');
 const validateCredentials = require('./credentials');
 const authErrors = require('./auth-errors');
-function createRouter({ login, csrf, authenticate, logout, register }) {
+function createRouter({ login, csrf, authenticate, authorize, logout, register, createClerk }) {
   const router = express.Router();
   router.use((req, res, next) => {
     res.set('Cache-Control', 'no-store');
@@ -24,6 +24,20 @@ function createRouter({ login, csrf, authenticate, logout, register }) {
     await register(req.credentials);
     res.status(201).end();
   });
+  router.post(
+    '/clerks',
+    authenticate,
+    authorize('COOPERATIVE_ADMIN'),
+    csrf.protect,
+    validateCredentials,
+    async (req, res) => {
+      const user = await createClerk({
+        ...req.credentials,
+        cooperativeId: req.auth.user.cooperative_id,
+      });
+      res.status(201).json({ user });
+    },
+  );
   router.use(authErrors);
   return router;
 }
