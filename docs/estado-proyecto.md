@@ -132,7 +132,7 @@ Antes de orientar a alguien:
 | [INFRA-01](specs/INFRA-01.md) | Pablo | Código integrado | Backend, migraciones, Compose, lint y Jest; verificar entorno de cada integrante |
 | [AUTH-01](specs/AUTH-01.md), [AUTH-02](specs/AUTH-02.md), [AUTH-03](specs/AUTH-03.md), [AUTH-04](specs/AUTH-04.md) | Pablo | Código integrado | Login, autorización, logout y registro; algunas specs todavía indican revisión/integración pendientes; confirmar cierre humano |
 | [TENANTS-01](specs/TENANTS-01.md), [AUTH-FK-01](specs/AUTH-FK-01.md), [AUTH-05](specs/AUTH-05.md) | Pablo | Código integrado | Cooperativas, integridad y administrador principal; no implica pantallas ni provisión del primer SYSTEM_ADMIN |
-| AUTH-BOOTSTRAP-01 | Pablo | Trabajo en rama local, fuera de develop | Corrección del pegado de contraseña en `9b65e9f`; 98 pruebas aprobadas en su rama. Publicación/revisión/integración pendientes; no rehacer la tarea |
+| [AUTH-BOOTSTRAP-01](specs/AUTH-BOOTSTRAP-01.md) | Pablo | Portabilidad local a `origin/develop` `1dcbd6d`; revisión pendiente | Worktree `feature/AUTH-BOOTSTRAP-01-base-actual` conserva la corrección `9b65e9f`; lint aprobado, 1249 unitarias + 352 integraciones PostgreSQL aprobadas. Formato global falla en 17 archivos preexistentes. Publicación e integración pendientes. |
 | [FLEET-01](specs/FLEET-01.md) | Edwin | Código integrado, PR #10 | Crear/listar grupos; catálogo y alta disponibles mediante FLEET-03/FLEET-02 |
 | [FLEET-02](specs/FLEET-02.md) | Edwin | Alta integrada por PR #27 en 4f34748; corrección de fotos integrada por PR #28 en b1e6720 | PR #27 aprobada por David. Develop comprobado el 1 de noviembre en b1e6720; suite real con FLEET-04: 786 unitarias y 239 integraciones aprobadas (1025), sin montaje correctivo |
 | [FLEET-03](specs/FLEET-03.md) | Edwin | Código integrado, PR #26 | Tres plantillas con asientos normales; VIP y silla de ruedas de RN-12 requieren otra tarea. Las claves del catálogo no sustituyen UUID de asientos por bus |
@@ -183,7 +183,7 @@ Orden recomendado para discutir con el equipo. Cada fila es **Propuesta sin spec
 | Integrante | Orden y tarea pequeña propuesta | Dependencia / primer paso |
 |---|---|---|
 | Pablo | 1. Registrar la revisión/cierre de INFRA-04 cuando exista evidencia humana | Su contenido ya está en develop; no repetir implementación ni autoaprobar |
-| Pablo | 2. Preparar publicación/revisión de AUTH-BOOTSTRAP-01 | Corrección local verificada en 9b65e9f; comprobar integración con develop antes de cerrarla |
+| Pablo | 2. Preparar revisión de AUTH-BOOTSTRAP-01 | Portabilidad local verificada sobre `1dcbd6d` con PostgreSQL temporal; solicitar revisión humana, sin marcar integración. |
 | Pablo | 3. Completar AUTH-WEB-01 y su revisión por incrementos | T3d integrada. Conexión de login local; cerrar evidencia y preparar entregas pequeñas. Navegación pendiente; coordinación Fleet en f5a6fbe, sin aceptación inferida de multipart/proxy. |
 | Pablo | 4. Crear endpoint de alta de oficinista | Acordar quién lo autoriza y alcance con Shirley; no inferir permisos |
 | Pablo | 5. Preparar CI y luego pantallas de acceso/cooperativas, una por tarea | Specs separadas; CI depende del entorno de integración, pantallas de la base frontend |

@@ -42,3 +42,13 @@ async function createAuthModule({ pool, env = process.env }) {
   };
 }
 module.exports = { createAuthModule };
+
+async function bootstrapSystemAdmin({ pool, credentials }) {
+  const parseCredentials = require('./interfaces/bootstrap-credentials');
+  const createBootstrapAdmin = require('./application/bootstrap-admin.use-case');
+  const PgBootstrapRepository = require('./infrastructure/pg-bootstrap.repository');
+  const input = parseCredentials(credentials);
+  const hasher = await createHasher();
+  return createBootstrapAdmin({ repository: new PgBootstrapRepository(pool), hasher })(input);
+}
+module.exports.bootstrapSystemAdmin = bootstrapSystemAdmin;

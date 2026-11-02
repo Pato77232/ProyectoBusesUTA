@@ -8,3 +8,6 @@ Application recibe estos contratos por inyección, sin importar adaptadores:
 
 ## AUTH-05
 `AuthRepository.createCooperativeAdmin({ cooperativeId, email, passwordHash })` crea únicamente COOPERATIVE_ADMIN y devuelve su identidad pública. La FK comprueba la cooperativa de forma atómica; el índice parcial garantiza un administrador por cooperativa. Traduce inexistencia a COOPERATIVE_NOT_FOUND y conflictos a REGISTRATION_CONFLICT. No crea sesiones.
+
+## AUTH-BOOTSTRAP-01
+`repository.bootstrapAdmin({email,passwordHash})` comprueba y crea la primera identidad SYSTEM_ADMIN sin cooperativa de forma atómica. Devuelve `{created:true}` al crear o `{created:false}` si ya existe un administrador, sin modificarlo. Rechaza email ocupado con REGISTRATION_CONFLICT. No crea sesiones.
