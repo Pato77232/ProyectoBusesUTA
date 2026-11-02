@@ -1,4 +1,6 @@
 const createRouter = require('./interfaces/http/route-sheet.routes');
+const configureTariffFactory = require('./application/use-cases/configure-route-sheet-tariff.use-case');
+const PgRouteSheetTariffRepository = require('./infrastructure/repositories/pg-route-sheet-tariff-repository');
 
 const createRouteSheetUseCaseFactory = require('./application/use-cases/create-route-sheet.use-case');
 const getRouteSheetByDateAndGroupUseCaseFactory = require('./application/use-cases/get-route-sheet-by-date-and-group.use-case');
@@ -41,6 +43,10 @@ function createRouteSheetsModule({
   const busGroupQueryPort = new BusGroupQueryAdapter({ busGroupQueries });
   const busQueryPort = new BusQueryAdapter({ busQueries });
   const bookingQueryPort = new BookingQueryAdapter({ bookingQueries });
+  const configureTariffUseCase = configureTariffFactory({
+    tariffRepository: new PgRouteSheetTariffRepository(pool),
+    frequencyQueryPort,
+  });
 
   const createRouteSheetUseCase = createRouteSheetUseCaseFactory({
     routeSheetRepository,
@@ -96,6 +102,7 @@ function createRouteSheetsModule({
   return {
     router: createRouter({
       auth,
+      configureTariffUseCase,
       createRouteSheetUseCase,
       getRouteSheetByDateAndGroupUseCase,
       listRouteSheetsUseCase,

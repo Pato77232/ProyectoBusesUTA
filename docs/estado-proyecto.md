@@ -1,5 +1,13 @@
 # Estado compartido del proyecto
 
+## ROUTE-SHEETS-05 sección 1 — tarifario de borrador local
+
+En feature/tarifario-hojas-ruta-spec sobre 7519854, el solicitante confirmó mayor beneficio sin acumular, congelación al publicar, renovación a borrador, porcentajes 0–100 %/dos decimales y máximo histórico USD 99 999 999,99. No se atribuyen respuestas individuales de Leslie/Edwin. Sección 1 implementada localmente: PUT autenticado/CSRF, matriz completa por frecuencia asignada, política explícita en puntos básicos, recorrido desde API pública de Frecuencias y reemplazo transaccional con revisión esperada. Migración nueva agrega borrador/revisión/auditoría a route_sheets, sin modificar migraciones o pruebas previas. Sección 2 (congelación/publicación/consulta) sigue sin implementar; firma de lectura con Leslie pendiente.
+
+Pruebas nuevas: 53 unitarias y 14 integraciones aprobadas, con autenticación y PostgreSQL reales; incluyen dos ediciones concurrentes, rollback y tenant/rol/CSRF. Lint aprobado; formato de cambios comprobado, global fallido en 42 archivos previos ajenos (router modificado formateado). npm test: 993 pruebas aprobadas, 60 suites aprobadas/1 fallida por busboy ausente, sin alcanzar integración. Integración separada: 165 aprobadas/1 fallida, 14 suites aprobadas/8 fallidas (siete no cargan por busboy y una supera timeout de fotos). Node local 22.19.0 frente a engine 24 requerido; arranque real intentado y bloqueado al cargar Fleet por busboy ausente. No se declara suite global/arranque aprobados ni se modificaron dependencias/timeouts.
+
+PostgreSQL efímero busesuta-tariff-s1 con --env-file NUL, credenciales ficticias versionadas; recursos retirados al terminar. Evidencia y contrato en [spec](specs/ROUTE-SHEETS-05.md). Diff revisado/comprobado; sin commit, PR ni revisión humana de sección 1. Antes de integrar: restaurar entorno de dependencias/Node 24 y verificar suite/arranque; no confundir las limitaciones del entorno con defectos académicos autorizados.
+
 ## D-02 — preparación del tarifario por hoja, 1 de noviembre de 2026
 
 | Spec / responsable | Estado comprobado | Próximo paso |
