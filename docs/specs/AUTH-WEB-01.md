@@ -3,9 +3,9 @@
 - **ID local:** AUTH-WEB-01; sin ticket externo antes de la revisión académica.
 - **Responsable:** Pablo, conforme a la coordinación de autenticación y F-A6.
 - **Revisora propuesta:** Shirley; aceptación de esta revisión pendiente.
-- **Estado:** Controlador preparado para revisión; pantalla e integración pendientes.
-- **Fecha / base actual:** 2 de noviembre de 2026; origin/develop 1fb0ade.
-- **Rama actual:** feature/AUTH-WEB-01-controlador-login; procedencia 5a18259.
+- **Estado:** Controlador integrado en PR #42; pantalla implementada y verificada localmente, pendiente de revisión humana.
+- **Fecha / base actual:** 2 de noviembre de 2026; origin/develop 8fdf7e4.
+- **Rama actual:** feature/AUTH-WEB-01-pantalla-login; procedencia de vista b1f3761 y prueba 99c8a91.
 - **Autorización:** preparación documental original durante la revisión de T3c;
   Pablo autorizó después el incremento visual T1, según sección 15. No implica
   fechas comprometidas ni aceptación de propuestas por parte de Edwin.
@@ -338,3 +338,26 @@ Repetición Windows y aprobación humana pendientes; se actualizará la descripc
 de la PR con los resultados actuales sin dar por aprobada la revisión. Sin pruebas de pantalla o
 arranque nuevas: este incremento solo afecta herramientas de análisis.
 Preparado y verificado con asistencia de Codex.
+
+
+## 19. Pantalla sobre controlador integrado — 2 de noviembre de 2026
+
+Pablo solicitó continuar después de integrar PR #42 y después guardar el
+incremento. Merge comprobado 8fdf7e4 (10:55:13 Ecuador), base de la rama
+feature/AUTH-WEB-01-pantalla-login. La aprobación de Shirley sobre 58d4cbe
+cubre controlador/lint, no esta pantalla.
+
+Se recuperan vista, entrada de página, HTML y CSS de b1f3761; se reutiliza el
+controlador integrado sin modificar API ni Fleet. Imagen Docker incluye recursos
+Auth/CSS expresamente, conserva Fleet y portada enlaza la página. Ajuste de línea
+para email largo; identidad mediante textContent, limpieza de contraseña, foco
+y aria-live por estado. Sin paneles, redirecciones ni dependencias nuevas.
+Aplica DESIGN.md D-02/D-03/D-04/D-07 y criterios de sección 12.
+
+Primer guardado lógico: producto y empaquetado. Lint/formato propios y los 115
+contratos frontend aprobados durante la verificación del incremento. Prueba
+reproducible de navegador, comando y evidencia detallada se guardan en el
+siguiente commit separado. Los 17 avisos de formato backend previos persisten;
+no son defectos inducidos autorizados. Revisión humana de pantalla pendiente.
+Documentos de Pagos resguardados en stash identificado, sin mezclarlos.
+Asistencia de Codex; sin publicación ni integración de esta pantalla.
