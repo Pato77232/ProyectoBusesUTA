@@ -1,5 +1,7 @@
 # FREQ-01: Módulo de frecuencias
 
+> D-02 se planifica en [ROUTE-SHEETS-05](ROUTE-SHEETS-05.md). El precio consecutivo histórico no constituye matriz de todas las combinaciones ni se convierte sumándolo automáticamente. La configuración/copia comercial por hoja se prepara por separado, sin editar migraciones ni alterar frecuencias existentes en esta sección documental.
+
 > Actualización documental del 1 de noviembre de 2026: aplicar las [reglas vigentes](../business-rules.md) y los [acuerdos de primera entrega](../acuerdos-primera-entrega.md), bajo [ACUERDOS-01](ACUERDOS-01.md). Los contratos anteriores incompatibles son evidencia histórica, no autorización para implementar la regla reemplazada. Esta actualización no modifica código ni acredita adaptación funcional. Las propuestas técnicas y pendientes conservan ese estado.
 > Política vigente: porcentajes configurables y tarifas explícitas por combinación, congelados en hoja; VIP antes del descuento; menor de 18 y desde 65. El 50 % fijo y suma obligatoria históricos requieren adaptación; no se debilitan sus pruebas en esta tarea.
 

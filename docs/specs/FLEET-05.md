@@ -185,6 +185,19 @@ Una sesión por paso. T1b y T2 no pueden integrarse antes de T1a y de la revisi�
 
 **Límites:** T1 no consulta la API ni envía datos. La página publicada muestra el formulario deshabilitado y avisa que no está conectada; los datos de prueba solo existen en la prueba. No se comprobó zoom nativo del 200 %, lector de pantalla ni recorrido completo por teclado. `npm run lint` no funciona en Windows porque invoca `../backend/node_modules/.bin/eslint`; es un problema previo.
 
+**Evidencias de la división** (1 de noviembre de 2026, T1a y T1b sobre `b60201e`, Windows, Chrome local):
+
+| Comprobación | Resultado |
+|---|---|
+| Pruebas de módulo en T1a y T1b | Pasan: 92, incluidas las de T3d |
+| ESLint directo y Prettier del incremento | Pasan en ambas ramas |
+| `frontend/tests/registrar-bus-smoke.cjs` en T1b | Pasa: 8 comprobaciones |
+| `frontend/tests/smoke.cjs` en T1b | Pasa |
+| `docker build` e inspección de la imagen de T1b | Pasan: `pages`, `src/fleet`, `src/api` y las tres configuraciones Nginx presentes; sin `tests`; usuario `nginx` |
+| `frontend/tests/container-smoke.cjs` en T1b | Pasa. El fallo 502/503 anotado en T1 ya no aparece sobre esta base |
+| `frontend/tests/api-client-smoke.cjs` en T1b | Pasa |
+| Imagen de T1b en ejecución | Página, módulos y estilos responden 200; pruebas y documentación responden 404; el formulario sigue deshabilitado |
+
 ## 14. Revisión y cierre
 
 ### Acuerdo de timeout de PR #40, 2 de noviembre de 2026

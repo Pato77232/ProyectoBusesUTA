@@ -80,6 +80,13 @@ class PgFrequencyRepository extends FrequencyRepository {
     this.pool = pool;
   }
 
+  async lockForRead(id, cooperativeId) {
+    await this.pool.query(
+      'SELECT id FROM frequencies WHERE id = $1 AND cooperative_id = $2 FOR SHARE',
+      [id, cooperativeId],
+    );
+  }
+
   async create(cooperativeId, data) {
     const client = await this.pool.connect();
     try {

@@ -5,6 +5,8 @@ export default [
       ecmaVersion: 2022,
       sourceType: 'module',
       globals: {
+        document: 'readonly',
+        Option: 'readonly',
         fetch: 'readonly',
         URL: 'readonly',
         Response: 'readonly',
