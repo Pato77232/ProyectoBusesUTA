@@ -227,3 +227,43 @@ Edwin pidió revisar el trabajo local y traer develop. PR #28 integrada en b1e67
 Pendiente inmediato de Edwin: preparar commits y PR de FLEET-04, conseguir revisión humana e integrar/verificar. Después, FLEET-05 conserva T1 local en 00085d5; conectar transporte/proxy/login requiere coordinación con Pablo. Se observó la rama remota FRONT-01-T3c-cliente-http en 144f1f7, con cliente HTTP JSON, todavía fuera de develop y sin soporte multipart en esa implementación; no se incorporó ni se presupone revisión/aprobación. La consulta de UUID de asientos por bus para Leslie sigue necesitando spec separada; FLEET-04 no la incluye.
 
 - FLEET-04 publicada por petición de Edwin el 1 de noviembre: T1 3ddfc26 y T2 782c4b0; PR #29 abierta hacia develop y lista para revisión, con base b1e6720, evidencia de 1025 pruebas aprobadas y limitación de formato global registrada. Sin aprobación humana del código, integración ni cierre inferidos.
+
+
+## Seguimiento posterior — dependencias de Pagos y conciliación de PR #46
+
+
+Base documental original 8fdf7e4; develop actualizado a 3d053a4 al comprobar
+conflictos. Rama documental
+feature/ACUERDOS-01-contratos-pagos. Alcance limitado a coordinación de Pablo,
+Shirley y dependencias con Leslie; filas históricas inferiores no certifican
+el estado actual de todo el sistema. [Registro y consultas](dependencias-pagos.md).
+
+| Tarea | Responsable y revisión | Estado comprobado / próximo paso |
+|---|---|---|
+| [AUTH-WEB-01](specs/AUTH-WEB-01.md) | Pablo; Shirley aprobó controlador/lint | PR #42 integrada en 8fdf7e4; pantalla de PR #45 integrada en 3d053a4. No implica cierre global de AUTH-WEB-01 ni resolución del formato previo. |
+| [AUTH-06](specs/AUTH-06.md) | Pablo prepara; Shirley revisa necesidades de Pagos | Spec técnica en borrador. Autoridad CLERK confirmada; revisar ruta/respuesta/errores antes de implementar. |
+| [CORREO-01](specs/CORREO-01.md) | Pablo prepara; Shirley revisa | Diseño base aceptado por Shirley; proveedor, contrato, confirmaciones y reintentos abiertos. Sin implementación. |
+| [AUTH-INVITADO-01](specs/AUTH-INVITADO-01.md) | Pablo prepara; Leslie/Shirley participantes | Diseño base aceptado por Shirley; contexto, vencimiento, revocación, reenvío y CSRF pendientes con Leslie. Sin implementación. |
+| [PAGOS-01](specs/PAGOS-01.md), formatos | Shirley; revisión Pablo según confirmación reportada | PDF/JPEG/PNG hasta 5 MiB ratificados; validación de contenido/extensión/MIME. No se acredita adaptación del código. |
+| [Lectura Reservas–Pagos](contratos/lectura-reservas-pagos.md) | Pablo decide por delegación reportada; Leslie prepara proveedor, Shirley adapta consumidor | Diseño seleccionado el 2 de noviembre: contexto mínimo, errores explícitos, proofWindowStartedAt y recepción aceptada persistida antes de canUploadProof=true. Sin lector implementado; pruebas y conformidad de datos pendientes. Guardado/publicación de la decisión solicitados para actualizar PR #46. |
+
+Pablo pidió registrar/preparar dependencias y posteriormente reportó delegación
+para seleccionar el lector; registro en dependencias-pagos.md. No se atribuyen
+verificaciones de datos ni aprobación de código a Leslie/Shirley. Specs de Pagos adicionales citadas
+en chat no encontradas en las ramas consultadas: solicitar ubicación antes de
+recrearlas. Pablo solicitó publicar esta entrega documental; no se hace merge ni
+se ejecutan pruebas de producto. Asistencia de Codex.
+
+
+### Resolución documental frente a develop 3d053a4
+
+Este seguimiento actualiza las filas históricas sobre Pagos y el estado de
+integración del login. Conserva la evidencia de pantalla de develop; la spec
+AUTH-WEB-01 se mantiene idéntica a la integrada para no duplicar su seguimiento.
+Las decisiones y fuente de delegación permanecen en dependencias-pagos.md y
+contratos/lectura-reservas-pagos.md. El lector sigue sin implementar.
+
+Conflictos detectados en estado-proyecto.md y specs/AUTH-WEB-01.md por inserciones
+concurrentes. Se reubica seguimiento de Pagos al final y se conserva la spec
+integrada de login. Sin merge/rebase, cambios de producto ni pruebas nuevas;
+verificación textual de tres vías y enlaces para comprobar la resolución.
