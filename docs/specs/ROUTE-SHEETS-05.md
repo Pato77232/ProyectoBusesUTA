@@ -1,5 +1,7 @@
 # ROUTE-SHEETS-05: Tarifario congelado por hoja de ruta
 
+> Compatibilidad futura con D-03: [ROUTE-SHEETS-06 §4.3](ROUTE-SHEETS-06.md#43-compatibilidad-y-tarifario). Mantener IDs de hoja/frecuencia, matrices por frecuencia distinta y snapshots congelados; guardar programación no debe modificar precios ni revisión tarifaria. Propuesta documental, sin código D-03 implementado ni aprobación individual adicional.
+
 ## Corrección posterior: pruebas de publicación — 2 de noviembre de 2026
 
 Petición humana expresa tras el reporte de Pablo sobre PR #42; rama separada `feature/ROUTE-SHEETS-05-corrige-pruebas-publicacion`, base local comprobada `7ef2f25`, inicialmente limpia, que contiene la integración del tarifario `1fb0ade`/PR #39. No se verificó el contenido remoto de PR #42. Esta evidencia posterior actualiza los pendientes históricos de las secciones inferiores.

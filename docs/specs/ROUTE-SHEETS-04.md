@@ -1,5 +1,7 @@
 # ROUTE-SHEETS-04: Contrato de programación multifrecuencia
 
+> Continuación documental D-03: [ROUTE-SHEETS-06](ROUTE-SHEETS-06.md), preparada el 2 de noviembre de 2026. Persistencia/HTTP siguen sin implementar; representación y compatibilidad propuestas pendientes de confirmación. Esta referencia no cambia las reglas acordadas de D-01.
+
 - **Referencia de planificación:** D-01; no es un ticket externo.
 - **Módulo:** route-sheets; frecuencias y Fleet como proveedores públicos.
 - **Responsable:** David, según distribución y actividad elegida en el chat.

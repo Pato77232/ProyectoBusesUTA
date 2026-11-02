@@ -1,5 +1,11 @@
 # Estado compartido del proyecto
 
+## D-03 — sección 0 documental, 2 de noviembre de 2026
+
+David solicitó preparar sección 0 en `feature/programacion-multifrecuencia-persistida`, base `8fdf7e4`, inicialmente limpia y coincidente con la referencia local origin/develop (sin fetch). La historia contiene corrección de publicación `1e9d956`; no se atribuye nueva verificación del login ni inspección remota de PR. [ROUTE-SHEETS-06](specs/ROUTE-SHEETS-06.md) queda Borrador: contrato de persistencia/HTTP, identidad estable, revisión, compatibilidad tarifaria, conflictos entre hojas y migraciones nuevas, sin implementarlos.
+
+Tres secciones/un commit por sección: 0 documentación, 1 persistencia y caso de uso, 2 HTTP y publicación. Antes de sección 1 confirmar propuestas P1–P4 de la spec (hoja/ciclo, ocupación de borradores, adopción legada y tiempos de paradas); no confundir con reglas ya acordadas de D-01. Consulta de Fleet bajo concurrencia requiere comprobar contrato público, sin SQL ajeno ni aprobación inventada. Viaje comercializable sigue en D-04, renovación/sustitución en D-05. Solo Markdown; sin pruebas funcionales nuevas, cambios de producto, commit o PR de D-03.
+
 ## ROUTE-SHEETS-05 — adaptación de pruebas de publicación, 2 de noviembre de 2026
 
 Rama `feature/ROUTE-SHEETS-05-corrige-pruebas-publicacion`, base comprobada `7ef2f25`, inicialmente limpia; contiene tarifario integrado en `1fb0ade`/PR #39. Tras el reporte humano de Pablo, David autorizó adaptar las dos pruebas antiguas al puerto transaccional vigente. Se conserva publicación con tarifa y error de hoja inexistente (404), añadiendo comprobaciones de contexto, frecuencia y congelación. Sin cambios de producción, migraciones, dependencias o D-03. Sin commit/PR nuevos ni revisión humana inferidos; no se inspeccionó remotamente PR #42.
