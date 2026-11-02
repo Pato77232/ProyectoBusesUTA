@@ -7,9 +7,13 @@
 !index.html
 !pages/
 !pages/registrar-bus.html
+!pages/login.html
 !src/
 !src/styles/
 !src/styles/app.css
+!src/styles/login.css
+!src/auth/
+!src/auth/*.js
 !src/api/
 !src/api/*.js
 !src/fleet/
