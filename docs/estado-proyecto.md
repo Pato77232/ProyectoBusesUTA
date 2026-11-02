@@ -1,5 +1,29 @@
 # Estado compartido del proyecto
 
+## ROUTE-SHEETS-04 sección 2 — implementación local
+
+David solicitó sección 2 tras guardar sección 1 en 7be2587. Rama feature/programacion-multifrecuencia-spec inicialmente limpia. Patrón con cobertura por frecuencia/instante, agenda por bus, período explícito en días, límites de preparación/bloqueos y repetibilidad; ventana con reloj explícito, base incluida en dos ciclos, borradores excluidos de venta, límite exclusivo y renovación informativa sin renumerar historia. Cinco archivos nuevos de dominio y dos de pruebas; snapshots inmutables. Sin endpoints, persistencia, generación productiva, dependencias ni pruebas anteriores modificadas. Secciones 0–2 preparadas/implementadas; no equivalen a integración operativa de D-03/04/05.
+
+93 pruebas nuevas aprobadas; 172 dirigidas aprobadas incluyendo sección 1. Lint global/formato nuevo aprobados; formato global fallido en 43 archivos previos. npm test falló por busboy ausente, sin alcanzar integración; repetición unitaria final con acceso local: 940 pruebas aprobadas, 58 suites aprobadas/1 fallida por carga de busboy. Integración separada en PostgreSQL aislado: 151 pruebas aprobadas/1 fallida; 13 suites aprobadas/8 fallidas (siete por busboy y una por timeout de fotos). Sin cambios a expectativas/timeouts. Docker temporal busesuta-rs04-s2 retirado; detalles en [spec](specs/ROUTE-SHEETS-04.md). Diff revisado y comprobado; commit de sección 2, revisión humana, restauración del entorno y suite global satisfactoria pendientes antes de integrar. No se ejecutaron commits.
+
+## ROUTE-SHEETS-04 sección 1 — implementación local
+
+David solicitó implementar sección 1 en feature/programacion-multifrecuencia-spec sobre f1a347f (sección 0 guardada por el humano). Validador puro de agenda implementado: fechas con offset, preparación, continuidad/traslados, disponibilidad inicial, REST/MAINTENANCE, aislamiento de snapshots y resultado inmutable; 79 pruebas nuevas aprobadas. No endpoints, BD, asignaciones persistidas, dependencias ni pruebas existentes modificadas. Sección 2 todavía sin autorización ni implementación.
+
+Lint global aprobado y formato de los cuatro JS nuevos aprobado. Formato global fallido en 43 archivos ajenos. npm test inicial: 844 pruebas unitarias aprobadas/3 fallidas, 55 suites aprobadas/2 fallidas (busboy ausente y EACCES HTTP); no alcanzó integración. Repetición unitaria con acceso local permitido: 847 pruebas aprobadas, 56 suites aprobadas/1 fallida por carga de busboy. Integración independiente en PostgreSQL efímero aislado: 151 aprobadas/1 fallida, 13 suites aprobadas/8 fallidas (siete no cargan por busboy y una supera timeout de fotos). No se cambiaron expectativas ni timeouts. Suite global sigue fallida; detalles/reproducción en [spec](specs/ROUTE-SHEETS-04.md). Contenedor/red del proyecto de pruebas busesuta-rs04-s1 retirados al terminar. Diff comprobado sin errores; sin commit/PR/revisión humana ni integración de sección 1.
+
+## Programación multifrecuencia D-01 — 1 de noviembre de 2026
+
+| Spec / responsable | Estado y evidencia | Próxima acción |
+|---|---|---|
+| [ROUTE-SHEETS-04](specs/ROUTE-SHEETS-04.md) / David | Contrato definido por delegación del solicitante tras aceptación de propuestas con Edwin/Leslie reportada en chat. Rama feature/programacion-multifrecuencia-spec, base b60201e/PR #35, inicialmente limpia. Sin implementación, commit ni PR nueva. Se examinaron referencias locales, sin refresco remoto; no se certifican cambios externos posteriores. | El usuario autoriza secciones una a una: 1 validación pura de agenda; 2 patrón/ciclos/ventana. D-03 persistencia/HTTP, D-04 viajes y D-05 excepciones requieren sus propias specs antes de implementar. |
+
+Decisiones: dos ciclos totales incluida base; confirmación antes de venta; ciclo en días y patrón manual; preparación explícita y traslados fechados; disponibilidad y cobertura completas; ventana referida al inicio del patrón, cierre al embarque. Ya no se tratan esos puntos como preguntas abiertas de D-01. Pendientes independientes: tarifas, inventario accesible, reubicación y contratos productivos. Revisor de código por confirmar; el acuerdo no equivale a revisión de PR.
+
+Reparto aclarado por el usuario: tres secciones, un commit por sección. Sección 0 documental completada localmente, sin commit; secciones 1 (agenda) y 2 (patrón/ventana) pendientes de autorización de implementación. Cada futuro commit funcional incluye código, pruebas y su evidencia; no tres commits por sección.
+
+Validación documental: `git diff --check` aprobado; 48 referencias locales en los documentos afectados comprobadas sin destinos inexistentes, excluyendo enlaces externos/anclas. Cuatro documentos existentes modificados y una spec nueva; ningún archivo funcional. No se ejecutan lint/Jest: sin código ni configuración ejecutable; ninguna prueba funcional nueva acreditada.
+
 ## Actualización documental de acuerdos — 1 de noviembre de 2026
 
 Base local comprobada `0b4041e` (PR #33), coincidente con la referencia local origin/develop; no se refrescó el remoto en esta revisión. Rama limpia inicial `feature/acuerdos-funcionales-primera-entrega`. Las filas inferiores conservan evidencia histórica, no la fotografía de estos nuevos acuerdos.
