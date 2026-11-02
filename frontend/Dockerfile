@@ -6,6 +6,8 @@ COPY nginx.conf /etc/nginx/nginx.conf
 COPY nginx-proxy.conf /etc/nginx/nginx-proxy.conf
 COPY proxy-api.conf /etc/nginx/proxy-api.conf
 COPY index.html /usr/share/nginx/html/index.html
+COPY pages/registrar-bus.html /usr/share/nginx/html/pages/registrar-bus.html
+COPY src/fleet /usr/share/nginx/html/src/fleet
 COPY src/styles/app.css /usr/share/nginx/html/src/styles/app.css
 COPY src/api /usr/share/nginx/html/src/api
 COPY assets /usr/share/nginx/html/assets

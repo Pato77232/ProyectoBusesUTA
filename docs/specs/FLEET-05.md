@@ -184,6 +184,16 @@ Una sesión por paso. T1b y T2 no pueden integrarse antes de T1a y de la revisi�
 
 **Límites:** T1 no consulta la API ni envía datos. La página publicada muestra el formulario deshabilitado y avisa que no está conectada; los datos de prueba solo existen en la prueba. No se comprobó zoom nativo del 200 %, lector de pantalla ni recorrido completo por teclado. `npm run lint` no funciona en Windows porque invoca `../backend/node_modules/.bin/eslint`; es un problema previo.
 
+**Evidencias de la división** (1 de noviembre de 2026, T1a y T1b sobre `b60201e`, Windows, Chrome local):
+
+| Comprobación | Resultado |
+|---|---|
+| Pruebas de módulo en T1a y T1b | Pasan: 92, incluidas las de T3d |
+| ESLint directo y Prettier del incremento | Pasan en ambas ramas |
+| `frontend/tests/registrar-bus-smoke.cjs` en T1b | Pasa: 8 comprobaciones |
+| `frontend/tests/smoke.cjs` en T1b | Pasa |
+| `docker build`, inspección de la imagen y `container-smoke.cjs` | **Sin comprobar en esta combinación:** el servicio de Docker no estaba disponible. Hay que repetirlos antes de pedir la integración de T1b, conservando la configuración Nginx y `src/api` de T3d |
+
 ## 14. Revisión y cierre
 
 Pendientes. Próxima acción: publicar T1a y T1b, cerrar PR #31 y confirmar a Pablo el reparto de T2.

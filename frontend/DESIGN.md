@@ -43,6 +43,8 @@ Fuente ejecutable: [src/styles/app.css](src/styles/app.css), bloque `:root`. No 
 | `--color-border` | `#e8e8e8` | Separadores decorativos |
 | `--color-surface` | `#f8f9fa` | Superficie neutra |
 | `--color-accent-surface` | `#f1edff` | Fondo de insignias |
+| `--color-error` | `#b3261e` | Texto y borde de error de formularios ([FLEET-05](../docs/specs/FLEET-05.md), pendiente de revisión) |
+| `--color-error-surface` | `#fdecea` | Fondo de avisos de error ([FLEET-05](../docs/specs/FLEET-05.md), pendiente de revisión) |
 
 El gris `#838383` y azul `#0091ff` de la referencia no se usan como texto normal sobre blanco por contraste. Los bordes claros son decorativos; los controles no dependen de ellos para reconocerse. Estados de error, éxito, formularios, tablas y bandejas se definirán con las specs de sus pantallas; esta guía no los da por implementados.
 
