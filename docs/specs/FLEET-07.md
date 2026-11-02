@@ -5,9 +5,9 @@
 - **Módulo:** `fleet`; lo consume `bookings` mediante la API pública de Fleet
 - **Responsable:** Edwin
 - **Revisor propuesto / confirmado:** Leslie propuesta, por consumir el inventario; sin confirmación registrada
-- **Estado:** En desarrollo, T1 local sin commit; falta avisar a Leslie del cambio de contrato y revisión humana
-- **Prioridad y dependencias:** depende de FLEET-02 y FLEET-03, en develop, y de FLEET-06, en `e37051e` sin publicar. T2 depende de la PR #37 de FLEET-05. Accesibilidad se trata en [FLEET-08](FLEET-08.md), como piden los acuerdos.
-- **Rama / PR / base comprobada:** `feature/FLEET-07-T1-vip`, sobre `979fad4` el 2 de noviembre de 2026, que parte de FLEET-06 en `447fcce`; sin PR.
+- **Estado:** T1 implementada en `5846d93`, publicada en PR #44 en borrador. Falta avisar a Leslie del cambio de contrato y confirmar el caso VIP no ofrecido; T2 pendiente.
+- **Prioridad y dependencias:** FLEET-02, FLEET-03 y FLEET-06 presentes en develop; PR #41 comprobada integrada el 2 de noviembre. T2 depende de la PR #37 de FLEET-05. Accesibilidad se trata en el borrador local FLEET-08, fuera de esta PR.
+- **Rama / PR / base comprobada:** `feature/FLEET-07-T1-vip`, sobre `979fad4` el 2 de noviembre de 2026, que parte de FLEET-06 en `447fcce`; [PR #44](https://github.com/Pato77232/ProyectoBusesUTA/pull/44) en borrador hacia develop. `origin/develop` comprobado en `7c150c7`, con FLEET-06 integrada; sin incorporar esa base a esta rama.
 - **Autorización de alcance:** el 2 de noviembre de 2026 Edwin pidió agregar VIP y eligió marcarlo por bus. El mismo día Edwin pidió comenzar la implementación e informó que Leslie aprobó FLEET-06.
 
 ## 1. Objetivo
@@ -32,7 +32,7 @@ RN-12 exige asientos VIP, pero las tres plantillas de FLEET-03 solo tienen asien
 **No incluye:**
 
 - Editar un bus ya registrado o cambiar las plantillas publicadas.
-- Espacios accesibles: [FLEET-08](FLEET-08.md).
+- Espacios accesibles: borrador local FLEET-08, no publicado en esta PR.
 - Versión de configuración por hoja: tarea pendiente de Fleet, coordinada con David, que requiere su propia spec.
 - Cálculo del recargo o pantalla de compra.
 
@@ -117,8 +117,12 @@ No aplica.
 | T1: VIP en backend | Alta y consulta con categoría VIP, con migración nueva | `bus-registration.js`, `bus-seat-configuration.js`, `pg-bus.repository.js` |
 | T2: formulario | Selección en la pantalla de registro | `bus-form.js`, `bus-form-view.js`, de la PR #37 |
 
-**Evidencias (2 de noviembre de 2026, PostgreSQL aislado):** T1 sin commit. Lint sin errores y Prettier correcto en los archivos tocados. Integración: 280 de 280 aprobadas en 25 suites. Unitarias: 1074 aprobadas y 2 fallidas de 1076, las mismas de `publish-route-sheet.use-case.test.js`, ajenas a este cambio; por eso `npm test` no queda en verde y la integración se ejecutó aparte. Edwin autorizó cambiar en `bus.migration.test.js` el valor `VIP` por `OTRA`, porque esa prueba exigía el contrato anterior; la comprobación de rechazo se conserva.
+**Evidencias anteriores registradas (2 de noviembre de 2026, PostgreSQL aislado):** implementación en `5846d93`. Lint sin errores y Prettier correcto en los archivos tocados. Integración: 280 de 280 aprobadas en 25 suites. Unitarias: 1074 aprobadas y 2 fallidas de 1076, las mismas de `publish-route-sheet.use-case.test.js`; por eso la suite global no queda en verde y la integración se ejecutó aparte. Edwin autorizó cambiar en `bus.migration.test.js` el valor `VIP` por `OTRA`, porque esa prueba exigía el contrato anterior; la comprobación de rechazo se conserva.
+
+**Revisión de publicación por Codex, 2 de noviembre:** lint aprobado, formato de los siete JS del incremento aprobado; formato global fallido en 17 archivos ajenos. Unitarias repetidas con acceso HTTP local: 1074 aprobadas y 2 fallidas por preparación sin `tariffRepository` en hojas de ruta; su código y pruebas no cambian frente a develop. La migración VIP es nueva y su reversión falla transaccionalmente si hay VIP persistidos, sin convertirlos silenciosamente a NORMAL. Sin dependencias nuevas ni cambios de código de otros módulos. Implementación asistida por Claude Code; revisión y publicación asistidas por Codex. Sin aprobación humana ni integración de FLEET-07.
+
+Integración repetida de esta revisión: 279 aprobadas y una fallida de 280, en 25 suites; las cinco pruebas de `fleet/bus-vip-seats.test.js` aprobaron. Falló `tests/integration/database.test.js`, caso «migraciones reversibles y reaplicación sin duplicados en PostgreSQL», por superar 20 000 ms. Este resultado no se sustituye por el 280/280 anterior ni se atribuye la causa del timeout sin investigarla. Se usó PostgreSQL 16.13 efímero exclusivo con tmpfs y puerto dinámico, base `busesuta_test`, sin leer `.env`; contenedor eliminado al terminar. No se amplió ningún timeout ni se cambió código/pruebas durante esta revisión.
 
 ## 14. Revisión y cierre
 
-Pendientes. Próxima acción: avisar a Leslie del cambio de contrato, integrar FLEET-06 y conseguir revisión humana. T2 espera la PR #37.
+Pendientes. Próxima acción: avisar a Leslie del cambio de contrato y confirmar el caso VIP no ofrecido, investigar los fallos globales y conseguir revisión humana. FLEET-06 ya está integrada; T2 espera la PR #37. No se enviaron mensajes a Leslie desde esta revisión.
