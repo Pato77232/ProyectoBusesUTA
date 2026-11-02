@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test tests/api/*.test.js tests/fleet/*.test.js tests/auth/*.test.js",
-    "lint": "node ../backend/node_modules/eslint/bin/eslint.js src/api src/fleet src/auth tests/api tests/fleet tests/auth"
+    "lint": "node ../backend/node_modules/eslint/bin/eslint.js src/api src/fleet src/auth tests/api tests/fleet tests/auth",
+    "test:login": "node tests/login-smoke.cjs"
   }
 }

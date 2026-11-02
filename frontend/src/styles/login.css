@@ -1,0 +1,65 @@
+/* AUTH-WEB-01 T1: estilos de pantalla; tokens compartidos de DESIGN.md. */
+.login-layout {
+  max-width: 640px;
+  padding-block: 48px;
+}
+
+.login-card {
+  padding: 32px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel);
+}
+
+.login-card h1 {
+  font-size: clamp(2rem, 5vw, 2.75rem);
+}
+
+#session-email {
+  overflow-wrap: anywhere;
+}
+
+.login-notice {
+  padding: 16px;
+  color: var(--color-text);
+  background: var(--color-accent-surface);
+  border-inline-start: 4px solid var(--color-brand);
+  border-radius: var(--radius-card);
+}
+
+.login-card .form-label {
+  font-weight: 600;
+}
+
+.login-card .form-control {
+  min-height: 48px;
+  border-color: var(--color-muted);
+}
+
+.login-card .form-control:focus-visible {
+  outline: 3px solid var(--color-brand);
+  outline-offset: 3px;
+  box-shadow: none;
+}
+
+.login-card .form-control:disabled {
+  color: var(--color-text);
+  background: var(--color-surface);
+  opacity: 1;
+}
+
+.login-card .btn:disabled {
+  color: var(--color-canvas);
+  background: var(--color-text);
+  border-color: var(--color-text);
+  opacity: 1;
+}
+
+@media (max-width: 575.98px) {
+  .login-layout {
+    padding-block: 32px;
+  }
+
+  .login-card {
+    padding: 20px;
+  }
+}
