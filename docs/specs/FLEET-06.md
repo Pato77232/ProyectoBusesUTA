@@ -5,9 +5,9 @@
 - **Módulo:** `fleet`; lo consume `bookings` mediante la API pública de Fleet
 - **Responsable:** Edwin
 - **Revisor propuesto / confirmado:** Leslie propuesta, por ser quien consume el contrato; sin confirmación registrada
-- **Estado:** En desarrollo, T1 local ajustada al pedido de Leslie; falta su confirmación del contrato
+- **Estado:** T1 publicada en borrador en PR #41; falta confirmación de Leslie del contrato y revisión humana. Suite global no aprobada.
 - **Prioridad y dependencias:** FLEET-02 y FLEET-04 (PR #29) presentes en develop. No depende del módulo de viajes.
-- **Rama / PR / base comprobada:** `feature/FLEET-06-T1-lectura-asientos`, creada desde `origin/develop` en `1fb0ade` el 2 de noviembre de 2026; sin PR. La rama `feature/FLEET-06-consulta-asientos` conserva el borrador original sobre `b1e6720`.
+- **Rama / PR / base comprobada:** `feature/FLEET-06-T1-lectura-asientos`, creada desde `origin/develop` en `1fb0ade` el 2 de noviembre de 2026; [PR #41](https://github.com/Pato77232/ProyectoBusesUTA/pull/41) en borrador hacia develop. La rama `feature/FLEET-06-consulta-asientos` conserva el borrador original sobre `b1e6720`.
 - **Autorización de alcance:** el 1 de noviembre de 2026 Edwin pidió preparar esta spec para Leslie. El 2 de noviembre de 2026 Edwin pidió comenzar la implementación y, tras recibir el mensaje de Leslie, aprobó ajustar T1 a lo que ella pide.
 
 ## 1. Objetivo
@@ -161,7 +161,7 @@ Las decisiones siguen abiertas salvo donde se indique. `docs/acuerdos-primera-en
 
 ### Respuesta de Leslie recibida el 2 de noviembre de 2026
 
-Mensaje de Leslie reportado por Edwin: necesita identificador propio del asiento distinto de la clave de plantilla, condición de ofrecido, categoría NORMAL/VIP, consulta de la versión de inventario usada por una hoja, identificación de espacios accesibles y el comportamiento ante bus inexistente, ajeno o fallo. Esto contradice la opción A de la primera decisión, que T1 implementa: la salida actual no incluye `layoutSeatKey` ni `offered`. Edwin aprobó ese mismo día ajustar T1: se adopta la opción B de la primera decisión (todos los asientos con `offered`), se agrega `layoutSeatKey` y la función pasa a `listByBus`. Falta que Leslie confirme el contrato resultante. Quedan pendientes y fuera de T1 la versión de inventario por hoja (con David), VIP y espacios accesibles; hoy ningún asiento se identifica como accesible.
+Mensaje de Leslie reportado por Edwin: necesita identificador propio del asiento distinto de la clave de plantilla, condición de ofrecido, categoría NORMAL/VIP, consulta de la versión de inventario usada por una hoja, identificación de espacios accesibles y el comportamiento ante bus inexistente, ajeno o fallo. Su pedido motivó reemplazar la opción A del borrador. Edwin aprobó ajustar T1: se adoptó la opción B (todos los asientos con `offered`), se agregó `layoutSeatKey` y la función pasó a `listByBus`; estos cambios están implementados en `7d6353a`. Falta que Leslie confirme el contrato resultante. Quedan pendientes y fuera de T1 la versión de inventario por hoja (con David), VIP y espacios accesibles; hoy ningún asiento se identifica como accesible.
 
 ## 11. Defecto inducido
 
@@ -187,8 +187,11 @@ Una sesión basta. Leslie implementa aparte el adaptador `TripCatalog`.
 - **Pruebas de FLEET-06:** 21 de 21 aprobadas (13 unitarias y 8 integraciones). `npm run lint` sin errores y Prettier correcto en los archivos tocados.
 - **Suite global: no aprobada.** Las causas no se atribuyen a Fleet mientras no se investiguen.
   - Unitarias: 1066 aprobadas y 2 fallidas de 1068, ambas en `publish-route-sheet.use-case.test.js`. `src/modules/route-sheets` y sus pruebas unitarias son idénticos a `origin/develop` en `1fb0ade`; el caso de uso exige `tariffRepository` y la prueba no lo entrega.
-  - Integración: Edwin reportó un timeout en la última ejecución global; suite y prueba afectadas sin registrar. La ejecución aparte de esta sesión, necesaria porque `npm test` se detiene tras el fallo unitario, aprobó 275 de 275 en 24 suites. Ese resultado no anula el timeout reportado.
+  - Integración: la ejecución anterior registrada aprobó 275 de 275 en 24 suites. La repetición realizada por Codex al revisar el mismo código el 2 de noviembre terminó con 274 aprobadas y una fallida en 24 suites: `tests/integration/user-cooperative-integrity.test.js`, caso «datos previos incompatibles (null) hacen fallar up sin pérdida ni restricciones parciales», superó el límite de 20 000 ms. Usó PostgreSQL 16.13 efímero exclusivo con puerto dinámico y base `busesuta_test`, sin leer `.env`; el contenedor fue eliminado. La ejecución aprobada anterior no anula este fallo; su causa no se atribuye a Fleet sin investigarla.
+  - Formato global de la revisión de Codex: fallido en 17 archivos ajenos al incremento; formato de los siete JS de Fleet tocados aprobado. Los tres fallos iniciales EACCES de HTTP local desaparecieron al repetir las unitarias con acceso permitido; permanecieron los dos fallos de hojas de ruta indicados arriba.
+
+La revisión documental posterior no cambió código ni pruebas desde `7d6353a`; no se repitieron suites para estos cambios exclusivamente documentales. Implementación asistida por Claude Code; revisión y preparación de publicación asistidas por Codex. La PR se prepara en borrador para acordar el contrato, sin declarar aprobación de Leslie ni integración.
 
 ## 14. Revisión y cierre
 
-Pendientes. Próxima acción: conseguir la confirmación de Leslie y revisión humana, e identificar el timeout de integración.
+Pendientes. Próxima acción: conseguir la confirmación de Leslie y revisión humana; investigar el timeout identificado sin debilitar la prueba ni ampliar su límite incidentalmente.
