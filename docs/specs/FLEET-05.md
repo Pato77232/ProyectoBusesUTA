@@ -105,7 +105,8 @@ Rutas comprobadas en `backend/src/app.js`. El 201 devuelve `bus` con `plate` for
 | 404 | Indicar que el grupo ya no existe y recargar grupos |
 | 409 | Indicar que placa, chasis o número de unidad ya están registrados |
 | 413 | Indicar que la carga supera el tamaño permitido |
-| Red, 502, 503 o 504 | Mantener el formulario. No reintentar solo: el alta pudo haberse completado |
+| Red, 502 o 503 | Mantener el formulario. No reintentar solo: el alta pudo haberse completado |
+| 504 al registrar | Mantener datos y fotos, indicar resultado incierto y pedir comprobar si el bus existe antes de reenviar; sin reintento automático |
 | Salir con cambios sin enviar | Sin aviso en este incremento |
 
 Tras un error de red, reintentar puede responder 409 si el primer envío se completó. El mensaje debe advertirlo.
@@ -137,7 +138,7 @@ Tras un error de red, reintentar puede responder 409 si el primer envío se comp
 
 1. **Inicio de sesión (bloqueante para T3).** Pablo continúa con el login; la pantalla visual está lista, falta conectarla y verificarla, y no hay fecha confirmada.
 2. **FRONT-01 T3c/T3d.** Resuelta: integradas en `d0a5f8d`. No se crea una política propia.
-3. **Tiempos del proxy.** `proxy_read_timeout` es 10 s, y decodificar 10 fotos puede acercarse a ese tiempo. Se validan con pruebas de carga en T2.
+3. **Tiempos del proxy.** Acuerdo de Pablo reenviado por Edwin el 2 de noviembre: `proxy_read_timeout 60s` solo para `/api/v1/buses`, 10 s para el resto y sin reintentos. Decisión y evidencia en la sección 14.
 4. **Transporte multipart.** Resuelta en la decisión anterior; el diseño concreto se define en T2.
 5. **Posiciones no ofrecidas.** Recomendación: incluir casillas por piso. Omitirlas registraría todos los asientos, y hoy no hay forma de corregirlo después. Si se prefiere posponerlas, el bus se envía con lista vacía. Decide el responsable.
 6. **Acceso a la pantalla.** La portada no debe enlazar destinos no disponibles para el visitante. El menú por rol queda por definir con Pablo. Recomendación: acceder por URL directa hasta que exista ese menú.
@@ -185,6 +186,15 @@ Una sesión por paso. T1b y T2 no pueden integrarse antes de T1a y de la revisi�
 **Límites:** T1 no consulta la API ni envía datos. La página publicada muestra el formulario deshabilitado y avisa que no está conectada; los datos de prueba solo existen en la prueba. No se comprobó zoom nativo del 200 %, lector de pantalla ni recorrido completo por teclado. `npm run lint` no funciona en Windows porque invoca `../backend/node_modules/.bin/eslint`; es un problema previo.
 
 ## 14. Revisión y cierre
+
+### Acuerdo de timeout de PR #40, 2 de noviembre de 2026
+
+- Participantes: Pablo y Edwin; evidencia: mensaje de Pablo reenviado por Edwin en este chat. Pablo propone y autoriza ampliar a 60 s únicamente el timeout de lectura de buses, conservar 10 s en las demás rutas y no habilitar reintentos.
+- Decisión aplicada: el valor general de 10 s se declara en el contexto `http` de `nginx-proxy.conf`; la ubicación exacta de buses lo sustituye por 60 s. Se retira la declaración del include `proxy-api.conf` para evitar duplicados. El timeout de conexión/envío y `proxy_next_upstream off` se conservan.
+- Comprobación exigida: `nginx -t`, alta real demorada entre 10 y 60 s y exactamente un bus persistido. La demora se induce mediante un bloqueo de 15 s exclusivamente sobre la tabla de buses de la BD efímera; no se añade una pausa al backend de producción.
+- Contrato de pantalla para T3: ante 504, conservar datos/fotos y mostrar «No pudimos confirmar si el bus se registró. Comprueba si ya existe antes de volver a enviarlo». Sin reenvío automático. La pantalla conectada aún no está implementada en esta PR; este comportamiento queda como criterio pendiente de T3, no como funcionalidad ya verificada. El estado HTTP 504 sigue disponible en el error del cliente común.
+- Revisión de Pablo y nueva aprobación sobre el commit actualizado pendientes. El acuerdo de timeout no equivale a aprobar el código completo.
+- Resultado real de la comprobación demorada: `nginx -t -c /etc/nginx/nginx-proxy.conf` aprobado; diez fotos de 4 787 782 bytes y alta en 12 847 ms (más de 10 y menos de 60 s), un único bus persistido antes y después de las cargas rechazadas con 413. Las 101 pruebas frontend y ESLint directo aprobaron. Esta verificación sustituye la conclusión anterior de mantener 10 s por la medición local de 7 720 ms.
 
 ### Revisión de T2a/T2b para publicación, 2 de noviembre de 2026
 

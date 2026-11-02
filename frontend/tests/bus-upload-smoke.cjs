@@ -9,6 +9,7 @@ const MAX_REQUEST_BYTES = 50_065_536;
 const DEFAULT_PROXY_LIMIT_BYTES = 1_048_576;
 const PHOTOS = 10;
 const UPLOAD_TIMEOUT_MS = 120_000;
+const DATABASE_DELAY_SECONDS = 15;
 // Generada en el backend, que ya tiene sharp: JPEG de 24 MP, el peor caso de decodificación.
 const PHOTO_SCRIPT = `
   const sharp = require('sharp');
@@ -94,6 +95,38 @@ async function waitForUpload(browser) {
   throw new Error('La carga no terminó a tiempo');
 }
 
+async function holdBusInsert(runtime) {
+  // Bloqueo exclusivo de la BD efímera: retrasa el alta real sin alterar producción.
+  runtime.compose([
+    'exec',
+    '-d',
+    'db',
+    'psql',
+    '-U',
+    'frontend_dev',
+    '-d',
+    'transviaje_frontend_dev',
+    '-v',
+    'ON_ERROR_STOP=1',
+    '-c',
+    `BEGIN; LOCK TABLE buses IN ACCESS EXCLUSIVE MODE;
+     SELECT pg_sleep(${DATABASE_DELAY_SECONDS}); COMMIT;`,
+  ]);
+  const deadline = Date.now() + 5000;
+  while (Date.now() < deadline) {
+    if (
+      psql(
+        runtime,
+        `SELECT count(*) FROM pg_locks
+        WHERE relation = 'buses'::regclass AND mode = 'AccessExclusiveLock' AND granted;`,
+      ) === '1'
+    )
+      return;
+    await delay(100);
+  }
+  throw new Error('No se obtuvo el bloqueo de prueba del alta');
+}
+
 async function checkFullUpload(browser, group, photo) {
   await browser.evaluate(`(() => {
     const bytes = Uint8Array.from(atob('${photo}'), (char) => char.charCodeAt(0));
@@ -142,6 +175,7 @@ async function main() {
       maxBuffer: 16 * 1024 * 1024,
     });
     const origin = `http://${runtime.compose(['port', 'frontend', '8080']).trim()}`;
+    runtime.compose(['exec', '-T', 'frontend', 'nginx', '-t', '-c', '/etc/nginx/nginx-proxy.conf']);
     const photo = runtime
       .compose(['exec', '-T', 'backend', 'node', '-e', PHOTO_SCRIPT], {
         maxBuffer: 16 * 1024 * 1024,
@@ -150,7 +184,9 @@ async function main() {
     browser = await openBrowser(origin);
     const group = await signInAsAdmin(browser, runtime);
     const photoBytes = Buffer.from(photo, 'base64').length;
+    await holdBusInsert(runtime);
     const ms = await checkFullUpload(browser, group, photo);
+    assert.ok(ms > 10_000 && ms < 60_000, `Respuesta fuera de la ventana 10–60 s: ${ms} ms`);
     assert.equal(psql(runtime, 'SELECT count(*) FROM buses;'), '1');
     assert.deepEqual(await checkOversized(browser, '/api/v1/buses', MAX_REQUEST_BYTES + 1), {
       code: 'PAYLOAD_TOO_LARGE',
