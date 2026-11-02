@@ -1,5 +1,7 @@
 # BOOK-03: Crear reserva y bloquear asientos
 
+> Actualización documental del 1 de noviembre de 2026: aplicar las [reglas vigentes](../business-rules.md) y los [acuerdos de primera entrega](../acuerdos-primera-entrega.md), bajo [ACUERDOS-01](ACUERDOS-01.md). Los contratos anteriores incompatibles son evidencia histórica, no autorización para implementar la regla reemplazada. Esta actualización no modifica código ni acredita adaptación funcional. Las propuestas técnicas y pendientes conservan ese estado.
+
 - **Responsable:** Leslie
 - **Revisor:** Edwin
 - **Estado:** Borrador; no implementar escritura hasta cerrar contratos.

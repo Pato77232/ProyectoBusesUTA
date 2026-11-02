@@ -1,5 +1,7 @@
 # Contratos de reservas pendientes de revisión
 
+> Actualización del 1 de noviembre de 2026: [acuerdos de primera entrega](acuerdos-primera-entrega.md) y [reglas vigentes](business-rules.md). Se conservan abajo decisiones y evidencia históricas. Porcentajes configurables/tarifas por combinación sustituyen 50 % fijo/suma obligatoria y se incorpora corrección de comprobantes. Contratos nuevos y propuestas requieren sus specs y validación de responsables; no están implementados por este registro.
+
 Responsable: Leslie. Revisor habitual: Edwin. Fecha: 20 de octubre de 2026.
 Estado: propuesta interna del módulo bookings; no aprobada por David, Edwin ni Shirley.
 

@@ -1,5 +1,9 @@
 # Errores inducidos para la primera revisión
 
+## Candidatos documentados el 1 de noviembre
+
+[ACADEMICA-01](specs/ACADEMICA-01.md) propone DI-VIS-01 (color de separador decorativo) y DI-VIS-02 (espaciado de tarjeta informativa). Estado **propuesto**, sin introducción, selección/autor/revisor ni versión confirmados. La petición de ayuda con defectos superficiales no sustituye la autorización específica de cada candidato. No se modifica producto en ACUERDOS-01. Se mantienen todos los requisitos del protocolo siguiente y las pruebas del comportamiento correcto.
+
 ## Acuerdo del equipo
 La versión funcional que se entregue el **4 de noviembre de 2026** debe contener errores introducidos a propósito en **`main`** para el ejercicio de Gestión y Configuración de Software. No basta con dejarlos en una rama alternativa. Las personas realizan la integración mediante el flujo de revisión; los agentes mantienen la prohibición de ejecutar merge, push o tags.
 

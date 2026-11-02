@@ -1,5 +1,7 @@
 # Equipo, tareas pequeñas y acuerdos
 
+> Registro nuevo: [acuerdos funcionales de primera entrega](acuerdos-primera-entrega.md), 1 de noviembre de 2026. Fuente: respuestas del solicitante, sin atribuir aceptación individual adicional. Comité rotativo se discutirá después de la primera entrega; entretanto siguen vigentes revisión por otro humano y autorización concreta de defectos académicos. No se designan miembros temporales por inferencia.
+
 ## Referencia de responsabilidades
 
 Origen: propuesta `Division.md` aportada por el solicitante, fuera del repositorio, incorporada aquí en forma de referencia mantenible por INFRA-04. La migración está autorizada por el solicitante; las personas afectadas deben confirmar las nuevas asignaciones y revisiones. No hay aprobaciones colectivas implícitas.

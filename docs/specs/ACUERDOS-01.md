@@ -1,0 +1,34 @@
+# ACUERDOS-01: Consolidar acuerdos de la primera entrega
+
+- **Estado:** En revisión documental local; no integrada.
+- **Responsable de preparación:** solicitante del chat con asistencia de Codex; referencia de trazabilidad David, sin atribuir identidad autenticada ni aceptación de otros integrantes.
+- **Fecha:** 1 de noviembre de 2026.
+- **Rama/base:** `feature/acuerdos-funcionales-primera-entrega`, `0b4041e`.
+- **Autorización:** petición humana de actualizar documentación en la rama existente, sin implementar producto ni hacer commits.
+- **Revisor humano:** pendiente de designar; debe ser otra persona.
+
+## Objetivo y alcance
+
+Consolidar las respuestas humanas, contradicciones y dependencias en [acuerdos-primera-entrega.md](../acuerdos-primera-entrega.md), actualizar reglas funcionales y señalar contratos históricos reemplazados. Incluye propuestas de programación/fronteras y defectos visuales; no autoriza su ejecución. No crea endpoints, migraciones, dependencias, cuentas, roles ni cambios visuales. Sin comandos Git de integración/publicación.
+
+## Reglas y diseño
+
+RN-01–03, RN-12, RN-20–23, RN-30–32, RN-40–43 y RN-50–55. Mantener fuente de verdad en business-rules.md y enlaces de reemplazo en specs afectadas. Conservar evidencia histórica, no presentar decisiones propuestas como aceptadas. Arquitectura vigente; la distribución de contratos es propuesta hasta cerrar las specs de implementación. No interfaz modificada; usabilidad pendiente de pruebas de cada pantalla y frontend/DESIGN.md en su futura spec.
+
+## Criterios de aceptación
+
+- [x] Registrar respuestas humanas y distinguirlas de propuestas y vacíos.
+- [x] Registrar cambios de reglas y señalar qué specs necesitan adaptación.
+- [x] Respetar exclusión actual de Chofer/Controlador y aplazamiento de Wallet.
+- [x] Actualizar estado con alcance documental, sin declarar entrega completa.
+- [x] Proponer defectos visuales con reproducción, sin introducirlos.
+- [ ] Revisar acuerdos con responsables afectados y resolver pendientes bloqueantes de sus respectivas implementaciones.
+- [ ] Revisión humana e integración verificable.
+
+## Verificación y evidencia
+
+Se leyeron apuntes adjuntos y documentos versionados sin secretos. Diff documental revisado; `git diff --check` aprobado; 130 referencias locales comprobadas sin destinos inexistentes, excluyendo enlaces externos y anclas. Alcance: 26 documentos existentes y tres nuevos, sin producto. No se ejecutan suites backend porque no se modifica código ni configuración ejecutable; ninguna prueba histórica acredita las nuevas reglas. No hay defectos inducidos introducidos. No commit, push, merge, rebase ni tag. Avisos de normalización CRLF→LF en tres documentos, sin errores de diff.
+
+## Próxima acción
+
+Revisar el diff documental y elegir revisor humano. Resolver cada pendiente antes de su spec de producto; luego dividir implementación por caso de uso/endpoint. PR y commit solo mediante petición/autorización correspondiente; no declarar cierre por terminar esta redacción.
