@@ -5,11 +5,15 @@
 !nginx-proxy.conf
 !proxy-api.conf
 !index.html
+!pages/
+!pages/registrar-bus.html
 !src/
 !src/styles/
 !src/styles/app.css
 !src/api/
 !src/api/*.js
+!src/fleet/
+!src/fleet/*.js
 !assets/
 !assets/**
 **/*.md

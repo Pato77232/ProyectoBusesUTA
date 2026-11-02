@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#202020" />
+    <title>Registrar bus · transViaje</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+    <link
+      rel="stylesheet"
+      href="/assets/vendor/bootstrap-5.3.8/bootstrap.min.css"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+    />
+    <link rel="stylesheet" href="/src/styles/app.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+    <header class="site-header">
+      <div class="container">
+        <a class="brand" href="/" aria-label="transViaje, inicio">
+          <span class="brand-logo-frame" aria-hidden="true">
+            <img
+              class="brand-logo"
+              src="/assets/brand/logo-transviaje.png"
+              alt=""
+              width="1600"
+              height="1446"
+            />
+          </span>
+        </a>
+      </div>
+    </header>
+
+    <main id="contenido" class="form-page container" tabindex="-1">
+      <p class="eyebrow">FLOTA</p>
+      <h1>Registrar bus</h1>
+      <p class="form-page-intro">
+        Todos los campos son obligatorios, salvo los asientos no ofrecidos. Después de registrar el
+        bus no se pueden cambiar sus datos.
+      </p>
+
+      <form id="bus-form" novalidate>
+        <p id="bus-form-status" class="form-status" role="status" tabindex="-1" data-tone="info">
+          Esta pantalla todavía no está conectada. Pronto podrás registrar buses desde aquí.
+        </p>
+
+        <fieldset id="bus-fields" class="form-sections" disabled>
+          <section class="form-card" aria-labelledby="datos-title">
+            <h2 id="datos-title">Datos del bus</h2>
+            <div class="row g-3">
+              <div class="col-sm-6">
+                <label class="form-label" for="plate">Placa</label>
+                <input
+                  class="form-control"
+                  id="plate"
+                  name="plate"
+                  autocomplete="off"
+                  aria-describedby="plate-hint plate-error"
+                  required
+                />
+                <p class="field-hint" id="plate-hint">Ejemplo: TBM-2213</p>
+                <p class="field-error" id="plate-error" hidden></p>
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label" for="unitNumber">Número de unidad</label>
+                <input
+                  class="form-control"
+                  id="unitNumber"
+                  name="unitNumber"
+                  inputmode="numeric"
+                  autocomplete="off"
+                  aria-describedby="unitNumber-error"
+                  required
+                />
+                <p class="field-error" id="unitNumber-error" hidden></p>
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="vin">Chasis</label>
+                <input
+                  class="form-control"
+                  id="vin"
+                  name="vin"
+                  autocomplete="off"
+                  aria-describedby="vin-error"
+                  required
+                />
+                <p class="field-error" id="vin-error" hidden></p>
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label" for="bodyworkBrand">Marca de carrocería</label>
+                <input
+                  class="form-control"
+                  id="bodyworkBrand"
+                  name="bodyworkBrand"
+                  autocomplete="off"
+                  aria-describedby="bodyworkBrand-error"
+                  required
+                />
+                <p class="field-error" id="bodyworkBrand-error" hidden></p>
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label" for="color">Color</label>
+                <input
+                  class="form-control"
+                  id="color"
+                  name="color"
+                  autocomplete="off"
+                  aria-describedby="color-error"
+                  required
+                />
+                <p class="field-error" id="color-error" hidden></p>
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="busGroupId">Grupo</label>
+                <select
+                  class="form-select"
+                  id="busGroupId"
+                  name="busGroupId"
+                  aria-describedby="busGroupId-error"
+                  required
+                >
+                  <option value="">Elige un grupo</option>
+                </select>
+                <p class="field-error" id="busGroupId-error" hidden></p>
+              </div>
+            </div>
+          </section>
+
+          <section class="form-card" aria-labelledby="asientos-title">
+            <h2 id="asientos-title">Plantilla de asientos</h2>
+            <label class="form-label" for="seatLayoutId">Plantilla</label>
+            <select
+              class="form-select"
+              id="seatLayoutId"
+              name="seatLayoutId"
+              aria-describedby="seatLayoutId-error"
+              required
+            >
+              <option value="">Elige una plantilla</option>
+            </select>
+            <p class="field-error" id="seatLayoutId-error" hidden></p>
+            <div id="seat-section" class="seat-section" hidden>
+              <h3>Asientos no ofrecidos</h3>
+              <p class="field-hint">Marca solo los asientos que este bus no venderá.</p>
+              <p id="seat-notice" class="field-hint" role="status" hidden>
+                Cambiaste de plantilla, así que se limpiaron los asientos marcados.
+              </p>
+              <div id="seat-decks"></div>
+            </div>
+          </section>
+
+          <section class="form-card" aria-labelledby="fotos-title">
+            <h2 id="fotos-title">Fotografías</h2>
+            <label class="form-label" for="photos">Fotografías del bus</label>
+            <input
+              class="form-control"
+              id="photos"
+              name="photos"
+              type="file"
+              accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+              multiple
+              aria-describedby="photos-hint photos-error"
+              required
+            />
+            <p class="field-hint" id="photos-hint">
+              De 1 a 10 fotografías JPEG o PNG, de hasta 5 MB cada una. Elige todas a la vez: una
+              nueva selección reemplaza la anterior.
+            </p>
+            <p class="field-error" id="photos-error" hidden></p>
+            <ul id="photo-list" class="photo-list"></ul>
+          </section>
+
+          <button class="btn btn-primary" type="submit">Registrar bus</button>
+        </fieldset>
+      </form>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p class="mb-0">transViaje <span aria-hidden="true">·</span> Proyecto académico</p>
+      </div>
+    </footer>
+  </body>
+</html>
