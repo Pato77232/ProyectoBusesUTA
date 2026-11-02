@@ -1,4 +1,5 @@
 const createRouter = require('./interfaces/http/route-sheet.routes');
+const createTariffQueries = require('./application/create-tariff-queries');
 const configureTariffFactory = require('./application/use-cases/configure-route-sheet-tariff.use-case');
 const PgRouteSheetTariffRepository = require('./infrastructure/repositories/pg-route-sheet-tariff-repository');
 
@@ -43,8 +44,11 @@ function createRouteSheetsModule({
   const busGroupQueryPort = new BusGroupQueryAdapter({ busGroupQueries });
   const busQueryPort = new BusQueryAdapter({ busQueries });
   const bookingQueryPort = new BookingQueryAdapter({ bookingQueries });
+  const tariffRepository = new PgRouteSheetTariffRepository(pool, {
+    frequencySessionFactory: frequencyQueries.forTransaction,
+  });
   const configureTariffUseCase = configureTariffFactory({
-    tariffRepository: new PgRouteSheetTariffRepository(pool),
+    tariffRepository,
     frequencyQueryPort,
   });
 
@@ -83,7 +87,7 @@ function createRouteSheetsModule({
     routeSheetAssignmentRepository,
     bookingQueryPort,
   });
-  const publishRouteSheetUseCase = publishRouteSheetUseCaseFactory({ routeSheetRepository });
+  const publishRouteSheetUseCase = publishRouteSheetUseCaseFactory({ tariffRepository });
   const generateAutomaticCyclesUseCase = generateAutomaticCyclesUseCaseFactory({
     routeSheetRepository,
     routeSheetAssignmentRepository,
@@ -100,6 +104,7 @@ function createRouteSheetsModule({
   });
 
   return {
+    tariffQueries: createTariffQueries({ tariffRepository }),
     router: createRouter({
       auth,
       configureTariffUseCase,

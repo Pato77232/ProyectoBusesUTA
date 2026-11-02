@@ -3,10 +3,8 @@ const {
   createDraftTariff,
   assertUuid,
 } = require('../../domain/value-objects/draft-tariff');
-const {
-  TariffConflictError,
-  TariffSourceError,
-} = require('../../domain/errors/route-tariff-errors');
+const { TariffConflictError } = require('../../domain/errors/route-tariff-errors');
+const routePoints = require('../../domain/value-objects/tariff-route-points');
 
 function assertDraftRevision(sheet, expectedRevision) {
   if (sheet.status !== 'DRAFT')
@@ -19,32 +17,6 @@ function assertDraftRevision(sheet, expectedRevision) {
       'ROUTE_TARIFF_REVISION_CONFLICT',
       'El tarifario cambió; consulta su revisión vigente antes de reemplazarlo.',
     );
-}
-
-function routePoints(detail, frequencyId, cooperativeId) {
-  if (!detail)
-    throw new TariffConflictError(
-      'ROUTE_TARIFF_FREQUENCY_MISMATCH',
-      'La frecuencia no está disponible en la cooperativa.',
-    );
-  if (
-    detail.id !== frequencyId ||
-    detail.cooperativeId !== cooperativeId ||
-    !Array.isArray(detail.stops)
-  )
-    throw new TariffSourceError();
-  if (detail.status !== 'ACTIVE')
-    throw new TariffConflictError(
-      'ROUTE_TARIFF_FREQUENCY_INACTIVE',
-      'La frecuencia debe estar activa.',
-    );
-  const points = [detail.origin, ...detail.stops, detail.destination];
-  if (points.some((point) => typeof point !== 'string' || !point.trim()))
-    throw new TariffSourceError();
-  const normalized = points.map((point) => point.trim().normalize('NFC'));
-  if (new Set(normalized.map((point) => point.toLowerCase())).size !== normalized.length)
-    throw new TariffSourceError();
-  return normalized;
 }
 
 function configureRouteSheetTariff({ tariffRepository, frequencyQueryPort }) {

@@ -29,6 +29,8 @@ Estados: **Confirmado** = respuesta humana comunicada; **Propuesto** = recomenda
 
 ## 2. Tarifas y beneficios — confirmado
 
+**Implementación local posterior:** ROUTE-SHEETS-05 sección 2 incorpora congelación transaccional, lectura aislada y contrato de consulta confirmado expresamente por el solicitante: findPublishedByRouteSheetId y findPrice. Null para copia/par autorizado ausente; errores técnicos se propagan. La antigua mención de firma pendiente es histórica; integración con Bookings y revisión humana siguen pendientes. No se atribuye respuesta individual nueva de Leslie. Ver [spec §13](specs/ROUTE-SHEETS-05.md).
+
 Plan de ejecución D-02: [ROUTE-SHEETS-05](specs/ROUTE-SHEETS-05.md), sección 0 documental preparada sobre 8886553. Las propuestas pendientes de esta sección siguen sin aprobación adicional; la nueva spec las delimita, no las convierte en decisiones humanas. Tres secciones: definición, configuración de borrador y congelación/consulta al publicar; un commit por sección si el humano lo solicita.
 
 **Confirmación posterior del solicitante, 1 de noviembre:** mayor descuento acreditado sin acumular; congelar al publicar por administrador de cooperativa; renovación copia a borrador editable; porcentajes VIP/beneficios entre 0 y 100 % con dos decimales, cero explícito; máximo base USD 99 999 999,99; matriz completa ingresada sin deducir precios. Reemplaza los pendientes incompatibles que se conservan abajo como historia. Contrato público de lectura aún debe acordarse con Leslie; no se le atribuye respuesta individual nueva ni revisión del código. Implementación local de configuración en ROUTE-SHEETS-05 §12; congelación efectiva pendiente de sección 2.

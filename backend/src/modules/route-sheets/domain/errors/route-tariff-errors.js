@@ -24,7 +24,7 @@ class TariffNotFoundError extends DomainError {
 class TariffSourceError extends DomainError {
   constructor() {
     super(
-      'No está disponible el recorrido autorizado para configurar tarifas.',
+      'No está disponible la información tarifaria autorizada.',
       'ROUTE_TARIFF_SOURCE_UNAVAILABLE',
       503,
     );

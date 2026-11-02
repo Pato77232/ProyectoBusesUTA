@@ -1,5 +1,6 @@
 const RouteSheetTariffRepository = require('../../domain/ports/route-sheet-tariff-repository');
 const { TariffNotFoundError } = require('../../domain/errors/route-tariff-errors');
+const { toRouteSheet } = require('../mappers/route-sheet-mapper');
 
 function toResult(row) {
   return {
@@ -14,9 +15,21 @@ function toResult(row) {
 }
 
 class PgRouteSheetTariffRepository extends RouteSheetTariffRepository {
-  constructor(pool) {
+  async findPublishedById(routeSheetId, cooperativeId) {
+    const { rows } = await this.pool.query(
+      `SELECT id, cooperative_id, bus_group_id,
+      tariff_frozen, tariff_frozen_revision, tariff_frozen_at
+      FROM route_sheets WHERE id = $1 AND cooperative_id = $2
+      AND status = 'PUBLISHED' AND tariff_frozen IS NOT NULL`,
+      [routeSheetId, cooperativeId],
+    );
+    return rows[0] ?? null;
+  }
+
+  constructor(pool, { frequencySessionFactory } = {}) {
     super();
     this.pool = pool;
+    this.frequencySessionFactory = frequencySessionFactory;
   }
 
   async withLockedSheet({ routeSheetId, cooperativeId, modifiedBy }, operation) {
@@ -43,10 +56,24 @@ class PgRouteSheetTariffRepository extends RouteSheetTariffRepository {
         );
         return toResult(updated.rows[0]);
       };
+      const freeze = async (tariff) => {
+        const { rows: published } = await client.query(
+          `UPDATE route_sheets SET
+          status = 'PUBLISHED', published_by = $1, published_at = CURRENT_TIMESTAMP,
+          updated_at = CURRENT_TIMESTAMP, tariff_frozen = $2::jsonb,
+          tariff_frozen_revision = tariff_revision, tariff_frozen_at = CURRENT_TIMESTAMP,
+          tariff_frozen_by = $1 WHERE id = $3 AND cooperative_id = $4 RETURNING *`,
+          [modifiedBy, JSON.stringify(tariff), routeSheetId, cooperativeId],
+        );
+        return toRouteSheet(published[0]);
+      };
       const result = await operation({
         sheet,
         frequencyIds: assignments.rows.map(({ frequency_id }) => frequency_id),
         save,
+        freeze,
+        toEntity: toRouteSheet,
+        frequencyQueryPort: this.frequencySessionFactory?.(client),
       });
       await client.query('COMMIT');
       return result;

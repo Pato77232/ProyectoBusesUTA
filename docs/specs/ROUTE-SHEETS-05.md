@@ -3,18 +3,18 @@
 - **Referencia de planificación:** D-02; referencia local, sin ticket externo.
 - **Responsable:** David, conforme a distribución y tarea seleccionada por el solicitante.
 - **Módulo:** route-sheets; FrequencyQueries como fuente de recorrido y Bookings como consumidor de política comercial.
-- **Estado:** En desarrollo; reglas de sección 1 confirmadas por el solicitante e implementación local autorizada. Sección 0 guardada en 7519854; sección 1 sin commit/revisión humana; sección 2 pendiente de autorización y contrato de lectura con Leslie.
+- **Estado:** En desarrollo; sección 0 guardada en 7519854 y sección 1 en 4875147 por el humano. Sección 2 solicitada e implementada localmente; sin commit, revisión humana ni integración comprobados.
 - **Fecha:** 1 de noviembre de 2026, America/Guayaquil.
 - **Rama/base local:** feature/tarifario-hojas-ruta-spec, 8886553, árbol inicialmente limpio. PR #38 integra programación multifrecuencia. No se actualizó remoto en esta sesión.
 - **ID:** ROUTE-SHEETS-05 libre entre specs examinadas; no es un ticket externo ni sustituye D-02 en el cronograma.
 - **Revisor humano:** Leslie propuesta; aceptación de revisión de esta tarea pendiente. Edwin participa cuando se conecte la categoría real del asiento. No se les atribuye aprobación de las propuestas nuevas.
-- **Autorización:** sección 0 documental solicitada y guardada por el humano; después solicitó implementar sección 1 y confirmó las tres consultas de reglas (ver §10). No autorizó ejecutar commits ni implementar sección 2.
+- **Autorización:** reglas y sección 1 confirmadas en §10; posteriormente solicitó sección 2 y confirmó expresamente las firmas de lectura de §13. No pidió ejecutar commits ni publicar cambios.
 
 ## 1. Objetivo y fuentes
 
 Permitir al administrador configurar tarifas explícitas para cada combinación válida de recorrido y una política de VIP/beneficios para la hoja. Publicar la hoja debe conservar una copia comercial que no cambie por editar otras configuraciones. Evitar que reserva o pago tomen como autoridad precios del navegador.
 
-Fuentes: [business-rules.md](../business-rules.md), [acuerdos §2](../acuerdos-primera-entrega.md), FREQ-01, ROUTE-SHEETS-01/04, BOOK-05, arquitectura, convenciones y calidad. Reglas RN-02, RN-20, RN-22, RN-30 y RN-43. La confirmación humana posterior de §10 resuelve límites, mayor beneficio y congelación al publicar; esta última se implementará en sección 2, no en sección 1.
+Fuentes: [business-rules.md](../business-rules.md), [acuerdos §2](../acuerdos-primera-entrega.md), FREQ-01, ROUTE-SHEETS-01/04, BOOK-05, arquitectura, convenciones y calidad. Reglas RN-02, RN-20, RN-22, RN-30 y RN-43. La confirmación humana posterior de §10 resuelve límites, mayor beneficio y congelación al publicar; esta última se implementa localmente en sección 2, cuya evidencia está en §13.
 
 ## 2. Qué está confirmado y qué depende de otros
 
@@ -54,7 +54,7 @@ El contrato de configuración de sección 1 queda definido por implementación y
 5. Publicar/reintentar no genera dos políticas ni cambia la versión de una publicación existente. Actualizar otra hoja/frecuencia no altera la copia establecida.
 6. API pública de solo lectura para Bookings/Viajes devuelve únicamente el snapshot autorizado de hoja publicada y el precio del par solicitado. No fallback al precio consecutivo histórico, cero o borrador cuando falte una tarifa.
 
-La publicación como instante de congelación fue confirmada por el solicitante en §10. Sección 1 rechaza editar hojas publicadas, pero la publicación actual todavía no crea el snapshot congelado; esa transición corresponde a sección 2 y requiere sus pruebas propias.
+La publicación como instante de congelación fue confirmada en §10 e implementada localmente en sección 2 (§13); la evidencia histórica de sección 1 no certifica por sí sola esta transición.
 
 ## 5. Fronteras y alcance
 
@@ -70,7 +70,7 @@ API entre módulos solo por index.js y puertos del consumidor. Application no de
 |---|---|---|
 | Configurar/reemplazar borrador | PUT /api/v1/route-sheets/:id/tariff | Implementado localmente: COOPERATIVE_ADMIN, CSRF, tenant autenticado, expectedRevision, matriz y política explícitas; salida 200 con revisión persistida |
 | Publicar hoja existente | Ruta de publicación ya existente, sin crear otra | Conservar contrato HTTP acordado; añadir congelación atómica después de resolver §10 |
-| Leer snapshot para otro módulo | routeSheets.tariffQueries, firma por cerrar con Leslie | Solo lectura autorizada, no endpoint público de matrices internas; ausencia distinta de error técnico |
+| Leer snapshot para otro módulo | routeSheets.tariffQueries, firmas confirmadas por el solicitante en §13 | Solo lectura autorizada, no endpoint público de matrices internas; ausencia distinta de error técnico |
 
 Errores a concretar en código: entrada/matriz/política inválida (400), hoja ajena/no encontrada según convención del módulo, estado/revisión desactualizada o cobertura comercial incompleta (409). Proveedor fallido no equivale a lista vacía ni a tarifa gratuita. No fijar en la spec una firma no acordada con el consumidor como si ya estuviera aceptada.
 
@@ -81,8 +81,8 @@ Cada sección incluye toda su evidencia y, cuando corresponda, código y pruebas
 | Sección | Resultado y alcance | Commit único sugerido | Estado |
 |---|---|---|---|
 | **0 — Especificación y dependencias** | Esta spec, brechas comprobadas, propuestas/pendientes, criterios y actualización del registro | `docs(hojas-ruta): define el tarifario congelado por hoja` | Guardada por el humano en 7519854 |
-| **1 — Configurar tarifario de borrador** | Un caso de uso/endpoint PUT: matriz y política explícitas, validación de dominio, persistencia mediante migración nueva, revisión esperada y aislamiento. Pruebas unitarias y PostgreSQL/HTTP del mismo comportamiento | `feat(hojas-ruta): configura el tarifario de una hoja en borrador` | Implementada localmente; sin commit ni revisión humana |
-| **2 — Congelar al publicar y exponer lectura** | Extender el único caso de publicación existente con copia atómica, protección ante cambios concurrentes y consulta pública de snapshot/precio. Pruebas de conservación, rollback e idempotencia | `feat(hojas-ruta): congela el tarifario al publicar la hoja` | Depende de sección 1, decisión de publicación y contrato de lectura con Leslie |
+| **1 — Configurar tarifario de borrador** | Un caso de uso/endpoint PUT: matriz y política explícitas, validación de dominio, persistencia mediante migración nueva, revisión esperada y aislamiento. Pruebas unitarias y PostgreSQL/HTTP del mismo comportamiento | `feat(hojas-ruta): configura el tarifario de una hoja en borrador` | Guardada en 4875147; revisión humana pendiente |
+| **2 — Congelar al publicar y exponer lectura** | Extender el único caso de publicación existente con copia atómica, protección ante cambios concurrentes y consulta pública de snapshot/precio. Pruebas de conservación, rollback e idempotencia | `feat(hojas-ruta): congela el tarifario al publicar la hoja` | Implementada localmente, contrato confirmado por solicitante; sin commit ni integración |
 
 La sección 1 no es un módulo completo ni una pantalla. Si al resolver el esquema se detecta que requiere más de un comportamiento independiente, presentar una división antes de implementarla, conservando un commit por sección acordada. No dejar pruebas para un commit posterior.
 
@@ -93,10 +93,10 @@ La sección 1 no es un módulo completo ni una pantalla. Si al resolver el esque
 - [x] El recorrido autorizado proviene de Frecuencias; no se acepta cooperativa/recorrido del navegador como autoridad.
 - [x] Configurar solo modifica la hoja borrador indicada; rechaza hoja publicada o edición concurrente sin revisión vigente.
 - [x] Porcentajes cumplen unidad/límites aprobados, sin defaults silenciosos, y el contrato permite VIP antes del beneficio en Bookings. Cálculo final pendiente de L-01.
-- [ ] Publicar produce hoja y copia comercial coherentes en una transacción; fallo revierte ambas operaciones.
-- [ ] Cambiar configuración de otra hoja o fuente posterior no altera la copia ya publicada.
-- [ ] Leer par inexistente o snapshot no publicado no devuelve cero ni suma de tramos como fallback.
-- [x] PUT de configuración protege autenticación, rol, CSRF y aislamiento. Consulta interna de sección 2 todavía pendiente.
+- [x] Publicar produce hoja y copia comercial coherentes en una transacción; fallo revierte ambas operaciones.
+- [x] Cambiar configuración de otra hoja o fuente posterior no altera la copia ya publicada.
+- [x] Leer par inexistente o snapshot no publicado no devuelve cero ni suma de tramos como fallback.
+- [x] PUT de configuración protege autenticación, rol, CSRF y aislamiento. Consulta de sección 2 aislada por cooperativa verificada por el consumidor; no autentica peticiones HTTP por sí sola.
 - [ ] No modificar pruebas antiguas para hacerlas pasar ni presentar una política propuesta como aprobada.
 
 ## 9. Verificación, calidad y usabilidad
@@ -116,9 +116,9 @@ El solicitante respondió expresamente a las tres preguntas presentadas: «Confi
 3. **Porcentajes:** de 0 a 100 % tanto para descuentos como recargo VIP, hasta dos decimales porcentuales; almacenamiento/intercambio en puntos básicos enteros (1 % = 100), cero solo explícito. Límites del proyecto académico, sin certificación legal implícita.
 4. **Renovación:** copiar versión anterior a un borrador editable y congelar nueva versión al confirmar la nueva hoja; mantener intactas hojas ya publicadas. Renovación/copia efectiva sigue en tarea correspondiente.
 5. **Importes/compatibilidad:** conservar máximo técnico USD 99 999 999,99 y exigir captura explícita de matriz completa, sin derivar combinaciones ni alterar precios de la frecuencia original.
-6. **Contrato de Leslie, aún pendiente antes de sección 2:** acordar firma pública de lectura, ausencia/error y versionado. Bookings determina elegibilidad, obtiene categoría real y calcula total. No se cambió su código/pruebas.
+6. **Contrato de lectura:** el solicitante confirmó posteriormente las firmas de §13, con null para ausencia y propagación de fallos técnicos. Bookings conserva elegibilidad y cálculo; no se cambió su código/pruebas ni se atribuye una respuesta individual nueva de Leslie.
 
-Puntos 1–5 resueltos para sección 1; no se requiere esperar implementación de Leslie/Edwin. Punto 6 y autorización de sección 2 siguen pendientes.
+Puntos 1–6 y autorización de sección 2 confirmados por el solicitante; revisión humana de código e integración real con Bookings siguen pendientes.
 
 ## 11. Evidencia de sección 0 y siguiente paso
 
@@ -143,3 +143,35 @@ Errores: ROUTE_TARIFF_INVALID 400, ROUTE_SHEET_NOT_FOUND 404 (también hoja ajen
 Lint aprobado; formato individual de los archivos cambiados aprobado, global fallido en 42 archivos previos ajenos. npm test: **993 pruebas aprobadas, 60 suites aprobadas/1 fallida** por busboy ausente en Fleet, sin alcanzar integración. Integración invocada por separado: **165 pruebas aprobadas/1 fallida, 14 suites aprobadas/8 fallidas**; siete suites no cargan por busboy y una supera el timeout existente de fotografías. No se redujeron expectativas ni se cambió el timeout.
 
 El entorno usa Node 22.19.0 (el proyecto declara Node 24), PostgreSQL 16.13 aislado en proyecto busesuta-tariff-s1, Compose con --env-file NUL y credenciales ficticias versionadas; recursos retirados al terminar. Arranque de server.js intentado con configuración de pruebas: no llega a iniciar porque Fleet requiere busboy ausente en node_modules. No se le atribuye al tarifario ni se presenta el servidor completo como verificado. Sin .env de desarrollo, instalación de dependencias ni commit. Diff revisado y sin errores de espacios; SOLID comprobado localmente: domain sin adaptadores/Express/pg, application solo puertos/dominio, controlador solo traducción y repositorio dueño de transacción del módulo. Revisión humana, entorno Node 24/dependencias completas y sección 2 pendientes.
+
+## 13. Sección 2: congelación y contrato de consulta
+
+La evidencia de §12 es histórica de sección 1. Base de esta sección: 4875147, rama feature/tarifario-hojas-ruta-spec inicialmente limpia. El solicitante pidió implementar sección 2 y respondió «Confirmo el contrato propuesto» a las dos firmas siguientes. Se registra su confirmación real; no una respuesta individual nueva de Leslie ni aprobación de código. Sin commits, publicación ni integración ejecutados por el asistente.
+
+### Publicación atómica y compatibilidad
+
+Se conserva POST /api/v1/route-sheets/:id/publish y su respuesta `{ routeSheet }`. Se admite `expectedRevision` entero positivo opcional: si se envía debe coincidir con revisión vigente o congelada en un reintento; si se omite se toma la revisión actual bajo bloqueo, conservando la forma previa de la petición. Para pantallas que mostraron una revisión concreta, enviar ese valor para no confirmar una edición posterior inadvertida. No se permite suplir tarifa ausente ni reconstruir un snapshot histórico automáticamente.
+
+Con hoja DRAFT bloqueada FOR UPDATE, se comprueban revisión, matriz completa, asignaciones actuales, política y recorrido autorizado; una parada/recorrido diferente exige reconfigurar, no reinterpretar índices de una tarifa antigua. Estado PUBLISHED, publishedBy/At y snapshot/versionado congelados se escriben en un único UPDATE dentro de la transacción. Error antes de commit revierte ambos. Reintento de hoja publicada con snapshot válido devuelve el mismo estado, actor, fecha y revisión, sin consultar fuentes mutables ni generar otra copia. Hoja histórica publicada sin snapshot responde ROUTE_TARIFF_FROZEN_MISSING (409), no toma el borrador actual como historia de una venta.
+
+Migration nueva 1793570001000 añade tariff_frozen JSONB, tariff_frozen_revision, tariff_frozen_at y tariff_frozen_by. No edita migraciones anteriores ni rellena tarifas inventadas. Restricción asegura metadatos completos y estado publicado al existir snapshot; trigger impide alterar/borrar sus campos después de congelarlo. Borrador y copia son independientes: cambios de otra hoja/fuente no afectan a la publicada. Una reversión de migración elimina expresamente trigger/función/columnas en su down.
+
+Frecuencias amplía su API pública con `frequencyQueries.forTransaction(executor)`, llamada exclusivamente desde infraestructura/composición. La sesión obtiene recorrido mediante repositorio de Frecuencias y bloquea la frecuencia FOR SHARE en la misma transacción; no hay SQL de otro módulo en Route Sheets. Esto impide una desactivación concurrente entre validación y commit. La inmutabilidad previa de paradas de FREQ-01 sigue vigente. Domain/application reciben solo datos y el puerto, nunca pg ni ejecutor. Detalle y alternativas: [ADR 0005](../adr/0005-lecturas-publicas-en-transaccion.md), propuesta técnica aplicada localmente y pendiente de revisión humana.
+
+### Consulta confirmada
+
+- `routeSheets.tariffQueries.findPublishedByRouteSheetId(routeSheetId, cooperativeId)` devuelve `{ routeSheetId, cooperativeId, busGroupId, revision, publishedAt, tariff }` inmutable. tariff incluye versión de esquema, USD, política y matriz/recorrido copiados.
+- `routeSheets.tariffQueries.findPrice({ routeSheetId, cooperativeId, frequencyId, fromPosition, toPosition })` devuelve contexto de hoja/grupo/frecuencia, posiciones, revisión, USD, amountCents y política congelada; no calcula elegibilidad ni total final del pasajero.
+- Cooperativa procede del contexto verificado de la aplicación consumidora, nunca del body del comprador como autoridad. La consulta filtra por hoja/tenant/estado PUBLISHED y snapshot existente. No es una autenticación HTTP autónoma ni una consulta global de matrices entre cooperativas.
+- Null significa que no existe una copia publicada autorizada o el par/frecuencia no está en ella. Posiciones/UUID inválidos generan error de dominio; conexión fallida o snapshot corrupto propagan error, nunca null, cero o suma de tramos como fallback. Un snapshot completo se restaura/valida a partir de sus propios datos, sin depender de precios actuales de Frecuencias.
+- No se agregó endpoint HTTP de matrices ni se cambió Bookings. La integración de Leslie/L-01 y viajes debe usar esta API y validar identidad del viaje, categoría de asiento y acreditación. Función disponible en rama no equivale a compra productiva conectada.
+
+### Pruebas y límites de revisión
+
+29 unitarias nuevas del flujo de publicación/lectura y 14 integraciones nuevas aprobadas. Junto a sección 1: 82 unitarias dirigidas y 28 integraciones de tarifario/publicación. Fixtures con autenticación/cookies/CSRF reales, PostgreSQL aislado y consulta pública real de Frecuencias; sin inventario de asientos simulado como producción. Se cubren cobertura/recorrido modificados, revisión desactualizada, dos publicaciones simultáneas idempotentes, carrera PUT/publicación, rollback tras congelar, inmutabilidad SQL y bloqueo de desactivación de frecuencia hasta cerrar publicación.
+
+Lint y formato de archivos cambiados aprobados; formato global falla en 41 archivos previos ajenos al incremento (controlador modificado formateado). npm test sigue fallido: busboy ausente en Fleet y dos pruebas históricas de publish-route-sheet.use-case.test.js que inyectan el puerto anterior; una esperaba publicar sin tarifa. Repetición unitaria final: 1020 aprobadas/2 fallidas, 60 suites aprobadas/2 fallidas. Se conservaron sin modificar/debilitar y no se agregó fallback de publicación sin tarifa para satisfacerlas. Requieren revisión y adaptación autorizada a las nuevas reglas/puerto antes de integrar; no son defectos inducidos. Comprobación final dirigida de secciones 1/2: 110 pruebas aprobadas en cinco suites.
+
+Integración independiente ejecutada en PostgreSQL efímero busesuta-tariff-s2 con --env-file NUL y credenciales ficticias: 15 suites aprobadas/8 fallidas, 179 pruebas aprobadas/1 fallida; siete suites no cargan por busboy y una supera timeout de fotografías existente (20 s). Arranque real de server.js intentado, bloqueado por busboy ausente al cargar Fleet. Node local 22.19.0 frente a engine 24 requerido; no se certifica el arranque completo ni ese entorno requerido. Sin instalación/actualización de dependencias ni cambios a timeouts/pruebas previas. Recursos de prueba retirados al terminar; revisión de diff y evidencia final al cerrar.
+
+Próxima acción: revisión humana, resolver incompatibilidad de pruebas antiguas y entorno Node/dependencias antes de integrar. Secciones 0–2 preparadas/implementadas no equivalen a compra completa ni autorización automática para nuevas tareas de viajes/reservas. Un único commit lógico sugerido para sección 2: `feat(hojas-ruta): congela el tarifario al publicar la hoja`.
