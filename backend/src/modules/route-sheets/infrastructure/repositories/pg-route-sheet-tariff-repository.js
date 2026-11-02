@@ -1,6 +1,9 @@
 const RouteSheetTariffRepository = require('../../domain/ports/route-sheet-tariff-repository');
 const { TariffNotFoundError } = require('../../domain/errors/route-tariff-errors');
 const { toRouteSheet } = require('../mappers/route-sheet-mapper');
+const lockProgrammingWrites = require('../programming-write-lock');
+const { readProgramming } = require('./programming-records');
+const { findCommitments } = require('./pg-route-sheet-programming-repository');
 
 function toResult(row) {
   return {
@@ -36,8 +39,9 @@ class PgRouteSheetTariffRepository extends RouteSheetTariffRepository {
     const client = await this.pool.connect();
     try {
       await client.query('BEGIN');
+      await lockProgrammingWrites(client);
       const { rows } = await client.query(
-        'SELECT * FROM route_sheets WHERE id = $1 AND cooperative_id = $2 FOR UPDATE',
+        "SELECT *,to_char(route_date,'YYYY-MM-DD') AS programming_route_date FROM route_sheets WHERE id = $1 AND cooperative_id = $2 FOR UPDATE",
         [routeSheetId, cooperativeId],
       );
       const sheet = rows[0];
@@ -74,6 +78,11 @@ class PgRouteSheetTariffRepository extends RouteSheetTariffRepository {
         freeze,
         toEntity: toRouteSheet,
         frequencyQueryPort: this.frequencySessionFactory?.(client),
+        programmingSession: async () => ({
+          record: await readProgramming(client, routeSheetId, cooperativeId),
+          findCommitments: (candidate) =>
+            findCommitments(client, { routeSheetId, cooperativeId }, candidate),
+        }),
       });
       await client.query('COMMIT');
       return result;

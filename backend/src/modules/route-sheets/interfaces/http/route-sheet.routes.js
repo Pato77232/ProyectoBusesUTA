@@ -1,12 +1,25 @@
 const express = require('express');
 const createRouteSheetController = require('./route-sheet.controller');
 const configureTariffController = require('./configure-route-sheet-tariff.controller');
+const createProgrammingController = require('./route-sheet-programming.controller');
 
 function createRouter({ auth, ...useCases }) {
   const router = express.Router();
   const controller = createRouteSheetController(useCases);
+  const programming = createProgrammingController({
+    saveProgramming: useCases.saveProgrammingUseCase,
+    getProgramming: useCases.getProgrammingUseCase,
+    assertLegacyOperation: useCases.assertLegacyProgrammingOperation,
+  });
 
   router.use(auth.authenticate);
+  router.put(
+    '/:id/programming',
+    auth.authorize('COOPERATIVE_ADMIN'),
+    auth.csrfProtection,
+    programming.save,
+  );
+  router.get('/:id/programming', auth.authorize('COOPERATIVE_ADMIN'), programming.get);
   router.put(
     '/:id/tariff',
     auth.authorize('COOPERATIVE_ADMIN'),
@@ -23,24 +36,28 @@ function createRouter({ auth, ...useCases }) {
     '/:id/assignments',
     auth.authorize('COOPERATIVE_ADMIN'),
     auth.csrfProtection,
+    programming.guardLegacy,
     controller.addAssignment,
   );
   router.delete(
     '/:id/assignments/:assignmentId',
     auth.authorize('COOPERATIVE_ADMIN'),
     auth.csrfProtection,
+    programming.guardLegacy,
     controller.removeAssignment,
   );
   router.post(
     '/:id/rest-days',
     auth.authorize('COOPERATIVE_ADMIN'),
     auth.csrfProtection,
+    programming.guardLegacy,
     controller.addRestDay,
   );
   router.delete(
     '/:id/rest-days/:restDayId',
     auth.authorize('COOPERATIVE_ADMIN'),
     auth.csrfProtection,
+    programming.guardLegacy,
     controller.removeRestDay,
   );
 
@@ -54,6 +71,7 @@ function createRouter({ auth, ...useCases }) {
     '/:id/generate-cycles',
     auth.authorize('COOPERATIVE_ADMIN'),
     auth.csrfProtection,
+    programming.guardLegacy,
     controller.generateCycles,
   );
   router.get('/:id/modification-logs', auth.authorize('COOPERATIVE_ADMIN'), controller.getLogs);

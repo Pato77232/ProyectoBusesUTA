@@ -5,6 +5,7 @@ const {
   createDraftTariff,
 } = require('../../../../src/modules/route-sheets/domain/value-objects/draft-tariff');
 const RouteSheet = require('../../../../src/modules/route-sheets/domain/entities/route-sheet');
+const { programmingSessionFixture } = require('../../../helpers/single-frequency-programming');
 
 const id = '10000000-0000-4000-8000-000000000001';
 const otherId = '20000000-0000-4000-8000-000000000002';
@@ -37,6 +38,7 @@ function fixture() {
     tariff_draft: draft(),
     tariff_frozen: null,
     tariff_frozen_revision: null,
+    programming_route_date: '2026-11-02',
   };
   const entity = new RouteSheet({
     id,
@@ -53,14 +55,29 @@ function fixture() {
       origin: 'Ambato',
       destination: 'Quito',
       stops: [],
+      departureTime: '07:00',
+      antResolutionNumber: 'ANT-FICTICIA',
     })),
   };
   const freeze = jest.fn(async () => entity);
   const frequencyIds = [id];
   const toEntity = jest.fn(() => entity);
+  const session = programmingSessionFixture({
+    busId: id,
+    frequencyId: id,
+    cooperativeId: id,
+    busGroupId: id,
+  });
   const tariffRepository = {
     withLockedSheet: jest.fn(async (_context, operation) =>
-      operation({ sheet, frequencyIds, frequencyQueryPort, freeze, toEntity }),
+      operation({
+        sheet,
+        frequencyIds,
+        frequencyQueryPort,
+        freeze,
+        toEntity,
+        programmingSession: async () => session,
+      }),
     ),
   };
   return {
@@ -70,7 +87,7 @@ function fixture() {
     freeze,
     toEntity,
     tariffRepository,
-    publish: publishFactory({ tariffRepository }),
+    publish: publishFactory({ tariffRepository, busQueryPort: session.busQueryPort }),
   };
 }
 

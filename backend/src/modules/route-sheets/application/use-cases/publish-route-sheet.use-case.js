@@ -7,6 +7,10 @@ const {
   TariffSourceError,
 } = require('../../domain/errors/route-tariff-errors');
 const validateTariffForPublication = require('../services/validate-tariff-for-publication');
+const {
+  validateProgrammingForPublication,
+  assertProgrammingRevision,
+} = require('../services/validate-programming-for-publication');
 
 function assertRevision(value, current) {
   if (value === undefined) return;
@@ -19,8 +23,18 @@ function assertRevision(value, current) {
     );
 }
 
-function publishRouteSheetUseCase({ tariffRepository }) {
-  return async ({ routeSheetId, cooperativeId, publishedBy, expectedRevision }) => {
+function publishRouteSheetUseCase({
+  tariffRepository,
+  busQueryPort,
+  now = () => new Date().toISOString(),
+}) {
+  return async ({
+    routeSheetId,
+    cooperativeId,
+    publishedBy,
+    expectedRevision,
+    expectedProgrammingRevision,
+  }) => {
     if (!tariffRepository) throw new TariffSourceError();
     const context = {
       routeSheetId: assertUuid(routeSheetId),
@@ -29,7 +43,7 @@ function publishRouteSheetUseCase({ tariffRepository }) {
     };
     return tariffRepository.withLockedSheet(
       context,
-      async ({ sheet, frequencyIds, frequencyQueryPort, freeze, toEntity }) => {
+      async ({ sheet, frequencyIds, frequencyQueryPort, freeze, toEntity, programmingSession }) => {
         if (sheet.status === 'PUBLISHED') {
           if (!sheet.tariff_frozen)
             throw new TariffConflictError(
@@ -38,6 +52,10 @@ function publishRouteSheetUseCase({ tariffRepository }) {
             );
           assertRevision(expectedRevision, sheet.tariff_frozen_revision);
           restoreTariffSnapshot(sheet.tariff_frozen, sheet.tariff_frozen_revision);
+          if (expectedProgrammingRevision !== undefined) {
+            const session = await programmingSession?.();
+            assertProgrammingRevision(expectedProgrammingRevision, session?.record?.revision ?? 0);
+          }
           return RouteSheetDTO.fromEntity(toEntity(sheet), [], []);
         }
         if (sheet.status !== 'DRAFT')
@@ -50,6 +68,15 @@ function publishRouteSheetUseCase({ tariffRepository }) {
           sheet,
           frequencyIds,
           frequencyQueryPort,
+        });
+        await validateProgrammingForPublication({
+          programmingSession,
+          busQueryPort,
+          sheet: { ...sheet, routeDate: sheet.programming_route_date },
+          cooperativeId: context.cooperativeId,
+          expectedProgrammingRevision,
+          frequencyQueryPort,
+          now: now(),
         });
         const saved = await freeze(snapshot);
         return RouteSheetDTO.fromEntity(saved, [], []);

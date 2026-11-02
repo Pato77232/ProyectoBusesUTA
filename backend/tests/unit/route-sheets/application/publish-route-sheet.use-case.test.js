@@ -7,6 +7,7 @@ const {
   parseTariffRequest,
 } = require('../../../../src/modules/route-sheets/domain/value-objects/draft-tariff');
 const RouteSheet = require('../../../../src/modules/route-sheets/domain/entities/route-sheet');
+const { programmingSessionFixture } = require('../../../helpers/single-frequency-programming');
 
 const routeSheetId = '10000000-0000-4000-8000-000000000001';
 const cooperativeId = '20000000-0000-4000-8000-000000000002';
@@ -50,8 +51,17 @@ describe('PublishRouteSheet use case', () => {
         origin: 'Ambato',
         destination: 'Quito',
         stops: [],
+        departureTime: '07:00',
+        antResolutionNumber: 'ANT-FICTICIA',
       }),
     };
+    const session = programmingSessionFixture({
+      busId: busGroupId,
+      frequencyId,
+      cooperativeId,
+      busGroupId,
+      date: '2026-10-25',
+    });
     const tariffRepository = {
       withLockedSheet: jest.fn(async (_context, operation) =>
         operation({
@@ -60,14 +70,20 @@ describe('PublishRouteSheet use case', () => {
             cooperative_id: cooperativeId,
             tariff_revision: 1,
             tariff_draft: tariff,
+            bus_group_id: busGroupId,
+            programming_route_date: '2026-10-25',
           },
           frequencyIds: [frequencyId],
           frequencyQueryPort,
           freeze,
+          programmingSession: async () => session,
         }),
       ),
     };
-    const useCase = publishRouteSheetUseCase({ tariffRepository });
+    const useCase = publishRouteSheetUseCase({
+      tariffRepository,
+      busQueryPort: session.busQueryPort,
+    });
 
     const result = await useCase({ ...context, expectedRevision: 1 });
 
