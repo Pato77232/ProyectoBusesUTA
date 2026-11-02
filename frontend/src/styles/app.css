@@ -17,6 +17,8 @@
   --color-border: #e8e8e8;
   --color-surface: #f8f9fa;
   --color-accent-surface: #f1edff;
+  --color-error: #b3261e;
+  --color-error-surface: #fdecea;
   --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
   --radius-card: 12px;
   --radius-panel: 20px;
@@ -180,6 +182,9 @@ p {
   --bs-btn-color: #fff;
   --bs-btn-hover-color: #fff;
   --bs-btn-active-color: #fff;
+  --bs-btn-disabled-bg: #202020;
+  --bs-btn-disabled-border-color: #202020;
+  --bs-btn-disabled-color: #fff;
   display: inline-flex;
   gap: 20px;
   align-items: center;
@@ -338,10 +343,103 @@ p {
   display: inline-block;
   padding-block: 12px;
 }
+/* FLEET-05: formularios de operación. */
+.form-page {
+  max-width: 760px;
+  padding-block: 48px 80px;
+}
+.form-page h1 {
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+.form-page-intro {
+  margin-bottom: 32px;
+}
+.form-sections {
+  display: grid;
+  gap: 24px;
+  justify-items: start;
+  min-width: 0;
+}
+.form-card {
+  width: 100%;
+  min-width: 0;
+  padding: 28px;
+  background: var(--color-canvas);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+}
+.form-card h2 {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+}
+.form-control,
+.form-select {
+  border-color: var(--color-muted);
+}
+.form-control[aria-invalid='true'],
+.form-select[aria-invalid='true'] {
+  border-color: var(--color-error);
+}
+.field-hint,
+.field-error {
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+}
+.field-error {
+  color: var(--color-error);
+  font-weight: 600;
+}
+.form-status {
+  margin-bottom: 24px;
+  padding: 16px;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-muted);
+  border-radius: var(--radius-card);
+}
+.form-status[data-tone='error'] {
+  background: var(--color-error-surface);
+  border-color: var(--color-error);
+}
+.seat-section {
+  margin-top: 24px;
+}
+.seat-deck {
+  margin-top: 16px;
+}
+.seat-deck legend {
+  font-size: 1rem;
+  font-weight: 650;
+}
+.seat-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 8px;
+}
+.seat-option {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 12px;
+  border: 1px solid var(--color-muted);
+  border-radius: var(--radius-card);
+  cursor: pointer;
+}
+.photo-list {
+  margin: 12px 0 0;
+  padding-left: 20px;
+  overflow-wrap: anywhere;
+}
 
 @media (max-width: 575.98px) {
   .container {
     padding-inline: 24px;
+  }
+  .form-card {
+    padding: 20px;
   }
   .site-header {
     padding-block: 20px;
