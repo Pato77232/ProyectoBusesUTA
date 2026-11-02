@@ -1,5 +1,11 @@
 # Estado compartido del proyecto
 
+## ROUTE-SHEETS-05 — adaptación de pruebas de publicación, 2 de noviembre de 2026
+
+Rama `feature/ROUTE-SHEETS-05-corrige-pruebas-publicacion`, base comprobada `7ef2f25`, inicialmente limpia; contiene tarifario integrado en `1fb0ade`/PR #39. Tras el reporte humano de Pablo, David autorizó adaptar las dos pruebas antiguas al puerto transaccional vigente. Se conserva publicación con tarifa y error de hoja inexistente (404), añadiendo comprobaciones de contexto, frecuencia y congelación. Sin cambios de producción, migraciones, dependencias o D-03. Sin commit/PR nuevos ni revisión humana inferidos; no se inspeccionó remotamente PR #42.
+
+31 pruebas dirigidas aprobadas; lint y formato del archivo cambiado aprobados. Repetición unitaria con acceso HTTP local permitido: 1022 pruebas aprobadas, 61 suites aprobadas/una fallida al cargar por busboy ausente. Formato global pendiente en 41 archivos previos, cuatro de ellos migraciones preservadas. Node local 22.19.0 frente a engine 24. Integración aislada: 179 aprobadas/una fallida; 15 suites aprobadas/8 fallidas (siete por busboy ausente y una por timeout de fotos). Recursos temporales de busesuta-publish-fix retirados, diff revisado/comprobado. Evidencia y alcance en [spec](specs/ROUTE-SHEETS-05.md); los pendientes históricos inferiores no sustituyen esta comprobación. Corrección local lista para revisión, sin afirmar suite global verde ni integración nueva.
+
 ## ROUTE-SHEETS-05 sección 2 — congelación y consulta locales
 
 Rama feature/tarifario-hojas-ruta-spec sobre 4875147 (sección 1 guardada por el humano), inicialmente limpia. El solicitante pidió sección 2 y confirmó el contrato findPublishedByRouteSheetId/findPrice; sin atribuir respuesta individual nueva de Leslie. Publicación valida tarifa/asignaciones/recorrido, bloquea hoja y frecuencias por APIs públicas y congela copia/versionado/estado en una transacción. Reintentos idempotentes; lectura aislada e inmutable, null para ausencia y propagación de errores, sin precio cero ni suma de tramos como fallback. Migración nueva protege copia congelada; [ADR 0005](adr/0005-lecturas-publicas-en-transaccion.md) registra la sesión pública transaccional aplicada localmente, pendiente de revisión.
