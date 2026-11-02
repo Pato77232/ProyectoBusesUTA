@@ -1,5 +1,7 @@
 # ROUTE-SHEETS-06: Programación multifrecuencia persistida
 
+> Continuación D-04: [ROUTE-SHEETS-07](ROUTE-SHEETS-07.md), sección 0 preparada el 2 de noviembre de 2026 sobre 1dcbd6d/PR #48. Viajes comerciales, copia de inventario y contratos de embarque siguen como propuestas pendientes; no son funcionalidad implementada por D-03.
+
 - **Referencia de planificación:** D-03; ID local, sin ticket externo.
 - **Responsable:** David, por tarea seleccionada y petición expresa del solicitante.
 - **Estado:** En desarrollo; sección 0 guardada en 2890d2b y sección 1 en ec9556e por el humano; sección 2 implementada y verificada localmente, pendiente de revisión humana, commit e integración.

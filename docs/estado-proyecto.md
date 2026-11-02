@@ -1,5 +1,11 @@
 # Estado compartido del proyecto
 
+## D-04 — sección 0 documental, 2 de noviembre de 2026
+
+En `feature/ROUTE-SHEETS-07-viajes-comercializables`, inicialmente limpia sobre 1dcbd6d, David solicitó sección 0. Esa historia integra D-03/PR #48; no se confunde con una implementación de Viajes. [ROUTE-SHEETS-07](specs/ROUTE-SHEETS-07.md) queda Borrador: identidad estable, captura comercial al publicar, recorrido/embarque, contratos propuestos y tres secciones/un commit por sección. Sin código, migraciones, commit/PR nuevo ni revisión humana inferida.
+
+Pendientes Q1–Q5: creación atómica de viajes, propiedad/consistencia del inventario congelado con Edwin, alcance de hojas históricas, vínculo verificable de ciclos y consulta por embarque con Leslie. Fleet entrega asientos actuales pero no versión por hoja; Bookings aún no comprueba hora del embarque elegido. No basta el ID de frecuencia ni la ventana antigua de hoy+28 días. Puede avanzar el acuerdo documental; no declarar lista la comercialización completa. Revisar §10 antes de sección 1; no atribuir respuestas nuevas a otros integrantes. Solo Markdown, sin nuevas pruebas funcionales.
+
 ## D-03 — sección 2 local, 2 de noviembre de 2026
 
 David solicitó sección 2 en `feature/programacion-multifrecuencia-persistida`, limpia sobre ec9556e (sección 1 guardada por el humano). PUT/GET de programación con administrador/CSRF/tenant verificados, lectura consistente y revisiones independientes; publicar exige programación revalidada y congela tarifa/estado en la misma transacción. Se conservan snapshots/reintentos históricos; rutas antiguas y sus carreras no eluden validación integral. Composición conectada al servidor real, sin nuevos algoritmos, migraciones o dependencias en este incremento. [Spec §14](specs/ROUTE-SHEETS-06.md#14-sección-2--api-y-publicación-integradas-localmente) contiene contrato/evidencia.
