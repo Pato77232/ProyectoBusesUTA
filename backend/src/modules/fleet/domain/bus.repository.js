@@ -23,6 +23,10 @@ class BusRepository {
   async listByBusGroup() {
     throw new Error('BusRepository.listByBusGroup debe implementarse.');
   }
+
+  async listSeats() {
+    throw new Error('BusRepository.listSeats debe implementarse.');
+  }
 }
 
 module.exports = BusRepository;

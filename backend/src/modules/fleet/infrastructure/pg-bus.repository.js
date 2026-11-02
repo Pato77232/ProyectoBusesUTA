@@ -113,6 +113,19 @@ function presentBus(row, photos) {
   };
 }
 
+function presentBusSeat(row) {
+  return {
+    seatId: row.seat_id,
+    layoutSeatKey: row.layout_seat_key,
+    label: row.label,
+    deck: row.deck,
+    row: row.row_index,
+    column: row.column_index,
+    category: row.category,
+    offered: row.offered,
+  };
+}
+
 function presentBusSummary(row) {
   return {
     id: row.id,
@@ -211,6 +224,26 @@ class PgBusRepository extends BusRepository {
       [busGroupId, cooperativeId],
     );
     return rows.map(presentBusSummary);
+  }
+
+  // LEFT JOIN: un bus sin asientos es una lista vacía, no un bus inexistente.
+  async listSeats(busId, cooperativeId) {
+    if (!isUuid(busId) || !isUuid(cooperativeId)) return null;
+    const { rows } = await this.pool.query(
+      `SELECT b.id AS bus_id, s.id AS seat_id, s.layout_seat_key, s.label, s.deck, s.row_index,
+        s.column_index, s.category, s.offered
+       FROM buses b
+       LEFT JOIN bus_seats s
+         ON s.bus_id = b.id AND s.cooperative_id = b.cooperative_id
+       WHERE b.id = $1 AND b.cooperative_id = $2
+       ORDER BY s.deck DESC, s.label`,
+      [busId, cooperativeId],
+    );
+    if (rows.length === 0) return null;
+    return {
+      busId: rows[0].bus_id,
+      seats: rows.filter((row) => row.seat_id !== null).map(presentBusSeat),
+    };
   }
 }
 

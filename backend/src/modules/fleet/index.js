@@ -11,6 +11,7 @@ const { randomUUID } = require('node:crypto');
 const logger = require('../../shared/logger');
 const createBus = require('./application/create-bus.use-case');
 const createPersistBusWithPhotos = require('./application/persist-bus-with-photos');
+const listBusSeats = require('./application/list-bus-seats.use-case');
 const PgBusRepository = require('./infrastructure/pg-bus.repository');
 const LocalBusPhotoStorage = require('./infrastructure/local-bus-photo-storage');
 const createBusRouter = require('./interfaces/bus-router');
@@ -52,6 +53,7 @@ function createFleetModule({ pool, auth, env = process.env }) {
       findByBusGroupId: (busGroupId, cooperativeId) =>
         busRepository.listByBusGroup(busGroupId, cooperativeId),
     },
+    seatQueries: { listByBus: listBusSeats({ repository: busRepository }) },
   };
 }
 
