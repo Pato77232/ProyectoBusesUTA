@@ -1,5 +1,15 @@
 # Estado compartido del proyecto
 
+## D-02 — preparación del tarifario por hoja, 1 de noviembre de 2026
+
+| Spec / responsable | Estado comprobado | Próximo paso |
+|---|---|---|
+| [ROUTE-SHEETS-05](specs/ROUTE-SHEETS-05.md) / David | Borrador funcional; sección 0 documental completada en feature/tarifario-hojas-ruta-spec sobre 8886553, inicialmente limpia. Sin código, commit, revisión humana ni PR de D-02. | Resolver decisiones de §10 con Leslie/responsable comercial; luego autorizar sección 1. Sección 2 depende de configuración persistida y contrato de lectura. No requiere esperar implementación VIP para preparar dominio. |
+
+Base local 8886553/PR #38 acredita integración de ROUTE-SHEETS-04 (D-01); no convierte su validación pura en endpoints/persistencia multifrecuencia. No se refrescó remoto en esta sesión. Secciones de D-02: 0 definición; 1 configurar tarifario de borrador; 2 congelar al publicar/exponer consulta. Un commit lógico por sección, ejecutado solo a petición humana.
+
+Brechas comprobadas: precios consecutivos en Frecuencias, sin matriz pública ni copia comercial en publicación de hoja; BOOK-05 mantiene cálculo histórico que necesita contrato nuevo. No se autoriza cambiar código de Leslie/Edwin. Diff revisado, `git diff --check` aprobado y 52 referencias locales comprobadas sin destinos inexistentes (excluidos externos/anclas); cuatro documentos existentes y una spec nueva. No lint/Jest por cambio solo Markdown. No se presenta la entrega como terminada.
+
 ## ROUTE-SHEETS-04 sección 2 — implementación local
 
 David solicitó sección 2 tras guardar sección 1 en 7be2587. Rama feature/programacion-multifrecuencia-spec inicialmente limpia. Patrón con cobertura por frecuencia/instante, agenda por bus, período explícito en días, límites de preparación/bloqueos y repetibilidad; ventana con reloj explícito, base incluida en dos ciclos, borradores excluidos de venta, límite exclusivo y renovación informativa sin renumerar historia. Cinco archivos nuevos de dominio y dos de pruebas; snapshots inmutables. Sin endpoints, persistencia, generación productiva, dependencias ni pruebas anteriores modificadas. Secciones 0–2 preparadas/implementadas; no equivalen a integración operativa de D-03/04/05.

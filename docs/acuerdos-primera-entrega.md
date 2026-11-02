@@ -29,6 +29,8 @@ Estados: **Confirmado** = respuesta humana comunicada; **Propuesto** = recomenda
 
 ## 2. Tarifas y beneficios — confirmado
 
+Plan de ejecución D-02: [ROUTE-SHEETS-05](specs/ROUTE-SHEETS-05.md), sección 0 documental preparada sobre 8886553. Las propuestas pendientes de esta sección siguen sin aprobación adicional; la nueva spec las delimita, no las convierte en decisiones humanas. Tres secciones: definición, configuración de borrador y congelación/consulta al publicar; un commit por sección si el humano lo solicita.
+
 - Frecuencia directa: tarifa origen–destino. Con paradas: precio explícito para cada combinación válida de subida y bajada en orden de recorrido. No suponer que se obtiene sumando tramos contiguos.
 - El administrador de cooperativa define importes, porcentaje de recargo VIP y porcentajes de descuento. Se conserva minoría de edad **menor de 18 años**, tercera edad desde 65 y discapacidad acreditada. Reemplaza la propuesta intermedia de menores de 12 años y el porcentaje fijo del 50 % registrado anteriormente.
 - Para un asiento VIP se aplica primero el incremento y después el descuento elegible sobre ese importe. La categoría del asiento y el beneficio del pasajero son independientes.
