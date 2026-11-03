@@ -304,3 +304,66 @@ test('puente persistido conserva bookingId opaco sin exigir UUID', async () => {
     await pool.query('DELETE FROM bookings WHERE id=$1', [id]);
   }
 });
+
+test('receptor y outbox recuperan el mismo aviso de una identidad con espacios externos', async () => {
+  const id = "  Reserva/á:01'  ";
+  // Identidad persistida externa de QA: el generador actual de altas produce UUID.
+  await pool.query(
+    `INSERT INTO bookings SELECT (jsonb_populate_record(NULL::bookings,
+    to_jsonb(b) || jsonb_build_object('id',$2::text))).* FROM bookings b WHERE id=$1`,
+    [booking.bookingId, id],
+  );
+  await pool.query(
+    `INSERT INTO booking_seat_allocations SELECT $2,cooperative_id,trip_id,seat_id,from_position,to_position,status,active FROM booking_seat_allocations WHERE booking_id=$1`,
+    [booking.bookingId, id],
+  );
+  await pool.query('DELETE FROM bookings WHERE id=$1', [booking.bookingId]);
+  booking = { ...booking, bookingId: id };
+  try {
+    // Se prueba el puerto persistido con datos QA; no la carga legada que recorta su entrada.
+    const {
+      createPaymentProof,
+      uploadPaymentProof,
+    } = require('../../../src/modules/payments/domain/payment-proof');
+    const proof = await proofRepository.saveWithPendingNotification(
+      uploadPaymentProof(
+        createPaymentProof({ booking_id: id, cooperative_id: booking.summary.cooperativeId }),
+        {
+          file_key: 'qa-exact-identity',
+          original_file_name: 'qa.pdf',
+          media_type: 'application/pdf',
+          file_size_bytes: 16,
+        },
+        deadline,
+        before,
+      ),
+    );
+    expect(proof.booking_id).toBe(id);
+    expect(
+      (await bridge.paymentProofQueries.findForBookingReceipt({ paymentProofId: proof.id }))
+        .bookingId,
+    ).toBe(id);
+    await bridge.bookingPaymentProofNotifier.markPaymentProofReceived(target(proof));
+    await proofRepository.markNotificationDelivered(id);
+    const stored = await snapshot();
+    now = after;
+    const restarted = createPaymentReceiptModule({
+      pool,
+      createPaymentProofReceiver: createBookingsModule({ pool, auth, clock: () => after })
+        .createPaymentProofReceiver,
+    });
+    await expect(
+      restarted.bookingPaymentProofNotifier.markPaymentProofReceived(target(proof)),
+    ).resolves.toBeUndefined();
+    expect(await snapshot()).toEqual(stored);
+    expect(stored.proofs[0].booking_id).toBe(id);
+    expect(stored.outbox[0]).toMatchObject({ booking_id: id, status: 'DELIVERED' });
+    expect(stored.receipts[0]).toMatchObject({ booking_id: id, outcome: 'ACCEPTED' });
+    expect(stored.bookings[0]).toMatchObject({ id, proof_reception_state: 'RECEIVED' });
+    expect(stored.seats.every((seat) => seat.active)).toBe(true);
+  } finally {
+    await proofRepository.deleteByBookingId(id);
+    await pool.query('DELETE FROM booking_proof_receipt_results WHERE booking_id=$1', [id]);
+    await pool.query('DELETE FROM bookings WHERE id=$1', [id]);
+  }
+});

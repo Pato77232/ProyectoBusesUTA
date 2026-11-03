@@ -43,9 +43,11 @@ function createPaymentProof(input) {
   validatePaymentProofStatus(status);
   if (status !== 'AWAITING_UPLOAD') throw new PaymentProofValidationError();
 
+  // booking_id es opaco: validar contenido sin normalizar la identidad de Reservas.
+  requiredIdentifier(input.booking_id);
   return Object.freeze({
     id: input.id === undefined ? null : requiredIdentifier(input.id),
-    booking_id: requiredIdentifier(input.booking_id),
+    booking_id: input.booking_id,
     cooperative_id: requiredIdentifier(input.cooperative_id),
     status,
     ...INITIAL_FILE_FIELDS,

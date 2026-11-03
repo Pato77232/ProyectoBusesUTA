@@ -1,9 +1,9 @@
 # BOOK-06-L04-T4: carga autorizada de comprobantes con Reservas reales
 
 - ID local de planificación, continuación C2/C3 de [BOOK-06-L04-T3](BOOK-06-L04-T3.md); no ID externo.
-- Estado: contrato de carga en borrador, regla histórica confirmada por Leslie; incremento I de compatibilidad implementado y probado localmente. Global fallida por timeout de Fleet, revisión humana pendiente. Consumidor autenticado y coordinación con Shirley pendientes.
-- Base comprobada: origin/develop feb7f75; PR #62 integrada el 3 de noviembre a las 20:25:30Z. Rama local feature/BOOK-06-carga-autorizada, sin commits/push.
-- Responsable de referencia: Leslie (Bookings), coordinación con Shirley (Payments) y Pablo (Auth). Implementación concurrente de Shirley por confirmar; no se asigna ni aprueba por inferencia.
+- Estado: contrato de carga en borrador, regla histórica confirmada por Leslie; incremento I de compatibilidad implementado y probado localmente. Última validación global: 1729 unitarias y 537 integraciones aprobadas; revisión humana pendiente. El timeout previo de Fleet se conserva como antecedente, sin cambios a su límite. Conexión de carga y registro de autorización a cargo de Shirley según reparto de §10; código local de ella no verificado aquí.
+- Base comprobada: origin/develop feb7f75; PR #62 integrada el 3 de noviembre a las 20:25:30Z. Rama local feature/BOOK-06-carga-autorizada; checkpoint c3e9450, sin push.
+- Responsable de referencia: Leslie (Bookings), coordinación con Shirley (Payments) y Pablo (Auth). Reparto comunicado y aceptado por Leslie en §10; no sustituye revisión humana de código.
 - Relacionadas: [PAGOS-01](PAGOS-01.md), [PAGOS-02](PAGOS-02.md), [lectura](BOOK-07-L05-T1.md), [recepción](BOOK-06-L04-T2.md).
 
 ## 1. Estado real antes de implementar
@@ -94,8 +94,36 @@ Backend: lint y formato propio aprobados; npm test 1724 unitarias y 534/535 inte
 
 Carga autenticada y activación siguen sin implementar; regla histórica confirmada y coordinación de implementación con Shirley consultada. El nuevo consumidor debe preservar también el ID exacto, sin el trim aplicado por la carga legada. Ningún comprobante antiguo se adopta o acredita por esta migración.
 
-Sin commits/push ni PR nueva. Revisar el incremento y guardar un checkpoint antes de continuar el consumidor; no declarar cierre/integración ni activación productiva por estos resultados.
+Estos resultados son previos al checkpoint local registrado en §9; sin push ni PR nueva. No declarar cierre/integración ni activación productiva por estos resultados.
 
 ## 9. Checkpoint local autorizado
 
 Leslie acepta continuar el plan propuesto: guardar primero este avance en un commit local y desarrollar el planificador en otra rama. Se guarda solo el incremento I y su evidencia, sin push ni PR nueva. La implementación de carga autenticada conserva sus pendientes.
+
+
+## 10. Reparto comunicado y preparación de entrega — 3 de noviembre de 2026
+
+Leslie aporta respuesta de Shirley: rama feature/PAGOS-WEB-01-bandeja, commit local c1d638f con cambios posteriores sin commit. Shirley propone encargarse de conectar UPLOAD_PROOF/contexto Auth/receptor real y registrar autorización de carga, con sus pruebas. Leslie acepta avanzar con ese reparto. Leslie conserva incremento I: migración del identificador y compatibilidad con outbox. Los archivos locales de Shirley no están disponibles aquí y no se atribuyen a GitHub. La conservación de comprobantes antiguos sin procesar ni borrar sigue confirmada.
+
+Checkpoint existente: c3e9450 en feature/BOOK-06-carga-autorizada, sin publicar. Origin/develop comprobado c08ce6c; conserva exactamente las 20 migraciones activas previas y sus archivos. La nueva migración permanece intacta. Este contraste de esquema no afirma que la rama haya incorporado los nuevos commits de Pagos/frontend.
+
+Hallazgo dentro de la compatibilidad: toPaymentProof reconstruye el modelo con createPaymentProof, que normaliza booking_id con trim; saveWithPendingNotification usa luego ese dato al insertar outbox. Para un ID con espacios al inicio/final, comprobante y outbox pueden divergir aunque ambas columnas sean text. La corrección dentro del alcance vigente consiste en conservar exactamente booking_id en el modelo y probar escritura/lectura/aviso/reintento; no cambiar IDs UUID, archivo, autorización o la firma de carga. Entradas sin contenido siguen rechazadas. El consumidor de carga legado aún recorta su entrada y su sustitución corresponde a Shirley; no activar ese flujo como compatible con todos los IDs opacos.
+
+Pruebas adicionales: modelo con ID opaco exacto y rechazo de vacíos; dos identidades que solo difieren en espacios/case deben conservarse distintas; repositorio/outbox/fuente persistida y receptor deben conservar ID con espacios externos y recuperar el mismo resultado tras el plazo. No se considera autorización Auth la fixture QA. Repetir lint/formato y npm test aislado, manteniendo evidencia histórica y fallo de fotografías sin modificar su timeout. Sin cambios de composición/migraciones existentes ni dependencias nuevas.
+
+El planificador verificado queda preservado en un stash de su rama feature/BOOK-06-planificador-expiracion, sin incorporar ni perder sus cambios. No publicar ni crear nuevos commits de este incremento hasta la petición correspondiente de Leslie.
+
+
+Nota de preparación: la PR #55 se comprobó integrada (75ee7a0, 2026-11-03T21:30:58Z); #56 sigue abierta en borrador (15218ae). Sus estados anteriores en §§1/8 son observaciones históricas, no el estado actual. El catálogo y las 20 migraciones de origin/develop c08ce6c coinciden exactamente con feb7f75 (diff sin cambios); la migración de esta rama añade la entrada 21. No se ejecutó merge/rebase ni se afirma validación de una combinación de commits no incorporada.
+
+La nueva regresión del receptor usa una identidad persistida de QA con espacios externos; el generador de altas actual produce UUID y su helper recorta IDs inyectados. No se modifica ese generador ni se presenta la fixture como alta HTTP. Las dos nuevas pruebas PostgreSQL eliminan sus propios IDs opacos en finally: conservarlos indebidamente entre suites bloqueaba correctamente el down a UUID. La protección no se debilita.
+
+
+## 11. Resultado final de preparación
+
+npm test sobre PostgreSQL temporal recién creado: 1729/1729 unitarias (89 suites) y 537/537 integraciones (41 suites), salida 0; 2266 pruebas aprobadas. Duración de integración 341,19 s. Incluye base vacía, actualización con datos desde las 20 migraciones equivalentes a develop actual, conservación de filas, rechazo de historias inesperadas, rollback, down protegido y arranque real existente. Las nuevas regresiones de identidad también pasaron. No se modificó composición.
+
+Lint y formato propio (9 JS de la entrega) aprobados. format:check global continúa fallido en 17 archivos ajenos. Fotografías pasó en esta ejecución sin modificar código/límite; el antecedente de timeout no se presenta como corregido de forma determinista. Diff revisado y evidencia actualizada. Sin nuevo commit/push ni PR creada; descripción preparada en la evidencia. El siguiente checkpoint propuesto es fix(pagos): preserva la identidad de reserva en el outbox.
+
+
+Publicación autorizada por Leslie tras revisar los resultados: guardar los ajustes en un commit atómico y publicar únicamente feature/BOOK-06-carga-autorizada. La autorización no integra la rama ni aprueba su PR; no incluye el planificador preservado aparte.
