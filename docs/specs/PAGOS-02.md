@@ -215,3 +215,66 @@ Ejecutar pruebas dirigidas y, desde backend, lint, format:check y npm test con P
 74 pruebas nuevas del adaptador aprobadas; lint aprobado; formato propio de 32 JS aprobado; formato global fallido en 48 archivos ajenos. `npm test` con PostgreSQL aislado: 668 unitarias y 134 integraciones aprobadas, 802 total. Los criterios marcados son cobertura local del consumidor, no aceptación humana ni integración del proveedor. Base temporal retirada y trabajo previo conservado.
 
 [Evidencia y límites](../evidence/PAGOS-02/2026-11-02-adaptador-lector.md) y [descripción detallada de PR](../evidence/PAGOS-02/descripcion-pr.md). Sigue pendiente conexión a rutas/proveedor real, clasificación del null de bandeja, otros estados explícitos y verificación de la combinación con develop `3d053a4`. No hay PR publicada de PAGOS-02 en las consultas realizadas.
+
+## 18. Consumidor HTTP de lectura con contexto — 3 de noviembre de 2026
+
+Shirley pidió continuar sus pendientes. Se aplica el diseño ya decidido del
+lector, sin pedir otra aceptación genérica ni aprobar mutaciones pendientes.
+Base comprobada: develop f5b9bde; rama feature/PAGOS-02-lector-contexto. La pantalla
+700bcf3 está publicada en PR #54, abierta; no se modifica su rama ni se marca integrada.
+
+El lector de Leslie ya es accesible en feature/BOOK-03-resumen-creacion-dominio:
+index.js expone paymentQueries.findForPayment y payment-booking.js proyecta
+proofWindowStartedAt/canUploadProof conforme al contrato publicado. Código
+consultado mediante GitHub, no incorporado ni ejecutado como proveedor local.
+Recepción, confirmSale y releaseBooking siguen sin disponibilidad acreditada.
+
+### Incremento autorizado y límites
+
+Preparar una composición pública explícita createPaymentReviewModule que recibe
+paymentQueries por inyección, usa el adaptador estricto de §17 y expone solamente
+GET listado/archivo. Ningún fallback al simulador ni métodos de escritura.
+La composición productiva actual se conserva hasta integrar la API de Bookings;
+este incremento queda listo para que el responsable de composición lo conecte
+con bookings.paymentQueries. No habilita carga/venta ficticia ni aprobación.
+
+El nuevo caso de uso exige authContext mínimo de CLERK y toma de él la cooperativa
+antes de consultar el repositorio. HTTP proyecta userId/role/cooperativeId desde
+request.auth.user, nunca body/query. Llama al lector con propósito REVIEW_PAYMENT.
+Conserva total en centavos y USD, cursor y DTO HTTP existentes; una relación null,
+ajena o inválida produce BOOKING_DATA_INTEGRITY_ERROR. Conserva clasificación
+400/401/403/500/503 del adaptador, sin convertir todo a temporal ni omitir filas.
+
+El nuevo router exige Auth en ambos GET y no ofrece POST. Incluye no-store para
+listado/bytes privados. Reutiliza lectura privada y presentación HTTP anteriores;
+no modifica las rutas/casos de uso anteriores ni sus pruebas. No importa internos
+de Auth/Bookings, no altera migraciones ni dependencias. Sin interfaz nueva:
+el DTO permite reutilizar PAGOS-WEB-01 después de integrar sus dependencias.
+
+### Criterios y comprobación prevista
+
+- Denegar contexto ausente/rol/tenant inválidos antes de consultar datos.
+- Congelar copia de contexto antes del primer await y no conservarlo entre llamadas.
+- Propagar propósito/contexto mínimos; ignorar identidad/cooperativa de body/query.
+- Cero válido no se sustituye; relación inválida falla sin lista parcial.
+- Mantener códigos seguros y excluir propietario/claves/rutas del DTO HTTP.
+- Con Auth/PostgreSQL reales: sesión/roles, dos cooperativas, archivo privado,
+  listado, clasificación HTTP, ausencia de POST y cabeceras de caché.
+- Ejecutar lint, formato y npm test con base aislada y arranque real; distinguir
+  proveedor simulado de pruebas y proveedor de Bookings aún no integrado.
+
+SOLID: caso de uso separado, puerto pequeño e inyectado, composición explícita y
+reutilización de adaptador/lector/presentador sin refactorizar módulos ajenos.
+Pablo mantiene revisión principal; no se atribuye revisión humana nueva.
+
+### Resultado local de §18
+
+1317 pruebas unitarias y 388 integraciones aprobadas (1705 total), incluidas 20
+unitarias y 8 integraciones nuevas. Lint/formato propio aprobados; formato global
+fallido en 17 archivos previos. Frontend sin cambios: 144 pruebas aprobadas.
+Arranque real: salud 200 y listado sin sesión 401. Diff revisado/comprobado.
+[Evidencia, conexión prevista y límites](../evidence/PAGOS-02/2026-11-03-lector-contexto.md)
+y [descripción del incremento](../evidence/PAGOS-02/descripcion-pr-lector-contexto.md).
+Sin activar el proveedor en producción ni ejecutar Bookings real en las pruebas.
+Preparado para el commit local autorizado por Shirley el 3 de noviembre.
+Publicación y revisión humana pendientes; no integrada/cerrada.

@@ -1,5 +1,26 @@
 # Estado compartido del proyecto
 
+## PAGOS-02 — consumidor HTTP con contexto, 3 de noviembre de 2026
+
+Shirley pidió continuar. Rama feature/PAGOS-02-lector-contexto sobre develop
+f5b9bde comprobado por fetch. La pantalla permanece en PR #54 abierta (700bcf3),
+sin modificarla ni marcarla integrada. La rama publicada de Leslie ya expone
+paymentQueries.findForPayment con DTO conforme al contrato; inspeccionada por
+GitHub, sin incorporar/ejecutar código remoto.
+
+Nuevo consumidor y composición pública de lectura explícita, contexto mínimo
+desde Auth, tenant verificado, errores seguros e integridad sin listas parciales.
+Solo GET listado/archivo; no-store, sin fallback al simulador. Preparado para
+integrar Bookings después; server.js conserva composición anterior.
+
+Lint y formato propio aprobados; npm test backend: 1317 unitarias y 388
+integraciones aprobadas. 28 pruebas nuevas; Auth/PostgreSQL/archivos reales con
+lector controlado. Frontend sin cambios: 144 aprobadas. Formato global falla en
+17 archivos previos. Arranque real: salud 200 y Pagos sin sesión 401. Shirley
+autorizó guardar el commit local el 3 de noviembre; publicación, revisión humana
+e integración productiva pendientes. Pablo pendiente de revisión.
+[Spec §18](specs/PAGOS-02.md), [evidencia y límites](evidence/PAGOS-02/2026-11-03-lector-contexto.md).
+
 ## D-06 — creación de frecuencias, sección 2 local, 2 de noviembre de 2026
 
 Sobre ab27485, David autorizó la conexión real y solo la preparación necesaria de la prueba anterior del widget. [FREQUENCIES-WEB-01 §12](specs/FREQUENCIES-WEB-01.md#12-sección-2--sesión-api-y-empaquetado) documenta sesión/rol/tenant verificados, cliente HTTP/CSRF compartido, POST sin tenant, protección contra doble envío, errores comprensibles y bloqueo ante alta no confirmada. Éxito presenta ID/resumen real en lectura; crear otra frecuencia limpia y revalida. Página/módulos/CSS incluidos y comprobados desde imagen real. Sin modificaciones a backend, login, transporte, navegación global, dependencias ni migraciones.
