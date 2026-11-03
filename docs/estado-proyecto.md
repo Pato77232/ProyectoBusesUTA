@@ -1,4 +1,19 @@
 # Estado compartido del proyecto
+## PAGOS-WEB-01 — bandeja web preparada para revisión, 2 de noviembre de 2026
+
+Shirley precisó «Por ahora termina la pantalla y prepara la PR». Rama
+feature/PAGOS-WEB-01-bandeja-pr sobre develop comprobado 5abc36d; conserva
+Frecuencias y separa los borradores previos. Pantalla CLERK con listado real,
+paginación, archivo privado, estados accesibles y diseño transViaje. Cabecera
+no-store en Payments para listados/bytes privados; sin reglas nuevas de Reservas.
+
+168 pruebas frontend y navegador con imagen/proxy/Auth/PostgreSQL reales
+aprobados. Backend: lint aprobado, 1298 unitarias y 372 integraciones aprobadas;
+formato global fallido en 17 archivos previos. Arranque real: salud 200 y Pagos
+sin sesión 401. Reservas sigue simulado: no acredita venta completa. Sin commits,
+push, PR publicada ni revisión humana nueva; no integrada/cerrada.
+[Spec](specs/PAGOS-WEB-01.md), [evidencia y límites](evidence/PAGOS-WEB-01/2026-11-02-verificacion.md)
+y [descripción de PR](evidence/PAGOS-WEB-01/descripcion-pr.md). Revisor Pablo pendiente.
 
 ## D-06 — creación de frecuencias, sección 2 local, 2 de noviembre de 2026
 
