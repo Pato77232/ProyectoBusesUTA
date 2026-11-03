@@ -5,10 +5,10 @@
 - **Módulo:** `fleet`; lo consume `route-sheets` mediante `seatQueries.listByBus`
 - **Responsable:** Edwin
 - **Revisor propuesto / confirmado:** David; aceptó revisar el 3 de noviembre de 2026, según su mensaje reportado por Edwin
-- **Estado:** T1 en desarrollo, local sin commit en `feature/FLEET-09-T1-inmutabilidad`; no se puede integrar sin las pruebas de Route Sheets adaptadas por David
+- **Estado:** T1 implementada en `43693bc`, publicada en borrador en [PR #59](https://github.com/Pato77232/ProyectoBusesUTA/pull/59); no se puede integrar sin las adaptaciones de Route Sheets, correcciones de revisión y validación final.
 - **Prioridad y dependencias:** FLEET-06, FLEET-07 T1 y ROUTE-SHEETS-07 presentes en develop. La sustitución pertenece a D-05 de ROUTE-SHEETS-04.
-- **Rama / PR / base comprobada:** `feature/FLEET-09-configuracion-hojas`, creada desde `origin/develop` en `04868b2` el 3 de noviembre de 2026; [PR #58](https://github.com/Pato77232/ProyectoBusesUTA/pull/58) documental hacia develop.
-- **Autorización de alcance:** el 3 de noviembre de 2026 Edwin pidió acordar con David cómo una hoja conserva la configuración usada y preparar su PR documental. Las decisiones con David están registradas en la sección 10; implementar T1 requiere todavía autorización expresa de Edwin. Publicar esta spec no autoriza modificar pruebas o código de otros módulos.
+- **Rama / PR / base comprobada:** plan integrado por [PR #58](https://github.com/Pato77232/ProyectoBusesUTA/pull/58) en `517473d`; implementación en `feature/FLEET-09-T1-inmutabilidad`, creada desde esa base, [PR #59](https://github.com/Pato77232/ProyectoBusesUTA/pull/59) en borrador hacia develop. Commit funcional `43693bc`.
+- **Autorización de alcance:** Edwin autorizó comenzar T1 según la sección 14 y pidió el 3 de noviembre evaluar `43693bc` y publicarlo en una PR en borrador para coordinar con David. El mensaje de David reenviado por Edwin confirma el reparto: Edwin mantiene Fleet; David adapta las pruebas de Route Sheets en commits separados. Esta revisión no autoriza editar código o pruebas de David.
 
 ## 1. Objetivo
 
@@ -131,7 +131,7 @@ No aplica.
 |---|---|---|
 | T1: inmutabilidad en la base | Migración con trigger y pruebas de rechazo | Preparación de pruebas de Fleet y Route Sheets que hoy actualizan `bus_seats`; las de Route Sheets las adapta David con sus condiciones |
 
-**Evidencias:** pendientes; no hay implementación.
+**Evidencias:** planificación e implementación registradas por separado en la sección 14; los criterios de integración final siguen pendientes.
 
 Revisión documental del 3 de noviembre: diff limitado a esta spec y su fila en `docs/estado-proyecto.md`; `git diff --check` aprobado. Se contrastaron `seatQueries.listByBus`, la preparación y persistencia del inventario comercial y ROUTE-SHEETS-07. No se ejecutaron lint ni pruebas de producto porque no cambian código, migraciones o pruebas; los criterios funcionales anteriores siguen pendientes. Los acuerdos se registran como mensaje de David reportado por Edwin, no como revisión final del código. Redacción inicial asistida por Claude Code; revisión y preparación de PR asistidas por Codex. El borrador FLEET-08 permanece local y fuera del diff.
 
@@ -141,7 +141,7 @@ Pendientes. PR #58 publicada para revisión documental de David; no equivale a a
 
 ### T1: inmutabilidad en la base, 3 de noviembre de 2026
 
-Edwin autorizó comenzar T1. Rama `feature/FLEET-09-T1-inmutabilidad`, creada desde `origin/develop` en `517473d`, sin commit.
+Edwin autorizó comenzar T1. Rama `feature/FLEET-09-T1-inmutabilidad`, creada desde `origin/develop` en `517473d`; implementación guardada en `43693bc`.
 
 **Implementación:**
 
@@ -159,3 +159,15 @@ Edwin autorizó comenzar T1. Rama `feature/FLEET-09-T1-inmutabilidad`, creada de
 - La base de pruebas se recreó antes de medir: conservaba el nombre anterior de la migración VIP (`1793640000000`) de una rama previa y bloqueaba las migraciones.
 
 **Antes de integrar:** David debe adaptar sus cuatro pruebas en la misma PR o antes, con las condiciones de la decisión 1; si no, `develop` quedaría con esas pruebas fallando. También conviene resolver las tres pruebas de reversión que ya fallan en `develop`.
+
+### Coordinación y revisión para publicar el borrador
+
+Mensaje de David reenviado por Edwin el 3 de noviembre: confirma las adaptaciones acordadas y propone realizar las cuatro de Route Sheets sobre esta rama, en un commit separado, conservando expectativas y usando `disabledSeatKeys` al alta y proveedor controlado para inventario vacío/cambios de fuente después de publicar. Revisará las dos reversiones de Route Sheets en otro cambio, por nombre de migración y manteniendo la protección de datos. `database.test.js` se investigará conjuntamente sin atribuirle una causa. Solo después se repetirá lint, formato y suite completa con PostgreSQL aislado antes de integrar.
+
+Revisión de Codex del mismo `43693bc`: lint aprobado; **1323/1323 unitarias** en 74 suites; formato de los tres JS del incremento aprobado. Formato global conserva **17 archivos ajenos** pendientes. `git diff --check` aprobado. No se modificó código, migraciones ni pruebas durante esta revisión ni se tocaron archivos de Route Sheets. Las cifras globales 392/399 anteriores se conservan como evidencia registrada, no como una repetición nueva ni como aprobación.
+
+Repetición de integración Fleet por Codex con Node 24.21.0/Linux y PostgreSQL 16.13 exclusivos: **166 aprobadas y una fallida de 167**, 12 suites aprobadas y una fallida de 13. Timeout de 20 000 ms en `fleet/bus-photo-storage.test.js`, caso «prepara y promueve todos los bytes sin conservar nombres ni rutas del cliente». Las pruebas nuevas de inmutabilidad y `seat-queries` aprobaron. El resultado 167/167 previo no anula esta ejecución; no se atribuye causa al timeout ni se amplía el límite. Instalación reproducible con `npm ci` y lock sin cambios en volumen efímero; base `busesuta_test`, sin leer `.env`; contenedor, red y volumen exclusivos eliminados. No se repitió integración de Route Sheets ni global antes de sus adaptaciones: se mantiene para la validación final conjunta.
+
+Pendientes propios de Fleet detectados para resolver antes de integrar: la reversión de `bus-seat-immutability.test.js` aún supone que su migración es la última; debe localizarla por nombre y verificar conservación/restauración. `seat-queries.test.js` prepara todos los asientos no ofrecidos desactivando temporalmente el trigger: revisar esa preparación para conservar el caso de lectura sin convertir la desactivación de la protección en parte del contrato normal. Estos puntos no se ocultan por pasar las pruebas actuales.
+
+La PR se publica en borrador para revisar y coordinar el commit, no para integrar. Sin autorización implícita de edición/versionado/sustitución ni implementación de FLEET-08. Implementación asistida por Claude Code; evaluación y publicación asistidas por Codex. No se enviaron mensajes a otros integrantes desde esta revisión.
