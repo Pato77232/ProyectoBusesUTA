@@ -53,4 +53,7 @@ function createPaymentsModule({ pool, auth, env = process.env } = {}) {
   };
 }
 
-module.exports = { createPaymentsModule };
+module.exports = {
+  createPaymentsModule,
+  createBookingPaymentProofNotifier: require('./infrastructure/bookings-payment-proof-notifier'),
+};

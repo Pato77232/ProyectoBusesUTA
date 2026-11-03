@@ -535,3 +535,19 @@ PR #51 abierta y Ready for review; se verificaron aprobaciones anteriores de Pab
 Backend: lint y 2173 pruebas globales aprobadas (1658 unitarias + 515 integraciones, 125 suites), con arranque real; catálogo ampliado posterior 14/14 dirigido. Frontend lint y 205 pruebas, Nginx y ocho grupos Chrome aprobados. Formato propio aprobado; global mantiene 17 archivos ajenos. Fotografías sin cambios y aprobadas; bases/contenedores/redes propios retirados.
 
 Diff de la nueva PR limitado a recepción/expiración. C sigue pendiente (fuente real de Payments, autorización inicial y compensación segura); D sigue pendiente (planificador/recuperación). No se declara compra comercial completa, revisión humana ni integración de B.
+
+
+## Leslie: adaptador seguro de aviso de Payments — 3 de noviembre de 2026
+
+| Spec / área | Estado comprobado | Evidencia y límite |
+| --- | --- | --- |
+| BOOK-06-L04-T2 / PR #60 | Integrada en develop b4fe717 a las 19:07:02Z, comprobado por GitHub | Recepción/expiración internas integradas; C y D conservan sus pendientes. |
+| BOOK-06-L04-T3, C1 | Implementado/probado localmente en feature/BOOK-06-adaptador-aviso-pagos desde b4fe717, sin commit/push/PR ni revisión humana | [Spec](specs/BOOK-06-L04-T3.md), [evidencia](evidence/BOOK-06-L04-T3/2026-11-03-adaptador-aviso.md). Adaptador público de resultados de Bookings para Payments, sin activar servidor/rutas. |
+
+PR #55 ca63a36 y #56 15218ae de Shirley siguen abiertas, comprobadas directamente; no se duplica su lector ni su prueba. C1 preserva ACCEPTED y solo convierte REJECTED_EXPIRED vinculado en el error existente de plazo. Fallos, clases genéricas de rechazo, vínculos distintos y resultados inválidos conservan incertidumbre sin autorizar borrado.
+
+Primera global: 1688 unitarias + 521 integraciones = 2209 aprobadas, 127 suites, con arranque real. Repetición final tras captura única: todas las unitarias 1689/1689 y cinco integraciones propias 5/5. Casos nuevos: 31 unitarias + cinco integraciones. Lint y formato propio aprobados; global conserva 17 archivos ajenos. Fotografías aprobadas sin cambios; PostgreSQL/red exclusivos retirados.
+
+Fuente QA persistida en pruebas; no procedencia Auth de la carga ni conexión productiva. C2 (fuente pública de Payments y autorización inicial), C3 (composición real y compensación), D (planificador), venta/rechazo/correcciones/caja/invitado siguen separados. Sin nuevas dependencias o migraciones ni pruebas debilitadas. Commit/publicación y revisión humana pendientes; no se marca C1 integrada.
+
+Leslie autoriza posteriormente guardar y publicar C1 de BOOK-06-L04-T3 en feature/BOOK-06-adaptador-aviso-pagos. La autorización no incluye integrar la PR ni activar la conexión productiva.
