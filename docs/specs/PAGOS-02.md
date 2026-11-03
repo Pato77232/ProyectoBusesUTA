@@ -278,3 +278,44 @@ y [descripción del incremento](../evidence/PAGOS-02/descripcion-pr-lector-conte
 Sin activar el proveedor en producción ni ejecutar Bookings real en las pruebas.
 Preparado para el commit local autorizado por Shirley el 3 de noviembre.
 Publicación y revisión humana pendientes; no integrada/cerrada.
+
+## 19. Prueba conjunta con el proveedor publicado — 3 de noviembre de 2026
+
+Shirley pidió continuar. PR #54 (pantalla) abierta y PR #55 (consumidor) abierta
+en borrador, cabeza ca63a36. Base de este incremento: ca63a36; rama separada
+feature/PAGOS-02-prueba-lector-real. No se modifica la rama de las PR existentes.
+
+Objetivo: ejecutar createPaymentReviewModule con
+createBookingsModule(...).paymentQueries reales y PostgreSQL aislado. Proveedor
+fijado en 901d30897ce2668581f25b2e4e055235b8171939 de la rama pública de Leslie
+feature/BOOK-03-resumen-creacion-dominio; lockfile/shared sin diferencias frente
+al consumidor comprobado. No se incorporan sus archivos al código productivo.
+
+Prueba reproducible explícita en tests/contracts (fuera de Jest ordinario porque
+exige otra revisión de proveedor). Requiere ruta BOOKINGS_QA_ROOT y NODE_ENV=test
+con base *_test; si falta configuración falla, no salta ni debilita pruebas.
+La copia externa se obtiene con git archive de directorios expresos de backend,
+sin .env, se monta de solo lectura y ejecuta sus migraciones originales. No se
+editan migraciones ni esquema manualmente. Se insertan únicamente fixtures QA.
+
+Criterios: lectura pública real, fechas de creación/inicio distintas, plazo y
+centavos persistidos, contexto Auth, aislamiento de cooperativas, DTO mínimo,
+bytes privados, antes/en límite de plazo, recepción sembrada de QA sin recarga,
+integridad de total inconsistente y ausencia de efectos sobre reserva/asientos.
+No se acredita recepción/venta/expiración por sembrar datos; esas APIs y sus
+carreras conservan contratos propios. No cambia server.js ni se activa producto.
+
+Ejecutar además lint, format:check y npm test del consumidor; documentar el
+alcance de la ejecución cruzada y el resultado de cada comprobación. Sin nueva
+UI, migraciones, dependencias, commits o publicación inferidos por «continuar».
+
+### Resultado de §19
+
+Ensayo con proveedor real 901d308 aprobado: 12 grupos, salida 0. Regresión en
+otra base limpia: 1317 unitarias + 388 integraciones aprobadas. Lint incluye el
+nuevo CJS y pasa; formato propio/diff pasan, global falla en 17 archivos previos.
+[Evidencia, reproducción y límites](../evidence/PAGOS-02/2026-11-03-contrato-real.md)
+y [descripción preparada](../evidence/PAGOS-02/descripcion-pr-prueba-real.md).
+La primera ejecución falló en limpieza después de las aserciones; corregida y
+repetida completa. Sin modificaciones a src, migraciones o dependencias.
+Pendiente integración/revisión humana; no se marca conexión productiva ni venta.

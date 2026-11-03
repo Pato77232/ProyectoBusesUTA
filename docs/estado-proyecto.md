@@ -1,5 +1,24 @@
 # Estado compartido del proyecto
 
+## PAGOS-02 — prueba conjunta con Reservas real, 3 de noviembre de 2026
+
+Shirley pidió continuar. PR #54 abierta y #55 abierta en borrador, sin integración
+inferida. Rama feature/PAGOS-02-prueba-lector-real desde ca63a36. Snapshot público
+de Leslie 901d308 montado de solo lectura, mismas dependencias y migraciones
+originales; sin incorporar archivos ni cambiar el producto.
+
+12 grupos de contrato aprobados con paymentQueries real, Auth/PostgreSQL/bytes
+privados reales: contexto, tenant, DTO, total/plazo, límites, lectura sin efectos,
+archivos e integridad. La recepción se siembra como fixture; no acredita su API.
+Regresión aislada adicional: 1317 unitarias y 388 integraciones aprobadas. Lint y
+formato propio/diff pasan; formato global sigue fallando en 17 archivos previos.
+Prueba inicial falló en limpieza; corregida y repetida con salida 0.
+
+La compatibilidad de lectura queda probada para esas revisiones; falta integrar
+proveedor/consumidor y revisar con Pablo, sin activar aún server.js. Recepción,
+venta, rechazo/corrección/caja y QR conservan sus pendientes. Sin commits o PR
+nueva. [Spec §19](specs/PAGOS-02.md) y [evidencia](evidence/PAGOS-02/2026-11-03-contrato-real.md).
+
 ## PAGOS-02 — consumidor HTTP con contexto, 3 de noviembre de 2026
 
 Shirley pidió continuar. Rama feature/PAGOS-02-lector-contexto sobre develop
