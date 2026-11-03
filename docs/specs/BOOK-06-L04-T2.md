@@ -1,12 +1,12 @@
 # BOOK-06-L04-T2: recepción inicial y expiración coordinadas
 
-- **Estado:** Incremento B implementado y probado localmente por delegación de Leslie el 3 de noviembre; revisión humana pendiente. Conexión productiva C y planificador D separados; revisión humana del código pendiente.
+- **Estado:** Incremento B implementado y publicado en 4233811, combinado y probado con develop 5a40702 para preparar PR. Revisión humana del incremento pendiente; conexión productiva C y planificador D separados.
 - **Responsable:** Leslie. Coordinación Shirley para consumidor/outbox y Pablo para contexto interno de operación durable.
 - **Origen:** Leslie pide continuar después de BOOK-07-L05-T1 y avisar cuándo guardar un commit.
-- **Base actual de preparación:** feature/BOOK-06-recepcion-expiracion, creada localmente desde f0a9c2f publicado en PR #51; origin/develop 1a411ef contrastado al terminar el incremento, sin incorporarlo. Los registros inferiores del 2 de noviembre conservan su alcance histórico.
+- **Base actual:** feature/BOOK-06-recepcion-expiracion desde 4233811, incorporando develop 5a40702 tras integrar PR #51. La validación anterior corresponde a f0a9c2f; la combinación nueva se verifica en §13. Los registros inferiores del 2 de noviembre conservan su alcance histórico.
 - **Specs:** [BOOK-06-L04](BOOK-06-L04.md), [BOOK-07-L05](BOOK-07-L05.md), [lector implementado](BOOK-07-L05-T1.md).
 - **Revisión humana:** pendiente, sin atribuir aprobación por preparar este documento.
-- **Entrega anterior:** PR #51 publicada en f0a9c2f, APPROVED por Pablo el 3 de noviembre; abierta y sin integrar, con revisión de Shirley aún solicitada. No implica aprobación de los comandos de esta spec.
+- **Entrega anterior:** PR #51 integrada por Leslie en develop mediante 5a40702 el 3 de noviembre de 2026 a las 17:48:31Z, comprobado por GitHub. Su último HEAD fue d56ae01. No implica aprobación de los comandos de esta spec.
 
 ## 1. Resultado acotado
 
@@ -175,3 +175,23 @@ Archivos: migración y catálogo; application/receive-payment-proof y expire-boo
 Para comprobar: iniciar PostgreSQL aislado según docs/testing-database.md, ejecutar desde backend npm run lint, npm run format:check y npm test; las suites receipt-expiration y migration-catalog ejercitan los escenarios concretos. Nunca usar bases persistentes. No se habilita planificador ni conexión a los adaptadores simulados de Payments.
 
 Validación local terminada; Leslie autoriza commit y push de este incremento en feature/BOOK-06-recepcion-expiracion. PR nueva, revisión humana y conexión C pendientes; no se declara integrada ni cerrada la funcionalidad. Los apartados 3–10 conservan el antecedente de propuesta; la selección vigente está en §11 y su resultado en este apartado.
+
+
+## 13. Actualización autorizada para preparar la PR
+
+Leslie solicita actualizar la rama, comprobar y publicar antes de crear su PR hacia develop. Base 4233811; origin/develop 5a40702 incluye PR #51 y la bandeja de Payments. Único conflicto textual en docs/estado-proyecto.md: conservar bloques de evidencia de ambas ramas, con sus fechas/alcances históricos.
+
+No ampliar negocio, conectar adaptadores simulados ni incluir C/D en esta resolución. Conservar la migración nueva de B, las originales intactas, validación estricta y catálogo de 20 entradas. Conservar comandos conjuntos test/lint de frontend y empaquetado de ambas pantallas. DESIGN.md consultado en conciliación anterior: no cambia diseño, HTML/CSS ni flujo visual en esta actualización.
+
+Verificar backend lint, format:check, npm test en PostgreSQL aislado con arranque real; frontend lint, pruebas conjuntas y Nginx real. No dependencias nuevas, .env, bases persistentes ni ampliación de timeouts. Actualizar evidencia, estado y descripción para que la nueva PR muestre solo B contra develop. Publicar solo feature/BOOK-06-recepcion-expiracion; no integrar ninguna PR.
+
+Añadir regresión de actualización desde las 19 entradas de develop/PR #51 con reservas y ocupaciones existentes: conservar datos de negocio y ventanas/recepción, añadir expired_at nulo y tabla durable vacía sin inventar resultados. Verificar también reintento sin cambios.
+
+
+### Resultado de la combinación con 5a40702
+
+[Evidencia vigente](../evidence/BOOK-06-L04-T2/2026-11-03-actualizacion-develop.md). Conflicto del registro resuelto conservando ambas evidencias. Sin cambios productivos a B; regresión nueva de actualización desde develop con reservas NOT_RECEIVED/RECEIVED/UNKNOWN conserva filas, ventanas y ocupaciones, sin inventar resultados de recepción.
+
+npm test completo: 1658 unitarias + 515 integraciones = 2173 aprobadas, 125 suites, con arranque real. Posterior catálogo ampliado: 14/14 dirigido aprobado. Frontend lint y 205 pruebas, Nginx real y ocho grupos Chrome aprobados. Lint y formato propio aprobados; global conserva 17 archivos ajenos. Recursos QA retirados; sin timeout modificado, migraciones originales editadas ni nuevas dependencias.
+
+Publicar conciliación solo en feature/BOOK-06-recepcion-expiracion. [Descripción preparada](../evidence/BOOK-06-L04-T2/descripcion-pr.md); no se asigna ID de PR ni revisión/integración inexistentes. La aprobación e integración de PR #51 solo acredita la entrega anterior. C/D siguen separados.

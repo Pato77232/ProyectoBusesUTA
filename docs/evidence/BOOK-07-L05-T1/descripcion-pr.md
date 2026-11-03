@@ -1,35 +1,23 @@
-## Cambios
+## Problema y resultado
 
-Persiste reservas con bloqueo por tramo y recuperación idempotente; incluye API protegida, pantalla de compra y lectura autorizada findForPayment conforme a PR #46.
+Persiste reservas con protección de ocupación por tramo e idempotencia de creación, API protegida, pantalla de compra y lectura autorizada findForPayment conforme a PR #46. Mantiene total y plazo persistidos, autorización por propietario/cooperativa y recepción UNKNOWN sin inventar elegibilidad.
 
-Desbloquea la instalación sobre una base vacía y sobre las 18 migraciones de develop incorporado en 04868b2, incluida VIP:
+Instala Reservas en base vacía o esquema previo de develop sin perder datos: conserva los tres originales intactos, aplica su esquema mediante 1793820000000-install-bookings y valida catálogo/historial bajo bloqueo antes de DDL. No escribe pgmigrations a mano ni convierte bases heredadas. Historial con originales aplicados se rechaza y requiere un plan separado con Pablo; no se inspeccionaron bases persistentes.
 
-- Conserva intactos los tres archivos originales de Reservas; quedan fuera del catálogo activo.
-- Añade 1793820000000-install-bookings, que aplica realmente su esquema, idempotencia y contexto de lectura en una única entrada posterior.
-- Valida catálogo e historial antes del DDL bajo el mismo bloqueo del migrador. Conserva checkOrder:true y exclusión de ocultos.
-- Rechaza historiales originales de Reservas, desconocidos o inconsistentes sin convertirlos ni escribir historial a mano.
-- Incluye creación del historial en la transacción para revertir completamente un fallo inicial.
+## Resolución y verificación del 3 de noviembre
 
-## Verificación del 3 de noviembre
+Incorpora develop 1a411ef en la rama de PR #51. Resuelve el conflicto de frontend/package.json conservando comandos y suites de Reservas y Pagos. Nginx empaqueta ambas pantallas; se añaden comprobaciones de recursos de Comprobantes sin retirar aserciones anteriores. Catálogo de 19 entradas y migraciones sin cambios.
 
-- Backend lint aprobado; formato propio de la conciliación aprobado.
-- npm test final: 1614 unitarias + 493 integraciones = 2107 aprobadas, 122 suites. Incluye arranque real.
-- Catálogo dirigido: 16 unitarias y 13 integraciones, 29/29 aprobadas, incluidas en el total. Conservación de asiento VIP y actualización desde bases de 17/18 migraciones comprobadas.
-- PostgreSQL 16.13 aislado: base vacía, copia de develop con datos de varios módulos, conservación de filas/definiciones, reintento, down/up, rechazo sin cambios, rollback de DDL y bloqueo entre conexiones.
-- Primera regresión del validador tras down completo corregida con prueba de reaplicación. Timeout de fotografía ocurrido en intento anterior; pasó finalmente sin cambiar código ni límite de 20000 ms.
-- format:check global sigue fallido en 17 archivos ajenos; no se corrigen incidentalmente.
-- Sin .env, bases persistentes, dependencias nuevas, modificaciones a migraciones originales ni ampliación de timeouts.
+- Backend lint aprobado; npm test: 1615 unitarias + 493 integraciones = 2108 aprobadas, 123 suites, incluido arranque real.
+- Base vacía, copia de develop con datos/VIP conservados, historial inesperado sin cambios, rollback y bloqueo comprobados por la suite de catálogo.
+- Frontend lint y 205 pruebas aprobados. Imagen Nginx real y ocho grupos de compra en Chrome aprobados.
+- Formato propio aprobado; format:check global conserva los mismos 17 archivos ajenos pendientes.
+- Fotografías aprobadas sin cambios de timeout/aserciones. PostgreSQL exclusivo temporal retirado, sin .env ni bases persistentes. Sin dependencias nuevas.
 
-## Alcance y revisión
+Evidencia vigente: docs/evidence/BOOK-07-L05-T1/2026-11-03-conciliacion-pagos-web.md. Specs BOOK-03 y BOOK-07-L05-T1; RN-40, RN-42 y RN-50. Herramienta de apoyo: Codex; revisión humana independiente requerida.
 
-Las bases persistentes con originales de Reservas aplicados necesitan un plan separado con Pablo; no se inspeccionaron ni se afirma que ninguna exista. El migrador las rechaza de forma explícita.
+## Alcance pendiente
 
-Develop 04868b2 incorporado con Auth y Fleet/VIP. Conflicto de estado-proyecto.md resuelto conservando ambas evidencias; catálogo actualizado a 19 entradas. Los resultados corresponden a esta combinación. Frontend lint y 181 pruebas aprobados. Revisión humana e integración pendientes; PR en borrador.
+PR abierta y fuera de borrador. Las aprobaciones de Pablo y Shirley preceden a esta resolución; no se atribuye revisión humana del commit nuevo. No se integra la PR desde esta tarea.
 
-Recepción/expiración, confirmación/liberación, conexión productiva de Payments y adaptación de tarifas/proveedores de compra conservan sus incrementos separados. No se presenta como compra comercial completa.
-
-Evidencia de catálogo: docs/evidence/BOOK-07-L05-T1/2026-11-03-catalogo-migraciones.md.
-Evidencia de conciliación: docs/evidence/BOOK-07-L05-T1/2026-11-03-conciliacion-vip.md.
-Refs: docs/specs/BOOK-03.md y docs/specs/BOOK-07-L05-T1.md.
-
-Asistencia de Codex en implementación, pruebas y revisión del diff; no sustituye la revisión humana.
+Recepción/expiración permanece separada en feature/BOOK-06-recepcion-expiracion (4233811). Venta/liberación, conexión productiva de Payments y proveedores comerciales conservan sus incrementos; esta PR no acredita compra comercial completa.

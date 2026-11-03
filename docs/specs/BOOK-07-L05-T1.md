@@ -278,3 +278,21 @@ Ejecutar lint, format:check, npm test con PostgreSQL aislado y arranque real exi
 Catálogo actualizado a 19 entradas y conflicto del registro resuelto conservando ambos bloques. Auth/Fleet/VIP coinciden con develop incorporado; migraciones originales y consolidada de Reservas intactas. 29 pruebas dirigidas de catálogo aprobadas y un caso nuevo para actualizar la base anterior de 17 entradas, además de la copia actual de 18 con asiento VIP conservado.
 
 Suite combinada: 1614 unitarias + 493 integraciones = 2107 aprobadas (122 suites), arranque real incluido. Frontend lint y 181 pruebas aprobados. Backend lint/formato propio aprobados; formato global conserva 17 archivos ajenos pendientes. Sin cambios a timeouts ni dependencias. [Evidencia de la combinación](../evidence/BOOK-07-L05-T1/2026-11-03-conciliacion-vip.md). Revisión humana pendiente; no merge de PR hacia develop.
+
+
+## Conciliación autorizada con Pagos Web — 3 de noviembre de 2026
+
+Leslie pide corregir los errores de PR #51 tras verificar su conflicto. Base publicada f0a9c2f; origin/develop 1a411ef. Se incorpora develop solo en feature/BOOK-03-resumen-creacion-dominio, conservando la rama nueva feature/BOOK-06-recepcion-expiracion en 4233811. No integrar la PR ni trasladar recepción/expiración a este incremento.
+
+Un conflicto en frontend/package.json: reunir scripts de Reservas y Pagos; test y lint deben incluir ambos módulos además de API, Fleet, Auth y Frecuencias. Conservar también sus comprobaciones específicas. Revisar la combinación automática de Dockerfile, .dockerignore y ESLint para conservar la publicación de ambas pantallas y su validación. Se consulta y conserva frontend/DESIGN.md: no hay cambios visuales, de CSS ni de flujo funcional en esta resolución.
+
+Verificar lint, format:check y npm test backend en PostgreSQL aislado, con arranque real; frontend lint, suite conjunta y comprobación de composición Nginx. No nuevas dependencias, edición de migraciones, secretos ni bases persistentes. Mantener las aserciones y timeout de fotografías. Guardar/publicar la resolución en la rama de PR #51 conforme a la autorización existente y actualizar evidencia/registro; las aprobaciones de Pablo/Shirley corresponden a la versión previa, no se inventa revisión del resultado nuevo.
+
+
+### Resultado de conciliación con 1a411ef
+
+Conflicto de package.json resuelto conservando las suites y comandos de Reservas/Pagos. La prueba real de contenedor ahora verifica también los cinco recursos de Comprobantes, conservando aserciones previas. No cambian dependencias, migraciones ni negocio de la PR.
+
+[Evidencia de resolución](../evidence/BOOK-07-L05-T1/2026-11-03-conciliacion-pagos-web.md): backend lint y npm test aprobados, 1615 unitarias + 493 integraciones = 2108, 123 suites, con arranque real. Frontend lint y 205 pruebas aprobados; Nginx y ocho grupos Chrome de Reservas aprobados. Formato propio aprobado; global conserva los 17 archivos ajenos. Sin modificar fotografías ni su timeout; bases/contenedores/redes QA retirados.
+
+Publicación de la resolución autorizada en la misma rama; no merge hacia develop. PR #51 abierta y fuera de borrador, aprobaciones previas de Pablo/Shirley sin atribuirlas al commit nuevo. Rama de recepción/expiración 4233811 intacta y separada.
