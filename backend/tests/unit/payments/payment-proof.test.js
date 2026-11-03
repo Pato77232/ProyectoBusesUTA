@@ -37,13 +37,17 @@ test('crea un comprobante AWAITING_UPLOAD sin archivo asociado', () => {
   expect(Object.isFrozen(paymentProof)).toBe(true);
 });
 
-test.each([null, undefined, [], 'proof', { booking_id: 'booking-1' }, { ...validInput, unexpected: true }])(
-  'rechaza datos inválidos al crear el comprobante: %j',
-  (input) => {
-    // Arrange / Act / Assert
-    expect(() => createPaymentProof(input)).toThrow(PaymentProofValidationError);
-  },
-);
+test.each([
+  null,
+  undefined,
+  [],
+  'proof',
+  { booking_id: 'booking-1' },
+  { ...validInput, unexpected: true },
+])('rechaza datos inválidos al crear el comprobante: %j', (input) => {
+  // Arrange / Act / Assert
+  expect(() => createPaymentProof(input)).toThrow(PaymentProofValidationError);
+});
 
 test('rechaza estados iniciales distintos de AWAITING_UPLOAD', () => {
   // Arrange / Act / Assert
@@ -73,19 +77,19 @@ test('cambia a UPLOADED al recibir archivo antes de la fecha límite', () => {
   expect(paymentProof.status).toBe('AWAITING_UPLOAD');
 });
 
-test.each([
-  new Date('2026-10-25T12:05:00.000Z'),
-  new Date('2026-10-25T12:06:00.000Z'),
-])('rechaza la carga cuando now >= payment_deadline_at: %s', (now) => {
-  // Arrange
-  const paymentProof = createPaymentProof(validInput);
-  const deadline = new Date('2026-10-25T12:05:00.000Z');
+test.each([new Date('2026-10-25T12:05:00.000Z'), new Date('2026-10-25T12:06:00.000Z')])(
+  'rechaza la carga cuando now >= payment_deadline_at: %s',
+  (now) => {
+    // Arrange
+    const paymentProof = createPaymentProof(validInput);
+    const deadline = new Date('2026-10-25T12:05:00.000Z');
 
-  // Act / Assert
-  expect(() => uploadPaymentProof(paymentProof, validFile, deadline, now)).toThrow(
-    PaymentProofUploadDeadlineExpiredError,
-  );
-});
+    // Act / Assert
+    expect(() => uploadPaymentProof(paymentProof, validFile, deadline, now)).toThrow(
+      PaymentProofUploadDeadlineExpiredError,
+    );
+  },
+);
 
 test('rechaza archivos incompletos sin cambiar el estado original', () => {
   // Arrange
@@ -94,7 +98,12 @@ test('rechaza archivos incompletos sin cambiar el estado original', () => {
 
   // Act / Assert
   expect(() =>
-    uploadPaymentProof(paymentProof, file, new Date('2026-10-25T12:05:00.000Z'), new Date('2026-10-25T12:04:00.000Z')),
+    uploadPaymentProof(
+      paymentProof,
+      file,
+      new Date('2026-10-25T12:05:00.000Z'),
+      new Date('2026-10-25T12:04:00.000Z'),
+    ),
   ).toThrow(PaymentProofValidationError);
   expect(paymentProof.status).toBe('AWAITING_UPLOAD');
 });
@@ -151,3 +160,24 @@ test('repetir la expiración es idempotente y no expira un comprobante cargado',
   expect(expirePaymentProof(expired, new Date('2026-10-25T12:07:00.000Z'))).toBe(expired);
   expect(() => expirePaymentProof(uploaded)).toThrow(PaymentProofCannotExpireError);
 });
+
+test('conserva exactamente booking_id opaco sin recortar ni normalizar su identidad', () => {
+  const bookingId = "  Reserva/á:01'  ";
+  const proof = createPaymentProof({ ...validInput, booking_id: bookingId });
+  expect(proof.booking_id).toBe(bookingId);
+  const uploaded = uploadPaymentProof(
+    proof,
+    validFile,
+    new Date('2026-11-03T14:05:00Z'),
+    new Date('2026-11-03T14:01:00Z'),
+  );
+  expect(uploaded.booking_id).toBe(bookingId);
+});
+test.each(['', '   ', '\t', null])(
+  'rechaza booking_id sin contenido %j aunque conserve identidad',
+  (booking_id) => {
+    expect(() => createPaymentProof({ ...validInput, booking_id })).toThrow(
+      PaymentProofValidationError,
+    );
+  },
+);

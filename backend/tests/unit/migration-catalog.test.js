@@ -10,11 +10,12 @@ const entry = (name) => ({ name, isFile: () => true });
 const files = () => activeNames.map((name) => entry(name + '.js'));
 
 test('catálogo explícito conserva las 18 de develop, instalación y recepción posteriores', () => {
-  expect(activeNames).toHaveLength(20);
+  expect(activeNames).toHaveLength(21);
   expect(activeNames[16]).toBe('1793730000000-commercial-trips');
   expect(activeNames[17]).toBe('1793740000000-allow-vip-bus-seats');
   expect(activeNames[18]).toBe('1793820000000-install-bookings');
   expect(activeNames[19]).toBe('1793910000000-booking-proof-receipts');
+  expect(activeNames[20]).toBe('1794000000000-payment-booking-identifiers');
   expect(new Set(activeNames).size).toBe(activeNames.length);
   expect([...activeNames].sort()).toEqual(activeNames);
   expect(() => validateCatalog(files())).not.toThrow();

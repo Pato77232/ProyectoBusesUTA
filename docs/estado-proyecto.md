@@ -597,3 +597,30 @@ Develop ya incorpora la fuente persistida/createPaymentReceiptModule de Shirley 
 Pruebas propias dirigidas: 66 unitarias y 14 integraciones aprobadas. Global: 1724 unitarias aprobadas y 529/530 integraciones; fallo de Fleet por timeout original de 20000 ms en fotografías. Repetición aislada: 17/18, mismo fallo. No declarar suite global aprobada. Lint/formato propio aprobados; global mantiene 17 ajenos. Arranque real aprobado; contenedor/red temporales retirados.
 
 La fuente persistida está preparada, pero la autorización HTTP de carga, procedencia histórica, activación productiva y planificador conservan sus pendientes. Revisión del commit de conciliación y evaluación del fallo de Fleet necesarias antes de integrar.
+
+## Leslie: prerrequisito de carga autorizada, IDs opacos — 3 de noviembre de 2026
+
+| Spec / área | Estado comprobado | Evidencia y límite |
+| --- | --- | --- |
+| BOOK-06-L04-T3 / PR #62 | Integrada en develop feb7f75 a las 20:25:30Z, comprobado por GitHub | Timeout de Fleet pendiente; integrar PR no lo resuelve. |
+| BOOK-06-L04-T4, I | Compatibilidad de identificadores implementada y probada localmente en feature/BOOK-06-carga-autorizada desde feb7f75; checkpoint c3e9450 local, sin push/PR | [Spec](specs/BOOK-06-L04-T4.md), [evidencia](evidence/BOOK-06-L04-T4/2026-11-03-identificadores-opacos.md). Migración nueva, 21 entradas activas, comprobante/outbox aceptan el ID de texto de Bookings sin alterar los UUID existentes. |
+
+Leslie confirma conservar comprobantes antiguos con archivo sin procesarlos/borrarlos automáticamente y exigir procedencia registrada al flujo nuevo. Se registra como respuesta de Leslie, no aprobación individual de Shirley/Pablo. En la comprobación histórica anterior, quién implementaba la carga seguía consultado y PR #55/#56 estaban abiertas en 7448e1a/15218ae; el estado actual se precisa en la actualización siguiente.
+
+66 pruebas dirigidas aprobadas, con cinco casos nuevos: copia de develop con filas preservadas, down/up canónico, rechazo de down opaco/mayúsculas sin cambios, rollback de segunda tabla y puente real con ID de texto. Global: 1724 unitarias y 534/535 integraciones; fallo de timeout de fotografías de Fleet, no suite global aprobada. Lint/formato propio aprobados; global conserva 17 ajenos. Arranque real aprobado; recursos PostgreSQL/red exclusivos retirados.
+
+La migración no acredita procedencia Auth ni procesa comprobantes antiguos. Consumidor autenticado y activación siguen pendientes; su contrato está en borrador y debe preservar el ID exacto, sin normalización implícita. No se alteran servidor, casos de uso, dependencias, frontend o migraciones existentes. Revisión humana pendiente; sin cierre/integración del incremento local.
+
+
+### Actualización del reparto y compatibilidad — 3 de noviembre
+
+Shirley comunica feature/PAGOS-WEB-01-bandeja, c1d638f y cambios posteriores sin commit; asume conexión UPLOAD_PROOF/Auth/receptor y procedencia de cada carga. Leslie acepta continuar con migración de IDs y outbox, conservando comprobantes antiguos sin procesarlos ni borrarlos. El código privado de Shirley no se considera publicado o revisado.
+
+Revisión actual: origin/develop c08ce6c; PR #55 integrada en 75ee7a0, #56 todavía en borrador. Las observaciones previas de ambas abiertas se conservan como historia. Los archivos de las 20 migraciones y catálogo base son idénticos a feb7f75. Esta rama no integra los nuevos commits de develop; el registro documental conserva sus filas vigentes sin mezclar cambios productivos.
+
+Prerrequisito adicional de compatibilidad: conservar booking_id sin trim al reconstruir comprobantes evita insertar un ID diferente en el outbox. Modelo, escritura/lectura, separación por espacios/case y replay del receptor cuentan con pruebas nuevas. No se modifica la carga legada ni se activa su composición. Validación global nueva: 1729/1729 unitarias y 537/537 integraciones aprobadas (2266), incluido arranque real. Lint/formato propio aprobados; formato global mantiene 17 archivos ajenos. Fotografías pasó sin cambios de código/timeout; se conserva el antecedente intermitente. Estos resultados tienen alcance de esta rama, no de una combinación de aplicación con develop no incorporada.
+
+Planificador T5 preservado aparte en stash 38fd1d8 de feature/BOOK-06-planificador-expiracion, sin pérdida de sus archivos y sin incorporarlo a esta entrega. Revisión humana/commit de ajustes/publicación pendientes.
+
+
+Leslie autoriza guardar y publicar únicamente el incremento de identificadores en feature/BOOK-06-carga-autorizada tras las 2266 pruebas aprobadas. Revisión humana e integración siguen pendientes; planificador excluido de esta publicación.

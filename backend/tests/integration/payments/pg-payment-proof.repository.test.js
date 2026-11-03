@@ -518,3 +518,43 @@ test('la migración se revierte y puede aplicarse otra vez en su propio esquema'
     rmSync(migrationDirectory, { recursive: true, force: true });
   }
 });
+
+test('comprobante y outbox distinguen IDs opacos por espacios y mayúsculas sin cruzar avisos', async () => {
+  const ids = ["Reserva/á:01'", "  Reserva/á:01'  ", "reserva/á:01'"];
+  try {
+    const saved = [];
+    for (const id of ids) {
+      const proof = await repository.saveWithPendingNotification(createUploaded(id));
+      expect(proof.booking_id).toBe(id);
+      expect((await repository.findByBookingId(id)).id).toBe(proof.id);
+      saved.push(proof);
+    }
+    expect(new Set(saved.map((proof) => proof.id)).size).toBe(3);
+    for (const proof of saved) {
+      const { rows } = await pool.query(
+        'SELECT booking_id FROM payment_proof_notification_outbox WHERE payment_proof_id=$1',
+        [proof.id],
+      );
+      expect(rows).toEqual([{ booking_id: proof.booking_id }]);
+    }
+    await repository.markNotificationAttempted(ids[1]);
+    await repository.markNotificationDelivered(ids[1]);
+    const { rows } = await pool.query(
+      'SELECT booking_id,status,attempt_count FROM payment_proof_notification_outbox',
+    );
+    expect(rows).toHaveLength(3);
+    for (const id of ids) {
+      expect(rows.find((row) => row.booking_id === id)).toMatchObject({
+        status: id === ids[1] ? 'DELIVERED' : 'PENDING',
+        attempt_count: id === ids[1] ? 1 : 0,
+      });
+    }
+    await expect(
+      repository.saveWithPendingNotification(createUploaded(ids[1])),
+    ).rejects.toBeInstanceOf(PaymentProofAlreadyUploadedError);
+    expect((await pool.query('SELECT id FROM payment_proofs')).rowCount).toBe(3);
+    expect((await pool.query('SELECT id FROM payment_proof_notification_outbox')).rowCount).toBe(3);
+  } finally {
+    for (const id of ids) await repository.deleteByBookingId(id);
+  }
+});

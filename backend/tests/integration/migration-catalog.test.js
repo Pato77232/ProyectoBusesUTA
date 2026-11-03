@@ -153,6 +153,14 @@ test('base vacía instala esquema real, omite ocultos/originales y no duplica al
     expect(await snapshot(pool)).toEqual(before);
     await migrate(url, 'down');
     expect(
+      (
+        await pool.query(
+          "SELECT data_type FROM information_schema.columns WHERE table_name='payment_proofs' AND column_name='booking_id'",
+        )
+      ).rows[0].data_type,
+    ).toBe('uuid');
+    await migrate(url, 'down');
+    expect(
       (await pool.query("SELECT to_regclass('booking_proof_receipt_results') AS name")).rows[0]
         .name,
     ).toBeNull();
@@ -183,8 +191,18 @@ test('copia de develop con datos conserva cada fila/definición y añade solamen
         table === 'pgmigrations' ? expect.arrayContaining(rows) : rows,
       );
     }
-    expect(after.data.pgmigrations).toHaveLength(20);
-    expect(after.definitions).toEqual(expect.arrayContaining(before.definitions));
+    expect(after.data.pgmigrations).toHaveLength(21);
+    expect(after.definitions).toEqual(
+      expect.arrayContaining(
+        before.definitions.map((entry) =>
+          entry.kind === 'column' &&
+          ['payment_proofs', 'payment_proof_notification_outbox'].includes(entry.object) &&
+          entry.detail.startsWith('booking_id:uuid:')
+            ? { ...entry, detail: entry.detail.replace('booking_id:uuid:', 'booking_id:text:') }
+            : entry,
+        ),
+      ),
+    );
     expect(
       Object.keys(after.data)
         .filter((table) => !Object.hasOwn(before.data, table))
@@ -279,7 +297,7 @@ test.each([false, true])(
       expect(await snapshot(pool)).toEqual(before);
       expect((await pool.query("SELECT to_regclass('bookings') AS name")).rows[0].name).toBeNull();
       await pool.query('DROP EVENT TRIGGER qa_fail_bookings; DROP SCHEMA qa_failure CASCADE');
-      await expect(migrate(url)).resolves.toHaveLength(withDevelop ? 2 : 20);
+      await expect(migrate(url)).resolves.toHaveLength(withDevelop ? 3 : 21);
     });
   },
 );
@@ -297,7 +315,7 @@ test('el bloqueo compartido impide validar mientras otro migrador tiene autorida
       await holder.query('SELECT pg_advisory_unlock($1)', [lockId]);
       holder.release();
     }
-    await expect(migrate(url)).resolves.toHaveLength(20);
+    await expect(migrate(url)).resolves.toHaveLength(21);
   });
 });
 
@@ -309,7 +327,7 @@ test('historial legítimo vacío tras down conserva su índice interno y permite
     expect((await pool.query("SELECT to_regclass('pgmigrations_pkey') AS name")).rows[0].name).toBe(
       'pgmigrations_pkey',
     );
-    await expect(migrate(url)).resolves.toHaveLength(20);
+    await expect(migrate(url)).resolves.toHaveLength(21);
     expect(
       (await pool.query('SELECT name FROM pgmigrations ORDER BY id')).rows.map(({ name }) => name),
     ).toEqual(activeNames);
@@ -321,14 +339,14 @@ test('también actualiza la base anterior de 17 migraciones conservando sus fila
     await rawRun(url, activeNames.slice(0, 17));
     await seedDevelop(pool);
     const before = await snapshot(pool);
-    await expect(migrate(url)).resolves.toHaveLength(3);
+    await expect(migrate(url)).resolves.toHaveLength(4);
     const after = await snapshot(pool);
     for (const [table, rows] of Object.entries(before.data)) {
       expect(after.data[table]).toEqual(
         table === 'pgmigrations' ? expect.arrayContaining(rows) : rows,
       );
     }
-    expect(after.data.pgmigrations).toHaveLength(20);
+    expect(after.data.pgmigrations).toHaveLength(21);
     const categoryCheck = await pool.query(
       "SELECT pg_get_constraintdef(oid) AS definition FROM pg_constraint WHERE conname='bus_seats_category_check'",
     );
@@ -374,7 +392,7 @@ test('actualiza develop con Reservas existentes sin perder plazos ni ocupaciones
     }
     const before = await snapshot(pool);
     expect(before.data.pgmigrations).toHaveLength(19);
-    await expect(migrate(url)).resolves.toHaveLength(1);
+    await expect(migrate(url)).resolves.toHaveLength(2);
     const after = await snapshot(pool);
     for (const [table, rows] of Object.entries(before.data)) {
       if (table === 'bookings') {
@@ -392,10 +410,96 @@ test('actualiza develop con Reservas existentes sin perder plazos ni ocupaciones
         );
       }
     }
-    expect(after.data.pgmigrations).toHaveLength(20);
+    expect(after.data.pgmigrations).toHaveLength(21);
     expect(after.data.booking_proof_receipt_results).toEqual([]);
     expect(after.data.booking_seat_allocations).toHaveLength(3);
     await expect(migrate(url)).resolves.toEqual([]);
     expect(await snapshot(pool)).toEqual(after);
+  });
+});
+
+async function seedProofOutbox(pool) {
+  await seedDevelop(pool, true);
+  await pool.query(`UPDATE payment_proofs SET status='UPLOADED', file_key='qa-private-key',
+    original_file_name='qa.pdf',media_type='application/pdf',file_size_bytes=16,uploaded_at='2026-11-03T14:01:00Z'`);
+  await pool.query(`INSERT INTO payment_proof_notification_outbox(payment_proof_id,booking_id)
+    SELECT id,booking_id FROM payment_proofs`);
+}
+async function expectBookingIdType(pool, expected) {
+  const { rows } = await pool.query(`SELECT table_name,data_type FROM information_schema.columns
+    WHERE table_schema='public' AND table_name IN ('payment_proofs','payment_proof_notification_outbox')
+    AND column_name='booking_id' ORDER BY table_name`);
+  expect(rows).toHaveLength(2);
+  expect(rows.every((row) => row.data_type === expected)).toBe(true);
+}
+test('actualiza las 20 migraciones de develop con comprobante/outbox y revierte UUID sin perder filas', async () => {
+  await database(async ({ pool, url }) => {
+    await rawRun(url, activeNames.slice(0, 20));
+    await seedProofOutbox(pool);
+    const before = await snapshot(pool);
+    await expectBookingIdType(pool, 'uuid');
+    expect(before.data.pgmigrations).toHaveLength(20);
+    await expect(migrate(url)).resolves.toHaveLength(1);
+    await expectBookingIdType(pool, 'text');
+    const after = await snapshot(pool);
+    for (const [table, rows] of Object.entries(before.data)) {
+      expect(after.data[table]).toEqual(
+        table === 'pgmigrations' ? expect.arrayContaining(rows) : rows,
+      );
+    }
+    expect(after.data.pgmigrations).toHaveLength(21);
+    await expect(migrate(url)).resolves.toEqual([]);
+    expect(await snapshot(pool)).toEqual(after);
+    await migrate(url, 'down');
+    await expectBookingIdType(pool, 'uuid');
+    expect(await snapshot(pool)).toEqual(before);
+    await expect(migrate(url)).resolves.toHaveLength(1);
+    await expectBookingIdType(pool, 'text');
+  });
+});
+test.each(['reserva opaca/2026:á', 'ABCDEFAB-0000-4000-8000-000000000001'])(
+  'down rechaza sin cambios la identidad no canónica %s',
+  async (id) => {
+    await database(async ({ pool, url }) => {
+      await migrate(url);
+      await seedProofOutbox(pool);
+      await pool.query('UPDATE payment_proofs SET booking_id=$1', [id]);
+      await pool.query('UPDATE payment_proof_notification_outbox SET booking_id=$1', [id]);
+      const before = await snapshot(pool);
+      await expect(migrate(url, 'down')).rejects.toMatchObject({ code: '23514' });
+      expect(await snapshot(pool)).toEqual(before);
+      await expectBookingIdType(pool, 'text');
+      expect(before.data.pgmigrations).toHaveLength(21);
+      for (const table of ['payment_proofs', 'payment_proof_notification_outbox']) {
+        for (const invalid of ['', '   ']) {
+          await expect(
+            pool.query(`UPDATE ${table} SET booking_id=$1`, [invalid]),
+          ).rejects.toMatchObject({ code: '23514' });
+          expect(await snapshot(pool)).toEqual(before);
+        }
+      }
+    });
+  },
+);
+test('fallo DDL en la segunda tabla revierte los dos tipos y el historial', async () => {
+  await database(async ({ pool, url }) => {
+    await rawRun(url, activeNames.slice(0, 20));
+    await seedProofOutbox(pool);
+    const before = await snapshot(pool);
+    await pool.query(`CREATE SCHEMA qa_opaque_failure;
+      CREATE FUNCTION qa_opaque_failure.stop_second() RETURNS event_trigger LANGUAGE plpgsql AS $$ BEGIN
+        IF EXISTS(SELECT 1 FROM pg_event_trigger_ddl_commands() WHERE command_tag='ALTER TABLE'
+          AND object_identity='public.payment_proof_notification_outbox') THEN
+          RAISE EXCEPTION 'Fallo QA en segunda tabla'; END IF; END $$;
+      CREATE EVENT TRIGGER qa_fail_opaque ON ddl_command_end EXECUTE FUNCTION qa_opaque_failure.stop_second()`);
+    try {
+      await expect(migrate(url)).rejects.toThrow();
+      expect(await snapshot(pool)).toEqual(before);
+      await expectBookingIdType(pool, 'uuid');
+    } finally {
+      await pool.query('DROP EVENT TRIGGER qa_fail_opaque; DROP SCHEMA qa_opaque_failure CASCADE');
+    }
+    await expect(migrate(url)).resolves.toHaveLength(1);
+    await expectBookingIdType(pool, 'text');
   });
 });
