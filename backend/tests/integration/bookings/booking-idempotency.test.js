@@ -20,7 +20,9 @@ beforeAll(() => {
 });
 beforeEach(async () => {
   assertTestDatabase();
-  await pool.query('TRUNCATE booking_seat_allocations, bookings, booking_trip_locks');
+  await pool.query(
+    'TRUNCATE booking_proof_receipt_results, booking_seat_allocations, bookings, booking_trip_locks',
+  );
 });
 afterAll(async () => {
   if (pool) await pool.end();

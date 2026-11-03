@@ -131,7 +131,7 @@ beforeAll(async () => {
 beforeEach(async () => {
   assertTestDatabase();
   await pool.query(
-    'TRUNCATE auth_sessions, users, booking_seat_allocations, bookings, booking_trip_locks',
+    'TRUNCATE auth_sessions, users, booking_proof_receipt_results, booking_seat_allocations, bookings, booking_trip_locks',
   );
   userId = randomUUID();
   sid = randomUUID();

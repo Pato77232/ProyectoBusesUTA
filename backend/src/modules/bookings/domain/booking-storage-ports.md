@@ -25,3 +25,12 @@ Si no existe, locate obtiene alcance desde catálogo de servidor y se reutiliza 
 createBooking conserva la ruta privada sin clave para consumidores previos; T4 debe exigir requestKey válido para toda creación pública. Una compra nueva o un resumen distinto usa otra clave, y vuelve a validar disponibilidad/precios. La ruta sin clave no ofrece recuperación idempotente.
 
 La migración inversa conserva reservas/asientos pero elimina metadatos de reintento. Reaplicarla restaura columnas, no claves antiguas; no permite prometer recuperación idempotente de esas compras. No hay limpieza automática ni caducidad independiente de claves en este incremento; quedan mientras exista su reserva. Detalle y evidencia: docs/specs/BOOK-03-T3-R.md.
+
+
+## Recepción y expiración — BOOK-06-L04-T2
+
+El puerto privado de ciclo de vida implementa findReceipt(target), receive(target, clock) y expire({bookingId}, clock). target es la copia validada de bookingId, cooperativeId y paymentProofId. findReceipt recupera un resultado durable únicamente si coinciden los tres vínculos; otra asociación falla sin revelar los datos previos. receive serializa por comprobante, luego viaje y reserva, y relee resultado y ocupaciones antes de decidir. expire usa viaje y reserva en el mismo orden que creación; no bloquea primero la reserva.
+
+El reloj se evalúa después de adquirir los bloqueos para una decisión nueva. La transacción incluye primera recepción o expiración, todas las ocupaciones y el resultado durable. Error o respuesta perdida de COMMIT no certifica rechazo: se conserva evidencia y se reintenta la misma identidad. Los resultados y errores públicos están definidos en BOOK-06-L04-T2 §11.
+
+La fuente externa receiptSource({paymentProofId}) es un puerto obligatorio del caso de uso, inyectado exclusivamente por composición confiable. Entrega hechos persistidos de comprobante/outbox; no importa repositorios ni tablas privadas de Payments. La prueba PostgreSQL usa una fuente QA persistida identificada expresamente; la implementación productiva de ese puerto, la autorización inicial de carga y el adaptador seguro de compensación pertenecen al incremento C. No hay planificador ni nuevas rutas HTTP en B.

@@ -152,6 +152,11 @@ test('base vacía instala esquema real, omite ocultos/originales y no duplica al
     await expect(migrate(url)).resolves.toEqual([]);
     expect(await snapshot(pool)).toEqual(before);
     await migrate(url, 'down');
+    expect(
+      (await pool.query("SELECT to_regclass('booking_proof_receipt_results') AS name")).rows[0]
+        .name,
+    ).toBeNull();
+    await migrate(url, 'down');
     expect((await pool.query("SELECT to_regclass('bookings') AS name")).rows[0].name).toBeNull();
     expect((await pool.query('SELECT name FROM pgmigrations ORDER BY id')).rows).toHaveLength(18);
     await migrate(url);
@@ -178,13 +183,18 @@ test('copia de develop con datos conserva cada fila/definición y añade solamen
         table === 'pgmigrations' ? expect.arrayContaining(rows) : rows,
       );
     }
-    expect(after.data.pgmigrations).toHaveLength(19);
+    expect(after.data.pgmigrations).toHaveLength(20);
     expect(after.definitions).toEqual(expect.arrayContaining(before.definitions));
     expect(
       Object.keys(after.data)
         .filter((table) => !Object.hasOwn(before.data, table))
         .sort(),
-    ).toEqual(['booking_seat_allocations', 'booking_trip_locks', 'bookings']);
+    ).toEqual([
+      'booking_proof_receipt_results',
+      'booking_seat_allocations',
+      'booking_trip_locks',
+      'bookings',
+    ]);
     expect(after.data.bookings).toEqual([]);
   });
 });
@@ -269,7 +279,7 @@ test.each([false, true])(
       expect(await snapshot(pool)).toEqual(before);
       expect((await pool.query("SELECT to_regclass('bookings') AS name")).rows[0].name).toBeNull();
       await pool.query('DROP EVENT TRIGGER qa_fail_bookings; DROP SCHEMA qa_failure CASCADE');
-      await expect(migrate(url)).resolves.toHaveLength(withDevelop ? 1 : 19);
+      await expect(migrate(url)).resolves.toHaveLength(withDevelop ? 2 : 20);
     });
   },
 );
@@ -287,7 +297,7 @@ test('el bloqueo compartido impide validar mientras otro migrador tiene autorida
       await holder.query('SELECT pg_advisory_unlock($1)', [lockId]);
       holder.release();
     }
-    await expect(migrate(url)).resolves.toHaveLength(19);
+    await expect(migrate(url)).resolves.toHaveLength(20);
   });
 });
 
@@ -299,7 +309,7 @@ test('historial legítimo vacío tras down conserva su índice interno y permite
     expect((await pool.query("SELECT to_regclass('pgmigrations_pkey') AS name")).rows[0].name).toBe(
       'pgmigrations_pkey',
     );
-    await expect(migrate(url)).resolves.toHaveLength(19);
+    await expect(migrate(url)).resolves.toHaveLength(20);
     expect(
       (await pool.query('SELECT name FROM pgmigrations ORDER BY id')).rows.map(({ name }) => name),
     ).toEqual(activeNames);
@@ -311,14 +321,14 @@ test('también actualiza la base anterior de 17 migraciones conservando sus fila
     await rawRun(url, activeNames.slice(0, 17));
     await seedDevelop(pool);
     const before = await snapshot(pool);
-    await expect(migrate(url)).resolves.toHaveLength(2);
+    await expect(migrate(url)).resolves.toHaveLength(3);
     const after = await snapshot(pool);
     for (const [table, rows] of Object.entries(before.data)) {
       expect(after.data[table]).toEqual(
         table === 'pgmigrations' ? expect.arrayContaining(rows) : rows,
       );
     }
-    expect(after.data.pgmigrations).toHaveLength(19);
+    expect(after.data.pgmigrations).toHaveLength(20);
     const categoryCheck = await pool.query(
       "SELECT pg_get_constraintdef(oid) AS definition FROM pg_constraint WHERE conname='bus_seats_category_check'",
     );

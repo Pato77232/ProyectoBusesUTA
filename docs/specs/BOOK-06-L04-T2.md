@@ -1,12 +1,12 @@
 # BOOK-06-L04-T2: recepción inicial y expiración coordinadas
 
-- **Estado:** Borrador para cerrar contrato de escritura; implementación no autorizada por esta preparación.
+- **Estado:** Incremento B implementado y probado localmente por delegación de Leslie el 3 de noviembre; revisión humana pendiente. Conexión productiva C y planificador D separados; revisión humana del código pendiente.
 - **Responsable:** Leslie. Coordinación Shirley para consumidor/outbox y Pablo para contexto interno de operación durable.
 - **Origen:** Leslie pide continuar después de BOOK-07-L05-T1 y avisar cuándo guardar un commit.
-- **Base:** feature/BOOK-03-resumen-creacion-dominio, HEAD c7ceed9 con lector/persistencia locales sin commit; origin/develop 1daa3c4 consultado el 2 de noviembre de 2026, sin integrar.
+- **Base actual de preparación:** feature/BOOK-06-recepcion-expiracion, creada localmente desde f0a9c2f publicado en PR #51; origin/develop 1a411ef contrastado al terminar el incremento, sin incorporarlo. Los registros inferiores del 2 de noviembre conservan su alcance histórico.
 - **Specs:** [BOOK-06-L04](BOOK-06-L04.md), [BOOK-07-L05](BOOK-07-L05.md), [lector implementado](BOOK-07-L05-T1.md).
 - **Revisión humana:** pendiente, sin atribuir aprobación por preparar este documento.
-- **Resultado previo listo para commit:** lector/persistencia probados; sugerencia feat(reservas): agrega lectura autorizada para pagos. No se ejecuta commit/push.
+- **Entrega anterior:** PR #51 publicada en f0a9c2f, APPROVED por Pablo el 3 de noviembre; abierta y sin integrar, con revisión de Shirley aún solicitada. No implica aprobación de los comandos de esta spec.
 
 ## 1. Resultado acotado
 
@@ -126,3 +126,52 @@ Recepción/expiración es la siguiente funcionalidad; no mezclar corrección, ca
 El incremento anterior ya tiene 1045 pruebas aprobadas y nueve comprobaciones de consumidor real; no se repiten suites por esta preparación Markdown. Su checkpoint de commit es oportuno antes de mezclar esta funcionalidad nueva. No stage, commit, push, merge o tags ejecutados. La autorización actual de Leslie pide avisar, no ejecutar esas operaciones.
 
 Sin implementación ni pruebas nuevas de esta spec. No fallo inducido ni modificación de frontend. Revisión y autorización del contrato pendientes.
+
+
+## 10. Preparación de la siguiente funcionalidad — 3 de noviembre de 2026
+
+Leslie indica que Pablo ya revisó y pide continuar. Verificación por GitHub: PR #51 abierta, fuera de borrador, sin conflictos y con APPROVED de Pablo el 3 de noviembre; no hay nueva aprobación de escritura. Su rama publicada queda intacta. Preparación local en feature/BOOK-06-recepcion-expiracion desde f0a9c2f; sin commit/push de este borrador ni PR nueva documental.
+
+Se revisan PR #55/#56 de Shirley, aún abiertas: aportan consumidor y prueba conjunta de lectura, no recepción/venta/liberación. No duplicarlas ni presentarlas integradas. Develop 517473d añade solo documentación Fleet respecto a la base ya incorporada; PR #59 de inmutabilidad de Fleet sigue abierta y no sustituye el contrato de recepción.
+
+[Propuesta concreta y matriz de conciliación](../contratos/recepcion-reservas-pagos-propuesta.md) reúne los tres puntos necesarios antes de código: autorización durable por puerto ligado a hechos persistidos, outcomes/mapeo de compensación y compatibilidad de EXPIRED. Esa propuesta sustituirá la firma con operationContext sin definir únicamente si las partes la aceptan; por ahora ambas son antecedentes/propuestas, ninguna API disponible.
+
+Brecha comprobada en el consumidor: notifyBooking ignora el resultado y marca entregado tras cualquier resolución sin error; además, ciertas excepciones genéricas disparan borrado. El adaptador debe verificar ACCEPTED y reservar la compensación para el rechazo de plazo realmente confirmado y vinculado. Fallo de fuente, vínculo incoherente o timeout no autorizan borrar evidencia. Son criterios a cerrar con Shirley, sin editar su módulo en esta preparación.
+
+Orden pequeño propuesto: A, cerrar esos tres puntos con ejemplos y matriz; B, implementar únicamente persistencia y decisiones transaccionales; C, conectar consumidor y prueba conjunta; D, planificador en alcance posterior. La regla exacta del primer aviso tardío y su compensación requieren ratificación antes de usar resultados definitivos. No inferirla del hecho de que el archivo ya se hubiera guardado.
+
+Preparación solo documental: no cambios productivos, migraciones, dependencias o pruebas ejecutables; no ejecución de lint/PostgreSQL para atribuir resultados a un producto no implementado. Se validan enlaces y diff; revisión/aceptación del contrato y autorización del siguiente incremento pendientes.
+
+
+## 11. Selección por delegación y alcance ejecutable — 3 de noviembre de 2026
+
+Leslie responde: «ve tu lo que es mejor ellos estan de acuerdo en todo». Se registra como autorización y delegación transmitida por Leslie para elegir el diseño técnico y continuar; no se atribuye una aprobación individual nueva a Pablo o Shirley ni revisión anticipada del código.
+
+Se elige el puerto ligado de la propuesta: createPaymentProofReceiver({ receiptSource }) devuelve únicamente markPaymentProofReceived({ bookingId, cooperativeId, paymentProofId }). receiptSource es una función inyectada en composición confiable, nunca un campo HTTP o un principal serializado. Debe leer comprobante/outbox persistidos y devolver { bookingId, cooperativeId, paymentProofId, status: UPLOADED, notificationStatus: PENDING, uploadedAt: ISO UTC }. Una primera recepción exige PENDING; DELIVERED solo es compatible con recuperar un resultado que Bookings ya conserve. No se inventa una API Auth ni un rol de trabajador. Ausencia/fallo de fuente conserva evidencia y no autoriza compensación.
+
+El incremento B implementa Bookings y sus casos de uso contra PostgreSQL real; la fuente externa obligatoria se representa explícitamente con fixtures de QA en esas pruebas. No se presenta como integración productiva con Payments. C deberá aportar la consulta pública real de Payments y conectar la carga a findForPayment con UPLOAD_PROOF y contexto Auth real antes de atribuir procedencia autorizada a su outbox: las PR #55/#56 son lectura, no esa conexión. Identidad de cargador puede conservarse como auditoría, nunca como credencial para el reintento.
+
+Resultados estables: ACCEPTED con los tres IDs y acceptedAt; REJECTED_EXPIRED con IDs y rejectedAt. Mismo comprobante/vínculos recupera su registro antes de fuente/reloj nuevos. Reutilización con otros vínculos falla sin datos ajenos. Primera recepción requiere reloj de Bookings bajo bloqueo estrictamente anterior a expiresAt; si llega tarde, expiración y rechazo se confirman en la misma transacción. Guardado anterior del archivo no retrocede ese reloj. Timeout/commit incierto conserva comprobante y exige reintentar identidad; nunca equivale a resultado definitivo.
+
+Expiración se expone solo como capacidad de mantenimiento interna expireBooking({ bookingId }), sin endpoint ni planificador. Usa el mismo bloqueo de viaje y fila; mantiene RECEIVED, libera solo RESERVED activas y nunca SOLD. Estado EXPIRED y expired_at, con ausencia NOT_RECEIVED conocida; UNKNOWN o conjuntos de asientos incoherentes fallan sin efectos. Resultado EXPIRED estable o NOT_DUE/PROOF_RECEIVED sin cambios.
+
+Nueva migración 1793910000000-booking-proof-receipts y catálogo activo correspondiente; tabla durable de resultados con identidad única de comprobante y vínculos FK al scope de reserva; aceptación única por reserva. Down rechaza datos de resultados/expiración para no destruir evidencia. Los originales y migraciones existentes permanecen intactos. Preparaciones de tests incluirán la tabla nueva al limpiar; no se rebajan aserciones ni timeouts.
+
+El lector de Bookings y su adaptador preparado de Payments admitirán EXPIRED únicamente con canUploadProof=false y hechos consistentes; se agregan pruebas. Esto es compatibilidad de lectura, no conexión de rutas ni modificación de las ramas #55/#56 de Shirley. El adaptador de notificación que interpreta outcomes y limita compensación forma parte de C; no se conecta directamente el retorno estructurado al consumidor actual que ignora resultados.
+
+Criterios: límites y reloj tras bloqueo; recepción/expiración ganadoras; duplicados concurrentes y reutilización cruzada; fallo en segundo asiento revierte todo; respuesta perdida tras COMMIT real y recuperación desde otra instancia; origen inválido/UNKNOWN/SOLD sin efectos; aislamiento de cooperativa; persistencia de resultados y down protegido. Verificar lint, formato y npm test con PostgreSQL aislado, y arranque real al extender la composición pública.
+
+
+## 12. Resultado verificable del incremento B
+
+Implementados dominio, casos de uso, repositorio PostgreSQL, nueva migración y capacidades en index.js. El reloj se obtiene bajo bloqueo; todos los cambios de inventario y la decisión se confirman juntos. Repetición tras reinicio de instancia recupera el resultado guardado por comprobante/vínculos, sin consultar nuevamente la fuente ni reiniciar fechas.
+
+Errores públicos de la capacidad interna (sin traducción HTTP nueva): BOOKING_VALIDATION_ERROR para entrada inválida; BOOKING_NOT_FOUND para ausencia; BOOKING_RECEIPT_SOURCE_MISMATCH para hechos no elegibles; BOOKING_RECEIPT_LINK_MISMATCH para reutilización/vínculos incompatibles; BOOKING_DATA_INTEGRITY_ERROR para datos incoherentes; BOOKING_LIFECYCLE_UNAVAILABLE para fallo técnico o resultado incierto. Ninguno autoriza compensación. Solo REJECTED_EXPIRED resuelto después del commit es el rechazo definitivo por plazo de este contrato. No se expone SQL ni el vínculo anterior.
+
+[Evidencia reproducible y límites](../evidence/BOOK-06-L04-T2/2026-11-03-recepcion-expiracion.md): npm test completo 1657 unitarias + 514 integraciones aprobadas, con arranque real. Posterior caso adicional de dos expiradores y catálogo: 38/38 dirigidas. Lint y formato propio aprobados; formato global pendiente en los mismos 17 archivos ajenos. Frontend lint y 181 pruebas aprobados. Primera barrera QA corregida sin rebajar expectativas; recursos PostgreSQL propios retirados.
+
+Archivos: migración y catálogo; application/receive-payment-proof y expire-booking; domain/booking-lifecycle y su error; infrastructure/pg-booking-lifecycle.repository; API pública de Bookings y compatibilidad de lector/adaptador preparado de Payments. Fixtures de limpieza incluyen la nueva tabla FK. Sin nuevas dependencias ni cambios de pantalla: DESIGN.md no aplica a este incremento backend.
+
+Para comprobar: iniciar PostgreSQL aislado según docs/testing-database.md, ejecutar desde backend npm run lint, npm run format:check y npm test; las suites receipt-expiration y migration-catalog ejercitan los escenarios concretos. Nunca usar bases persistentes. No se habilita planificador ni conexión a los adaptadores simulados de Payments.
+
+Validación local terminada; Leslie autoriza commit y push de este incremento en feature/BOOK-06-recepcion-expiracion. PR nueva, revisión humana y conexión C pendientes; no se declara integrada ni cerrada la funcionalidad. Los apartados 3–10 conservan el antecedente de propuesta; la selección vigente está en §11 y su resultado en este apartado.
