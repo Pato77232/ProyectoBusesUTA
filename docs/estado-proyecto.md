@@ -1,5 +1,13 @@
 # Estado compartido del proyecto
 
+## D-06 — creación de frecuencias, sección 0 documental, 2 de noviembre de 2026
+
+David confirmó D-06 como pantallas operativas y autorizó solo sección 0 de su primera tarea. Rama feature/FREQUENCIES-WEB-01-creacion-frecuencias, inicialmente limpia sobre 1daa3c4 (D-04/PR #49 integrada en la historia local; sin fetch). [FREQUENCIES-WEB-01](specs/FREQUENCIES-WEB-01.md) define alta por COOPERATIVE_ADMIN, ANT obligatoria, inmutabilidad posterior, paradas ordenadas, cliente HTTP/sesión compartidos y adopción de DESIGN.md. Tres secciones/un commit por sección: documentación, formulario local y conexión API real.
+
+Q1 pendiente antes de implementar: el POST actual exige precios consecutivos históricos, mientras la tarifa comercial corresponde a la hoja. Propuesta: capturarlos explícitamente con ayuda que distinga ambos usos; alternativa, adaptación backend en otra tarea. No fabricar valores ni sumar tramos para ventas. El alta solo guarda nombres de paradas; horarios fechados se programan en la hoja, sin afirmar que existan horarios normativos de parada en la frecuencia. Listado/estado y hoja manual son tareas separadas; desactivación al cierre del ciclo y lecturas HTTP de buses/tarifario requieren revisión antes de esas pantallas. Renovación/excepciones quedan fuera hasta sus contratos implementados.
+
+Cambios solo Markdown; sin pruebas funcionales, producto, dependencias, commits ni publicación. Spec en preparación documental, no aprobada por Leslie/Pablo ni integrada. Próximo paso: confirmar Q1 y autorizar sección 1. La evidencia inferior conserva estados históricos.
+
 ## D-04 — sección 2 local, 2 de noviembre de 2026
 
 Sobre 2e3cdca, David confirmó Q5 y autorizó API interna `tripQueries.findBookableById` y `findBookableForSegment`, sin GET público ni cambios en Bookings. [ROUTE-SHEETS-07 §14](specs/ROUTE-SHEETS-07.md#14-sección-2--consulta-comercial-por-embarque) documenta identidad estable, copias congeladas, cierre por parada y horizonte de ciclos publicados. Lectura coherente de tablas propias y fuentes mediante APIs públicas, liberando la conexión antes de consultar otros módulos. La consulta no reserva asientos; Leslie debe conectar el control por par y las ocupaciones en Bookings.
