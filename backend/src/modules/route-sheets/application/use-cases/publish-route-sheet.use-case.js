@@ -11,6 +11,12 @@ const {
   validateProgrammingForPublication,
   assertProgrammingRevision,
 } = require('../services/validate-programming-for-publication');
+const prepareCommercialPublication = require('../services/prepare-commercial-publication');
+const { tripUuid } = require('../../domain/value-objects/commercial-inventory');
+const {
+  CommercialTripSourceError,
+  CommercialTripConflictError,
+} = require('../../domain/errors/commercial-trip-errors');
 
 function assertRevision(value, current) {
   if (value === undefined) return;
@@ -26,6 +32,7 @@ function assertRevision(value, current) {
 function publishRouteSheetUseCase({
   tariffRepository,
   busQueryPort,
+  seatQueryPort,
   now = () => new Date().toISOString(),
 }) {
   return async ({
@@ -34,6 +41,7 @@ function publishRouteSheetUseCase({
     publishedBy,
     expectedRevision,
     expectedProgrammingRevision,
+    seriesId,
   }) => {
     if (!tariffRepository) throw new TariffSourceError();
     const context = {
@@ -41,9 +49,18 @@ function publishRouteSheetUseCase({
       cooperativeId: assertUuid(cooperativeId),
       modifiedBy: assertUuid(publishedBy),
     };
+    const requestedSeriesId = seriesId === undefined ? undefined : tripUuid(seriesId);
     return tariffRepository.withLockedSheet(
       context,
-      async ({ sheet, frequencyIds, frequencyQueryPort, freeze, toEntity, programmingSession }) => {
+      async ({
+        sheet,
+        frequencyIds,
+        frequencyQueryPort,
+        freeze,
+        toEntity,
+        programmingSession,
+        commercialSession,
+      }) => {
         if (sheet.status === 'PUBLISHED') {
           if (!sheet.tariff_frozen)
             throw new TariffConflictError(
@@ -56,7 +73,14 @@ function publishRouteSheetUseCase({
             const session = await programmingSession?.();
             assertProgrammingRevision(expectedProgrammingRevision, session?.record?.revision ?? 0);
           }
-          return RouteSheetDTO.fromEntity(toEntity(sheet), [], []);
+          if (!commercialSession?.findPublished) throw new CommercialTripSourceError();
+          const commercial = await commercialSession.findPublished();
+          if (requestedSeriesId !== undefined && requestedSeriesId !== commercial?.seriesId)
+            throw new CommercialTripConflictError(
+              'COMMERCIAL_SERIES_CONFLICT',
+              'La publicación no corresponde a la serie solicitada.',
+            );
+          return Object.assign(RouteSheetDTO.fromEntity(toEntity(sheet), [], []), { commercial });
         }
         if (sheet.status !== 'DRAFT')
           throw new TariffConflictError(
@@ -69,8 +93,9 @@ function publishRouteSheetUseCase({
           frequencyIds,
           frequencyQueryPort,
         });
+        const session = await programmingSession?.();
         await validateProgrammingForPublication({
-          programmingSession,
+          programmingSession: async () => session,
           busQueryPort,
           sheet: { ...sheet, routeDate: sheet.programming_route_date },
           cooperativeId: context.cooperativeId,
@@ -78,8 +103,16 @@ function publishRouteSheetUseCase({
           frequencyQueryPort,
           now: now(),
         });
+        const capture = await prepareCommercialPublication({
+          commercialSession,
+          programmingRecord: session.record,
+          seatQueryPort,
+          seriesId: requestedSeriesId,
+          now: now(),
+        });
+        const commercial = await commercialSession.save(capture);
         const saved = await freeze(snapshot);
-        return RouteSheetDTO.fromEntity(saved, [], []);
+        return Object.assign(RouteSheetDTO.fromEntity(saved, [], []), { commercial });
       },
     );
   };

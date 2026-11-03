@@ -17,7 +17,7 @@ const { busRequest } = require('../../helpers/fleet-bus');
 const { singleFrequencyProgramming } = require('../../helpers/single-frequency-programming');
 
 const PASSWORD = 'congelacion solo pruebas 2026';
-let pool, server, url, hash, browser, data, routeSheets, frequencyQueries, busQueries;
+let pool, server, url, hash, browser, data, routeSheets, frequencyQueries, busQueries, seatQueries;
 
 class Browser {
   constructor() {
@@ -174,12 +174,14 @@ beforeAll(async () => {
   frequencyQueries = frequencies.frequencyQueries;
   const fleet = createFleetModule({ pool, auth, env: { NODE_ENV: 'test' } });
   busQueries = fleet.busQueries;
+  seatQueries = fleet.seatQueries;
   routeSheets = createRouteSheetsModule({
     pool,
     auth,
     frequencyQueries,
     busQueries,
     busGroupQueries: fleet.busGroupQueries,
+    seatQueries,
   });
   server = http.createServer(createApp({ auth, frequencies, routeSheets, pool }));
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
@@ -402,6 +404,7 @@ test('la frecuencia permanece bloqueada hasta que termina la publicación', asyn
   const publishing = publishFactory({
     tariffRepository: new PgTariffRepository(pool, { frequencySessionFactory: factory }),
     busQueryPort: busQueries,
+    seatQueryPort: seatQueries,
   })(context());
   const client = await pool.connect();
   try {

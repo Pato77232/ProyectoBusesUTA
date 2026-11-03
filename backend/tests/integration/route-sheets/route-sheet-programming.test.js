@@ -39,6 +39,8 @@ beforeAll(async () => {
   pool = testPool();
   // Probar la transición desde el esquema previo y datos legados, no solo creación vacía.
   await pool.query('TRUNCATE cooperatives CASCADE');
+  // Retirar la migración comercial posterior vacía; la prueba sigue siendo de programación.
+  runMigration('down');
   runMigration('down');
   await pool.query('TRUNCATE cooperatives CASCADE');
   const owners = await fleetFixtures(pool);
@@ -351,8 +353,13 @@ test('un escritor legado no puede insertar ni retirar asignaciones programadas',
 
 test('la migración no permite down que destruya programación real', async () => {
   await save({ ...f.context, ...f.body });
-  expect(() => runMigration('down')).toThrow();
-  expect((await readProgramming(pool, f.context.routeSheetId, f.cooperativeId)).revision).toBe(1);
+  runMigration('down');
+  try {
+    expect(() => runMigration('down')).toThrow();
+    expect((await readProgramming(pool, f.context.routeSheetId, f.cooperativeId)).revision).toBe(1);
+  } finally {
+    runMigration();
+  }
 });
 
 function followingBody(date) {

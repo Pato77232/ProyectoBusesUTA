@@ -161,6 +161,7 @@ function createRouteSheetController({
           publishedBy: req.auth.user.id,
           expectedRevision: req.body?.expectedRevision,
           expectedProgrammingRevision: req.body?.expectedProgrammingRevision,
+          seriesId: req.body?.seriesId,
         });
         return res.status(200).json({ routeSheet: result });
       } catch (error) {

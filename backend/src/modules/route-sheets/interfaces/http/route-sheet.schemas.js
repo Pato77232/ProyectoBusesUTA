@@ -30,10 +30,13 @@ function validatePublish(body) {
       typeof body !== 'object' ||
       Array.isArray(body) ||
       Object.keys(body).some(
-        (key) => !['expectedRevision', 'expectedProgrammingRevision'].includes(key),
+        (key) => !['expectedRevision', 'expectedProgrammingRevision', 'seriesId'].includes(key),
       ))
   )
-    return { valid: false, message: 'Solo se permiten las revisiones de tarifa y programación.' };
+    return {
+      valid: false,
+      message: 'Solo se permiten las revisiones de tarifa/programación y seriesId.',
+    };
   return { valid: true };
 }
 

@@ -1,5 +1,23 @@
 # Estado compartido del proyecto
 
+## D-04 — sección 2 local, 2 de noviembre de 2026
+
+Sobre 2e3cdca, David confirmó Q5 y autorizó API interna `tripQueries.findBookableById` y `findBookableForSegment`, sin GET público ni cambios en Bookings. [ROUTE-SHEETS-07 §14](specs/ROUTE-SHEETS-07.md#14-sección-2--consulta-comercial-por-embarque) documenta identidad estable, copias congeladas, cierre por parada y horizonte de ciclos publicados. Lectura coherente de tablas propias y fuentes mediante APIs públicas, liberando la conexión antes de consultar otros módulos. La consulta no reserva asientos; Leslie debe conectar el control por par y las ocupaciones en Bookings.
+
+1297 unitarias globales aprobadas; integración global: 370 aprobadas y una falla por timeout en bus-photo-storage, reproducida aisladamente (17 aprobadas/una falla), sin modificar esa prueba ni su límite. Comprobación final de las 36 nuevas registrada en §14. Lint y formato de cambios aprobados; formato global conserva 41 pendientes anteriores. Node local 22.19.0; Node 24 pendiente. Sin dependencias, migraciones ni pruebas anteriores modificadas; revisión humana/integración remota pendientes, sin commit/PR/merge ejecutados. Los estados inferiores conservan evidencia histórica.
+
+## D-04 — sección 1 local, 2 de noviembre de 2026
+
+En feature/ROUTE-SHEETS-07-viajes-comercializables sobre 4e5c8df, David solicitó sección 1 y confirmó Q1–Q4: publicaciones nuevas, captura atómica, copia propia de asientos desde Fleet de solo lectura y vínculo explícito de serie/ciclos sin renovación automática. [ROUTE-SHEETS-07 §13](specs/ROUTE-SHEETS-07.md#13-sección-1--captura-comercial-al-publicar) documenta cuatro tablas nuevas, identidades estables, copias inmutables por hoja/bus, referencias al recorrido/tarifa y respuesta de publicación con manifiesto comercial. Hoja histórica publicada no se reconstruye; ciclo siguiente requiere seriesId explícito y período consecutivo de igual duración.
+
+53 pruebas nuevas aprobadas (34 unitarias/19 integración con servidor/proveedores reales). **Final: npm test aprobado, 1267 unitarias + 366 integraciones = 1633**, con arranque real comprobado; lint, formato de cambios y diff aprobados. Preparación de pruebas antiguas/listas de limpieza y preparación de reversión de programación adaptadas con autorización expresa, sin cambios a comprobaciones/timeouts. 74 enlaces locales válidos; PostgreSQL temporal busesuta-trips-s1 retirado. Formato global conserva 41 pendientes previos y Node 24 sigue sin verificar. Sin dependencias nuevas, migraciones históricas modificadas, commit/PR nuevo o aprobación humana atribuida. Q5 y sección 2 pendientes: no tripQueries productivo ni integración de compra con Bookings. Evidencia inferior conserva los pendientes históricos ya respondidos.
+
+## D-04 — sección 0 documental, 2 de noviembre de 2026
+
+En `feature/ROUTE-SHEETS-07-viajes-comercializables`, inicialmente limpia sobre 1dcbd6d, David solicitó sección 0. Esa historia integra D-03/PR #48; no se confunde con una implementación de Viajes. [ROUTE-SHEETS-07](specs/ROUTE-SHEETS-07.md) queda Borrador: identidad estable, captura comercial al publicar, recorrido/embarque, contratos propuestos y tres secciones/un commit por sección. Sin código, migraciones, commit/PR nuevo ni revisión humana inferida.
+
+Pendientes Q1–Q5: creación atómica de viajes, propiedad/consistencia del inventario congelado con Edwin, alcance de hojas históricas, vínculo verificable de ciclos y consulta por embarque con Leslie. Fleet entrega asientos actuales pero no versión por hoja; Bookings aún no comprueba hora del embarque elegido. No basta el ID de frecuencia ni la ventana antigua de hoy+28 días. Puede avanzar el acuerdo documental; no declarar lista la comercialización completa. Revisar §10 antes de sección 1; no atribuir respuestas nuevas a otros integrantes. Solo Markdown, sin nuevas pruebas funcionales.
+
 ## D-03 — sección 2 local, 2 de noviembre de 2026
 
 David solicitó sección 2 en `feature/programacion-multifrecuencia-persistida`, limpia sobre ec9556e (sección 1 guardada por el humano). PUT/GET de programación con administrador/CSRF/tenant verificados, lectura consistente y revisiones independientes; publicar exige programación revalidada y congela tarifa/estado en la misma transacción. Se conservan snapshots/reintentos históricos; rutas antiguas y sus carreras no eluden validación integral. Composición conectada al servidor real, sin nuevos algoritmos, migraciones o dependencias en este incremento. [Spec §14](specs/ROUTE-SHEETS-06.md#14-sección-2--api-y-publicación-integradas-localmente) contiene contrato/evidencia.
