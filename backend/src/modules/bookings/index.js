@@ -7,6 +7,7 @@ const getSeatAvailability = require('./application/get-seat-availability.use-cas
 const getBookingSummary = require('./application/get-booking-summary.use-case');
 const createBooking = require('./application/create-booking.use-case');
 const getBookingAttempt = require('./application/get-booking-attempt.use-case');
+const findForPayment = require('./application/find-for-payment.use-case');
 const createRouter = require('./interfaces/booking-router');
 const BookingServiceUnavailableError = require('./domain/booking-service-unavailable-error');
 
@@ -51,6 +52,7 @@ function createBookingsModule({
     ...readBookingConfig(env),
   };
   return {
+    paymentQueries: Object.freeze({ findForPayment: findForPayment({ repository, clock }) }),
     router: createRouter({
       auth,
       getSeatAvailability: getSeatAvailability({ tripCatalog, allocationReader: repository }),

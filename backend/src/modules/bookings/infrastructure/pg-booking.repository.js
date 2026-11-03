@@ -2,6 +2,7 @@ const { createPendingBooking } = require('../domain/pending-booking');
 const { listSeatAvailability } = require('../domain/seat-availability');
 const { BookingValidationError } = require('../domain/booking-error');
 const BookingConflictError = require('../domain/booking-conflict-error');
+const BookingPaymentQueryError = require('../domain/booking-payment-query-error');
 const {
   createBookingOperation,
   validateRequestKey,
@@ -56,13 +57,14 @@ async function readAllocations(client, scope) {
   );
 }
 
-async function insertBooking(client, booking, operation) {
+async function insertBooking(client, booking, operation, proofContext) {
   const { summary } = booking;
   await client.query(
     `INSERT INTO bookings (id, cooperative_id, trip_id, owner_id, from_position, to_position,
        status, summary, base_price_cents, discount_cents, total_price_cents, created_at, expires_at,
-       creation_request_key, creation_request_fingerprint)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
+       creation_request_key, creation_request_fingerprint,
+       proof_window_started_at, proof_window_seconds, proof_reception_state)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,'NOT_RECEIVED')`,
     [
       booking.bookingId,
       summary.cooperativeId,
@@ -79,6 +81,8 @@ async function insertBooking(client, booking, operation) {
       booking.expiresAt,
       operation?.requestKey ?? null,
       operation?.requestFingerprint ?? null,
+      proofContext.startedAt,
+      proofContext.proofWindowSeconds,
     ],
   );
   for (const passenger of summary.passengers) {
@@ -111,6 +115,10 @@ async function reserveTrip(client, target, prepare, operation) {
   // prepare pertenece al caso de uso y se ejecuta después del bloqueo de inventario.
   const prepared = await prepare(target);
   const booking = createPendingBooking(prepared?.input, prepared?.context);
+  const proofContext = Object.freeze({
+    startedAt: prepared.context.startedAt.toISOString(),
+    proofWindowSeconds: prepared.context.proofWindowSeconds,
+  });
   const { summary } = booking;
   if (
     summary.tripId !== target.tripId ||
@@ -124,7 +132,7 @@ async function reserveTrip(client, target, prepare, operation) {
     allocations: await readAllocations(client, target),
   });
   if (seats.some((seat) => seat.status !== 'AVAILABLE')) throw new BookingConflictError();
-  await insertBooking(client, booking, operation);
+  await insertBooking(client, booking, operation, proofContext);
   return booking;
 }
 
@@ -187,6 +195,45 @@ class PgBookingRepository {
     return readAllocations(this.pool, tripScope(scope));
   }
 
+  async findPaymentRecord(request) {
+    const customer = request.purpose === 'UPLOAD_PROOF';
+    const filter = customer ? 'owner_id' : 'cooperative_id';
+    const principal = customer ? request.userId : request.cooperativeId;
+    if (
+      !['UPLOAD_PROOF', 'REVIEW_PAYMENT'].includes(request.purpose) ||
+      typeof principal !== 'string' ||
+      !principal.trim()
+    )
+      throw new BookingValidationError();
+    try {
+      const { rows } = await this.pool.query(
+        `SELECT id, owner_id, cooperative_id, status, total_price_cents,
+          summary->>'currency' AS currency, summary#>>'{totals,totalPriceCents}' AS summary_total,
+          created_at, expires_at, proof_window_started_at, proof_window_seconds,
+          proof_reception_state, accepted_proof_id, proof_received_at
+         FROM bookings WHERE id = $1 AND ${filter} = $2`,
+        [request.bookingId, principal],
+      );
+      return rows.length ? rows[0] : null;
+    } catch (error) {
+      const temporary = new Set([
+        'ECONNREFUSED',
+        'ECONNRESET',
+        'ETIMEDOUT',
+        'EHOSTUNREACH',
+        'ENETUNREACH',
+        '57P03',
+        '53300',
+        '08000',
+        '08001',
+        '08003',
+        '08006',
+      ]);
+      throw new BookingPaymentQueryError(
+        temporary.has(error?.code) ? 'BOOKING_QUERY_UNAVAILABLE' : 'INTERNAL_ERROR',
+      );
+    }
+  }
   async findByCreationRequest(input) {
     const ownerId = identifier(input?.ownerId);
     const requestKey = validateRequestKey(input?.requestKey);

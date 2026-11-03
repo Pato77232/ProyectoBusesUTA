@@ -313,8 +313,17 @@ test('propietario preparado distinto del de la operación revierte sin vincular 
 test('migración de metadatos es reversible sin eliminar reservas y admite reaplicación', async () => {
   const { execute, request } = await setup();
   const saved = await execute(request);
-  runMigration('down');
+  const target = '1793232000000-booking-creation-idempotency';
+  const { rows: applied } = await pool.query('SELECT name FROM pgmigrations ORDER BY id DESC');
+  expect(applied.map(({ name }) => name)).toContain(target);
   try {
+    for (const { name } of applied) {
+      runMigration('down');
+      expect(
+        (await pool.query('SELECT name FROM pgmigrations')).rows.map((row) => row.name),
+      ).not.toContain(name);
+      if (name === target) break;
+    }
     expect(await counts()).toEqual({ bookings: 1, allocations: 2 });
     const { rows } = await pool.query(`SELECT column_name FROM information_schema.columns
       WHERE table_name = 'bookings' AND column_name LIKE 'creation_request_%'`);
