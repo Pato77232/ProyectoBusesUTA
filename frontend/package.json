@@ -3,8 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test tests/api/*.test.js tests/fleet/*.test.js tests/auth/*.test.js tests/frequencies/*.test.js tests/payments/*.test.js",
-    "lint": "node ../backend/node_modules/eslint/bin/eslint.js src/api src/fleet src/auth src/frequencies tests/api tests/fleet tests/auth tests/frequencies src/payments tests/payments",
+    "test": "node --test tests/api/*.test.js tests/bookings/*.test.js tests/fleet/*.test.js tests/auth/*.test.js tests/frequencies/*.test.js tests/payments/*.test.js",
+    "lint": "node ../backend/node_modules/eslint/bin/eslint.js src/api src/bookings src/fleet src/auth src/frequencies tests/api tests/bookings tests/fleet tests/auth tests/frequencies src/payments tests/payments",
+    "test:bookings:browser": "node tests/bookings/browser.cjs",
+    "test:bookings:container": "node tests/bookings/container.cjs",
     "test:login": "node tests/login-smoke.cjs",
     "test:frequencies": "node tests/crear-frecuencia-smoke.cjs",
     "test:frequencies:api": "node tests/crear-frecuencia-api-smoke.cjs",
