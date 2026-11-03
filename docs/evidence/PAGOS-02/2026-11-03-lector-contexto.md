@@ -1,6 +1,28 @@
 # PAGOS-02: consumidor de lectura con contexto
 
-## Actualización vigente preparada para PR #55
+## Resolución de conflictos publicada en la misma PR #55
+
+Pablo autorizó de forma excepcional actualizar la rama de #55 para que él haga
+el merge final desde GitHub. Se incorporó `origin/develop` `feb7f75` sobre la
+cabeza `7448e1a`. Los dos conflictos reales fueron `payments/index.js` y
+`docs/estado-proyecto.md`: se conservaron la composición de lectura de #55, las
+dos capacidades de recepción añadidas en develop y ambas fotografías de estado.
+No se incorporó el incremento propio de #56.
+
+Node 24.21.0: lint y formato del archivo resuelto aprobados; las cuatro
+exportaciones públicas cargaron; 84 pruebas dirigidas y 1742 unitarias/90 suites
+aprobaron. La primera unitaria global quedó limitada por `listen EPERM` dentro
+del sandbox y la repetición con acceso local aprobado pasó completa. PostgreSQL
+aislado no pudo iniciarse porque Docker Desktop estaba apagado. No se usó `.env`
+ni otra base: integración, arranque y contrato conjunto no se atribuyen a esta
+cabeza. Los 2200 casos y 12 grupos inferiores pertenecen al candidato anterior
+`7448e1a` y se conservan como evidencia histórica, no como repetición nueva.
+
+La aprobación de Pablo existente corresponde a `7448e1a`; la cabeza conciliada
+requiere inspección humana final. La PR no queda integrada/cerrada por publicar
+esta resolución y #56 permanece separada.
+
+## Preparación histórica anterior de PR #55
 
 3 de noviembre de 2026: PR #55 existe, cabeza publicada `ca63a36`, Draft y
 con conflictos. Candidato local `feature/PAGOS-02-prepara-55` sobre develop

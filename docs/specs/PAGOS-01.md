@@ -277,3 +277,53 @@ Pablo confirmó ratificación de PDF/JPEG/PNG y 5 MiB, con validación de conten
 GitHub confirma conformidad documental APPROVED de Shirley sobre `ad74d25` de PR #46. El [estado actual del contrato](../pagos-reservas-find-for-payment.md#12-decisión-publicada-y-siguiente-incremento-consumidor) reemplaza las preguntas genéricas anteriores: inicio explícito proofWindowStartedAt persistido, contexto mínimo y errores seleccionados. No se presupone que createdAt sea el inicio ni que una columna ausente demuestre ausencia de recepción.
 
 Shirley autorizó continuar el adaptador consumidor acotado en PAGOS-02 §17. Está implementado y probado, pero no conectado a la carga de PAGOS-01, que conserva su firma anterior y proveedor simulado. La conexión real se hará tras disponer del proveedor publicado y probar ambos módulos; no habilitar carga mediante elegibilidad ficticia. Los borradores AUTH-06/CORREO-01/AUTH-INVITADO-01 ya están publicados como documentación en PR #46, sin que ello ofrezca endpoints/proveedor operativos.
+
+## 16. Puente interno de recepción real — 3 de noviembre de 2026
+
+Shirley autoriza avanzar con la PR #60 integrada en develop b4fe717. Incremento
+pequeño: API pública persistida de Payments y adaptador del receptor de Bookings,
+según BOOK-06-L04-T2 §11–12. Rama feature/PAGOS-01-puente-recepcion. La validación
+de formatos local y las PR #55/#56 se conservan en sus ramas, sin incorporarlas.
+
+Composición explícita createPaymentReceiptModule({ pool, createPaymentProofReceiver }).
+Consulta interna paymentProofQueries.findForBookingReceipt({ paymentProofId }):
+devuelve únicamente bookingId, cooperativeId, paymentProofId, status,
+notificationStatus y uploadedAt ISO UTC desde comprobante/outbox persistidos y
+vinculados. Ausencia real devuelve null; error técnico produce error incierto
+seguro, nunca null. Sin HTTP, bytes, clave/ruta física, precio o sesión serializada.
+Solo bootstrap confiable recibe esta capacidad; no es autorización de carga.
+
+Adaptador BookingPaymentProofNotifier: copia entrada estricta antes de await;
+solo ACCEPTED con tres vínculos idénticos y acceptedAt ISO válido resuelve como
+éxito. Solo REJECTED_EXPIRED vinculado y rejectedAt válido se traduce al error
+PaymentProofUploadDeadlineExpiredError que permite la compensación ya definida.
+Cualquier excepción del proveedor, resultado ausente/desconocido/incoherente o
+vínculo diferente se convierte en BookingNotificationUncertainError. No se
+propagan excepciones genéricas que pudieran disparar borrado. El adapter no
+borra ni marca entregado: esas responsabilidades siguen en el caso de uso.
+
+Pruebas nuevas unitarias y conjuntas contra API pública real de Bookings y
+PostgreSQL aislado: aceptación, vencimiento, replay después del plazo y estado
+DELIVERED, pérdida de respuesta tras COMMIT, fuente ausente/ajena/fallo, y
+conservación de comprobante/outbox/archivo cuando el resultado es incierto.
+No modificar pruebas previas, migraciones, dependencias ni Bookings. Lint,
+formato y npm test completos; verificar composición real de las dos APIs.
+
+SOLID: consulta de persistencia propia y traducción de contrato separadas,
+puertos pequeños inyectados en composición. Sin UI ni cambio visual.
+No conectar server.js/ruta de carga todavía: falta conectar UPLOAD_PROOF con
+contexto Auth real antes de atribuir autorización productiva al outbox. Este
+incremento no acredita compra completa, planificador, venta o rechazo de oficinista.
+Pablo y Leslie son revisores propuestos, sin atribuir aprobación. Preparar PR,
+sin commit/push/merge ni Ready automáticos.
+
+### Resultado local del puente
+
+Implementadas consulta persistida, traducción de resultados y composición pública
+opcional. 37 pruebas nuevas dirigidas aprobadas. `npm test`: 1686 unitarias y
+525 integraciones aprobadas, 127 suites, salida 0. Lint y formato propio aprobados;
+formato global conserva 17 archivos ajenos pendientes. Arranque real: salud 200
+y Pagos sin sesión 401; no activa el puente en servidor. Sin cambios a pruebas
+anteriores, Bookings, migraciones o dependencias. Sin commit/publicación ni
+aprobación humana. [Evidencia y reproducción](../evidence/PAGOS-01/2026-11-03-puente-recepcion.md)
+y [descripción de PR](../evidence/PAGOS-01/descripcion-pr-recepcion.md).

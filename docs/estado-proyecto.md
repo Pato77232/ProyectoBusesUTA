@@ -1,19 +1,36 @@
 # Estado compartido del proyecto
 
-## PAGOS-02 — actualización local de PR #55, 3 de noviembre de 2026
+## PAGOS-02 — resolución local de conflictos de PR #55, 3 de noviembre de 2026
 
-PR #55 publicada en ca63a36, Draft y con conflictos comprobados; candidato
-`feature/PAGOS-02-prepara-55` sobre develop b4fe717 con PR #51/#60 integradas.
-Código consumidor conservado, documentación reconciliada y trazabilidad corregida.
-Sin incluir el incremento propio de #56 ni otros trabajos locales de Shirley.
-Contrato con Bookings actual: 12 grupos aprobados. Frontend 205 pruebas y lint
-aprobados; backend lint aprobado; formato global conserva 17 archivos ajenos.
-Regresión completa: 1676 unitarias y 524 integraciones aprobadas (2200 total).
-Arranque real salud 200 y Pagos sin sesión 401. Cabeza remota aún sin actualizar;
-sin nueva aprobación de Pablo, CI ni acuerdo de evidencia manual. No Ready ni
-integrada/cerrada por preparar este candidato.
+PR #55 publicada en `7448e1a`, con aprobación de Pablo registrada sobre esa
+cabeza. Resolución excepcional solicitada por Pablo incorpora `origin/develop`
+`feb7f75` en la misma rama y conserva tanto `createPaymentReviewModule` de #55
+como `createPaymentReceiptModule` y `createBookingPaymentProofNotifier` de
+develop. También conserva íntegra la fotografía PAGOS-01 inferior. Lint, formato
+del archivo conciliado, comprobación de las cuatro exportaciones, 84 pruebas
+dirigidas y las 1742 unitarias aprobaron con Node 24.21.0. La integración no se
+repitió porque Docker Desktop estaba apagado; no se leyó `.env` ni se usó otra
+base. La aprobación anterior no se atribuye automáticamente a la nueva cabeza.
+Publicación de la resolución autorizada por Pablo; no integrada/cerrada.
 [Spec](specs/PAGOS-02.md#18-consumidor-http-de-lectura-con-contexto--3-de-noviembre-de-2026)
-y [evidencia vigente](evidence/PAGOS-02/2026-11-03-lector-contexto.md).
+y [evidencia](evidence/PAGOS-02/2026-11-03-lector-contexto.md).
+
+## PAGOS-01 — puente interno de recepción preparado, 3 de noviembre de 2026
+
+Base develop `b4fe717` con PR #60 integrada; rama
+`feature/PAGOS-01-puente-recepcion`. Consulta pública interna del comprobante/outbox
+persistidos y adaptador estricto del receptor de Bookings, sin proveedor simulado
+en esta capacidad nueva. Aceptación, rechazo confirmado y resultado incierto
+clasificados sin compensación por errores genéricos. No activa rutas/servidor:
+conectar UPLOAD_PROOF y Auth reales sigue como siguiente incremento.
+37 pruebas nuevas dirigidas; regresión completa 1686 unitarias + 525 integraciones
+aprobadas, 127 suites. Lint y formato propio aprobados; 17 pendientes globales
+ajenos. Arranque salud 200 y Pagos sin sesión 401. Sin UI, dependencias,
+migraciones o pruebas previas modificadas. Sin commit/PR/revisión humana nueva;
+no integrada/cerrada. Validación de formatos local y PR #55/#56 siguen separadas.
+[Spec](specs/PAGOS-01.md#16-puente-interno-de-recepción-real--3-de-noviembre-de-2026),
+[evidencia](evidence/PAGOS-01/2026-11-03-puente-recepcion.md) y
+[descripción de PR](evidence/PAGOS-01/descripcion-pr-recepcion.md).
 
 ## PAGOS-WEB-01 — bandeja web preparada para revisión, 2 de noviembre de 2026
 
@@ -551,3 +568,32 @@ PR #51 abierta y Ready for review; se verificaron aprobaciones anteriores de Pab
 Backend: lint y 2173 pruebas globales aprobadas (1658 unitarias + 515 integraciones, 125 suites), con arranque real; catálogo ampliado posterior 14/14 dirigido. Frontend lint y 205 pruebas, Nginx y ocho grupos Chrome aprobados. Formato propio aprobado; global mantiene 17 archivos ajenos. Fotografías sin cambios y aprobadas; bases/contenedores/redes propios retirados.
 
 Diff de la nueva PR limitado a recepción/expiración. C sigue pendiente (fuente real de Payments, autorización inicial y compensación segura); D sigue pendiente (planificador/recuperación). No se declara compra comercial completa, revisión humana ni integración de B.
+
+
+## Leslie: adaptador seguro de aviso de Payments — 3 de noviembre de 2026
+
+| Spec / área | Estado comprobado | Evidencia y límite |
+| --- | --- | --- |
+| BOOK-06-L04-T2 / PR #60 | Integrada en develop b4fe717 a las 19:07:02Z, comprobado por GitHub | Recepción/expiración internas integradas; C y D conservan sus pendientes. |
+| BOOK-06-L04-T3, C1 | Implementado/probado localmente en feature/BOOK-06-adaptador-aviso-pagos desde b4fe717, sin commit/push/PR ni revisión humana | [Spec](specs/BOOK-06-L04-T3.md), [evidencia](evidence/BOOK-06-L04-T3/2026-11-03-adaptador-aviso.md). Adaptador público de resultados de Bookings para Payments, sin activar servidor/rutas. |
+
+PR #55 ca63a36 y #56 15218ae de Shirley siguen abiertas, comprobadas directamente; no se duplica su lector ni su prueba. C1 preserva ACCEPTED y solo convierte REJECTED_EXPIRED vinculado en el error existente de plazo. Fallos, clases genéricas de rechazo, vínculos distintos y resultados inválidos conservan incertidumbre sin autorizar borrado.
+
+Primera global: 1688 unitarias + 521 integraciones = 2209 aprobadas, 127 suites, con arranque real. Repetición final tras captura única: todas las unitarias 1689/1689 y cinco integraciones propias 5/5. Casos nuevos: 31 unitarias + cinco integraciones. Lint y formato propio aprobados; global conserva 17 archivos ajenos. Fotografías aprobadas sin cambios; PostgreSQL/red exclusivos retirados.
+
+Fuente QA persistida en pruebas; no procedencia Auth de la carga ni conexión productiva. C2 (fuente pública de Payments y autorización inicial), C3 (composición real y compensación), D (planificador), venta/rechazo/correcciones/caja/invitado siguen separados. Sin nuevas dependencias o migraciones ni pruebas debilitadas. Commit/publicación y revisión humana pendientes; no se marca C1 integrada.
+
+Leslie autoriza posteriormente guardar y publicar C1 de BOOK-06-L04-T3 en feature/BOOK-06-adaptador-aviso-pagos. La autorización no incluye integrar la PR ni activar la conexión productiva.
+
+
+## Leslie: conciliación de PR #62 con el puente integrado — 3 de noviembre de 2026
+
+| Spec / área | Estado comprobado | Evidencia y límite |
+| --- | --- | --- |
+| BOOK-06-L04-T3 / PR #62 | Tres conflictos resueltos en feature/BOOK-06-adaptador-aviso-pagos, combinando 4030709 con develop 61fd65a | [Spec](specs/BOOK-06-L04-T3.md), [evidencia](evidence/BOOK-06-L04-T3/2026-11-03-conciliacion-pr62.md). Un puente compartido, ambos contratos conservados; revisión humana pendiente, sin integrar PR. |
+
+Develop ya incorpora la fuente persistida/createPaymentReceiptModule de Shirley (9131787); la conciliación los conserva y reutiliza. Fábrica de Leslie como fachada, captura inmutable y clasificación segura. Ambas suites originales conservadas byte a byte; siete regresiones adicionales. Sin cambios de fuente SQL, migraciones, rutas, servidor, dependencias o frontend.
+
+Pruebas propias dirigidas: 66 unitarias y 14 integraciones aprobadas. Global: 1724 unitarias aprobadas y 529/530 integraciones; fallo de Fleet por timeout original de 20000 ms en fotografías. Repetición aislada: 17/18, mismo fallo. No declarar suite global aprobada. Lint/formato propio aprobados; global mantiene 17 ajenos. Arranque real aprobado; contenedor/red temporales retirados.
+
+La fuente persistida está preparada, pero la autorización HTTP de carga, procedencia histórica, activación productiva y planificador conservan sus pendientes. Revisión del commit de conciliación y evaluación del fallo de Fleet necesarias antes de integrar.

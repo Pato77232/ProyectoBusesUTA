@@ -1,9 +1,9 @@
 # PAGOS-02: Revisar y aprobar comprobantes
 
-> Estado vigente de #55: actualización local sobre develop b4fe717, documentada
-> al final de §18 y en la evidencia del lector. PR publicada en ca63a36 sigue
-> Draft; no se ha actualizado su cabeza. Registros anteriores conservan sus
-> fechas y no describen por sí solos el estado actual de publicación/proveedor.
+> Estado vigente de #55: conciliada en su rama original con develop `feb7f75`,
+> documentada al final de §18 y en la evidencia del lector. La aprobación humana
+> anterior corresponde a `7448e1a`; la cabeza conciliada requiere inspección
+> final. Los registros anteriores conservan sus fechas como evidencia histórica.
 
 - **ID local:** PAGOS-02
 - **Módulo:** `payments`
@@ -316,3 +316,27 @@ aprobados; formato global mantiene 17 archivos ajenos pendientes. No se cambian
 pruebas previas, dependencias, migraciones ni los ocho JS originales de #55.
 Quedan publicación de la combinación en la rama original, revisión de Pablo y
 CI correcto o acuerdo explícito de evidencia manual. No nueva PR sustitutiva.
+
+### Conciliación de PR #55 con develop `feb7f75` — 3 de noviembre de 2026
+
+Pablo autoriza excepcionalmente incorporar develop, resolver, confirmar y
+publicar la misma rama para dejar el merge final en GitHub a su cargo. La
+conciliación conserva `createPaymentReviewModule` de #55 y las capacidades
+`createPaymentReceiptModule` y `createBookingPaymentProofNotifier` añadidas en
+develop; no sustituye ni duplica sus contratos. El conflicto documental conserva
+las fotografías PAGOS-02 y PAGOS-01 con su evidencia histórica.
+
+Comprobación local con Node 24.21.0: lint aprobado, Prettier del archivo resuelto
+aprobado, cuatro exportaciones públicas cargadas, 84 pruebas dirigidas aprobadas
+y 1742 unitarias aprobadas en 90 suites. La primera ejecución unitaria global
+falló por `listen EPERM` del sandbox; la repetición con acceso local aprobado
+pasó completa. Docker Desktop estaba apagado y no fue posible iniciar PostgreSQL
+16.13 aislado, por lo que integración, arranque y contrato conjunto no se
+redeclaran como ejecutados sobre la cabeza conciliada. No se usó `.env`, otra
+base ni se modificaron pruebas o límites. La evidencia anterior de 2200 pruebas
+permanece histórica para `7448e1a` y no sustituye esta limitación.
+
+La aprobación de Pablo registrada sobre `7448e1a` acredita esa cabeza, no se
+traslada automáticamente al commit de conciliación. La PR queda preparada para
+que Pablo inspeccione la nueva cabeza y ejecute el merge desde GitHub. #56 se
+mantiene separada y en borrador.

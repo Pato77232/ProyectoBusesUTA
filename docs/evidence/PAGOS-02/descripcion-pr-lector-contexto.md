@@ -2,10 +2,11 @@
 
 ## Estado de esta actualización
 
-PR #55 publicada en ca63a36. Candidato preparado sobre develop b4fe717, con
-PR #51/#60 integradas, en feature/PAGOS-02-prepara-55. La actualización del árbol
-local no equivale a publicar esa cabeza: merge/push siguen pendientes por las
-reglas Git vigentes. La PR permanece Draft hasta completar ese paso y revisión.
+PR #55 conciliada en su rama original con `origin/develop` `feb7f75` por
+autorización excepcional de Pablo, quien realizará el merge final desde GitHub.
+Se conservaron la lectura de revisión y las capacidades de recepción presentes
+en develop. #56 no forma parte de esta actualización. La aprobación registrada
+sobre `7448e1a` no se atribuye automáticamente a la nueva cabeza.
 
 ## Resultado y alcance
 
@@ -33,16 +34,18 @@ rechazo, correcciones, caja ni QR productivos.
 - `npm test` completo: 1676 unitarias y 524 integraciones aprobadas, 2200 total,
   127 suites y salida 0.
 
-Node 24.21.0 y PostgreSQL 16.13 aislado; sin leer .env. Los controles locales
-corresponden al candidato sobre b4fe717, no a una cabeza remota nueva publicada.
-GitHub no muestra workflow runs para ca63a36. CI correcto o aceptación expresa
-de evidencia manual por Pablo siguen pendientes; no se atribuye ese acuerdo.
+La conciliación nueva se verificó con Node 24.21.0: lint, formato del archivo
+resuelto, carga de cuatro exportaciones, 84 pruebas dirigidas y 1742 unitarias
+aprobadas. Docker Desktop estaba apagado, por lo que no se repitieron integración,
+arranque ni contrato conjunto contra PostgreSQL aislado. Los resultados de 2200
+pruebas y 12 grupos anteriores corresponden a `7448e1a`; se conservan como
+evidencia histórica. GitHub no registra checks de CI para esa cabeza.
 
 ## Trazabilidad y revisión
 
 RN-02 y RN-52. Spec docs/specs/PAGOS-02.md §18. Evidencia y reproducción:
 docs/evidence/PAGOS-02/2026-11-03-lector-contexto.md.
-Revisor principal Pablo, pendiente de revisar la actualización publicada.
+Revisor principal Pablo, pendiente de inspeccionar la cabeza conciliada.
 La PR #56 debe seguir Draft hasta integrar #55 y repetir su contrato/diff propio.
 Asistencia de Codex; revisión humana independiente pendiente.
 
