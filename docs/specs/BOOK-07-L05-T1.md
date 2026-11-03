@@ -260,3 +260,21 @@ Resultado final npm test: 1588 unitarias y 474 integraciones, 2062 aprobadas (11
 Se conserva evidencia del primer fallo ESM del harness y de la clasificación errónea de pgmigrations_pkey tras down completo, corregida con regresión y 50 pruebas dirigidas aprobadas antes de la repetición global. Sin dependencias nuevas ni cambios en HTTP/frontend o negocio.
 
 No se han inspeccionado bases persistentes del equipo. Si contienen cualquiera de los originales, este migrador las rechaza y necesitan un plan específico con Pablo. No se afirma que ninguna exista. Revisión humana y combinación con el código posterior de Auth en develop pendientes; catálogo común contrastado en 2df5949. No integración/cierre de PR ni implementación de comandos de Pagos.
+
+
+## Conciliación autorizada con VIP — 3 de noviembre de 2026
+
+Leslie solicita incorporar develop, resolver el documento compartido, actualizar catálogo y repetir pruebas. Rama de trabajo limpia en 4e252c1; base incorporada origin/develop 04868b2. Un conflicto en estado-proyecto.md: conservar tanto los registros de Reservas como la evidencia de Auth de Pablo, sin atribuir aprobaciones nuevas.
+
+Develop añade 1793740000000-allow-vip-bus-seats. El catálogo pasa a 19 entradas: 18 de develop más install-bookings. Añadir exclusivamente el nombre VIP en su posición ordenada; la exclusión del original 1793740000000-booking-payment-read-context continúa por nombre exacto, nunca por prefijo compartido. Mantener originales, validación estricta y rechazo sin cambios de historiales heredados.
+
+Actualizar las expectativas de las pruebas al esquema actual de 18 migraciones y conservar comprobaciones de filas/definiciones. Verificar también actualización desde el esquema anterior de 17 migraciones y conservación de un asiento VIP ya guardado en la copia del esquema actual. No adaptar incidentalmente la cotización o conectar proveedores comerciales. Incorporar los cambios de Auth/Fleet ya integrados, sin sustituir su código ni debilitar pruebas. Sin dependencias nuevas previstas.
+
+Ejecutar lint, format:check, npm test con PostgreSQL aislado y arranque real existente. Publicar únicamente en la misma rama de PR #51 mediante commit de conciliación en español; no integrar la PR hacia develop. Resultados y evidencia por registrar.
+
+
+### Resultado de conciliación con 04868b2
+
+Catálogo actualizado a 19 entradas y conflicto del registro resuelto conservando ambos bloques. Auth/Fleet/VIP coinciden con develop incorporado; migraciones originales y consolidada de Reservas intactas. 29 pruebas dirigidas de catálogo aprobadas y un caso nuevo para actualizar la base anterior de 17 entradas, además de la copia actual de 18 con asiento VIP conservado.
+
+Suite combinada: 1614 unitarias + 493 integraciones = 2107 aprobadas (122 suites), arranque real incluido. Frontend lint y 181 pruebas aprobados. Backend lint/formato propio aprobados; formato global conserva 17 archivos ajenos pendientes. Sin cambios a timeouts ni dependencias. [Evidencia de la combinación](../evidence/BOOK-07-L05-T1/2026-11-03-conciliacion-vip.md). Revisión humana pendiente; no merge de PR hacia develop.

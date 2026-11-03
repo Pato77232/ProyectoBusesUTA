@@ -1,4 +1,5 @@
 const createCooperativeAdmin = require('./application/create-cooperative-admin.use-case');
+const createClerk = require('./application/create-clerk.use-case');
 const createAdminRouter = require('./interfaces/cooperative-admin-router');
 const { randomUUID } = require('node:crypto');
 const createAuthenticate = require('./application/authenticate.use-case');
@@ -33,8 +34,10 @@ async function createAuthModule({ pool, env = process.env }) {
       login,
       csrf,
       authenticate,
+      authorize,
       logout: createLogout({ repository }),
       register: createRegisterCustomer({ repository, hasher }),
+      createClerk: createClerk({ repository, hasher }),
     }),
     authenticate,
     authorize,
@@ -42,3 +45,13 @@ async function createAuthModule({ pool, env = process.env }) {
   };
 }
 module.exports = { createAuthModule };
+
+async function bootstrapSystemAdmin({ pool, credentials }) {
+  const parseCredentials = require('./interfaces/bootstrap-credentials');
+  const createBootstrapAdmin = require('./application/bootstrap-admin.use-case');
+  const PgBootstrapRepository = require('./infrastructure/pg-bootstrap.repository');
+  const input = parseCredentials(credentials);
+  const hasher = await createHasher();
+  return createBootstrapAdmin({ repository: new PgBootstrapRepository(pool), hasher })(input);
+}
+module.exports.bootstrapSystemAdmin = bootstrapSystemAdmin;

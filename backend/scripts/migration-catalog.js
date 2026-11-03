@@ -24,6 +24,7 @@ const activeNames = Object.freeze([
   '1793570001000-freeze-route-sheet-tariffs',
   '1793650000000-route-sheet-programming',
   '1793730000000-commercial-trips',
+  '1793740000000-allow-vip-bus-seats',
   '1793820000000-install-bookings',
 ]);
 const migrationsDirectory = path.join(__dirname, '../migrations');
