@@ -60,6 +60,14 @@ async function main() {
     );
     for (const [resource, mime] of [
       ["/pages/reservas.html", /^text\/html/],
+      ["/pages/comprobantes.html", /^text\/html/],
+      ["/src/payments/pending-page.js", /^(application|text)\/javascript/],
+      [
+        "/src/payments/pending-controller.js",
+        /^(application|text)\/javascript/,
+      ],
+      ["/src/payments/pending-view.js", /^(application|text)\/javascript/],
+      ["/src/styles/payments.css", /^text\/css/],
       ["/src/bookings/page.js", /^(application|text)\/javascript/],
       ["/src/bookings/api.js", /^(application|text)\/javascript/],
       ["/src/bookings/access.js", /^(application|text)\/javascript/],

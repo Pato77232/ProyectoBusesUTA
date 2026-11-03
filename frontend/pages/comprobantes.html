@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Consulta los comprobantes pendientes de tu cooperativa en transViaje."
+    />
+    <meta name="theme-color" content="#202020" />
+    <title>Comprobantes pendientes · transViaje</title>
+    <link rel="icon" href="../assets/favicon.svg" />
+    <link rel="stylesheet" href="../assets/vendor/bootstrap-5.3.8/bootstrap.min.css" />
+    <link rel="stylesheet" href="../src/styles/app.css" />
+    <link rel="stylesheet" href="../src/styles/payments.css" />
+  </head>
+  <body class="payments-page">
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+    <header class="site-header">
+      <div class="container d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <a class="brand" href="../index.html" aria-label="transViaje, inicio">
+          <span class="brand-logo-frame" aria-hidden="true"
+            ><img
+              class="brand-logo"
+              src="../assets/brand/logo-transviaje.png"
+              alt=""
+              width="1600"
+              height="1446"
+          /></span>
+        </a>
+        <div class="d-flex align-items-center gap-4">
+          <span class="payment-workspace">Área de cooperativa</span
+          ><a href="login.html">Mi sesión</a>
+        </div>
+      </div>
+    </header>
+    <main id="contenido" class="container payment-layout" tabindex="-1">
+      <nav class="payment-breadcrumb" aria-label="Ubicación">
+        <a href="../index.html">Inicio</a><span aria-hidden="true">/</span><span>Pagos</span>
+      </nav>
+      <div class="payment-intro">
+        <div>
+          <p class="eyebrow">PAGOS · OFICINISTA</p>
+          <h1>Comprobantes<br />pendientes</h1>
+          <p class="payment-lead">
+            Los archivos de tu cooperativa, en un solo lugar.<br class="d-none d-md-inline" />
+            Abre cada comprobante para revisarlo con detalle.
+          </p>
+        </div>
+        <aside class="payment-summary" aria-label="Alcance de la bandeja">
+          <span class="payment-badge">Bandeja privada</span>
+          <h2>Una revisión clara,<br />desde el primer paso.</h2>
+          <p>
+            Consulta el total de la reserva y el archivo enviado. Solo los oficinistas autorizados
+            de tu cooperativa pueden acceder a esta bandeja.
+          </p>
+        </aside>
+      </div>
+      <section class="payment-inbox" aria-labelledby="inbox-title">
+        <div class="payment-toolbar">
+          <div>
+            <h2 id="inbox-title">Por revisar</h2>
+            <p id="page-count">Solo comprobantes pendientes</p>
+          </div>
+          <button id="refresh" class="btn btn-dark rounded-pill" type="button">
+            Actualizar bandeja
+          </button>
+        </div>
+        <div id="status-panel" class="payment-status" data-mode="loading">
+          <p id="status" role="status" aria-live="polite" aria-atomic="true">Comprobando sesión…</p>
+          <button id="retry" class="btn btn-outline-dark rounded-pill" type="button" hidden>
+            Volver a intentar</button
+          ><a id="session-link" href="login.html" hidden>Iniciar sesión</a>
+        </div>
+        <div id="proofs" aria-label="Comprobantes" aria-busy="true"></div>
+        <div id="empty-state" class="payment-empty">
+          <span class="payment-empty-icon" aria-hidden="true">↗</span>
+          <h3 id="empty-title">Preparando tu bandeja</h3>
+          <p id="empty-description">Estamos comprobando tu sesión y consultando los archivos.</p>
+        </div>
+        <nav class="payment-pagination" aria-label="Páginas de comprobantes">
+          <span id="page-number">Bandeja de tu cooperativa</span>
+          <div class="d-flex flex-wrap gap-2">
+            <button id="previous" class="btn btn-outline-dark rounded-pill" type="button" disabled>
+              Anterior</button
+            ><button id="next" class="btn btn-outline-dark rounded-pill" type="button" disabled>
+              Siguiente
+            </button>
+          </div>
+        </nav>
+      </section>
+      <aside class="payment-scope">
+        <h2>Consulta de comprobantes</h2>
+        <p>
+          Esta pantalla permite consultar archivos. La aprobación, el rechazo y las correcciones
+          estarán disponibles cuando su integración esté lista.
+        </p>
+      </aside>
+      <noscript><p>Activa JavaScript para comprobar tu sesión y consultar la bandeja.</p></noscript>
+    </main>
+    <footer class="container payment-footer">
+      <span>transViaje</span><span>Gestión de pagos de tu cooperativa</span>
+    </footer>
+    <script type="module" src="../src/payments/pending-page.js"></script>
+  </body>
+</html>

@@ -215,3 +215,10 @@ Ejecutar pruebas dirigidas y, desde backend, lint, format:check y npm test con P
 74 pruebas nuevas del adaptador aprobadas; lint aprobado; formato propio de 32 JS aprobado; formato global fallido en 48 archivos ajenos. `npm test` con PostgreSQL aislado: 668 unitarias y 134 integraciones aprobadas, 802 total. Los criterios marcados son cobertura local del consumidor, no aceptación humana ni integración del proveedor. Base temporal retirada y trabajo previo conservado.
 
 [Evidencia y límites](../evidence/PAGOS-02/2026-11-02-adaptador-lector.md) y [descripción detallada de PR](../evidence/PAGOS-02/descripcion-pr.md). Sigue pendiente conexión a rutas/proveedor real, clasificación del null de bandeja, otros estados explícitos y verificación de la combinación con develop `3d053a4`. No hay PR publicada de PAGOS-02 en las consultas realizadas.
+
+## Pantalla posterior a PR #47
+
+El incremento web solicitado por Shirley el 2 de noviembre se separa en
+[PAGOS-WEB-01](PAGOS-WEB-01.md), sin reabrir bandeja/aprobación backend ya
+integradas en PR #47. La pantalla de lectura no acredita proveedor real de
+Reservas ni venta productiva. Evidencia y revisión humana en su spec propia.

@@ -4,6 +4,8 @@ export default [
   {
     files: [
       'src/api/**/*.js',
+      'src/payments/**/*.js',
+      'tests/payments/**/*.js',
       'src/fleet/**/*.js',
       'tests/api/**/*.js',
       'tests/fleet/**/*.js',
