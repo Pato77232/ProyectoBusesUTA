@@ -407,10 +407,15 @@ p {
 .seat-section {
   margin-top: 24px;
 }
-.seat-deck {
+.seat-deck,
+.vip-deck {
   margin-top: 16px;
 }
-.seat-deck legend {
+.seat-subtitle {
+  margin-top: 24px;
+}
+.seat-deck legend,
+.vip-deck legend {
   font-size: 1rem;
   font-weight: 650;
 }

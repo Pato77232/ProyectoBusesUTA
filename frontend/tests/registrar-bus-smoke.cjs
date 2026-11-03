@@ -171,6 +171,27 @@ async function checkLayoutChange(browser, origin) {
   assert.deepEqual(state, { notice: true, checked: 0, seats: 1 });
 }
 
+async function checkVipSelection(browser, origin) {
+  await loadPage(browser, origin, 1280);
+  await mount(browser, SETUP);
+  await fillValidForm(browser);
+  await browser.evaluate(`document.querySelector('[name="vipSeatKeys"][value="s1"]').click()`);
+  const labels = await browser.evaluate(
+    `[...document.querySelectorAll('#seat-section h3')].map((e) => e.textContent)`,
+  );
+  assert.deepEqual(labels, ['Asientos no ofrecidos', 'Asientos VIP']);
+  await submit(browser);
+  const [{ data }] = await browser.evaluate('window.sent');
+  assert.deepEqual(data.vipSeatKeys, ['s1']);
+  assert.deepEqual(data.disabledSeatKeys, ['s2']);
+  await setValue(browser, 'seatLayoutId', 'UNO');
+  const cleared = await browser.evaluate(
+    `document.querySelectorAll('[name="vipSeatKeys"]:checked').length`,
+  );
+  assert.equal(cleared, 0);
+  await screenshot(browser, 'vip-1280.png');
+}
+
 async function fillValidForm(browser) {
   for (const [name, value] of Object.entries({
     plate: 'TBM-2213',
@@ -250,6 +271,7 @@ async function main() {
     checkErrors,
     checkLayoutChange,
     checkValidSubmission,
+    checkVipSelection,
     checkPhotoLimit,
     checkMobileReflow,
     checkKeyboardOrder,
