@@ -2,7 +2,7 @@
 
 - **ID local:** AUTH-06; sin ticket externo.
 - **Responsable:** Pablo. **Revisora propuesta:** Shirley; revisión de esta spec pendiente.
-- **Estado:** Implementación local en `feature/AUTH-06-crear-oficinista`; revisión humana pendiente.
+- **Estado:** [PR #53](https://github.com/Pato77232/ProyectoBusesUTA/pull/53) publicada y lista para revisión de Shirley; integración pendiente.
 - **Base de implementación:** `origin/develop` `1dcbd6d`, consultada el 2 de noviembre de 2026.
 - **Autorización:** Pablo pidió preparar estas dependencias; aceptación de Shirley
   reportada por Pablo. No equivale a aprobar el contrato técnico completo.
@@ -67,7 +67,7 @@ SOLID: responsabilidad única e inyección proporcional; sin interfaz en este al
 Usabilidad: errores consistentes permitirán explicar el resultado sin revelar
 cuentas ajenas; no se acredita pantalla ni accesibilidad visual.
 Defecto inducido: ninguno autorizado. Asistencia de Codex; revisión humana,
-publicación e integración de AUTH-06 pendientes.
+integración de AUTH-06 pendiente.
 
 ## Evidencia local — 2 de noviembre de 2026
 
@@ -82,5 +82,7 @@ publicación e integración de AUTH-06 pendientes.
   integración monta Auth y PostgreSQL reales; no se crea una cuenta operativa.
 - Primera ejecución sin `DATABASE_URL` falló por el guard de pruebas; después se
   inició la base temporal y se repitió la suite completa con éxito. No se leyó `.env`.
-- Revisión humana y publicación pendientes; no se afirma integración por las
-  pruebas locales.
+- El commit `1fff04b` se publicó en `feature/AUTH-06-crear-oficinista` y abrió
+  [PR #53](https://github.com/Pato77232/ProyectoBusesUTA/pull/53) contra `develop`.
+  GitHub muestra a Shirley (`shirley6126`) como revisora solicitada. Revisión
+  humana, combinación con la base vigente e integración pendientes.
