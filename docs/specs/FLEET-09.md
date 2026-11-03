@@ -5,7 +5,7 @@
 - **Módulo:** `fleet`; lo consume `route-sheets` mediante `seatQueries.listByBus`
 - **Responsable:** Edwin
 - **Revisor propuesto / confirmado:** David; aceptó revisar el 3 de noviembre de 2026, según su mensaje reportado por Edwin
-- **Estado:** Plan documental en revisión en PR #58; decisiones acordadas con David. La implementación de T1 espera autorización de Edwin y la aprobación final queda para la revisión de David.
+- **Estado:** T1 en desarrollo, local sin commit en `feature/FLEET-09-T1-inmutabilidad`; no se puede integrar sin las pruebas de Route Sheets adaptadas por David
 - **Prioridad y dependencias:** FLEET-06, FLEET-07 T1 y ROUTE-SHEETS-07 presentes en develop. La sustitución pertenece a D-05 de ROUTE-SHEETS-04.
 - **Rama / PR / base comprobada:** `feature/FLEET-09-configuracion-hojas`, creada desde `origin/develop` en `04868b2` el 3 de noviembre de 2026; [PR #58](https://github.com/Pato77232/ProyectoBusesUTA/pull/58) documental hacia develop.
 - **Autorización de alcance:** el 3 de noviembre de 2026 Edwin pidió acordar con David cómo una hoja conserva la configuración usada y preparar su PR documental. Las decisiones con David están registradas en la sección 10; implementar T1 requiere todavía autorización expresa de Edwin. Publicar esta spec no autoriza modificar pruebas o código de otros módulos.
@@ -138,3 +138,24 @@ Revisión documental del 3 de noviembre: diff limitado a esta spec y su fila en 
 ## 14. Revisión y cierre
 
 Pendientes. PR #58 publicada para revisión documental de David; no equivale a aceptación de la implementación. Autorizar T1 por separado y confirmar con Leslie el contrato de asientos comprometidos para D-05. No se enviaron mensajes a David o Leslie desde esta revisión.
+
+### T1: inmutabilidad en la base, 3 de noviembre de 2026
+
+Edwin autorizó comenzar T1. Rama `feature/FLEET-09-T1-inmutabilidad`, creada desde `origin/develop` en `517473d`, sin commit.
+
+**Implementación:**
+
+- Migración nueva `1793760000000-protect-bus-seats.js`: trigger `bus_seats_immutable` `AFTER UPDATE OR DELETE` que rechaza con `23001` cualquier cambio o borrado de asientos, incluido el borrado en cascada desde `buses`. Es `AFTER` para que las violaciones de CHECK y unicidad conserven sus códigos. La reversión elimina el trigger sin tocar datos.
+- `fleet/bus-seat-immutability.test.js`, nueva: alta intacta, rechazo de cambios de `offered`, `category`, `label`, `layout_seat_key` y `row_index`, de una actualización sin cambios, de borrados directos y en cascada, y reversión con reaplicación.
+- `fleet/seat-queries.test.js`: el caso de todos los asientos no ofrecidos desactiva el trigger solo durante su preparación, porque ese estado no puede lograrse por el alta; las comprobaciones no cambian.
+
+**Evidencia con PostgreSQL aislado:**
+
+- Unitarias: 1323 de 1323 aprobadas. Lint sin errores y Prettier correcto en los archivos tocados.
+- Integración de Fleet: 167 de 167 aprobadas en 13 suites.
+- Integración completa: 392 aprobadas y 7 fallidas de 399, en 33 suites.
+  - **4 fallos esperados por la decisión 1**, en pruebas de David que preparan datos con `UPDATE bus_seats`: tres en `route-sheets/commercial-trips.test.js` y uno en `route-sheets/trip-queries.test.js`. David acordó adaptarlas conservando su cobertura; no se modificaron aquí.
+  - **3 fallos anteriores a T1:** `database.test.js`, `route-sheets/route-sheet-programming.test.js` («la migración no permite down que destruya programación real») y `route-sheets/commercial-trips.test.js` («down no destruye información comercial»). Fallan igual en `develop` sin la migración de T1: las dos de Route Sheets esperan que el último `down` sea su propia migración. No se atribuye causa a Fleet sin investigarlas.
+- La base de pruebas se recreó antes de medir: conservaba el nombre anterior de la migración VIP (`1793640000000`) de una rama previa y bloqueaba las migraciones.
+
+**Antes de integrar:** David debe adaptar sus cuatro pruebas en la misma PR o antes, con las condiciones de la decisión 1; si no, `develop` quedaría con esas pruebas fallando. También conviene resolver las tres pruebas de reversión que ya fallan en `develop`.
