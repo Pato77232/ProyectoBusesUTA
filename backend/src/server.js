@@ -7,6 +7,7 @@ const { createFleetModule } = require('./modules/fleet');
 const { createFrequenciesModule } = require('./modules/frequencies');
 const { createRouteSheetsModule } = require('./modules/route-sheets');
 const { createPaymentsModule } = require('./modules/payments');
+const { createBookingsModule } = require('./modules/bookings');
 async function start(env = process.env) {
   const port = env.PORT === undefined ? 3000 : Number(env.PORT);
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('PORT inválido.');
@@ -27,6 +28,7 @@ async function start(env = process.env) {
       seatQueries: fleet.seatQueries,
     });
     const payments = createPaymentsModule({ pool, auth, env });
+    const bookings = createBookingsModule({ pool, auth, env });
     const app = createApp({
       auth,
       tenants,
@@ -34,6 +36,7 @@ async function start(env = process.env) {
       frequencies,
       routeSheets,
       payments,
+      bookings,
       pool,
       trustProxy: env.TRUST_PROXY === 'loopback',
     });
