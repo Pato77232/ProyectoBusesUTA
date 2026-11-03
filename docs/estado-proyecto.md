@@ -1,5 +1,11 @@
 # Estado compartido del proyecto
 
+## D-06 — creación de frecuencias, sección 2 local, 2 de noviembre de 2026
+
+Sobre ab27485, David autorizó la conexión real y solo la preparación necesaria de la prueba anterior del widget. [FREQUENCIES-WEB-01 §12](specs/FREQUENCIES-WEB-01.md#12-sección-2--sesión-api-y-empaquetado) documenta sesión/rol/tenant verificados, cliente HTTP/CSRF compartido, POST sin tenant, protección contra doble envío, errores comprensibles y bloqueo ante alta no confirmada. Éxito presenta ID/resumen real en lectura; crear otra frecuencia limpia y revalida. Página/módulos/CSS incluidos y comprobados desde imagen real. Sin modificaciones a backend, login, transporte, navegación global, dependencias ni migraciones.
+
+Frontend: lint y **144 unitarias aprobadas (16 nuevas)**; **7 comprobaciones previas del widget y 10 recorridos nuevos con API/imagen/PostgreSQL reales aprobados**, incluido aislamiento entre cooperativas, pérdida de recepción tras persistir y caída de API. Preparación del smoke anterior adaptada con autorización, aserciones intactas. Capturas móvil/escritorio inspeccionadas. Backend general: lint aprobado, **1297 unitarias y 371 integraciones aprobadas, una falla por timeout conocido de fotos de Fleet**. Formato propio aprobado; 41 avisos globales previos. API real bajo imagen Node 24; suite completa Node 24 pendiente (host 22.19.0). Entornos efímeros retirados; sin .env leído. Implementación local, sin commit/PR/merge ni aprobación humana nueva. Listado/estado y hoja manual siguen como tareas separadas; accesibilidad ampliada pendiente según spec. Evidencia inferior conserva estados históricos.
+
 ## D-06 — creación de frecuencias, sección 1 local, 2 de noviembre de 2026
 
 Sobre 954e7fc, David autorizó sección 1 y confirmó Q1: capturar valores por tramo del registro aclarando que el precio comercial se configura en la hoja. [FREQUENCIES-WEB-01 §11](specs/FREQUENCIES-WEB-01.md#11-sección-1--formulario-local) documenta formulario, paradas ordenables, resolución ANT, hora/medianoche, revisión local accesible y descarte de valores de enlaces afectados. Página sin API/sesión/POST; no registra ni simula altas. Estado/validación separados de vista y renderizado seguro; DESIGN.md aplicado con CSS local sin cambiar estilos comunes.

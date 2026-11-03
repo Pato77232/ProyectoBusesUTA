@@ -37,13 +37,13 @@
         su origen, destino ni hora de salida.
       </p>
       <p class="form-status">
-        Vista de preparación: puedes revisar los datos, pero esta pantalla
-        todavía no guarda frecuencias ni comprueba tu sesión.
+        El registro requiere una sesión de administrador de cooperativa. Revisa
+        el recorrido y sus valores antes de crear la frecuencia.
       </p>
       <noscript
         ><p>
-          Activa JavaScript para preparar y revisar el formulario. No se
-          guardarán datos desde esta pantalla.
+          Activa JavaScript para comprobar tu sesión y crear la frecuencia. Sin
+          JavaScript el envío permanece deshabilitado.
         </p></noscript
       >
       <form id="frequency-form" novalidate>
@@ -158,13 +158,39 @@
             <div id="price-list"></div>
           </section>
           <div class="frequency-actions">
-            <button type="submit" class="btn btn-dark">Revisar datos</button
+            <button type="submit" class="btn btn-dark">Crear frecuencia</button
             ><a href="/pages/login.html">Ir a iniciar sesión</a>
           </div>
         </fieldset>
         <p id="review-status" class="form-status" role="status" tabindex="-1">
-          La revisión es local y no registra la frecuencia.
+          Comprobando sesión…
         </p>
+        <div class="frequency-actions">
+          <button
+            type="button"
+            id="check-session"
+            class="btn btn-outline-dark"
+            hidden
+          >
+            Comprobar sesión
+          </button>
+          <button type="button" id="new-frequency" class="btn btn-dark" hidden>
+            Crear otra frecuencia
+          </button>
+        </div>
+        <section
+          id="frequency-result"
+          class="form-card"
+          aria-labelledby="result-title"
+          hidden
+        >
+          <h2 id="result-title">Frecuencia registrada</h2>
+          <dl id="frequency-summary"></dl>
+          <p>
+            Estos datos no permiten modificar el recorrido registrado. Los
+            precios comerciales se configuran en la hoja de ruta.
+          </p>
+        </section>
       </form>
     </main>
     <script type="module" src="/src/frequencies/frequency-page.js"></script>

@@ -2,11 +2,11 @@
 
 - **Referencia:** D-06, primera tarea de pantallas operativas; sin ticket externo.
 - **Responsable:** David, por actividad seleccionada por el solicitante.
-- **Estado:** Sección 0 guardada por el humano en 954e7fc; sección 1 implementada localmente, pendiente de revisión humana. Sección 2 pendiente de autorización.
+- **Estado:** Secciones 0/1 guardadas por el humano (954e7fc/ab27485); sección 2 implementada y verificada localmente. Revisión humana e integración pendientes.
 - **Fecha:** 2 de noviembre de 2026, America/Guayaquil.
 - **Rama/base comprobada:** feature/FREQUENCIES-WEB-01-creacion-frecuencias, 1daa3c4, árbol inicialmente limpio. Ese commit integra D-04/PR #49. Sin fetch ni certificación de cambios remotos posteriores.
 - **Revisión propuesta:** Leslie para el contrato funcional; Pablo para cambios compartidos de frontend. No se atribuye aceptación ni revisión humana a estas personas.
-- **Autorización actual:** David solicitó sección 1 y confirmó Q1 el 2 de noviembre: conservar valores por tramo con aclaración del precio comercial por hoja. No autoriza sección 2, commits, publicación ni otras pantallas.
+- **Autorización actual:** David confirmó Q1 y solicitó sección 2 el 2 de noviembre. Autorizó únicamente adaptar la preparación de la prueba anterior del formulario local, conservando escenarios y comprobaciones. No autoriza commits, publicación ni otras pantallas.
 
 ## 1. Objetivo y fuentes
 
@@ -101,15 +101,15 @@ Incorporar únicamente los archivos nuevos necesarios a Dockerfile/.dockerignore
 
 ## 8. Criterios y verificación futura
 
-- [ ] Alta directa y con paradas guarda datos reales, orden y valores explícitos de Q1; éxito solo tras 201 válido.
-- [ ] ANT vacío, lugares repetidos, hora inválida y montos inválidos explican corrección; 00:00 permitido.
-- [ ] No campo de tenant, edición posterior, archivo ANT, tarifa comercial calculada ni cambio de estado de una frecuencia existente.
-- [ ] Sin sesión/rol correcto no se habilita alta; API real rechaza acceso directo no autorizado y conserva aislamiento entre dos cooperativas.
-- [ ] Doble clic produce una solicitud; fallo ambiguo no provoca reintento automático ni falso éxito.
+- [x] Alta directa y con paradas guarda datos reales, orden y valores explícitos de Q1; éxito solo tras 201 válido.
+- [x] ANT vacío, lugares repetidos, hora inválida y montos inválidos explican corrección; 00:00 permitido.
+- [x] No campo de tenant, edición posterior, archivo ANT, tarifa comercial calculada ni cambio de estado de una frecuencia existente.
+- [x] Sin sesión/rol correcto no se habilita alta; API real rechaza acceso directo no autorizado y conserva aislamiento entre dos cooperativas.
+- [x] Doble clic produce una solicitud; fallo ambiguo no provoca reintento automático ni falso éxito.
 - [ ] Errores preservan datos no sensibles en memoria, respetan foco y anuncian estado; no exponen trazas.
 - [ ] Teclado: Tab/Shift+Tab/Enter completan el flujo, botones de paradas operables, foco visible y situado tras agregar/quitar/mover o al primer error.
 - [ ] A 360 y 1280 px y zoom 200 %, sin perder campos/acciones; contraste de texto normal >=4,5:1 y estados no comunicados solo por color.
-- [ ] Página y módulos incluidos en imagen, sin 404; ruta directa, login y API real bajo el mismo origen verificados.
+- [x] Página y módulos incluidos en imagen, sin 404; ruta directa, login y API real bajo el mismo origen verificados.
 
 Pruebas de controlador/vista con dobles solo en unitarias; recorrido navegador contra backend/PostgreSQL aislado para alta, duplicado, errores y sesión. Seguir [base de pruebas](../testing-database.md), sin leer .env ni usar datos reales. Ejecutar pruebas/lint frontend incluyendo el directorio nuevo, formato de cambios y comprobaciones backend requeridas por AGENTS; si cambia composición, arranque real. Registrar comandos, conteos, capturas de móvil/escritorio y límites reales. No cambiar pruebas anteriores ni migraciones para superar verificaciones.
 
@@ -160,3 +160,32 @@ Backend: lint aprobado; `npm test` ejecutado con PostgreSQL aislado: **1297 unit
 Diff completo revisado y git diff --check aprobado; enlaces locales de spec/seguimiento comprobados. PostgreSQL temporal busesuta-freqweb-s1 iniciado con --env-file NUL y credenciales ficticias versionadas, retirado al terminar. Sin .env leído. No se modifica backend, migraciones, pruebas previas ni defectos académicos. Sin commit/PR/merge ejecutados ni revisión humana atribuida.
 
 Commit sugerido: `feat(frecuencias): agrega el formulario de creación`.
+
+## 12. Sección 2 — sesión, API y empaquetado
+
+Base local ab27485 en feature/FREQUENCIES-WEB-01-creacion-frecuencias, inicialmente limpia. David autorizó sección 2 y respondió «Sí, solo la preparación necesaria» para conservar la prueba del widget local al conectar la página. No se refrescó remoto ni se atribuyen revisiones/aprobaciones a terceros. Las exclusiones y pendientes de secciones 0/1 son evidencia histórica; los resueltos aquí no se mantienen como bloqueos actuales.
+
+### Implementación
+
+La entrada de página usa createApiClient existente y un controlador con cliente/vista inyectados. Antes de habilitar y antes de cada POST comprueba auth/me, rol, identidad y cooperativa; una sesión cambiada obliga a empezar de nuevo, sin reutilizar silenciosamente datos en otro tenant. El cuerpo contiene únicamente los siete campos del contrato; la cooperativa no se envía. La autorización definitiva permanece en backend.
+
+El envío bloquea acciones simultáneas y conserva los valores del borrador. Solo muestra creación tras una respuesta verificable del contrato de alta, con UUID, cooperativa y todos los datos esperados; muestra ID/resumen en lectura y deja el formulario deshabilitado. «Crear otra frecuencia» es explícito, limpia las filas/precios y vuelve a comprobar sesión. No implementa edición posterior ni listado.
+
+ANT rechazado señala su campo; duplicado/validación genérica explican la corrección sin inventar detalle del servidor. 401/403 detienen el envío; CSRF rechazado permite un reenvío manual que utiliza la renovación del cliente compartido, sin repetir el POST automáticamente. Fallos técnicos o respuesta de alta no verificable se tratan como resultado ambiguo: podrían haberse guardado datos. Se bloquea otro POST incluso después de comprobar sesión. No existe conciliación automática por listado en esta tarea; requiere verificar el registro antes de repetirlo. No hay persistencia del borrador en almacenamiento local ni trazas del servidor en pantalla.
+
+Dockerfile/.dockerignore incluyen únicamente página, módulos y CSS nuevos. No se modifica navegación global, login, transporte, estilos globales, backend, dependencias ni migraciones. Se conserva DESIGN.md; el resumen permite partir UUID/textos largos para móvil. Scripts frontend añaden `test:frequencies:api`.
+
+### Pruebas y evidencia
+
+- **Frontend:** lint aprobado y **144 pruebas unitarias aprobadas**, incluidas 16 nuevas del controlador sobre las 128 anteriores. Cubren revalidación, whitelist del cuerpo, roles, identidad cambiada, errores, doble envío, CSRF manual, alta corrupta/ambigua y comienzo explícito de otro registro.
+- **Widget local:** 7 comprobaciones anteriores de navegador aprobadas, sin cambiar escenarios ni aserciones. Solo su servidor QA sustituye la entrada de página por un módulo de preparación que monta el widget local; no simula endpoints ni altera la página empaquetada.
+- **API/imagen reales:** **10 recorridos aprobados** en Chrome con `npm run test:frequencies:api`: ausencia de sesión, rol cliente, alta directa/medianoche/doble envío, parada con precios persistidos, duplicado preservando datos, CSRF rechazado y reenvío manual, sesión vencida sin POST, aislamiento de dos cooperativas, pérdida de recepción tras alta real sin repetición, imagen/recursos y caída real del backend. El último recorrido agrupa empaquetado y caída. GET posterior comprueba persistencia y acceso ajeno devuelve 404. La pérdida de recepción se inyecta únicamente en QA después de obtener respuesta del servidor real; no es un proveedor simulado ni un defecto de producto.
+- El primer intento del recorrido real detectó un error de preparación al cambiar de usuario: el login existente conserva la sesión activa. Se añadió logout real antes de cada cambio, manteniendo los resultados esperados; el recorrido completo posterior aprobó.
+- Se construyó y arrancó el stack definido por el repositorio (backend con base Node 24.21.0, Nginx y PostgreSQL efímero), con usuarios/datos ficticios y proyecto exclusivo de QA. Sin lectura de .env, configuración real ni credenciales impresas. Se excluye el script de pruebas de la imagen (404 comprobado). Contenedores/redes de cada intento retirados por finally.
+- Capturas de alta/escritorio y duplicado/360 px inspeccionadas; ampliación CSS al 200 % sin desbordamiento comprobada en el recorrido real. Se conserva evidencia de teclado/foco y contraste del widget. No se certifican zoom nativo, lector de pantalla, otros navegadores ni revisión de usabilidad por otra persona; por eso los criterios combinados de accesibilidad restantes no se marcan totalmente aprobados.
+- **Backend general:** lint aprobado; npm test con PostgreSQL aislado: **1297 unitarias + 371 integraciones aprobadas, una integración fallida** por el timeout conocido de 20 segundos en fleet/bus-photo-storage.test.js, caso «prepara y promueve todos los bytes sin conservar nombres ni rutas del cliente». No se modifica ni se trata como defecto académico. La suite global permanece fallida. Host Node 22.19.0; el recorrido API bajo la imagen Node 24 no acredita ejecutar toda la suite con Node 24.
+- Formato de los archivos cambiados aprobado; format:check global conserva 41 pendientes previos. Diff completo y enlaces documentales revisados; git diff --check aprobado. PostgreSQL de la suite general, proyecto busesuta-freqweb-s2 con credenciales ficticias versionadas y --env-file NUL, retirado al terminar.
+
+La sección queda implementada localmente, pendiente de revisión humana y de tratar el fallo general conocido según el flujo de aceptación. No se hacen commits, push ni merge. No se implementan listado/estado, hoja manual, renovación, excepciones, búsqueda pública o defectos académicos.
+
+Commit sugerido: `feat(frecuencias): conecta el alta con la API`.

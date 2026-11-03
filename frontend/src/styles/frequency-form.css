@@ -25,6 +25,10 @@
   margin-top: 24px;
 }
 
+#frequency-summary dd {
+  overflow-wrap: anywhere;
+}
+
 #frequency-form :is(.form-control, .form-select, .btn):focus-visible {
   outline: 3px solid var(--color-brand);
   outline-offset: 3px;

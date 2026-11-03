@@ -21,13 +21,30 @@ let apiCalls = 0;
 async function serve(request, response) {
   try {
     const { pathname } = new URL(request.url, 'http://localhost');
+    // Preparación autorizada: conservar el widget local de sección 1, sin API.
+    if (pathname === '/qa/frequency-local.js') {
+      response.writeHead(200, { 'Content-Type': 'text/javascript' });
+      response.end(
+        "import { mountFrequencyForm } from '/src/frequencies/frequency-form-view.js'; mountFrequencyForm(document.querySelector('#frequency-form'));",
+      );
+      return;
+    }
     if (pathname.startsWith('/api/')) apiCalls += 1;
     const filename = path.resolve(
       root,
       `.${pathname === '/' ? '/index.html' : pathname}`,
     );
     if (!filename.startsWith(root + path.sep)) throw new Error('Ruta inválida');
-    const bytes = await fs.readFile(filename);
+    let bytes = await fs.readFile(filename);
+    if (pathname === '/pages/crear-frecuencia.html')
+      bytes = Buffer.from(
+        bytes
+          .toString()
+          .replace(
+            'src="/src/frequencies/frequency-page.js"',
+            'src="/qa/frequency-local.js"',
+          ),
+      );
     response.writeHead(200, {
       'Content-Type': mime[path.extname(filename)] || 'text/plain',
     });

@@ -10,7 +10,7 @@ import {
   reviewDraft,
 } from './frequency-form.js';
 
-export function mountFrequencyForm(form) {
+export function mountFrequencyForm(form, { connected = false, onValid } = {}) {
   const document = form.ownerDocument;
   let draft = createDraft();
   const find = (id) => form.querySelector(`#${id}`);
@@ -44,8 +44,9 @@ export function mountFrequencyForm(form) {
       node.hidden = true;
       node.textContent = '';
     });
-    find('review-status').textContent =
-      'Los datos han cambiado. Revísalos de nuevo; todavía no se guardan.';
+    find('review-status').textContent = connected
+      ? 'Los datos han cambiado. Revisa el recorrido antes de crear la frecuencia.'
+      : 'Los datos han cambiado. Revísalos de nuevo; todavía no se guardan.';
   }
   function renderPrices() {
     const list = find('price-list');
@@ -139,8 +140,9 @@ export function mountFrequencyForm(form) {
   });
   form.addEventListener('submit', (event) => {
     event.preventDefault();
+    if (connected && find('frequency-fields').disabled) return;
     clearErrors();
-    const { errors } = reviewDraft(draft);
+    const { errors, data } = reviewDraft(draft);
     for (const [id, message] of Object.entries(errors)) {
       find(id).setAttribute('aria-invalid', 'true');
       const error = find(`${id}-error`);
@@ -148,6 +150,10 @@ export function mountFrequencyForm(form) {
       error.hidden = false;
     }
     const first = Object.keys(errors)[0];
+    if (!first && connected) {
+      onValid(data);
+      return;
+    }
     find('review-status').textContent = first
       ? `Revisa los campos indicados (${Object.keys(errors).length}). No se ha guardado ninguna frecuencia desde esta pantalla.`
       : 'Datos revisados. Esta pantalla todavía no guarda frecuencias; la conexión se incorporará después.';
@@ -155,5 +161,60 @@ export function mountFrequencyForm(form) {
   });
   renderStops();
   renderPrices();
-  find('frequency-fields').disabled = false;
+  find('frequency-fields').disabled = connected;
+  return {
+    reset() {
+      draft = createDraft();
+      form.reset();
+      clearErrors();
+      renderStops();
+      renderPrices();
+      find('stop-status').textContent = '';
+    },
+    render({ mode, message, frequency, errorField }) {
+      const ready = mode === 'ready';
+      find('frequency-fields').disabled = !ready;
+      form.querySelector('button[type=submit]').textContent =
+        mode === 'saving' ? 'Guardando…' : 'Crear frecuencia';
+      form.setAttribute(
+        'aria-busy',
+        String(mode === 'checking' || mode === 'saving'),
+      );
+      find('review-status').textContent = message;
+      find('check-session').hidden = ![
+        'signed-out',
+        'check-error',
+        'uncertain',
+      ].includes(mode);
+      find('new-frequency').hidden = mode !== 'success';
+      find('frequency-result').hidden = mode !== 'success';
+      find('frequency-summary').replaceChildren();
+      if (frequency) {
+        for (const [label, value] of [
+          ['Identificador', frequency.id],
+          [
+            'Recorrido',
+            [frequency.origin, ...frequency.stops, frequency.destination].join(
+              ' → ',
+            ),
+          ],
+          ['Hora de salida', frequency.departure_time],
+          ['Resolución ANT', frequency.ant_resolution_number],
+          ['Estado', frequency.status === 'ACTIVE' ? 'Activa' : 'Inactiva'],
+        ]) {
+          find('frequency-summary').append(
+            element('dt', label),
+            element('dd', value),
+          );
+        }
+      }
+      if (errorField) {
+        find(errorField).setAttribute('aria-invalid', 'true');
+        const error = find(`${errorField}-error`);
+        error.textContent = message;
+        error.hidden = false;
+        find(errorField).focus();
+      } else find('review-status').focus();
+    },
+  };
 }
