@@ -5,7 +5,7 @@
 - **Módulo:** `frontend`; consume la API de `fleet`
 - **Responsable:** Edwin, responsable de Fleet y solicitante de revisión/publicación
 - **Revisor propuesto / confirmado:** Pablo propuesto, por ser responsable de la base frontend; sin confirmación registrada
-- **Estado:** T1a, T1b, T2a y T2b integradas. T3 implementada en local, sin commit, en `feature/FLEET-05-T3-registro-conectado`: alta funcional desde la pantalla. Revisión humana pendiente.
+- **Estado:** T1a, T1b, T2a y T2b integradas. T3 implementada en `ffc0798`, publicada en [PR #63](https://github.com/Pato77232/ProyectoBusesUTA/pull/63) en borrador: alta real verificada, con hallazgo de respuesta ambigua y revisión humana pendientes. No integrada ni cerrada.
 - **Prioridad y dependencias:** FLEET-01, FLEET-02, FLEET-03 y FRONT-01 T3c/T3d, presentes en develop. T3 requiere además la pantalla de inicio de sesión (sección 10).
 - **Rama / PR / base comprobada:** `feature/FLEET-05-T1a-validacion` y `feature/FLEET-05-T1b-formulario`, creadas desde `origin/develop` en `b60201e` el 1 de noviembre de 2026. Reemplazan a `feature/FLEET-05-pantalla-registro-buses` y a PR #31: https://github.com/Pato77232/ProyectoBusesUTA/pull/31.
 - **Autorización de alcance:** el 31 de octubre de 2026 se aprobó por chat esta spec e iniciar solo T1. El 1 de noviembre Edwin aprobó dividir PR #31. La decisión sobre T2 consta en la sección 10.
@@ -273,3 +273,13 @@ Edwin pidió conectar el registro antes del listado. Rama `feature/FLEET-05-T3-r
 - `container-smoke.cjs` falla en la portada por el enlace al login de AUTH-WEB-01, igual que en develop; no se modificó.
 
 Pendiente: revisión humana. El listado y el detalle de buses quedan para una spec propia, porque requieren endpoints nuevos.
+
+### Revisión de publicación de T3 por Codex, 3 de noviembre
+
+PR #63 abierta en borrador desde `feature/FLEET-05-T3-registro-conectado`, commit funcional `ffc0798`, base `aef6707`. PR #57 comprobada integrada; `origin/develop` consultado en `c08ce6c`, sin merge/rebase en esta revisión. El diff solo incluye frontend Fleet y documentación; FLEET-08 permanece local y fuera del cambio. Se aplica frontend/DESIGN.md para mensajes, foco y acciones usando los estilos comunes (D-02/03/04/05/07).
+
+Repetición real: **225/225 pruebas frontend** de las suites actuales, `npm run lint` aprobado, nueve comprobaciones del formulario y tres de API real aprobadas. La última cifra registrada de 135 corresponde a una ejecución anterior y no es el total de esta revisión. Chrome/Nginx/backend/PostgreSQL efímeros verificaron sin sesión, grupos del tenant, alta única con doble clic, VIP/no ofrecido/foto y 409 conservando datos/foco. Se inspeccionó la captura de confirmación con datos ficticios. Recursos Docker de QA eliminados, sin leer `.env`. No se repitió la suite completa backend ni el escenario de persistencia entre contenedores de producción, al no modificar esos archivos.
+
+Formato HTML/JS del incremento aprobado con configuración backend; `app.css` advierte formato, y la copia de esa hoja anterior a T3 también falla el mismo check. No se declara formato global aprobado ni se reformatea la hoja compartida. `git diff --check` aprobado. No se repitió `container-smoke.cjs`; su fallo previo de portada permanece documentado.
+
+Hallazgo pendiente antes de integrar: una respuesta exitosa incompleta o `RESPONSE_INVALID` no permite concluir que el alta fue rechazada. Actualmente cae en «No se aceptó el registro»; debe conservarse como resultado incierto y pedir comprobar existencia antes de reenviar, igual que los demás resultados ambiguos, sin reintento automático. Se mantiene este punto explícito en el borrador, sin cambiar producto ni pruebas durante la evaluación. La revisión/publicación fue asistida por Codex; falta revisión humana de Pablo.
