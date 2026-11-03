@@ -5,10 +5,10 @@
 - **Módulo:** `fleet`; lo consume `route-sheets` mediante `seatQueries.listByBus`
 - **Responsable:** Edwin
 - **Revisor propuesto / confirmado:** David; aceptó revisar el 3 de noviembre de 2026, según su mensaje reportado por Edwin
-- **Estado:** Decisiones acordadas con David; la implementación de T1 espera autorización de Edwin y la aprobación final queda para la revisión de David
+- **Estado:** Plan documental en revisión en PR #58; decisiones acordadas con David. La implementación de T1 espera autorización de Edwin y la aprobación final queda para la revisión de David.
 - **Prioridad y dependencias:** FLEET-06, FLEET-07 T1 y ROUTE-SHEETS-07 presentes en develop. La sustitución pertenece a D-05 de ROUTE-SHEETS-04.
-- **Rama / PR / base comprobada:** `feature/FLEET-09-configuracion-hojas`, creada desde `origin/develop` en `04868b2` el 3 de noviembre de 2026; sin PR.
-- **Autorización de alcance:** el 3 de noviembre de 2026 Edwin pidió acordar con David cómo una hoja conserva la configuración usada. Esta spec no autoriza implementar hasta cerrar la sección 10.
+- **Rama / PR / base comprobada:** `feature/FLEET-09-configuracion-hojas`, creada desde `origin/develop` en `04868b2` el 3 de noviembre de 2026; [PR #58](https://github.com/Pato77232/ProyectoBusesUTA/pull/58) documental hacia develop.
+- **Autorización de alcance:** el 3 de noviembre de 2026 Edwin pidió acordar con David cómo una hoja conserva la configuración usada y preparar su PR documental. Las decisiones con David están registradas en la sección 10; implementar T1 requiere todavía autorización expresa de Edwin. Publicar esta spec no autoriza modificar pruebas o código de otros módulos.
 
 ## 1. Objetivo
 
@@ -16,7 +16,7 @@ RN-12 exige que la configuración ordinaria del bus quede congelada para la hoja
 
 ## 2. Situación comprobada en develop (`04868b2`)
 
-- **Route Sheets ya conserva su copia:** al publicar, ROUTE-SHEETS-07 lee `seatQueries.listByBus` en la misma transacción de publicación y guarda en `route_sheet_commercial_inventories` una copia de los asientos con `offered: true` (`seatId`, `layoutSeatKey`, `label`, `deck`, `row`, `column`, `category`). No tiene FK ni SQL sobre tablas de Fleet, y un reintento no vuelve a consultar Fleet.
+- **Route Sheets ya conserva su copia:** durante la publicación, ROUTE-SHEETS-07 consulta la API pública `seatQueries.listByBus` y guarda en su transacción una copia en `route_sheet_commercial_inventories` de los asientos con `offered: true` (`seatId`, `layoutSeatKey`, `label`, `deck`, `row`, `column`, `category`). La lectura pública actual de Fleet usa su pool: no comparte el cliente transaccional de Route Sheets, de ahí el supuesto de inmutabilidad descrito a continuación. No tiene FK ni SQL sobre tablas de Fleet, y el reintento de una publicación ya completada no vuelve a capturar Fleet.
 - **Esa copia se apoya en un supuesto de Fleet:** ROUTE-SHEETS-07 §4.2 indica que se captura «bajo la inmutabilidad actual de Fleet» y que cualquier edición futura requiere acordar antes una sesión transaccional pública o una lectura de configuración inmutable por versión.
 - **Fleet no edita hoy:** el código no tiene `UPDATE` ni `DELETE` sobre `buses` o `bus_seats`. La inmutabilidad es una convención del código, no una restricción de la base: un `UPDATE` directo la rompe sin aviso, y `bus_seats` se borra en cascada si se borra el bus.
 - **Pruebas que actualizan asientos directamente:** `fleet/seat-queries.test.js`, `route-sheets/commercial-trips.test.js` y `route-sheets/trip-queries.test.js` usan `UPDATE bus_seats SET offered = false` para preparar datos, y `fleet/bus.migration.test.js` y `fleet/bus-vip-seats.test.js` para comprobar restricciones.
@@ -133,6 +133,8 @@ No aplica.
 
 **Evidencias:** pendientes; no hay implementación.
 
+Revisión documental del 3 de noviembre: diff limitado a esta spec y su fila en `docs/estado-proyecto.md`; `git diff --check` aprobado. Se contrastaron `seatQueries.listByBus`, la preparación y persistencia del inventario comercial y ROUTE-SHEETS-07. No se ejecutaron lint ni pruebas de producto porque no cambian código, migraciones o pruebas; los criterios funcionales anteriores siguen pendientes. Los acuerdos se registran como mensaje de David reportado por Edwin, no como revisión final del código. Redacción inicial asistida por Claude Code; revisión y preparación de PR asistidas por Codex. El borrador FLEET-08 permanece local y fuera del diff.
+
 ## 14. Revisión y cierre
 
-Pendientes. Próxima acción: compartir la rama con David para su revisión, autorizar T1 y confirmar con Leslie el contrato de asientos comprometidos para D-05.
+Pendientes. PR #58 publicada para revisión documental de David; no equivale a aceptación de la implementación. Autorizar T1 por separado y confirmar con Leslie el contrato de asientos comprometidos para D-05. No se enviaron mensajes a David o Leslie desde esta revisión.
