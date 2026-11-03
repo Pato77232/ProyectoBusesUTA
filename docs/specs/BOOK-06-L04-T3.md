@@ -1,7 +1,7 @@
 # BOOK-06-L04-T3: adaptador del aviso para Payments
 
 - ID local, continuación de BOOK-06-L04-T2 incremento C; no ID externo.
-- Estado: C1 implementado y probado localmente en la continuación solicitada por Leslie; revisión humana, commit y publicación pendientes.
+- Estado: C1 publicado en PR #62; conciliación con develop 61fd65a implementada y comprobada. Pruebas del puente aprobadas; global fallida por timeout de Fleet, revisión humana pendiente.
 - Origen: «listo sigamos con el siguiente paso porfavor» y delegación técnica registrada en T2 §11. No se atribuyen nuevas aprobaciones individuales a Shirley/Pablo.
 - Base comprobada: origin/develop b4fe717, PR #60 integrada; rama feature/BOOK-06-adaptador-aviso-pagos. Sin commits/push autorizados para esta rama nueva.
 - Relacionadas: [BOOK-06-L04-T2](BOOK-06-L04-T2.md), [PAGOS-01](PAGOS-01.md), [PAGOS-02](PAGOS-02.md).
@@ -51,3 +51,25 @@ Sin commits/push ni PR de esta rama nueva. Checkpoint sugerido: feat(pagos): val
 ## 6. Publicación autorizada
 
 Leslie autoriza expresamente commit y push de C1 en feature/BOOK-06-adaptador-aviso-pagos. Se conserva la validación y alcance anteriores; no se autoriza merge ni se atribuye revisión humana. El hash de publicación se consulta en Git; no se inventa un número de PR.
+
+
+## 7. Conciliación autorizada de PR #62
+
+Leslie pide «arregla el programa porfavor» tras ver los tres conflictos de PR #62. Base publicada 4030709; develop 61fd65a integra el puente de Shirley en 9131787. Ese trabajo apareció después de la base b4fe717 revisada para C1; no se lo reconstruye ni se descarta.
+
+Conservar createPaymentReceiptModule, su fuente persistida y BookingsPaymentProofNotifier con su contrato markPaymentProofReceived que resuelve undefined y valida entradas con PAYMENT_PROOF_VALIDATION_ERROR. Conservar createBookingPaymentProofNotifier de C1 como fachada pequeña sobre ese mismo puente: retorna la copia confirmada y mantiene su clasificación de entrada inválida como incertidumbre, sin duplicar validación ni ejecutar dos avisos.
+
+Centralizar captura/validación de solicitud y respuesta en el dominio de Payments. Capturar el método ligado al componer. Separar lectura/validación de la señal de rechazo definitivo: una excepción emitida al leer un payload/proveedor, incluso de la clase de plazo, no autoriza compensación. Solo el outcome definitivo validado puede producirla.
+
+El puente ofrecerá internamente receiveAcknowledgement para la fachada con resultado; su puerto legado seguirá resolviendo undefined. Mantener ambas familias de pruebas completas: las de develop en su ruta actual y las 31 de la fábrica en booking-receipt-notifier-factory.test.js. Añadir regresiones para getters y para ambos contratos; no quitar aserciones ni ampliar timeouts.
+
+No cambiar la fuente SQL integrada, migraciones, casos de uso, server.js o rutas. La fuente persistida está disponible como composición interna preparada; la autorización HTTP de carga, procedencia histórica y activación productiva siguen pendientes. Actualizar evidencia/registro/descripción de PR #62; verificar backend lint, format:check, npm test con PostgreSQL aislado y arranque real. Publicar resolución solo en la misma rama, sin integrar la PR.
+
+
+### Resultado de conciliación con 61fd65a
+
+[Evidencia vigente](../evidence/BOOK-06-L04-T3/2026-11-03-conciliacion-pr62.md) y [descripción](../evidence/BOOK-06-L04-T3/descripcion-pr.md). Tres conflictos resueltos; una validación compartida y una operación de aviso, con el puerto integrado y la fachada compatibles. Ambas suites originales conservadas byte a byte en archivos separados; siete regresiones adicionales.
+
+66 unitarias y 14 integraciones dirigidas aprobadas. Global: 1724 unitarias aprobadas y 529/530 integraciones; falla por timeout de fotografías de Fleet. Repetición aislada 17/18, mismo fallo. No se alteran código, aserciones o límite de 20000 ms ni se declara suite global aprobada. Lint y formato propio aprobados; formato global mantiene 17 archivos ajenos. Arranque real aprobado; PostgreSQL/red exclusivos retirados.
+
+La fuente persistida de Shirley ya existe en la composición preparada y no se reemplaza; autorización HTTP y procedencia histórica siguen pendientes. Publicar corrección en PR #62, sin integrar ni atribuir revisión humana. Evaluar el fallo global antes de integrar.

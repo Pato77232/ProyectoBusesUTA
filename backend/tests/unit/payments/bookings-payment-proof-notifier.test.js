@@ -1,167 +1,105 @@
-const { createBookingPaymentProofNotifier } = require('../../../src/modules/payments');
-const UploadPaymentProof = require('../../../src/modules/payments/application/upload-payment-proof.use-case');
+const Notifier = require('../../../src/modules/payments/infrastructure/bookings-payment-proof-notifier');
+const Source = require('../../../src/modules/payments/infrastructure/pg-payment-proof-receipt-source');
+const { createPaymentReceiptModule } = require('../../../src/modules/payments');
 const {
-  BookingNotificationUncertainError,
-  BookingPaymentProofRejectedError,
   PaymentProofUploadDeadlineExpiredError,
 } = require('../../../src/modules/payments/domain/payment-proof-error');
-const target = { bookingId: 'booking-1', cooperativeId: 'coop-1', paymentProofId: 'proof-1' };
-const at = '2026-11-03T14:04:59.999Z';
-const accepted = (change = {}) => ({ ...target, outcome: 'ACCEPTED', acceptedAt: at, ...change });
-const rejected = () => ({ ...target, outcome: 'REJECTED_EXPIRED', rejectedAt: at });
-function harness(result = accepted()) {
-  const provider = jest.fn(typeof result === 'function' ? result : async () => result);
-  return {
-    provider,
-    notifier: createBookingPaymentProofNotifier({
-      receiptReceiver: { markPaymentProofReceived: provider },
-    }),
-  };
+const { randomUUID } = require('node:crypto');
+const input = { bookingId: 'booking', cooperativeId: 'coop', paymentProofId: 'proof' };
+const at = '2026-11-03T14:01:00.000Z';
+const accepted = { ...input, outcome: 'ACCEPTED', acceptedAt: at };
+function setup(result = accepted) {
+  const receiver = { markPaymentProofReceived: jest.fn().mockResolvedValue(result) };
+  return { receiver, notifier: new Notifier({ receiver }) };
 }
-test('exige capacidad interna y no acepta principal o proveedor simulado implícito', () => {
-  for (const input of [undefined, {}, { receiptReceiver: { role: 'SERVICE' } }])
-    expect(() => createBookingPaymentProofNotifier(input)).toThrow(TypeError);
+test('solo aceptación íntegra satisface el puerto existente', async () => {
+  const { notifier, receiver } = setup();
+  await expect(notifier.markPaymentProofReceived(input)).resolves.toBeUndefined();
+  expect(receiver.markPaymentProofReceived).toHaveBeenCalledWith(input);
+  expect(Object.isFrozen(receiver.markPaymentProofReceived.mock.calls[0][0])).toBe(true);
 });
-test('aceptación vinculada entrega copia inmutable y una llamada sin renovar fecha', async () => {
-  const source = accepted();
-  const { provider, notifier } = harness(source);
-  const result = await notifier.markPaymentProofReceived(target);
-  expect(provider).toHaveBeenCalledWith(target);
-  expect(provider).toHaveBeenCalledTimes(1);
-  expect(result).toEqual(source);
-  expect(result).not.toBe(source);
-  expect(Object.isFrozen(result)).toBe(true);
-  expect(Object.isFrozen(provider.mock.calls[0][0])).toBe(true);
-  expect(Object.isFrozen(notifier)).toBe(true);
-  source.acceptedAt = 'otro';
-  expect(result.acceptedAt).toBe(at);
-});
-test('solo un outcome definitivo vinculado genera el error que autoriza compensación', async () => {
-  await expect(
-    harness(rejected()).notifier.markPaymentProofReceived(target),
-  ).rejects.toBeInstanceOf(PaymentProofUploadDeadlineExpiredError);
-});
-test.each([
-  null,
-  undefined,
-  {},
-  [],
-  accepted({ outcome: 'UNKNOWN' }),
-  accepted({ bookingId: 'other' }),
-  accepted({ cooperativeId: 'other' }),
-  accepted({ paymentProofId: 'other' }),
-  accepted({ acceptedAt: '2026-11-03T14:04:59Z' }),
-  accepted({ acceptedAt: new Date(at) }),
-  accepted({ acceptedAt: 'invalid' }),
-  accepted({ rejectedAt: at }),
-  { ...rejected(), bookingId: 'other' },
-  { ...rejected(), rejectedAt: null },
-])('respuesta incoherente %# conserva incertidumbre', async (response) => {
-  // Undefined debe probarse como respuesta explícita, no como valor por defecto de harness.
-  const { notifier } = harness(async () => response);
-  await expect(notifier.markPaymentProofReceived(target)).rejects.toBeInstanceOf(
-    BookingNotificationUncertainError,
+test('solo vencimiento confirmado y vinculado autoriza compensación', async () => {
+  const { notifier } = setup({ ...input, outcome: 'REJECTED_EXPIRED', rejectedAt: at });
+  await expect(notifier.markPaymentProofReceived(input)).rejects.toBeInstanceOf(
+    PaymentProofUploadDeadlineExpiredError,
   );
 });
-test.each([null, {}, [], { ...target, now: at }, { ...target, bookingId: ' ' }])(
-  'entrada inválida %# no invoca al proveedor',
-  async (input) => {
-    const { provider, notifier } = harness();
-    await expect(notifier.markPaymentProofReceived(input)).rejects.toBeInstanceOf(
-      BookingNotificationUncertainError,
-    );
-    expect(provider).not.toHaveBeenCalled();
-  },
-);
 test.each([
-  new Error('SQL privado o timeout'),
-  new BookingPaymentProofRejectedError(),
-  new PaymentProofUploadDeadlineExpiredError(),
-])('excepción del proveedor %# nunca activa compensación por su clase', async (error) => {
-  const { notifier } = harness(async () => {
-    throw error;
-  });
-  await expect(notifier.markPaymentProofReceived(target)).rejects.toMatchObject({
+  undefined,
+  null,
+  {},
+  { ...accepted, outcome: 'UNKNOWN' },
+  { ...accepted, bookingId: 'other' },
+  { ...accepted, cooperativeId: 'other' },
+  { ...accepted, paymentProofId: 'other' },
+  { ...accepted, acceptedAt: null },
+  { ...accepted, acceptedAt: 'yesterday' },
+  { ...accepted, rejectedAt: at },
+  { ...input, outcome: 'REJECTED_EXPIRED' },
+  { ...input, outcome: 'REJECTED_EXPIRED', rejectedAt: at, cooperativeId: 'other' },
+])('resultado no verificable conserva incertidumbre %#', async (result) => {
+  const receiver = { markPaymentProofReceived: async () => result };
+  await expect(new Notifier({ receiver }).markPaymentProofReceived(input)).rejects.toMatchObject({
     code: 'BOOKING_NOTIFICATION_UNCERTAIN',
-    httpStatus: 503,
   });
-  await expect(notifier.markPaymentProofReceived(target)).rejects.not.toThrow('SQL privado');
 });
-test('captura entrada y método antes de await, conservando this del proveedor', async () => {
-  let resolve;
-  const receiver = {
-    value: target,
-    markPaymentProofReceived: jest.fn(function (input) {
-      expect(this.value).toEqual(input);
-      return new Promise((done) => {
-        resolve = done;
-      });
-    }),
-  };
-  const notifier = createBookingPaymentProofNotifier({ receiptReceiver: receiver });
-  const input = { ...target };
-  const pending = notifier.markPaymentProofReceived(input);
-  input.cooperativeId = 'other';
-  receiver.markPaymentProofReceived = () => {
-    throw new Error('No usar reemplazo');
-  };
-  resolve(accepted());
-  expect(await pending).toEqual(accepted());
+test.each([
+  new Error('SQL privado'),
+  new PaymentProofUploadDeadlineExpiredError(),
+  { code: 'BOOKING_RECEIPT_LINK_MISMATCH' },
+])('excepción del proveedor nunca certifica compensación %#', async (error) => {
+  const { notifier, receiver } = setup();
+  receiver.markPaymentProofReceived.mockRejectedValue(error);
+  await expect(notifier.markPaymentProofReceived(input)).rejects.toMatchObject({
+    code: 'BOOKING_NOTIFICATION_UNCERTAIN',
+  });
 });
-test.each(['accepted', 'expired', 'wrong-link', 'provider-error'])(
-  'consumidor legado real clasifica %s sin borrar por incertidumbre',
-  async (kind) => {
-    const reply =
-      kind === 'expired'
-        ? rejected()
-        : accepted(kind === 'wrong-link' ? { cooperativeId: 'other' } : {});
-    const { notifier } = harness(async () => {
-      if (kind === 'provider-error') throw new BookingPaymentProofRejectedError();
-      return reply;
+test.each([null, {}, { ...input, role: 'SERVICE' }, { ...input, bookingId: ' ' }])(
+  'entrada inválida no llama al proveedor %#',
+  async (value) => {
+    const { notifier, receiver } = setup();
+    await expect(notifier.markPaymentProofReceived(value)).rejects.toMatchObject({
+      code: 'PAYMENT_PROOF_VALIDATION_ERROR',
     });
-    const repository = {
-      markNotificationAttempted: jest.fn(),
-      markNotificationDelivered: jest.fn(),
-      deleteByBookingId: jest.fn(),
-    };
-    const storage = { delete: jest.fn() };
-    const upload = new UploadPaymentProof({
-      paymentProofRepository: repository,
-      fileStorage: storage,
-      bookingPaymentProofNotifier: notifier,
-    });
-    const proof = {
-      id: target.paymentProofId,
-      booking_id: target.bookingId,
-      cooperative_id: target.cooperativeId,
-    };
-    const operation = upload.notifyBooking(proof, 'private-key');
-    if (kind === 'accepted') await expect(operation).resolves.toBeUndefined();
-    else
-      await expect(operation).rejects.toMatchObject({
-        code:
-          kind === 'expired'
-            ? 'PAYMENT_PROOF_UPLOAD_DEADLINE_EXPIRED'
-            : 'BOOKING_NOTIFICATION_UNCERTAIN',
-      });
-    expect(repository.markNotificationAttempted).toHaveBeenCalledWith(target.bookingId);
-    expect(repository.markNotificationDelivered).toHaveBeenCalledTimes(kind === 'accepted' ? 1 : 0);
-    expect(repository.deleteByBookingId).toHaveBeenCalledTimes(kind === 'expired' ? 1 : 0);
-    expect(storage.delete).toHaveBeenCalledTimes(kind === 'expired' ? 1 : 0);
+    expect(receiver.markPaymentProofReceived).not.toHaveBeenCalled();
   },
 );
-
-test('captura el outcome una vez antes de validar y no compensa por un getter cambiante', async () => {
-  let reads = 0;
-  const response = {
-    ...target,
-    get outcome() {
-      reads += 1;
-      return reads === 1 ? 'ACCEPTED' : 'REJECTED_EXPIRED';
+test('la petición no cambia durante la espera del proveedor', async () => {
+  const mutable = { ...input };
+  const receiver = {
+    async markPaymentProofReceived(target) {
+      mutable.cooperativeId = 'other';
+      await Promise.resolve();
+      return { ...target, outcome: 'ACCEPTED', acceptedAt: at };
     },
-    acceptedAt: at,
   };
-  const { notifier } = harness(async () => response);
-  expect(await notifier.markPaymentProofReceived(target)).toEqual(accepted());
-  expect(reads).toBe(1);
+  await expect(
+    new Notifier({ receiver }).markPaymentProofReceived(mutable),
+  ).resolves.toBeUndefined();
+});
+test('fuente ausente devuelve null y fallo técnico conserva error seguro', async () => {
+  const pool = { query: jest.fn().mockResolvedValue({ rows: [] }) };
+  const source = new Source({ pool });
+  await expect(source.findForBookingReceipt({ paymentProofId: randomUUID() })).resolves.toBeNull();
+  pool.query.mockRejectedValue(new Error('SQL privado'));
+  await expect(
+    source.findForBookingReceipt({ paymentProofId: randomUUID() }),
+  ).rejects.toMatchObject({ code: 'BOOKING_NOTIFICATION_UNCERTAIN' });
+});
+test.each([
+  {},
+  null,
+  { paymentProofId: 'invalid' },
+  { paymentProofId: randomUUID(), role: 'SERVICE' },
+])('consulta estricta no toca persistencia %#', async (value) => {
+  const pool = { query: jest.fn() };
+  await expect(new Source({ pool }).findForBookingReceipt(value)).rejects.toMatchObject({
+    code: 'PAYMENT_PROOF_VALIDATION_ERROR',
+  });
+  expect(pool.query).not.toHaveBeenCalled();
+});
+test('composición requiere proveedor real sin fallback simulado', () => {
+  expect(() => createPaymentReceiptModule()).toThrow(TypeError);
+  expect(() => createPaymentReceiptModule({ pool: { query: jest.fn() } })).toThrow(TypeError);
+  expect(() => new Notifier({ receiver: {} })).toThrow(TypeError);
 });
