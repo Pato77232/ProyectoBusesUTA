@@ -43,3 +43,8 @@ Objetivo: acordar y probar una actualización no destructiva desde develop mante
 Conflictos de archivos resueltos; resolución preparada para guardar y publicar en la misma PR #51. El commit resultante se identifica en el historial de la PR, con padres 67b333b y 5abc36d. La PR conserva revisión solicitada a PabloToapanta y shirley6126. No marcar lista/integrada mientras se mantengan los bloqueos indicados. Implementación asistida por Codex; revisión humana pendiente.
 
 Limpieza comprobada: contenedor y red busesuta-leslie-lector retirados; ambas bases de prueba eran temporales dentro de ese contenedor. Sin contenedores/redes propios restantes; servicios ajenos intactos.
+
+
+## Continuación autorizada — 3 de noviembre de 2026
+
+Leslie autoriza implementar el desbloqueo con catálogo activo y migración nueva, preservando los originales y rechazando bases heredadas. La reproducción anterior conserva su valor histórico; el tratamiento vigente y sus comprobaciones están en [la evidencia del 3 de noviembre](2026-11-03-catalogo-migraciones.md). No se declara una conversión automática de bases existentes con originales aplicados.

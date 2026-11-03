@@ -443,3 +443,16 @@ PR [#51](https://github.com/Pato77232/ProyectoBusesUTA/pull/51), rama feature/BO
 BOOK-07-L05-T1 conserva alcance A–C. Lint backend/frontend aprobados; 1572 unitarias backend y 181 pruebas frontend aprobadas; Nginx real, ocho grupos Chrome y nueve comprobaciones con consumidor Payments aprobados. Integración global 459/462 antes de ajustar dos pruebas de reversión, verificadas después; persiste timeout de fotografías de Fleet. Formato global: 17 archivos ajenos pendientes. No declarar suite global aprobada.
 
 Base previa de develop: actualización bloqueada por orden de migración create-bookings; historia intacta. Requiere estrategia no destructiva acordada con Pablo antes de desplegar. No se editaron migraciones ni se debilitaron expectativas/timeouts. [Evidencia y siguiente incremento propuesto](evidence/BOOK-07-L05-T1/2026-11-02-conciliacion-pr51.md). Contenedor/red/bases temporales retirados; revisión humana de Pablo/Shirley pendiente. Los registros anteriores de «sin PR» o «develop no incorporado» conservan su fecha histórica y quedan supersedidos por esta actualización.
+
+
+## Leslie: desbloqueo de migraciones de PR #51 — 3 de noviembre de 2026
+
+| Spec / área | Estado comprobado | Evidencia y límite |
+| --- | --- | --- |
+| BOOK-07-L05-T1, catálogo de migraciones | Implementado y probado en la rama feature de PR #51; revisión humana pendiente | [Evidencia](evidence/BOOK-07-L05-T1/2026-11-03-catalogo-migraciones.md). Originales intactos, nueva entrada 1793820000000 posterior a develop, catálogo explícito y rechazo previo de historia heredada/desconocida. Base vacía y esquema de develop con datos conservados; rollback y bloqueo reales. |
+
+HEAD inicial 901d308 limpio; origin/develop contrastado en 2df5949 con las mismas 17 migraciones. No se incorpora incidentalmente su código posterior de Auth. Repetición completa final: 1588 unitarias + 474 integraciones = 2062 aprobadas, 116 suites; arranque real incluido. Última comprobación dirigida 28/28 y lint aprobados; formato propio aprobado, formato global pendiente en 17 archivos ajenos. Timeout anterior de fotografía conservado como incidencia; prueba aprobada finalmente sin cambios ni ampliación de tiempo. Primera regresión de historial vacío corregida y verificada, sin debilitar aserciones.
+
+Leslie autoriza commit/publicación solo en su rama y actualización de descripción; PR en borrador, sin merge a develop ni aprobación humana inferida. Bases persistentes no consultadas: cualquiera con originales aplicados requiere un plan aparte y se rechaza sin conversión. No cambia la disponibilidad de recepción/venta/liberación ni proveedores comerciales pendientes.
+
+Limpieza confirmada: bases catalog_<UUID>_test retiradas por sus fixtures; contenedor y red busesuta-leslie-migraciones eliminados al terminar. Sin recursos propios restantes ni cambios a los demás servicios Docker.

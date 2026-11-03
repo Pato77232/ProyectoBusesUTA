@@ -229,3 +229,34 @@ Backend: lint aprobado, 1572 unitarias aprobadas. Integración global: 459/462 a
 Frontend: lint, 181 pruebas, arranque Nginx y ocho grupos Chrome aprobados. Compatibilidad directa con consumidor actual Payments: nueve comprobaciones aprobadas, sin conectar rutas productivas. Entorno temporal retirado.
 
 Bloqueo de despliegue reproducido: una base ya migrada con develop rechaza create-bookings por orden de migración; historial de 17 registros intacto. Propuesta para el siguiente incremento: acordar con Pablo una actualización no destructiva, con spec y pruebas sobre datos previos. No se editan migraciones existentes ni se desactiva globalmente checkOrder. PR #51 permanece en borrador; revisión humana y resolución de pendientes requeridas.
+
+
+## Incremento autorizado: catálogo y actualización segura — 3 de noviembre de 2026
+
+Leslie autoriza implementar, probar y publicar este incremento en la rama de PR #51. HEAD inicial 901d308 limpio; origin/develop contrastado en 2df5949 (máximo de migraciones 1793730000000, mismas 17 de 5abc36d). Los cambios posteriores de Auth no se incorporan incidentalmente ni se atribuye una prueba de esa combinación.
+
+### Estrategia
+
+1. Conservar íntegros, en su ruta, los tres originales de Reservas: 1793145600000-create-bookings, 1793232000000-booking-creation-idempotency y 1793740000000-booking-payment-read-context. Permanecen como fuente histórica de SQL y pruebas; no son entradas activas.
+2. Catálogo activo explícito: las 17 migraciones conocidas de develop y 1793820000000-install-bookings. La nueva migración aplica realmente los tres originales en orden por sus exports, dentro de la misma transacción, sin duplicar sus identificadores en el historial. Down utiliza sus operaciones inversas. Ningún registro se marca sin aplicar esquema.
+3. Antes de cualquier DDL: validar archivos activos y adquirir el mismo advisory lock de node-pg-migrate. Leer el historial bajo ese bloqueo; aceptar únicamente prefijos completos y ordenados del catálogo conocido. Rechazar originales de Reservas, nombres desconocidos, duplicados, huecos, orden incorrecto, historial más largo y tablas de Reservas sin su entrada activa. Base sin historial exige esquema public vacío (excepto objetos de extensiones). Las bases persistentes con originales aplicados requieren un plan aparte; no convertirlas automáticamente.
+4. Mantener checkOrder:true y bloqueo del runner. El filtrado excluye solo originales y archivos ocultos; cualquier otro archivo visible fuera del catálogo falla antes de conectar. No admitir silenciosamente migraciones nuevas por un glob amplio.
+5. Una transacción exterior incluye creación inicial de pgmigrations, esquema y registros escritos exclusivamente por la biblioteca. El cliente delegado traduce los BEGIN/COMMIT/ROLLBACK de la transacción del runner a SAVEPOINT/RELEASE/ROLLBACK TO, de modo que la biblioteca conserva su batch y la transacción exterior puede deshacer también el bootstrap del historial. No se emiten INSERT/UPDATE/DELETE manuales contra pgmigrations.
+6. Errores públicos seguros para historial incompatible, catálogo inválido y bloqueo concurrente. El CLI no imprime URL/credenciales/SQL.
+
+### Archivos y comprobación
+
+scripts/migrate.js y helpers de catálogo/historial; migración nueva; pruebas de catálogo y actualización con PostgreSQL aislado. Adaptar exclusivamente la preparación de pruebas que enumeraban originales activos, manteniendo sus expectativas de reversibilidad/datos; conservar pruebas directas de las migraciones históricas. No cambiar dominio, endpoints, composición HTTP, dependencias o timeout de fotografías.
+
+Verificar: base vacía; esquema de develop con filas representativas y snapshot antes/después; reintento sin duplicados; down/up activo; historias heredadas/desconocidas/desordenadas rechazadas sin cambios; objetos sin historial rechazados; exclusión de ocultos; fallo inyectado durante DDL revierte esquema e historial (también base inicialmente vacía); bloqueo simultáneo impide que se cambie el historial entre validación y ejecución. Lint, format:check, suites unitarias/integración y arranque real existente. Resultados por registrar, sin declarar aprobación previa.
+
+
+### Resultado del catálogo autorizado — 3 de noviembre de 2026
+
+Implementado y probado en la rama de PR #51. [Evidencia completa](../evidence/BOOK-07-L05-T1/2026-11-03-catalogo-migraciones.md): originales intactos; entrada activa nueva 1793820000000; validación estricta previa bajo bloqueo; exclusión de ocultos preservada; sin escrituras manuales de historial ni adopción automática de bases heredadas. Base vacía y copia del esquema de develop con datos conservados verificadas; rechazos sin cambios y fallo transaccional comprobados.
+
+Resultado final npm test: 1588 unitarias y 474 integraciones, 2062 aprobadas (116 suites); arranque real incluido. 28 pruebas nuevas, incluidas en el total. Último repaso dirigido 28/28 aprobado después de fijar identidad estable de instalación y verificar ruta de limpieza. Lint aprobado; formato propio aprobado; format:check global conserva 17 archivos ajenos pendientes. El timeout de fotografía ocurrió en un intento previo y pasó en la repetición final sin modificar prueba, almacenamiento ni límite temporal.
+
+Se conserva evidencia del primer fallo ESM del harness y de la clasificación errónea de pgmigrations_pkey tras down completo, corregida con regresión y 50 pruebas dirigidas aprobadas antes de la repetición global. Sin dependencias nuevas ni cambios en HTTP/frontend o negocio.
+
+No se han inspeccionado bases persistentes del equipo. Si contienen cualquiera de los originales, este migrador las rechaza y necesitan un plan específico con Pablo. No se afirma que ninguna exista. Revisión humana y combinación con el código posterior de Auth en develop pendientes; catálogo común contrastado en 2df5949. No integración/cierre de PR ni implementación de comandos de Pagos.

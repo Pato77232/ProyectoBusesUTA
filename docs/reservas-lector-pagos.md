@@ -83,3 +83,12 @@ Backend: lint aprobado, 1572 unitarias aprobadas. Integración global: 459/462 a
 Frontend: lint, 181 pruebas, arranque Nginx y ocho grupos Chrome aprobados. Compatibilidad directa con consumidor actual Payments: nueve comprobaciones aprobadas, sin conectar rutas productivas. Entorno temporal retirado.
 
 Bloqueo de despliegue reproducido: una base ya migrada con develop rechaza create-bookings por orden de migración; historial de 17 registros intacto. Propuesta para el siguiente incremento: acordar con Pablo una actualización no destructiva, con spec y pruebas sobre datos previos. No se editan migraciones existentes ni se desactiva globalmente checkOrder. PR #51 permanece en borrador; revisión humana y resolución de pendientes requeridas.
+
+
+## Catálogo de despliegue vigente — 3 de noviembre de 2026
+
+El bloqueo de orden descrito el 2 de noviembre se aborda en [la evidencia del catálogo](evidence/BOOK-07-L05-T1/2026-11-03-catalogo-migraciones.md) y en BOOK-07-L05-T1. Los tres originales siguen en su ruta, intactos, como fuente histórica; el catálogo activo ejecuta en su lugar 1793820000000-install-bookings, posterior a las 17 migraciones de develop contrastadas en 2df5949. La nueva entrada aplica realmente esquema, idempotencia y contexto de lectura dentro de una transacción. No registra los IDs originales como aplicados.
+
+Antes de DDL, el migrador valida el catálogo y el historial bajo bloqueo. Conserva checkOrder:true, la exclusión de archivos ocultos y rollback que incluye el bootstrap de pgmigrations. Cada migración futura exige actualizar explícitamente el catálogo y sus pruebas. Los comandos npm run migrate/migrate:down no cambian.
+
+MIGRATION_HISTORY_UNSUPPORTED exige detener la actualización: una base con cualquiera de los originales aplicados requiere un plan específico y revisión humana. No se consultaron bases persistentes ni se afirma que todas estén libres de esos originales. No escribir historial a mano, cambiar la URL para eludir el rechazo ni borrar datos. Los resultados actuales y límites están en la evidencia enlazada; la revisión/integración de PR #51 siguen pendientes.

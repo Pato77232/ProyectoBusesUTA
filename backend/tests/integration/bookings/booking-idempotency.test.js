@@ -313,17 +313,15 @@ test('propietario preparado distinto del de la operación revierte sin vincular 
 test('migración de metadatos es reversible sin eliminar reservas y admite reaplicación', async () => {
   const { execute, request } = await setup();
   const saved = await execute(request);
-  const target = '1793232000000-booking-creation-idempotency';
-  const { rows: applied } = await pool.query('SELECT name FROM pgmigrations ORDER BY id DESC');
-  expect(applied.map(({ name }) => name)).toContain(target);
+  const historicalMigration = require('../../../migrations/1793232000000-booking-creation-idempotency');
+  const historyBefore = (await pool.query('SELECT * FROM pgmigrations ORDER BY id')).rows;
+  const applyHistorical = async (direction) => {
+    const statements = [];
+    historicalMigration[direction]({ sql: (sql) => statements.push(sql) });
+    await pool.query(statements.join(';\n'));
+  };
   try {
-    for (const { name } of applied) {
-      runMigration('down');
-      expect(
-        (await pool.query('SELECT name FROM pgmigrations')).rows.map((row) => row.name),
-      ).not.toContain(name);
-      if (name === target) break;
-    }
+    await applyHistorical('down');
     expect(await counts()).toEqual({ bookings: 1, allocations: 2 });
     const { rows } = await pool.query(`SELECT column_name FROM information_schema.columns
       WHERE table_name = 'bookings' AND column_name LIKE 'creation_request_%'`);
@@ -336,8 +334,9 @@ test('migración de metadatos es reversible sin eliminar reservas y admite reapl
       }),
     ).toEqual(saved);
   } finally {
-    runMigration();
+    await applyHistorical('up');
   }
+  expect((await pool.query('SELECT * FROM pgmigrations ORDER BY id')).rows).toEqual(historyBefore);
   const { rows } = await pool.query(
     `SELECT creation_request_key, creation_request_fingerprint
     FROM bookings WHERE id = $1`,
