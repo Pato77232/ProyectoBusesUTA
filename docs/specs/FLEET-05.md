@@ -5,7 +5,7 @@
 - **Módulo:** `frontend`; consume la API de `fleet`
 - **Responsable:** Edwin, responsable de Fleet y solicitante de revisión/publicación
 - **Revisor propuesto / confirmado:** Pablo propuesto, por ser responsable de la base frontend; sin confirmación registrada
-- **Estado:** T1a, T1b, T2a y T2b integradas. T3 implementada en `ffc0798`, publicada en [PR #63](https://github.com/Pato77232/ProyectoBusesUTA/pull/63) en borrador: alta real verificada, con hallazgo de respuesta ambigua y revisión humana pendientes. No integrada ni cerrada.
+- **Estado:** T1a, T1b, T2a y T2b integradas. T3 en [PR #63](https://github.com/Pato77232/ProyectoBusesUTA/pull/63), preparada para revisión: implementación `ffc0798`, hallazgo de respuesta ambigua resuelto en `53df664`. Revisión humana pendiente; no integrada ni cerrada.
 - **Prioridad y dependencias:** FLEET-01, FLEET-02, FLEET-03 y FRONT-01 T3c/T3d, presentes en develop. T3 requiere además la pantalla de inicio de sesión (sección 10).
 - **Rama / PR / base comprobada:** `feature/FLEET-05-T1a-validacion` y `feature/FLEET-05-T1b-formulario`, creadas desde `origin/develop` en `b60201e` el 1 de noviembre de 2026. Reemplazan a `feature/FLEET-05-pantalla-registro-buses` y a PR #31: https://github.com/Pato77232/ProyectoBusesUTA/pull/31.
 - **Autorización de alcance:** el 31 de octubre de 2026 se aprobó por chat esta spec e iniciar solo T1. El 1 de noviembre Edwin aprobó dividir PR #31. La decisión sobre T2 consta en la sección 10.
@@ -291,3 +291,5 @@ Edwin pidió resolver el hallazgo anterior. Una respuesta exitosa sin `bus` veri
 La prueba unitaria que fijaba el mensaje de rechazo para ese caso describía el comportamiento que el hallazgo declaró incorrecto; se reemplazó por tres casos (datos incompletos, sin cuerpo y `RESPONSE_INVALID`) que exigen el aviso incierto, un único envío y el formulario liberado. No se debilitó ninguna otra aserción.
 
 Evidencia en Windows: 227 de 227 pruebas frontend (20 del controlador); ESLint y Prettier correctos en los dos archivos tocados. No se repitieron las comprobaciones con Chrome, porque no cubren este caso ni cambió la página. Falta revisión humana de Pablo.
+
+Codex revisó `53df664` y repitió la validación antes de publicar: **227/227 pruebas frontend**, `npm run lint`, Prettier de controlador/prueba y `git diff --check` aprobados. La prueba de regresión exige mensaje incierto, ausencia de confirmación de éxito, un único POST y liberación del estado ocupado en los tres casos. No se modificó producto ni pruebas en esta revisión. Las nueve comprobaciones de formulario y tres de API real anteriores siguen como evidencia histórica, sin nueva ejecución; tampoco se repitió backend ni Docker. El aviso preexistente de CSS y el fallo previo del smoke de portada permanecen documentados. PR #63 pasa a revisión humana; FLEET-08 queda local y fuera del cambio.
