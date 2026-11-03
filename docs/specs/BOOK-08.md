@@ -1,5 +1,7 @@
 # BOOK-08: Consultar reservas e integrar pantallas
 
+> Replanificación del 1 de noviembre de 2026: [BOOK-08-L06](BOOK-08-L06.md) complementa esta spec con un borrador bajo los nuevos acuerdos. La evidencia inferior conserva su fecha/alcance histórico; no acredita adaptación a tarifas configurables congeladas ni proveedores reales. La política histórica incompatible no autoriza el nuevo comportamiento. Ningún incremento nuevo se considera aprobado por esta nota.
+
 - **Responsable:** Leslie
 - **Revisor:** Edwin
 - **Módulo:** bookings

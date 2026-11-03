@@ -1,5 +1,7 @@
 # BOOK-03: Crear reserva y bloquear asientos
 
+> Replanificación del 1 de noviembre de 2026: [BOOK-03-L03](BOOK-03-L03.md) complementa esta spec con un borrador bajo los nuevos acuerdos. La evidencia inferior conserva su fecha/alcance histórico; no acredita adaptación a tarifas configurables congeladas ni proveedores reales. La política histórica incompatible no autoriza el nuevo comportamiento. Ningún incremento nuevo se considera aprobado por esta nota.
+
 - **Responsable:** Leslie
 - **Revisor propuesto por Leslie:** PabloToapanta
 - **Estado:** T1/T2/T3 y T4 A/B (API y pantalla) implementados localmente y probados; revisión humana pendiente. Faltan proveedores reales y entrada desde búsqueda; el servidor responde 503 a compras nuevas mientras falten.
