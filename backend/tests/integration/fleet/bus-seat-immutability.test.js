@@ -1,9 +1,10 @@
 const PgBusRepository = require('../../../src/modules/fleet/infrastructure/pg-bus.repository');
 const { assertTestDatabase } = require('../../../scripts/test-database');
 const { runMigration, testPool } = require('../../helpers/database');
+const { rollbackBefore } = require('../../helpers/migration-target');
 const { busRequest, fleetFixtures } = require('../../helpers/fleet-bus');
 
-const THIS_MIGRATION = '1793760000000-protect-bus-seats';
+const THIS_MIGRATION = '1793920000000-protect-bus-seats';
 const RESTRICT_VIOLATION = '23001';
 let pool, repository, fixtures;
 
@@ -78,8 +79,10 @@ test('la migración se revierte y reaplica sin alterar asientos', async () => {
   const busId = await registerBus();
   const before = await seatsOf(busId);
   const applied = await appliedNames();
-  expect(applied[0]).toBe(THIS_MIGRATION);
+  expect(applied).toContain(THIS_MIGRATION);
   try {
+    // Retira por nombre las migraciones posteriores, sin suponer que esta es la última.
+    await rollbackBefore(pool, THIS_MIGRATION);
     runMigration('down');
     expect(await appliedNames()).not.toContain(THIS_MIGRATION);
     expect(await seatsOf(busId)).toEqual(before);

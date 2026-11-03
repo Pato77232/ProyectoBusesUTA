@@ -145,7 +145,7 @@ Edwin autorizó comenzar T1. Rama `feature/FLEET-09-T1-inmutabilidad`, creada de
 
 **Implementación:**
 
-- Migración nueva `1793760000000-protect-bus-seats.js`: trigger `bus_seats_immutable` `AFTER UPDATE OR DELETE` que rechaza con `23001` cualquier cambio o borrado de asientos, incluido el borrado en cascada desde `buses`. Es `AFTER` para que las violaciones de CHECK y unicidad conserven sus códigos. La reversión elimina el trigger sin tocar datos.
+- Migración nueva `1793920000000-protect-bus-seats.js` (antes `1793760000000`, renombrada por la revisión de David): trigger `bus_seats_immutable` `AFTER UPDATE OR DELETE` que rechaza con `23001` cualquier cambio o borrado de asientos, incluido el borrado en cascada desde `buses`. Es `AFTER` para que las violaciones de CHECK y unicidad conserven sus códigos. La reversión elimina el trigger sin tocar datos.
 - `fleet/bus-seat-immutability.test.js`, nueva: alta intacta, rechazo de cambios de `offered`, `category`, `label`, `layout_seat_key` y `row_index`, de una actualización sin cambios, de borrados directos y en cascada, y reversión con reaplicación.
 - `fleet/seat-queries.test.js`: el caso de todos los asientos no ofrecidos desactiva el trigger solo durante su preparación, porque ese estado no puede lograrse por el alta; las comprobaciones no cambian.
 
@@ -193,3 +193,21 @@ Windows con PostgreSQL aislado recreado (`docker-compose.test.yml`), con el equi
 - `npm test`: unitarias **1323/1323**; integración **398/399** en 33 suites. Lint sin errores.
 - Único fallo: `database.test.js`, «migraciones reversibles y reaplicación sin duplicados», por superar 20 000 ms. Se repitió dos veces por separado con el mismo resultado; no falla ninguna comprobación.
 - La prueba revierte las 19 migraciones y reaplica la cadena, y cada paso lanza un proceso de Node que aquí tarda alrededor de 1 s, así que su duración crece con cada migración nueva. El mismo timeout ya se registró en Windows en FLEET-07 antes de T1, mientras que en Linux esa prueba aprobó en 6,8 s. No se amplió el límite ni se modificó la prueba.
+
+### Cambios pedidos por David sobre `0cf6ea0`, 3 de noviembre
+
+David solicitó cambios: la migración no estaba en el catálogo activo (`MIGRATION_CATALOG_INVALID`) y la reversión de Fleet aún exigía ser la última migración.
+
+- **Catálogo e historial:** la migración se renombró a `1793920000000-protect-bus-seats.js` y se registró al final de `activeNames`. Con su número anterior quedaba entre `1793740000000` y `1793820000000`, ya aplicadas en develop: una base actualizada se rechazaría con `MIGRATION_HISTORY_UNEXPECTED`. Solo existía en esta PR, nunca en develop; su SQL no cambió. Los controles `validateCatalog` y `validateHistory` no se modificaron.
+- **Reversión por nombre:** `bus-seat-immutability.test.js` usa `rollbackBefore` para retirar las migraciones posteriores, sin suponer que la suya es la última, y conserva la comprobación de asientos intactos y protección restaurada.
+- **Expectativas del catálogo:** Edwin autorizó ajustar `tests/unit/migration-catalog.test.js` y `tests/integration/migration-catalog.test.js` (de Leslie) a 21 migraciones: totales 20 → 21, actualizaciones 2 → 3, 3 → 4 y 1 → 2, y una reversión más en la base vacía que comprueba que desaparece `bus_seats_immutable`. La prueba unitaria además exige la nueva migración en la posición 21. No se quitó ninguna comprobación de datos ni de tablas de Reservas.
+
+**Evidencia en Windows con PostgreSQL aislado (`docker-compose.test.yml`), sin leer `.env`:**
+
+- `npm run lint`, Prettier de los archivos tocados y **1742/1742 unitarias** aprobadas.
+- Integración dirigida (Fleet completo, catálogo, tres suites de Route Sheets y `database.test.js`): **225/229**. Las 8 pruebas del catálogo, inmutabilidad, `seat-queries` y Route Sheets aprobaron.
+- Los 4 fallos son timeouts de 20 000 ms en pruebas que revierten migraciones: `database.test.js`, `bus.migration.test.js`, `bus-group.repository.test.js` y `bus-vip-seats.test.js`.
+- Comparación sobre `origin/develop` sin cambios, misma máquina: las tres primeras también fallan por timeout (4 de 32). `bus-vip-seats.test.js` aprueba en develop: su reversión ahora tiene un paso más (unos 23 s frente al límite de 20 s). No se amplió ningún límite; queda para decisión del equipo junto con el timeout ya conocido de `database.test.js`.
+- Dos ejecuciones previas se superpusieron sobre la misma base y se descartaron.
+
+Pendiente: decisión sobre los timeouts de reversión en Windows, aviso a Leslie del ajuste en su prueba y nueva revisión de David.
