@@ -5,7 +5,7 @@
 - **Módulo:** `fleet`; lo consume `bookings` mediante la API pública de Fleet
 - **Responsable:** Edwin
 - **Revisor propuesto / confirmado:** Leslie propuesta, por consumir el inventario; sin confirmación registrada
-- **Estado:** T1 técnicamente preparada para revisión en PR #44; Edwin confirmó VIP no ofrecido. Integración aislada 280/280 aprobada el 3 de noviembre; la suite unitaria global de la base conservada mantiene dos fallos ajenos. Confirmación del contrato por Leslie y revisión humana pendientes. T2 se gestiona aparte.
+- **Estado:** T1 integrada por PR #44 en `04868b2`; T2 publicada para revisión en [PR #57](https://github.com/Pato77232/ProyectoBusesUTA/pull/57). Confirmación/revisión humana de T2 pendientes; no equivale a formulario conectado ni cierre de FLEET-07.
 - **Prioridad y dependencias:** FLEET-02, FLEET-03 y FLEET-06 presentes en develop; PR #41 comprobada integrada el 2 de noviembre. T2 depende de la PR #37 de FLEET-05. Accesibilidad se trata en el borrador local FLEET-08, fuera de esta PR.
 - **Rama / PR / base comprobada:** `feature/FLEET-07-T1-vip`, sobre `979fad4` el 2 de noviembre de 2026, que parte de FLEET-06 en `447fcce`; [PR #44](https://github.com/Pato77232/ProyectoBusesUTA/pull/44) hacia develop. `origin/develop` comprobado en `f5b9bde` el 3 de noviembre; Edwin rechazó incorporar esa base, por lo que no se ejecutó merge/rebase.
 - **Autorización de alcance:** el 2 de noviembre de 2026 Edwin pidió agregar VIP y eligió marcarlo por bus. El mismo día Edwin pidió comenzar la implementación e informó que Leslie aprobó FLEET-06.
@@ -115,7 +115,7 @@ No aplica.
 | Paso | Resultado comprobable | Archivos compartidos |
 |---|---|---|
 | T1: VIP en backend | Alta y consulta con categoría VIP, con migración nueva | `bus-registration.js`, `bus-seat-configuration.js`, `pg-bus.repository.js` |
-| T2: formulario | Selección en la pantalla de registro | `bus-form.js`, `bus-form-view.js`, de la PR #37 |
+| T2: formulario | Lista de asientos VIP en la pantalla de registro, enviada como `vipSeatKeys` | `registrar-bus.html`, `bus-form.js`, `bus-form-view.js`, `app.css` y sus pruebas, integrados por la PR #37 |
 
 **Evidencias anteriores registradas (2 de noviembre de 2026, PostgreSQL aislado):** implementación en `5846d93`. Lint sin errores y Prettier correcto en los archivos tocados. Integración: 280 de 280 aprobadas en 25 suites. Unitarias: 1074 aprobadas y 2 fallidas de 1076, las mismas de `publish-route-sheet.use-case.test.js`; por eso la suite global no queda en verde y la integración se ejecutó aparte. Edwin autorizó cambiar en `bus.migration.test.js` el valor `VIP` por `OTRA`, porque esa prueba exigía el contrato anterior; la comprobación de rechazo se conserva.
 
@@ -140,3 +140,29 @@ Los primeros intentos del auxiliar temporal de upgrade fallaron por resolución 
 Resultado final reproducible con Node 24.21.0 sobre Linux y PostgreSQL 16.13: integración completa **280/280 en 25 suites**, incluida `database.test.js` (6,805 s), sin ampliar su timeout. El timeout previo de Windows no se reprodujo en esta ejecución; no se afirma una causa demostrada ni una corrección universal de rendimiento. Escenario de migración posterior: **5/5**; upgrade de migraciones de develop a VIP: aprobado con orden activo. Contenedores, redes y volúmenes exclusivos retirados. Ningún archivo de hojas de ruta, pagos o reservas fue modificado. El resultado global sigue sin declararse verde por los dos fallos unitarios existentes; la rama conserva su base por decisión explícita de Edwin.
 
 Pendientes externos al cierre de Fleet T1: confirmación de Leslie del contrato, revisión humana y comprobación global de la combinación final antes de integrar. VIP no ofrecido está confirmado por Edwin; FLEET-06 y PR #37 están integradas. T2 se gestiona en su rama. No se enviaron mensajes a Leslie desde esta revisión ni se integró PR #44.
+
+### T2: formulario, 3 de noviembre de 2026
+
+Rama `feature/FLEET-07-T2-formulario-vip`, publicada en [PR #57](https://github.com/Pato77232/ProyectoBusesUTA/pull/57) hacia develop, sobre `04868b2`, que ya incluye T1 (PR #44) y el formulario de la PR #37. Implementación `0defc32`, documentación inicial `466d1b6`. El commit de T2 se reaplicó con cherry-pick antes de esta revisión, sin merge ni rebase; la versión anterior, sobre `1dcbd6d`, no se publicó.
+
+**Alcance:**
+
+- Lista «Asientos VIP» por piso, debajo de «Asientos no ofrecidos», con título y texto propios: VIP y no ofrecido no se distinguen solo por color.
+- `buildBusData` agrega `vipSeatKeys` solo si hay asientos marcados; sin marcas, el alta conserva su forma anterior.
+- Cambiar de plantilla limpia también las marcas VIP y muestra el aviso existente.
+- La introducción indica que los asientos VIP son opcionales.
+- No incluye conectar el formulario a la API, que es T3 de FLEET-05.
+
+**Evidencia en Windows con Chrome, sobre `04868b2`:**
+
+- Pruebas frontend: 117 de 117 aprobadas, 2 nuevas para `vipSeatKeys`.
+- `registrar-bus-smoke.cjs`: 9 de 9 comprobaciones aprobadas, una nueva de selección VIP y limpieza. Incluye 360 px sin desbordamiento y orden de teclado; se revisó la captura móvil.
+- ESLint directo y Prettier correctos en los archivos tocados.
+- Unitarias backend de la base: 1323 de 1323 aprobadas. T2 no modifica backend; no se repitió la integración.
+- Durante el desarrollo, una comprobación existente contaba también los pisos de la lista VIP; se corrigió el código con una clase propia y la prueba quedó intacta.
+
+**Fallo ajeno documentado:** `frontend/tests/smoke.cjs`, que también ejecuta `container-smoke.cjs`, falla con «Todos los enlaces deben tener un destino real». La portada y esa prueba son idénticas a develop: la prueba solo admite anclas internas y el commit `a7135f2` (2 de noviembre, AUTH-WEB-01) agregó el enlace `./pages/login.html`. T2 no toca la portada ni esa prueba, y no se modificó la prueba. Corresponde al responsable de AUTH-WEB-01 decidir si la prueba admite enlaces a páginas locales.
+
+Pendiente: revisión humana de T2 y conexión del formulario a la API en T3 de FLEET-05.
+
+**Revisión de publicación por Codex, 3 de noviembre:** frontend/DESIGN.md aplicado en T2 (D-02/03/04/05/07): estilos compartidos, títulos/textos propios para VIP y no ofrecidos, selección mediante controles nativos y reflujo. Repetición sobre esta rama: **146/146 pruebas frontend**, incluidas las suites de frecuencias ya presentes en su base; `npm run lint`, formato de los seis archivos tocados y `git diff --check` aprobados. Las nueve comprobaciones Chrome aprobaron. El resultado anterior de 117 corresponde a la ejecución registrada antes de esta revisión; no es el total actual. Sin repetición backend ni Docker en esta revisión; el fallo documentado de portada sigue explícito. No se modificó código de producto ni pruebas. Datos del smoke ficticios; no acredita alta real. FLEET-08 quedó local sin incluir. Publicación/revisión asistidas por Codex; falta revisión humana.

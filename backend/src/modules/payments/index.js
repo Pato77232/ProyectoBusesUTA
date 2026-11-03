@@ -1,4 +1,6 @@
 const path = require('node:path');
+const PgPaymentProofReceiptSource = require('./infrastructure/pg-payment-proof-receipt-source');
+const BookingsPaymentProofNotifier = require('./infrastructure/bookings-payment-proof-notifier');
 const UploadPaymentProof = require('./application/upload-payment-proof.use-case');
 const ListPendingPaymentProofs = require('./application/list-pending-payment-proofs.use-case');
 const ReadPaymentProofFile = require('./application/read-payment-proof-file.use-case');
@@ -53,4 +55,25 @@ function createPaymentsModule({ pool, auth, env = process.env } = {}) {
   };
 }
 
-module.exports = { createPaymentsModule };
+function createPaymentReceiptModule({ pool, createPaymentProofReceiver } = {}) {
+  if (typeof pool?.query !== 'function' || typeof createPaymentProofReceiver !== 'function')
+    throw new TypeError('Se requieren persistencia y receptor público de Reservas.');
+  const source = new PgPaymentProofReceiptSource({ pool });
+  const paymentProofQueries = Object.freeze({
+    findForBookingReceipt: source.findForBookingReceipt.bind(source),
+  });
+  const receiver = createPaymentProofReceiver({
+    receiptSource: paymentProofQueries.findForBookingReceipt,
+  });
+  return Object.freeze({
+    paymentProofQueries,
+    bookingPaymentProofNotifier: new BookingsPaymentProofNotifier({ receiver }),
+  });
+}
+
+module.exports = {
+  createPaymentsModule,
+  createPaymentReceiptModule,
+  createBookingPaymentProofNotifier: require('./infrastructure/create-booking-payment-proof-notifier'),
+  createPaymentReviewModule: require('./review-composition'),
+};

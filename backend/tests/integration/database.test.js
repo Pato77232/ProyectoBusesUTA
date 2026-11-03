@@ -1,16 +1,10 @@
-const { readdirSync } = require('node:fs');
-const path = require('node:path');
+const { activeNames } = require('../../scripts/migration-catalog');
 const { runMigration, testPool } = require('../helpers/database');
 let pool;
-const migrationNames = readdirSync(path.join(__dirname, '../../migrations'))
-  .filter((name) => /^\d+.*\.js$/.test(name))
-  .map((name) => name.replace(/\.js$/, ''))
-  .sort();
-beforeAll(async () => {
+const migrationNames = [...activeNames];
+beforeAll(() => {
   runMigration();
   pool = testPool();
-  // Reversión de esquema vacío: los datos de otras suites activarían los guards.
-  await pool.query('TRUNCATE cooperatives, users CASCADE');
 });
 afterAll(async () => {
   if (pool) await pool.end();

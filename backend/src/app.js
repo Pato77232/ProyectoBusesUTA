@@ -15,6 +15,7 @@ function createApp({
   frequencies,
   routeSheets,
   payments,
+  bookings,
   pool,
   trustProxy = false,
 } = {}) {
@@ -22,6 +23,13 @@ function createApp({
 
   app.disable('x-powered-by');
   if (trustProxy) app.set('trust proxy', 'loopback');
+  // También protege los errores JSON que ocurren antes de entrar al router privado.
+  if (bookings) {
+    app.use(`${API_PREFIX}/bookings`, (req, res, next) => {
+      res.set('Cache-Control', 'no-store');
+      next();
+    });
+  }
   // El alta de Fleet autentica antes de consumir cualquier cuerpo, incluido JSON inválido.
   if (fleet?.busRouter) app.use(`${API_PREFIX}/buses`, fleet.busRouter);
   app.use(express.json());
@@ -47,6 +55,8 @@ function createApp({
   if (routeSheets) app.use(`${API_PREFIX}/route-sheets`, routeSheets.router);
 
   if (payments) app.use(`${API_PREFIX}/payment-proofs`, payments.router);
+
+  if (bookings) app.use(`${API_PREFIX}/bookings`, bookings.router);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

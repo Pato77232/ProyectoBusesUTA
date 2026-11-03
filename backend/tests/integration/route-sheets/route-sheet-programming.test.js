@@ -40,8 +40,17 @@ beforeAll(async () => {
   pool = testPool();
   // Probar la transición desde el esquema previo y datos legados, no solo creación vacía.
   await pool.query('TRUNCATE cooperatives CASCADE');
-  await rollbackBefore(pool, '1793650000000-route-sheet-programming');
-  runMigration('down');
+  // Alcanzar el esquema previo a programación aunque se añadan migraciones posteriores.
+  const target = '1793650000000-route-sheet-programming';
+  const applied = (await pool.query('SELECT name FROM pgmigrations ORDER BY id DESC')).rows;
+  expect(applied.map(({ name }) => name)).toContain(target);
+  for (const { name } of applied) {
+    runMigration('down');
+    if (name === target) break;
+  }
+  expect(
+    (await pool.query('SELECT name FROM pgmigrations')).rows.map(({ name }) => name),
+  ).not.toContain(target);
   await pool.query('TRUNCATE cooperatives CASCADE');
   const owners = await fleetFixtures(pool);
   const sheet = (
@@ -353,8 +362,17 @@ test('un escritor legado no puede insertar ni retirar asignaciones programadas',
 
 test('la migración no permite down que destruya programación real', async () => {
   await save({ ...f.context, ...f.body });
+  const target = '1793650000000-route-sheet-programming';
+  const applied = (await pool.query('SELECT name FROM pgmigrations ORDER BY id DESC')).rows;
+  expect(applied.map(({ name }) => name)).toContain(target);
   try {
-    await rollbackBefore(pool, '1793650000000-route-sheet-programming');
+    for (const { name } of applied) {
+      if (name === target) break;
+      runMigration('down');
+    }
+    expect(
+      (await pool.query('SELECT name FROM pgmigrations ORDER BY id DESC LIMIT 1')).rows[0].name,
+    ).toBe(target);
     expect(() => runMigration('down')).toThrow();
     expect((await readProgramming(pool, f.context.routeSheetId, f.cooperativeId)).revision).toBe(1);
   } finally {

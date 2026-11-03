@@ -1,7 +1,11 @@
+import { bookingRules } from "./bookings-eslint.config.js";
 export default [
+  bookingRules,
   {
     files: [
       'src/api/**/*.js',
+      'src/payments/**/*.js',
+      'tests/payments/**/*.js',
       'src/fleet/**/*.js',
       'tests/api/**/*.js',
       'tests/fleet/**/*.js',
@@ -12,7 +16,7 @@ export default [
     ],
     languageOptions: {
       ecmaVersion: 2022,
-      sourceType: 'module',
+      sourceType: "module",
       globals: {
         document: 'readonly',
         Option: 'readonly',
@@ -27,10 +31,10 @@ export default [
       },
     },
     rules: {
-      'no-undef': 'error',
-      'no-console': 'error',
-      'no-unreachable': 'error',
-      eqeqeq: ['error', 'always'],
+      "no-undef": "error",
+      "no-console": "error",
+      "no-unreachable": "error",
+      eqeqeq: ["error", "always"],
     },
   },
 ];
