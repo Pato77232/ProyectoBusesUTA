@@ -1,5 +1,11 @@
 # Estado compartido del proyecto
 
+## D-06 — creación de frecuencias, sección 1 local, 2 de noviembre de 2026
+
+Sobre 954e7fc, David autorizó sección 1 y confirmó Q1: capturar valores por tramo del registro aclarando que el precio comercial se configura en la hoja. [FREQUENCIES-WEB-01 §11](specs/FREQUENCIES-WEB-01.md#11-sección-1--formulario-local) documenta formulario, paradas ordenables, resolución ANT, hora/medianoche, revisión local accesible y descarte de valores de enlaces afectados. Página sin API/sesión/POST; no registra ni simula altas. Estado/validación separados de vista y renderizado seguro; DESIGN.md aplicado con CSS local sin cambiar estilos comunes.
+
+Frontend: 128 unitarias aprobadas (13 nuevas), lint y 7 comprobaciones de navegador con teclado/móvil/contraste aprobadas, cero solicitudes API; capturas inspeccionadas. Backend: lint aprobado; 1297 unitarias y 371 integraciones aprobadas, una falla por timeout conocido de fotos de Fleet. Formato de cambios aprobado; formato global conserva 41 pendientes previos. Node 24 pendiente; PostgreSQL temporal retirado. No se modifican backend, dependencias, migraciones, pruebas previas ni empaquetado. Sección 2 pendiente de autorización: sesión, envío real y Docker. Q1 queda resuelto; los pendientes inferiores conservan contexto histórico. Sin commit/PR/revisión humana nuevos inferidos.
+
 ## D-06 — creación de frecuencias, sección 0 documental, 2 de noviembre de 2026
 
 David confirmó D-06 como pantallas operativas y autorizó solo sección 0 de su primera tarea. Rama feature/FREQUENCIES-WEB-01-creacion-frecuencias, inicialmente limpia sobre 1daa3c4 (D-04/PR #49 integrada en la historia local; sin fetch). [FREQUENCIES-WEB-01](specs/FREQUENCIES-WEB-01.md) define alta por COOPERATIVE_ADMIN, ANT obligatoria, inmutabilidad posterior, paradas ordenadas, cliente HTTP/sesión compartidos y adopción de DESIGN.md. Tres secciones/un commit por sección: documentación, formulario local y conexión API real.

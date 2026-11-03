@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#202020" />
+    <title>Crear frecuencia · transViaje</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+    <link
+      rel="stylesheet"
+      href="/assets/vendor/bootstrap-5.3.8/bootstrap.min.css"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+    />
+    <link rel="stylesheet" href="/src/styles/app.css" />
+    <link rel="stylesheet" href="/src/styles/frequency-form.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+    <header class="site-header">
+      <div class="container">
+        <a class="brand" href="/" aria-label="transViaje, inicio"
+          ><span class="brand-logo-frame" aria-hidden="true"
+            ><img
+              class="brand-logo"
+              src="/assets/brand/logo-transviaje.png"
+              alt=""
+              width="1600"
+              height="1446" /></span
+        ></a>
+      </div>
+    </header>
+    <main id="contenido" class="form-page container" tabindex="-1">
+      <p class="eyebrow">OPERACIÓN DE COOPERATIVA</p>
+      <h1>Crear frecuencia</h1>
+      <p class="form-page-intro">
+        Define el recorrido autorizado. Después del registro no podrás modificar
+        su origen, destino ni hora de salida.
+      </p>
+      <p class="form-status">
+        Vista de preparación: puedes revisar los datos, pero esta pantalla
+        todavía no guarda frecuencias ni comprueba tu sesión.
+      </p>
+      <noscript
+        ><p>
+          Activa JavaScript para preparar y revisar el formulario. No se
+          guardarán datos desde esta pantalla.
+        </p></noscript
+      >
+      <form id="frequency-form" novalidate>
+        <fieldset id="frequency-fields" class="form-sections" disabled>
+          <legend class="visually-hidden">Datos de la frecuencia</legend>
+          <section class="form-card" aria-labelledby="frequency-title">
+            <h2 id="frequency-title">Recorrido y autorización</h2>
+            <p>Los campos de esta sección son obligatorios.</p>
+            <div class="row g-3">
+              <div class="col-sm-6">
+                <label class="form-label" for="origin">Origen</label
+                ><input
+                  class="form-control"
+                  id="origin"
+                  name="origin"
+                  required
+                  aria-describedby="origin-error"
+                />
+                <p class="field-error" id="origin-error" hidden></p>
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label" for="destination">Destino</label
+                ><input
+                  class="form-control"
+                  id="destination"
+                  name="destination"
+                  required
+                  aria-describedby="destination-error"
+                />
+                <p class="field-error" id="destination-error" hidden></p>
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label" for="departure_time"
+                  >Hora de salida</label
+                ><input
+                  class="form-control"
+                  type="time"
+                  id="departure_time"
+                  name="departure_time"
+                  step="60"
+                  required
+                  aria-describedby="time-hint departure_time-error"
+                />
+                <p class="field-hint" id="time-hint">
+                  Formato de 24 horas. Medianoche: 00:00.
+                </p>
+                <p class="field-error" id="departure_time-error" hidden></p>
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label" for="status">Estado inicial</label
+                ><select
+                  class="form-select"
+                  id="status"
+                  name="status"
+                  aria-describedby="status-error"
+                >
+                  <option value="ACTIVE">Activa</option>
+                  <option value="INACTIVE">Inactiva</option>
+                </select>
+                <p class="field-error" id="status-error" hidden></p>
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="ant_resolution_number"
+                  >Número de resolución ANT</label
+                ><input
+                  class="form-control"
+                  id="ant_resolution_number"
+                  name="ant_resolution_number"
+                  required
+                  aria-describedby="ant-hint ant_resolution_number-error"
+                />
+                <p class="field-hint" id="ant-hint">
+                  Introduce el número de la resolución que autoriza la
+                  frecuencia. No se solicita un archivo.
+                </p>
+                <p
+                  class="field-error"
+                  id="ant_resolution_number-error"
+                  hidden
+                ></p>
+              </div>
+            </div>
+          </section>
+          <section class="form-card" aria-labelledby="stops-title">
+            <h2 id="stops-title">Paradas intermedias</h2>
+            <p id="stops-hint">
+              Opcionales. Sin paradas, la frecuencia es directa. Ordénalas según
+              el recorrido; sus fechas y horas se programarán en la hoja de
+              ruta.
+            </p>
+            <ol id="stop-list" class="frequency-stop-list"></ol>
+            <button type="button" id="add-stop" class="btn btn-outline-dark">
+              Añadir parada
+            </button>
+            <p id="stop-status" role="status" class="field-hint"></p>
+          </section>
+          <section class="form-card" aria-labelledby="prices-title">
+            <h2 id="prices-title">
+              Valores por tramo del registro de frecuencia
+            </h2>
+            <p id="prices-hint">
+              Estos valores son obligatorios para registrar la frecuencia.
+              <strong>No fijan el precio de venta:</strong> el tarifario
+              comercial se configura y congela en la hoja de ruta. No se suman
+              aquí para calcular boletos.
+            </p>
+            <p class="field-hint">
+              Usa punto o coma decimal, sin separadores de miles. Cambiar un
+              punto o el orden de las paradas borra los valores de los tramos
+              afectados para que los revises.
+            </p>
+            <div id="price-list"></div>
+          </section>
+          <div class="frequency-actions">
+            <button type="submit" class="btn btn-dark">Revisar datos</button
+            ><a href="/pages/login.html">Ir a iniciar sesión</a>
+          </div>
+        </fieldset>
+        <p id="review-status" class="form-status" role="status" tabindex="-1">
+          La revisión es local y no registra la frecuencia.
+        </p>
+      </form>
+    </main>
+    <script type="module" src="/src/frequencies/frequency-page.js"></script>
+  </body>
+</html>

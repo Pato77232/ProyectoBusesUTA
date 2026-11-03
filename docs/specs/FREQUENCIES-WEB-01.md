@@ -2,11 +2,11 @@
 
 - **Referencia:** D-06, primera tarea de pantallas operativas; sin ticket externo.
 - **Responsable:** David, por actividad seleccionada por el solicitante.
-- **Estado:** Sección 0 documental preparada; implementación de secciones 1 y 2 pendiente de autorización y acuerdo Q1.
+- **Estado:** Sección 0 guardada por el humano en 954e7fc; sección 1 implementada localmente, pendiente de revisión humana. Sección 2 pendiente de autorización.
 - **Fecha:** 2 de noviembre de 2026, America/Guayaquil.
 - **Rama/base comprobada:** feature/FREQUENCIES-WEB-01-creacion-frecuencias, 1daa3c4, árbol inicialmente limpio. Ese commit integra D-04/PR #49. Sin fetch ni certificación de cambios remotos posteriores.
 - **Revisión propuesta:** Leslie para el contrato funcional; Pablo para cambios compartidos de frontend. No se atribuye aceptación ni revisión humana a estas personas.
-- **Autorización actual:** David solicitó únicamente sección 0. No autoriza producto, commits, publicación ni otras pantallas.
+- **Autorización actual:** David solicitó sección 1 y confirmó Q1 el 2 de noviembre: conservar valores por tramo con aclaración del precio comercial por hoja. No autoriza sección 2, commits, publicación ni otras pantallas.
 
 ## 1. Objetivo y fuentes
 
@@ -67,15 +67,15 @@ Ejemplo ilustrativo del contrato actual, no creación realizada ni tarifa comerc
 
 Errores conocidos: 400 VALIDATION_ERROR, FREQUENCY_REQUIRES_ANT_RESOLUTION o FREQUENCY_SEGMENT_PRICES_MISMATCH; 409 FREQUENCY_ALREADY_EXISTS; 403 FORBIDDEN; también errores de autenticación/CSRF y transporte del cliente compartido. No mostrar trazas ni asumir que todos los errores vienen del router de frecuencias.
 
-## 5. Diferencias de contrato y acuerdo pendiente
+## 5. Diferencias de contrato y acuerdo confirmado
 
 ### Q1 — Precios consecutivos históricos frente a tarifa comercial
 
-**Participantes propuestos:** David, Leslie; responsable comercial cuando corresponda. **Estado:** pendiente; la autorización de sección 0 no confirma una decisión comercial nueva.
+**Participantes propuestos:** David, Leslie; responsable comercial cuando corresponda. **Estado:** confirmado por David el 2 de noviembre de 2026 mediante respuesta «Sí, conservarlos con esa aclaración». La confirmación cubre la recomendación siguiente; no se atribuye aceptación individual a Leslie.
 
 El POST vigente obliga a proporcionar precios consecutivos. La regla comercial actual configura todos los pares en la hoja y congela al publicar. No eliminar segment_prices del envío, rellenarlo con ceros/valores inventados ni sumar esos precios para vender un viaje.
 
-**Recomendación para esta pantalla:** conservar un bloque explícito «Valores por tramo del registro de frecuencia», con ayuda que indique que no fija el precio de venta y que el tarifario comercial se configura en la hoja. Capturar valores reales del usuario y mantener el contrato vigente, sin promoverlos como política comercial. **Alternativa:** adaptar primero el alta de backend mediante una tarea separada que retire esa exigencia; requiere su spec, compatibilidad y pruebas. Confirmar la opción antes de implementar las secciones dependientes. No atribuir esta recomendación a Leslie como respuesta humana.
+**Decisión confirmada para esta pantalla:** conservar un bloque explícito «Valores por tramo del registro de frecuencia», con ayuda que indique que no fija el precio de venta y que el tarifario comercial se configura en la hoja. Capturar valores reales del usuario y mantener el contrato vigente, sin promoverlos como política comercial. **Alternativa no seleccionada:** adaptar primero el alta de backend mediante una tarea separada que retire esa exigencia; requeriría su spec, compatibilidad y pruebas.
 
 ### Horas de las paradas: límite comprobado
 
@@ -130,3 +130,33 @@ Un commit por sección incluye evidencia pertinente; el asistente no los ejecuta
 Inspeccionados contrato de dominio, caso de uso, repositorio/router de frecuencias, montaje, cliente HTTP, sesión/login, guía visual, reglas, specs antecedentes y empaquetado/scripts existentes. No había spec ni archivos de pantalla FREQUENCIES-WEB-01 en el árbol examinado. Estado inicial limpio en 1daa3c4; sin revisión de ramas privadas o PR remotas posteriores.
 
 Solo se crean esta spec y el seguimiento relacionado. Q1 queda expresamente pendiente; no se solicitan credenciales ni se leen .env. No se implementan formulario, endpoints, algoritmo, dependencias, defectos, tests ejecutables ni cambios de empaquetado. Diff revisado y git diff --check aprobado; 78 enlaces locales entre spec/seguimiento comprobados sin destinos inexistentes (sin certificar anclas ni fuentes externas). Lint/Jest/navegador no corresponden a cambios exclusivamente Markdown y no se declaran ejecutados. Revisión humana, implementación e integración pendientes.
+
+## 11. Sección 1 — formulario local
+
+Base 954e7fc, rama feature/FREQUENCIES-WEB-01-creacion-frecuencias inicialmente limpia. David solicitó sección 1 y confirmó Q1 con su respuesta expresa registrada en sección 5. La evidencia de sección 0 conserva su estado histórico; Q1 ya no está pendiente. Sin fetch ni nueva revisión humana inferida.
+
+### Comportamiento implementado
+
+Página `/pages/crear-frecuencia.html`, módulos de estado/validación, vista y entrada en `frontend/src/frequencies/`, y CSS local `frequency-form.css` que reutiliza tokens de app.css. Adopta DESIGN.md sin cambios a estilos globales, navegación, login o cliente HTTP compartidos. El formulario muestra origen/destino/hora, ANT, estado inicial y paradas opcionales; advierte la inmutabilidad posterior y distingue valores consecutivos del registro de frecuencia frente al precio comercial por hoja.
+
+Los controles permiten añadir, subir, bajar y quitar paradas con botones nativos; conservan identidad de fila, anuncian el resultado y colocan foco en la parada movida, vecina o botón de añadir. Los precios se asocian a los extremos concretos del enlace: cambiar un nombre, extremos u orden borra valores afectados; no migra silenciosamente un valor a otro tramo ni restaura un valor descartado al volver al orden anterior. Enlaces no afectados conservan valores. No se calculan tarifas de boletos ni suma de tramos.
+
+Las ayudas locales admiten medianoche, verifican campos obligatorios, resolución no vacía, lugares distintos sin repetir paradas y un monto USD positivo de hasta dos decimales por enlace. Admiten punto o coma decimal sin separador de miles, convirtiendo a números solo al revisar; no se envían. No añaden un patrón ANT ni límites de longitud nuevos. El backend sigue siendo autoridad funcional para sección 2.
+
+«Revisar datos» impide navegación/envío nativo, presenta errores con aria-invalid/descripciones y enfoca el primer campo afectado; si es válido confirma únicamente revisión local, nunca alta. No se comprueba sesión ni se importa cliente HTTP en esta sección. No hay fetch, POST, datos reales persistidos, simulación de éxito, almacenamiento local o selector de cooperativa. Sin JavaScript, el fieldset permanece deshabilitado y se explica la limitación.
+
+### Calidad y pruebas
+
+Estado/validación separados del DOM, cambios de estado sin mutar borradores anteriores y renderizado con textContent/elementos nativos. Ningún HTML de lugares o mensajes se interpreta. Tests/lint frontend incorporan únicamente los directorios nuevos; pruebas anteriores conservadas. Script `npm run test:frequencies` ejecuta navegador real con servidor estático temporal, sin mock de API. En Windows se configura BROWSER_BIN con la ruta instalada de Chrome; QA_OUTPUT_DIR controla destino de capturas. No incorpora paquetes nuevos.
+
+Frontend: **128 pruebas unitarias aprobadas, incluidas 13 nuevas**, y lint aprobado. Navegador Chrome headless: **7 comprobaciones finales aprobadas** de campos/etiquetas, error ANT y foco, directa a las 00:00, paradas y tramos, texto no interpretado, teclado/reflujo móvil y contraste; cero solicitudes API y sin recursos externos. La primera ejecución detectó que la secuencia CDP Enter del nuevo script carecía del carácter correspondiente; se completó la secuencia y se mantuvieron sus comprobaciones. Se añadió foco violeta explícito para controles de esta pantalla, evitando que el estilo de Bootstrap oculte el foco previsto en DESIGN.md.
+
+Capturas de errores/escritorio, directa, móvil de 360 px y ampliación de texto revisadas; guardadas en el directorio local de visualizaciones, carpeta frequencies-web-01, no en el repositorio. Se comprueba reflujo a 360/1280 px y se aproxima ampliación con viewport efectivo 640 px y texto al 200 %; no se certifica zoom nativo del navegador, lector de pantalla ni otros navegadores. Contrastado texto normal/error/ayudas/enlaces/botón con sus fondos mediante colores calculados; no se afirma conformidad global de accesibilidad.
+
+La lectura/escritura real, autorización por rol, CSRF, confirmación de alta, rechazo de duplicados en API y empaquetado Docker siguen pendientes de sección 2. Dockerfile/.dockerignore permanecen intactos: esta página todavía no está incluida en la imagen. No se declaran aprobados los criterios que dependen de esos recorridos.
+
+Backend: lint aprobado; `npm test` ejecutado con PostgreSQL aislado: **1297 unitarias y 371 integraciones aprobadas, una integración fallida** por timeout de 20 segundos en `fleet/bus-photo-storage.test.js`, caso «prepara y promueve todos los bytes sin conservar nombres ni rutas del cliente», ya observado en D-04. No se cambia el caso, su tiempo límite ni Fleet. La suite global es fallida; no es un defecto académico autorizado. `format:check` global mantiene 41 archivos previos pendientes; formato de todos los archivos nuevos/cambiados aprobado con Prettier y single-quote para JavaScript frontend. Node local 22.19.0; validar Node 24 sigue pendiente.
+
+Diff completo revisado y git diff --check aprobado; enlaces locales de spec/seguimiento comprobados. PostgreSQL temporal busesuta-freqweb-s1 iniciado con --env-file NUL y credenciales ficticias versionadas, retirado al terminar. Sin .env leído. No se modifica backend, migraciones, pruebas previas ni defectos académicos. Sin commit/PR/merge ejecutados ni revisión humana atribuida.
+
+Commit sugerido: `feat(frecuencias): agrega el formulario de creación`.
