@@ -5,7 +5,7 @@
 - **Módulo:** `fleet`; lo consume `bookings` mediante la API pública de Fleet
 - **Responsable:** Edwin
 - **Revisor propuesto / confirmado:** Leslie propuesta, por consumir el inventario; sin confirmación registrada
-- **Estado:** T1 técnicamente preparada para revisión en PR #44; Edwin confirmó VIP no ofrecido. Integración aislada 280/280 aprobada el 3 de noviembre; la suite unitaria global de la base conservada mantiene dos fallos ajenos. Confirmación del contrato por Leslie y revisión humana pendientes. T2 se gestiona aparte.
+- **Estado:** T1 integrada por PR #44 en `04868b2`; T2 publicada para revisión en [PR #57](https://github.com/Pato77232/ProyectoBusesUTA/pull/57). Confirmación/revisión humana de T2 pendientes; no equivale a formulario conectado ni cierre de FLEET-07.
 - **Prioridad y dependencias:** FLEET-02, FLEET-03 y FLEET-06 presentes en develop; PR #41 comprobada integrada el 2 de noviembre. T2 depende de la PR #37 de FLEET-05. Accesibilidad se trata en el borrador local FLEET-08, fuera de esta PR.
 - **Rama / PR / base comprobada:** `feature/FLEET-07-T1-vip`, sobre `979fad4` el 2 de noviembre de 2026, que parte de FLEET-06 en `447fcce`; [PR #44](https://github.com/Pato77232/ProyectoBusesUTA/pull/44) hacia develop. `origin/develop` comprobado en `f5b9bde` el 3 de noviembre; Edwin rechazó incorporar esa base, por lo que no se ejecutó merge/rebase.
 - **Autorización de alcance:** el 2 de noviembre de 2026 Edwin pidió agregar VIP y eligió marcarlo por bus. El mismo día Edwin pidió comenzar la implementación e informó que Leslie aprobó FLEET-06.
@@ -143,7 +143,7 @@ Pendientes externos al cierre de Fleet T1: confirmación de Leslie del contrato,
 
 ### T2: formulario, 3 de noviembre de 2026
 
-Rama `feature/FLEET-07-T2-formulario-vip`, sin publicar, rehecha sobre `origin/develop` en `04868b2`, que ya incluye T1 (PR #44) y el formulario de la PR #37. El commit de T2 se reaplicó con cherry-pick, sin merge ni rebase; la versión anterior, sobre `1dcbd6d`, no se publicó.
+Rama `feature/FLEET-07-T2-formulario-vip`, publicada en [PR #57](https://github.com/Pato77232/ProyectoBusesUTA/pull/57) hacia develop, sobre `04868b2`, que ya incluye T1 (PR #44) y el formulario de la PR #37. Implementación `0defc32`, documentación inicial `466d1b6`. El commit de T2 se reaplicó con cherry-pick antes de esta revisión, sin merge ni rebase; la versión anterior, sobre `1dcbd6d`, no se publicó.
 
 **Alcance:**
 
@@ -164,3 +164,5 @@ Rama `feature/FLEET-07-T2-formulario-vip`, sin publicar, rehecha sobre `origin/d
 **Fallo ajeno documentado:** `frontend/tests/smoke.cjs`, que también ejecuta `container-smoke.cjs`, falla con «Todos los enlaces deben tener un destino real». La portada y esa prueba son idénticas a develop: la prueba solo admite anclas internas y el commit `a7135f2` (2 de noviembre, AUTH-WEB-01) agregó el enlace `./pages/login.html`. T2 no toca la portada ni esa prueba, y no se modificó la prueba. Corresponde al responsable de AUTH-WEB-01 decidir si la prueba admite enlaces a páginas locales.
 
 Pendiente: revisión humana de T2 y conexión del formulario a la API en T3 de FLEET-05.
+
+**Revisión de publicación por Codex, 3 de noviembre:** frontend/DESIGN.md aplicado en T2 (D-02/03/04/05/07): estilos compartidos, títulos/textos propios para VIP y no ofrecidos, selección mediante controles nativos y reflujo. Repetición sobre esta rama: **146/146 pruebas frontend**, incluidas las suites de frecuencias ya presentes en su base; `npm run lint`, formato de los seis archivos tocados y `git diff --check` aprobados. Las nueve comprobaciones Chrome aprobaron. El resultado anterior de 117 corresponde a la ejecución registrada antes de esta revisión; no es el total actual. Sin repetición backend ni Docker en esta revisión; el fallo documentado de portada sigue explícito. No se modificó código de producto ni pruebas. Datos del smoke ficticios; no acredita alta real. FLEET-08 quedó local sin incluir. Publicación/revisión asistidas por Codex; falta revisión humana.
