@@ -582,3 +582,17 @@ Develop ya incorpora la fuente persistida/createPaymentReceiptModule de Shirley 
 Pruebas propias dirigidas: 66 unitarias y 14 integraciones aprobadas. Global: 1724 unitarias aprobadas y 529/530 integraciones; fallo de Fleet por timeout original de 20000 ms en fotografías. Repetición aislada: 17/18, mismo fallo. No declarar suite global aprobada. Lint/formato propio aprobados; global mantiene 17 ajenos. Arranque real aprobado; contenedor/red temporales retirados.
 
 La fuente persistida está preparada, pero la autorización HTTP de carga, procedencia histórica, activación productiva y planificador conservan sus pendientes. Revisión del commit de conciliación y evaluación del fallo de Fleet necesarias antes de integrar.
+
+
+## Leslie: prerrequisito de carga autorizada, IDs opacos — 3 de noviembre de 2026
+
+| Spec / área | Estado comprobado | Evidencia y límite |
+| --- | --- | --- |
+| BOOK-06-L04-T3 / PR #62 | Integrada en develop feb7f75 a las 20:25:30Z, comprobado por GitHub | Timeout de Fleet pendiente; integrar PR no lo resuelve. |
+| BOOK-06-L04-T4, I | Compatibilidad de identificadores implementada y probada localmente en feature/BOOK-06-carga-autorizada desde feb7f75; sin commit/push/PR | [Spec](specs/BOOK-06-L04-T4.md), [evidencia](evidence/BOOK-06-L04-T4/2026-11-03-identificadores-opacos.md). Migración nueva, 21 entradas activas, comprobante/outbox aceptan el ID de texto de Bookings sin alterar los UUID existentes. |
+
+Leslie confirma conservar comprobantes antiguos con archivo sin procesarlos/borrarlos automáticamente y exigir procedencia registrada al flujo nuevo. Se registra como respuesta de Leslie, no aprobación individual de Shirley/Pablo. Quién implementa ahora la carga autenticada sigue consultado, sin respuesta registrada. PR #55/#56 abiertas en 7448e1a/15218ae, lectura sin esa activación.
+
+66 pruebas dirigidas aprobadas, con cinco casos nuevos: copia de develop con filas preservadas, down/up canónico, rechazo de down opaco/mayúsculas sin cambios, rollback de segunda tabla y puente real con ID de texto. Global: 1724 unitarias y 534/535 integraciones; fallo de timeout de fotografías de Fleet, no suite global aprobada. Lint/formato propio aprobados; global conserva 17 ajenos. Arranque real aprobado; recursos PostgreSQL/red exclusivos retirados.
+
+La migración no acredita procedencia Auth ni procesa comprobantes antiguos. Consumidor autenticado y activación siguen pendientes; su contrato está en borrador y debe preservar el ID exacto, sin normalización implícita. No se alteran servidor, casos de uso, dependencias, frontend o migraciones existentes. Revisión humana pendiente; sin cierre/integración del incremento local.

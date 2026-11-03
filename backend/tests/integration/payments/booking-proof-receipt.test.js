@@ -263,3 +263,44 @@ test('consulta pública no sustituye fallos técnicos por ausencia', async () =>
     bridge.paymentProofQueries.findForBookingReceipt({ paymentProofId: randomUUID() }),
   ).resolves.toBeNull();
 });
+
+test('puente persistido conserva bookingId opaco sin exigir UUID', async () => {
+  const id = "reserva QA/á:01'";
+  try {
+    await pool.query('DELETE FROM bookings WHERE id=$1', [booking.bookingId]);
+    const base = summaryContext();
+    const context = {
+      ...base,
+      bookingId: id,
+      ownerId: booking.ownerId,
+      startedAt: start,
+      proofWindowSeconds: 300,
+      trip: { ...base.trip, cooperativeId: booking.summary.cooperativeId },
+    };
+    booking = await new PgBookingRepository({ pool }).reserve(
+      { tripId: context.trip.tripId, cooperativeId: context.trip.cooperativeId },
+      async () => ({ input: { ...summaryInput(), summaryAccepted: true }, context }),
+    );
+    const result = await upload();
+    const stored = await snapshot();
+    expect(result.paymentProof.booking_id).toBe(id);
+    expect(stored.proofs[0].booking_id).toBe(id);
+    expect(stored.outbox[0].booking_id).toBe(id);
+    expect(stored.outbox[0].status).toBe('DELIVERED');
+    expect(stored.receipts[0].booking_id).toBe(id);
+    expect(stored.receipts[0].outcome).toBe('ACCEPTED');
+    expect(stored.seats.every((seat) => seat.active && seat.status === 'RESERVED')).toBe(true);
+    expect(
+      (
+        await bridge.paymentProofQueries.findForBookingReceipt({
+          paymentProofId: result.paymentProof.id,
+        })
+      ).bookingId,
+    ).toBe(id);
+    expect(await fileStorage.read(result.paymentProof.file_key)).toEqual(file.buffer);
+  } finally {
+    await proofRepository.deleteByBookingId(id);
+    await pool.query('DELETE FROM booking_proof_receipt_results WHERE booking_id=$1', [id]);
+    await pool.query('DELETE FROM bookings WHERE id=$1', [id]);
+  }
+});
