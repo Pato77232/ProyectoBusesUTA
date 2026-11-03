@@ -185,3 +185,11 @@ Validación conjunta final con PostgreSQL aislado (`docker-compose.test.yml`, pr
 Lint, Prettier de los cinco JS cambiados y `git diff --check` aprobados. `format:check` global falla en 40 archivos ajenos a esta adaptación; la cifra corresponde a esta ejecución local y no reemplaza la evidencia anterior de otro entorno. Node local v22.19.0; Node 24 pendiente para estas adaptaciones. Sin lectura de `.env`. PostgreSQL temporal retirado al terminar. Sin commits, publicación ni integración; revisión humana pendiente. Los dos pendientes propios de Fleet de la sección anterior permanecen fuera de esta adaptación.
 
 Separación propuesta al preparar commits: `test(hojas-ruta): adapta las pruebas a los asientos inmutables` para las cuatro adaptaciones; `test(base-datos): verifica las reversiones de migraciones específicas` para helper, dos reversiones de Route Sheets y preparación de `database.test.js`, repartiendo la evidencia documental correspondiente. No se ejecutan commits.
+
+### Verificación de Edwin sobre `70836bd`, 3 de noviembre de 2026
+
+Windows con PostgreSQL aislado recreado (`docker-compose.test.yml`), con el equipo libre de otras cargas. Una ejecución anterior con el equipo ocupado dio 6 timeouts en suites de reversión y no se toma como evidencia.
+
+- `npm test`: unitarias **1323/1323**; integración **398/399** en 33 suites. Lint sin errores.
+- Único fallo: `database.test.js`, «migraciones reversibles y reaplicación sin duplicados», por superar 20 000 ms. Se repitió dos veces por separado con el mismo resultado; no falla ninguna comprobación.
+- La prueba revierte las 19 migraciones y reaplica la cadena, y cada paso lanza un proceso de Node que aquí tarda alrededor de 1 s, así que su duración crece con cada migración nueva. El mismo timeout ya se registró en Windows en FLEET-07 antes de T1, mientras que en Linux esa prueba aprobó en 6,8 s. No se amplió el límite ni se modificó la prueba.
