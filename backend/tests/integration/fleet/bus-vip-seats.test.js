@@ -13,10 +13,23 @@ const auth = {
 };
 const FIRST_KEY = 'deck-1-0-0';
 const SECOND_KEY = 'deck-1-0-1';
-const THIS_MIGRATION = '1793640000000-allow-vip-bus-seats';
+const THIS_MIGRATION = '1793740000000-allow-vip-bus-seats';
 let pool, repository, seatQueries, fixtures;
 
 const registerBus = (owner, data = {}) => repository.create(busRequest({ ...owner, data }));
+
+const appliedNames = async () =>
+  (await pool.query('SELECT name FROM pgmigrations ORDER BY id DESC')).rows.map(({ name }) => name);
+
+async function revertToVipMigration() {
+  const applied = await appliedNames();
+  expect(applied).toContain(THIS_MIGRATION);
+  for (const name of applied) {
+    if (name === THIS_MIGRATION) break;
+    runMigration('down');
+  }
+  expect((await appliedNames())[0]).toBe(THIS_MIGRATION);
+}
 
 async function vipKeys(bus, owner) {
   const { seats } = await seatQueries.listByBus({
@@ -75,19 +88,30 @@ test('la base rechaza una categoría fuera del contrato', async () => {
 
 test('la migración conserva los buses existentes y no degrada asientos VIP al revertir', async () => {
   const normal = await registerBus(fixtures.first);
-  const applied = (await pool.query('SELECT name FROM pgmigrations ORDER BY id DESC')).rows;
-  expect(applied[0].name).toBe(THIS_MIGRATION);
-  runMigration('down');
+  const applied = await appliedNames();
   try {
+    await revertToVipMigration();
+    runMigration('down');
+    expect(await appliedNames()).not.toContain(THIS_MIGRATION);
     await expect(vipKeys(normal, fixtures.first)).resolves.toEqual([]);
   } finally {
     runMigration('up');
   }
+  expect(await appliedNames()).toEqual(applied);
   const vip = await registerBus(fixtures.second, {
     plate: 'TBM-0014',
     vin: 'VIN0014',
     vipSeatKeys: [FIRST_KEY],
   });
-  expect(() => runMigration('down')).toThrow();
-  await expect(vipKeys(vip, fixtures.second)).resolves.toEqual([FIRST_KEY]);
+  try {
+    await revertToVipMigration();
+    const beforeFailedReversion = await appliedNames();
+    expect(() => runMigration('down')).toThrow();
+    expect(await appliedNames()).toEqual(beforeFailedReversion);
+    await expect(vipKeys(vip, fixtures.second)).resolves.toEqual([FIRST_KEY]);
+    await expect(vipKeys(normal, fixtures.first)).resolves.toEqual([]);
+  } finally {
+    runMigration('up');
+  }
+  expect(await appliedNames()).toEqual(applied);
 });

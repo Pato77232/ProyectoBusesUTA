@@ -5,9 +5,9 @@
 - **Módulo:** `fleet`; lo consume `bookings` mediante la API pública de Fleet
 - **Responsable:** Edwin
 - **Revisor propuesto / confirmado:** Leslie propuesta, por consumir el inventario; sin confirmación registrada
-- **Estado:** T1 implementada en `5846d93`, publicada en PR #44 en borrador. Falta avisar a Leslie del cambio de contrato y confirmar el caso VIP no ofrecido; T2 pendiente.
+- **Estado:** T1 técnicamente preparada para revisión en PR #44; Edwin confirmó VIP no ofrecido. Integración aislada 280/280 aprobada el 3 de noviembre; la suite unitaria global de la base conservada mantiene dos fallos ajenos. Confirmación del contrato por Leslie y revisión humana pendientes. T2 se gestiona aparte.
 - **Prioridad y dependencias:** FLEET-02, FLEET-03 y FLEET-06 presentes en develop; PR #41 comprobada integrada el 2 de noviembre. T2 depende de la PR #37 de FLEET-05. Accesibilidad se trata en el borrador local FLEET-08, fuera de esta PR.
-- **Rama / PR / base comprobada:** `feature/FLEET-07-T1-vip`, sobre `979fad4` el 2 de noviembre de 2026, que parte de FLEET-06 en `447fcce`; [PR #44](https://github.com/Pato77232/ProyectoBusesUTA/pull/44) en borrador hacia develop. `origin/develop` comprobado en `7c150c7`, con FLEET-06 integrada; sin incorporar esa base a esta rama.
+- **Rama / PR / base comprobada:** `feature/FLEET-07-T1-vip`, sobre `979fad4` el 2 de noviembre de 2026, que parte de FLEET-06 en `447fcce`; [PR #44](https://github.com/Pato77232/ProyectoBusesUTA/pull/44) hacia develop. `origin/develop` comprobado en `f5b9bde` el 3 de noviembre; Edwin rechazó incorporar esa base, por lo que no se ejecutó merge/rebase.
 - **Autorización de alcance:** el 2 de noviembre de 2026 Edwin pidió agregar VIP y eligió marcarlo por bus. El mismo día Edwin pidió comenzar la implementación e informó que Leslie aprobó FLEET-06.
 
 ## 1. Objetivo
@@ -71,7 +71,7 @@ Sin rutas nuevas. `POST /api/v1/buses` acepta `vipSeatKeys`, con 400 si es invá
 
 | Caso | Comportamiento |
 |---|---|
-| Posición desactivada y marcada como VIP | T1 aplica la propuesta: se acepta y conserva `offered: false`; falta confirmarla |
+| Posición desactivada y marcada como VIP | Edwin confirmó que se permite el 3 de noviembre: conserva `category: 'VIP'` y `offered: false`; no se vende mientras no se ofrezca |
 | Bus sin asientos VIP | Todo `NORMAL`, igual que hoy |
 
 ## 9. Pruebas esperadas
@@ -98,7 +98,7 @@ Sin rutas nuevas. `POST /api/v1/buses` acepta `vipSeatKeys`, con 400 si es invá
 ### Otras preguntas
 
 1. Confirmar con Leslie que Reservas aplicará el recargo según `category` y no tratará `VIP` como `NORMAL`.
-2. Confirmar el caso de la posición desactivada y marcada como VIP.
+2. Caso VIP no ofrecido confirmado por Edwin el 3 de noviembre de 2026: se permite y conserva `offered: false`. No implica confirmación de Leslie del contrato.
 
 ## 11. Defecto inducido
 
@@ -125,4 +125,18 @@ Integración repetida de esta revisión: 279 aprobadas y una fallida de 280, en 
 
 ## 14. Revisión y cierre
 
-Pendientes. Próxima acción: avisar a Leslie del cambio de contrato y confirmar el caso VIP no ofrecido, investigar los fallos globales y conseguir revisión humana. FLEET-06 ya está integrada; T2 espera la PR #37. No se enviaron mensajes a Leslie desde esta revisión.
+### Cierre técnico de T1 solicitado el 3 de noviembre
+
+Edwin pidió terminar T1 y confirmó permitir VIP no ofrecido. Rechazó incorporar develop: se conserva la base de la rama, sin merge/rebase ni cambios a hojas de ruta. Por ello los dos fallos unitarios de ese módulo en esta base no se corrigen desde Fleet; sus correcciones ya existen en develop, pero no se afirma validación de la combinación.
+
+Edwin autorizó específicamente renombrar solo la migración VIP nueva, no integrada, de `1793640000000` a `1793740000000`, conservando su SQL. La numeración anterior precedía las migraciones de programación y viajes comerciales ya integradas y habría impedido aplicar VIP sobre esa BD con la comprobación de orden activa. No se renumeran migraciones ajenas ni se desactiva dicha comprobación.
+
+La prueba de reversión ahora localiza la migración VIP por nombre, revierte primero las posteriores y verifica la restauración exacta del historial; comprueba también que el intento fallido de revertir con VIP preserva tanto el historial como los asientos VIP y NORMAL. No se rebajan expectativas ni se amplían límites de tiempo.
+
+Verificación adicional con Node 24.21.0 y PostgreSQL 16.13 en Docker, sin cambiar la base del checkout: upgrade de todas las migraciones de develop `f5b9bde` seguido de la nueva VIP aprobado, con orden activo; las cinco pruebas VIP también aprobaron con una migración posterior ficticia `1793750000000-fleet-qa-followup` montada solo en el contenedor. Esa fixture no se incorpora a migraciones del producto. Las 101 unitarias de registro/configuración Fleet aprobaron. Lint y formato propio aprobados; formato global conserva 17 pendientes ajenos. La repetición unitaria completa de la base conservada da 1074 aprobadas y 2 fallidas de hojas de ruta; no se declara suite global aprobada.
+
+Los primeros intentos del auxiliar temporal de upgrade fallaron por resolución de dependencias y configuración de tabla de historial; se corrigió solo el auxiliar QA, no producción. El resultado aprobado usa `pgmigrations` igual que `scripts/migrate.js`. Dependencias instaladas en volumen efímero mediante `npm ci` con el lock existente; sin cambios de versiones ni lectura de `.env`.
+
+Resultado final reproducible con Node 24.21.0 sobre Linux y PostgreSQL 16.13: integración completa **280/280 en 25 suites**, incluida `database.test.js` (6,805 s), sin ampliar su timeout. El timeout previo de Windows no se reprodujo en esta ejecución; no se afirma una causa demostrada ni una corrección universal de rendimiento. Escenario de migración posterior: **5/5**; upgrade de migraciones de develop a VIP: aprobado con orden activo. Contenedores, redes y volúmenes exclusivos retirados. Ningún archivo de hojas de ruta, pagos o reservas fue modificado. El resultado global sigue sin declararse verde por los dos fallos unitarios existentes; la rama conserva su base por decisión explícita de Edwin.
+
+Pendientes externos al cierre de Fleet T1: confirmación de Leslie del contrato, revisión humana y comprobación global de la combinación final antes de integrar. VIP no ofrecido está confirmado por Edwin; FLEET-06 y PR #37 están integradas. T2 se gestiona en su rama. No se enviaron mensajes a Leslie desde esta revisión ni se integró PR #44.
