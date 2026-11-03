@@ -1,5 +1,20 @@
 # Estado compartido del proyecto
 
+## PAGOS-02 — resolución local de conflictos de PR #55, 3 de noviembre de 2026
+
+PR #55 publicada en `7448e1a`, con aprobación de Pablo registrada sobre esa
+cabeza. Resolución excepcional solicitada por Pablo incorpora `origin/develop`
+`feb7f75` en la misma rama y conserva tanto `createPaymentReviewModule` de #55
+como `createPaymentReceiptModule` y `createBookingPaymentProofNotifier` de
+develop. También conserva íntegra la fotografía PAGOS-01 inferior. Lint, formato
+del archivo conciliado, comprobación de las cuatro exportaciones, 84 pruebas
+dirigidas y las 1742 unitarias aprobaron con Node 24.21.0. La integración no se
+repitió porque Docker Desktop estaba apagado; no se leyó `.env` ni se usó otra
+base. La aprobación anterior no se atribuye automáticamente a la nueva cabeza.
+Publicación de la resolución autorizada por Pablo; no integrada/cerrada.
+[Spec](specs/PAGOS-02.md#18-consumidor-http-de-lectura-con-contexto--3-de-noviembre-de-2026)
+y [evidencia](evidence/PAGOS-02/2026-11-03-lector-contexto.md).
+
 ## PAGOS-01 — puente interno de recepción preparado, 3 de noviembre de 2026
 
 Base develop `b4fe717` con PR #60 integrada; rama

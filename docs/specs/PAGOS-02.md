@@ -1,5 +1,10 @@
 # PAGOS-02: Revisar y aprobar comprobantes
 
+> Estado vigente de #55: conciliada en su rama original con develop `feb7f75`,
+> documentada al final de §18 y en la evidencia del lector. La aprobación humana
+> anterior corresponde a `7448e1a`; la cabeza conciliada requiere inspección
+> final. Los registros anteriores conservan sus fechas como evidencia histórica.
+
 - **ID local:** PAGOS-02
 - **Módulo:** `payments`
 - **Alcance de commit:** `pagos`
@@ -222,3 +227,116 @@ El incremento web solicitado por Shirley el 2 de noviembre se separa en
 [PAGOS-WEB-01](PAGOS-WEB-01.md), sin reabrir bandeja/aprobación backend ya
 integradas en PR #47. La pantalla de lectura no acredita proveedor real de
 Reservas ni venta productiva. Evidencia y revisión humana en su spec propia.
+
+
+## 18. Consumidor HTTP de lectura con contexto — 3 de noviembre de 2026
+
+Shirley pidió continuar sus pendientes. Se aplica el diseño ya decidido del
+lector, sin pedir otra aceptación genérica ni aprobar mutaciones pendientes.
+Base comprobada: develop f5b9bde; rama feature/PAGOS-02-lector-contexto. La pantalla
+700bcf3 está publicada en PR #54, abierta; no se modifica su rama ni se marca integrada.
+
+El lector de Leslie ya es accesible en feature/BOOK-03-resumen-creacion-dominio:
+index.js expone paymentQueries.findForPayment y payment-booking.js proyecta
+proofWindowStartedAt/canUploadProof conforme al contrato publicado. Código
+consultado mediante GitHub, no incorporado ni ejecutado como proveedor local.
+Recepción, confirmSale y releaseBooking siguen sin disponibilidad acreditada.
+
+### Incremento autorizado y límites
+
+Preparar una composición pública explícita createPaymentReviewModule que recibe
+paymentQueries por inyección, usa el adaptador estricto de §17 y expone solamente
+GET listado/archivo. Ningún fallback al simulador ni métodos de escritura.
+La composición productiva actual se conserva hasta integrar la API de Bookings;
+este incremento queda listo para que el responsable de composición lo conecte
+con bookings.paymentQueries. No habilita carga/venta ficticia ni aprobación.
+
+El nuevo caso de uso exige authContext mínimo de CLERK y toma de él la cooperativa
+antes de consultar el repositorio. HTTP proyecta userId/role/cooperativeId desde
+request.auth.user, nunca body/query. Llama al lector con propósito REVIEW_PAYMENT.
+Conserva total en centavos y USD, cursor y DTO HTTP existentes; una relación null,
+ajena o inválida produce BOOKING_DATA_INTEGRITY_ERROR. Conserva clasificación
+400/401/403/500/503 del adaptador, sin convertir todo a temporal ni omitir filas.
+
+El nuevo router exige Auth en ambos GET y no ofrece POST. Incluye no-store para
+listado/bytes privados. Reutiliza lectura privada y presentación HTTP anteriores;
+no modifica las rutas/casos de uso anteriores ni sus pruebas. No importa internos
+de Auth/Bookings, no altera migraciones ni dependencias. Sin interfaz nueva:
+el DTO permite reutilizar PAGOS-WEB-01 después de integrar sus dependencias.
+
+### Criterios y comprobación prevista
+
+- Denegar contexto ausente/rol/tenant inválidos antes de consultar datos.
+- Congelar copia de contexto antes del primer await y no conservarlo entre llamadas.
+- Propagar propósito/contexto mínimos; ignorar identidad/cooperativa de body/query.
+- Cero válido no se sustituye; relación inválida falla sin lista parcial.
+- Mantener códigos seguros y excluir propietario/claves/rutas del DTO HTTP.
+- Con Auth/PostgreSQL reales: sesión/roles, dos cooperativas, archivo privado,
+  listado, clasificación HTTP, ausencia de POST y cabeceras de caché.
+- Ejecutar lint, formato y npm test con base aislada y arranque real; distinguir
+  proveedor simulado de pruebas y proveedor de Bookings aún no integrado.
+
+SOLID: caso de uso separado, puerto pequeño e inyectado, composición explícita y
+reutilización de adaptador/lector/presentador sin refactorizar módulos ajenos.
+Pablo mantiene revisión principal; no se atribuye revisión humana nueva.
+
+### Resultado local de §18
+
+1317 pruebas unitarias y 388 integraciones aprobadas (1705 total), incluidas 20
+unitarias y 8 integraciones nuevas. Lint/formato propio aprobados; formato global
+fallido en 17 archivos previos. Frontend sin cambios: 144 pruebas aprobadas.
+Arranque real: salud 200 y listado sin sesión 401. Diff revisado/comprobado.
+[Evidencia, conexión prevista y límites](../evidence/PAGOS-02/2026-11-03-lector-contexto.md)
+y [descripción del incremento](../evidence/PAGOS-02/descripcion-pr-lector-contexto.md).
+Sin activar el proveedor en producción ni ejecutar Bookings real en las pruebas.
+Preparado para el commit local autorizado por Shirley el 3 de noviembre.
+Publicación y revisión humana pendientes; no integrada/cerrada.
+
+### Actualización solicitada de PR #55 — 3 de noviembre de 2026
+
+Shirley solicita actualizar #55 y dejarla preparada. Cabeza remota comprobada
+ca63a36, Draft y con conflictos. Candidato local feature/PAGOS-02-prepara-55 sobre
+develop b4fe717 (PR #51/#60 integradas). Se conserva la spec de develop, incluida
+la sección de pantalla, y se incorpora §18 sin borrar antecedentes. No modificar
+#56 ni incorporar su script/configuración al diff propio de #55. Sin cambios
+funcionales al código publicado del consumidor; proveedor real accesible en base.
+
+Actualizar evidencia/estado/descripción para distinguir PR publicada de candidato
+local. Repetir backend lint, formato, npm test y contrato conjunto con Bookings
+actual. Frontend sin cambios: ejecutar sus pruebas/lint cuando el entorno lo
+permita. Conservar 17 archivos de formato ajenos. No inventar aprobación de Pablo,
+CI remoto ni acuerdo de evidencia manual; no marcar integrada/cerrada.
+Las reglas Git vigentes prohíben ejecutar merge/push. Preparar el árbol revisable
+sin actualizar silenciosamente la cabeza publicada ni crear otra PR sustitutiva.
+
+Resultado del candidato: 1676 unitarias y 524 integraciones aprobadas, 2200 total
+y 127 suites, npm test salida 0. Contrato real actual: 12 grupos aprobados.
+Frontend 205 y lint aprobados. Backend lint, formato propio y arranque real
+aprobados; formato global mantiene 17 archivos ajenos pendientes. No se cambian
+pruebas previas, dependencias, migraciones ni los ocho JS originales de #55.
+Quedan publicación de la combinación en la rama original, revisión de Pablo y
+CI correcto o acuerdo explícito de evidencia manual. No nueva PR sustitutiva.
+
+### Conciliación de PR #55 con develop `feb7f75` — 3 de noviembre de 2026
+
+Pablo autoriza excepcionalmente incorporar develop, resolver, confirmar y
+publicar la misma rama para dejar el merge final en GitHub a su cargo. La
+conciliación conserva `createPaymentReviewModule` de #55 y las capacidades
+`createPaymentReceiptModule` y `createBookingPaymentProofNotifier` añadidas en
+develop; no sustituye ni duplica sus contratos. El conflicto documental conserva
+las fotografías PAGOS-02 y PAGOS-01 con su evidencia histórica.
+
+Comprobación local con Node 24.21.0: lint aprobado, Prettier del archivo resuelto
+aprobado, cuatro exportaciones públicas cargadas, 84 pruebas dirigidas aprobadas
+y 1742 unitarias aprobadas en 90 suites. La primera ejecución unitaria global
+falló por `listen EPERM` del sandbox; la repetición con acceso local aprobado
+pasó completa. Docker Desktop estaba apagado y no fue posible iniciar PostgreSQL
+16.13 aislado, por lo que integración, arranque y contrato conjunto no se
+redeclaran como ejecutados sobre la cabeza conciliada. No se usó `.env`, otra
+base ni se modificaron pruebas o límites. La evidencia anterior de 2200 pruebas
+permanece histórica para `7448e1a` y no sustituye esta limitación.
+
+La aprobación de Pablo registrada sobre `7448e1a` acredita esa cabeza, no se
+traslada automáticamente al commit de conciliación. La PR queda preparada para
+que Pablo inspeccione la nueva cabeza y ejecute el merge desde GitHub. #56 se
+mantiene separada y en borrador.

@@ -75,4 +75,5 @@ module.exports = {
   createPaymentsModule,
   createPaymentReceiptModule,
   createBookingPaymentProofNotifier: require('./infrastructure/create-booking-payment-proof-notifier'),
+  createPaymentReviewModule: require('./review-composition'),
 };
