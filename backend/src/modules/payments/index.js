@@ -1,9 +1,13 @@
 const path = require('node:path');
 const UploadPaymentProof = require('./application/upload-payment-proof.use-case');
+const ListPendingPaymentProofs = require('./application/list-pending-payment-proofs.use-case');
+const ReadPaymentProofFile = require('./application/read-payment-proof-file.use-case');
+const ApprovePaymentProof = require('./application/approve-payment-proof.use-case');
 const PgPaymentProofRepository = require('./infrastructure/pg-payment-proof.repository');
 const LocalPrivateFileStorage = require('./infrastructure/local-private-file-storage');
 const SimulatedBookingReader = require('./infrastructure/simulated-booking-reader');
 const SimulatedBookingPaymentProofNotifier = require('./infrastructure/simulated-booking-payment-proof-notifier');
+const SimulatedBookingSaleConfirmer = require('./infrastructure/simulated-booking-sale-confirmer');
 const createPaymentProofRouter = require('./interfaces/http/payment-proof.routes');
 
 function createPaymentsModule({ pool, auth, env = process.env } = {}) {
@@ -15,17 +19,37 @@ function createPaymentsModule({ pool, auth, env = process.env } = {}) {
   });
   const bookingReader = new SimulatedBookingReader();
   const bookingPaymentProofNotifier = new SimulatedBookingPaymentProofNotifier();
+  const bookingSaleConfirmer = new SimulatedBookingSaleConfirmer();
   const uploadPaymentProof = new UploadPaymentProof({
     bookingReader,
     fileStorage,
     paymentProofRepository,
     bookingPaymentProofNotifier,
   });
+  const listPendingPaymentProofs = new ListPendingPaymentProofs({
+    paymentProofRepository,
+    bookingReader,
+  });
+  const readPaymentProofFile = new ReadPaymentProofFile({
+    paymentProofRepository,
+    fileReader: fileStorage,
+  });
+  const approvePaymentProof = new ApprovePaymentProof({
+    paymentProofRepository,
+    bookingSaleConfirmer,
+  });
 
   return {
-    router: createPaymentProofRouter({ auth, uploadPaymentProof }),
+    router: createPaymentProofRouter({
+      auth,
+      uploadPaymentProof,
+      listPendingPaymentProofs,
+      readPaymentProofFile,
+      approvePaymentProof,
+    }),
     bookingReader,
     bookingPaymentProofNotifier,
+    bookingSaleConfirmer,
   };
 }
 

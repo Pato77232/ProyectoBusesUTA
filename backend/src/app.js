@@ -30,6 +30,8 @@ function createApp({
       next();
     });
   }
+  // El alta de Fleet autentica antes de consumir cualquier cuerpo, incluido JSON inválido.
+  if (fleet?.busRouter) app.use(`${API_PREFIX}/buses`, fleet.busRouter);
   app.use(express.json());
 
   app.get(`${API_PREFIX}/health`, async (req, res) => {
@@ -45,6 +47,8 @@ function createApp({
   if (tenants) app.use(`${API_PREFIX}/cooperatives`, tenants.router);
 
   if (fleet) app.use(`${API_PREFIX}/bus-groups`, fleet.router);
+
+  if (fleet?.seatLayoutRouter) app.use(`${API_PREFIX}/seat-layouts`, fleet.seatLayoutRouter);
 
   if (frequencies) app.use(`${API_PREFIX}/frequencies`, frequencies.router);
 

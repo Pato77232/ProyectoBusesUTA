@@ -1,5 +1,5 @@
 const { randomUUID } = require('node:crypto');
-const { mkdir, unlink, writeFile } = require('node:fs/promises');
+const { mkdir, readFile, unlink, writeFile } = require('node:fs/promises');
 const path = require('node:path');
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -41,6 +41,14 @@ class LocalPrivateFileStorage {
     } catch (error) {
       if (error.code !== 'ENOENT') throw error;
     }
+  }
+
+  async read(fileKey) {
+    if (typeof fileKey !== 'string' || !UUID_PATTERN.test(fileKey)) {
+      throw new TypeError('La clave del archivo no es válida.');
+    }
+
+    return readFile(path.join(this.rootDirectory, fileKey));
   }
 }
 

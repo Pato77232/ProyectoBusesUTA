@@ -24,7 +24,9 @@ function createRouteSheetController({
       try {
         const validation = validateCreateRouteSheet(req.body);
         if (!validation.valid) {
-          return res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: validation.message } });
+          return res
+            .status(400)
+            .json({ error: { code: 'VALIDATION_ERROR', message: validation.message } });
         }
         const result = await createRouteSheetUseCase({
           cooperativeId: req.auth.user.cooperative_id,
@@ -71,7 +73,9 @@ function createRouteSheetController({
       try {
         const validation = validateAssignment(req.body);
         if (!validation.valid) {
-          return res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: validation.message } });
+          return res
+            .status(400)
+            .json({ error: { code: 'VALIDATION_ERROR', message: validation.message } });
         }
         const result = await addAssignmentToRouteSheetUseCase({
           routeSheetId: req.params.id,
@@ -108,7 +112,9 @@ function createRouteSheetController({
       try {
         const validation = validateRestDay(req.body);
         if (!validation.valid) {
-          return res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: validation.message } });
+          return res
+            .status(400)
+            .json({ error: { code: 'VALIDATION_ERROR', message: validation.message } });
         }
         const result = await addRestDayToRouteSheetUseCase({
           routeSheetId: req.params.id,
@@ -145,12 +151,17 @@ function createRouteSheetController({
       try {
         const validation = validatePublish(req.body);
         if (!validation.valid) {
-          return res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: validation.message } });
+          return res
+            .status(400)
+            .json({ error: { code: 'VALIDATION_ERROR', message: validation.message } });
         }
         const result = await publishRouteSheetUseCase({
           routeSheetId: req.params.id,
           cooperativeId: req.auth.user.cooperative_id,
           publishedBy: req.auth.user.id,
+          expectedRevision: req.body?.expectedRevision,
+          expectedProgrammingRevision: req.body?.expectedProgrammingRevision,
+          seriesId: req.body?.seriesId,
         });
         return res.status(200).json({ routeSheet: result });
       } catch (error) {
@@ -162,7 +173,9 @@ function createRouteSheetController({
       try {
         const validation = validateGenerateCycles(req.body);
         if (!validation.valid) {
-          return res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: validation.message } });
+          return res
+            .status(400)
+            .json({ error: { code: 'VALIDATION_ERROR', message: validation.message } });
         }
         const result = await generateAutomaticCyclesUseCase({
           baseRouteSheetId: req.params.id,

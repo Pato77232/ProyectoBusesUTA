@@ -85,10 +85,19 @@ class UploadPaymentProof {
     this.bookingPaymentProofNotifier = bookingPaymentProofNotifier;
   }
 
-  async notifyBooking(bookingId, fileKey) {
+  async notifyBooking(paymentProof, fileKey) {
+    const {
+      booking_id: bookingId,
+      cooperative_id: cooperativeId,
+      id: paymentProofId,
+    } = paymentProof;
     try {
       await this.paymentProofRepository.markNotificationAttempted(bookingId);
-      await this.bookingPaymentProofNotifier.markPaymentProofReceived(bookingId);
+      await this.bookingPaymentProofNotifier.markPaymentProofReceived({
+        bookingId,
+        cooperativeId,
+        paymentProofId,
+      });
       await this.paymentProofRepository.markNotificationDelivered(bookingId);
     } catch (error) {
       if (isDefinitiveBookingRejection(error)) {
@@ -112,7 +121,7 @@ class UploadPaymentProof {
     const fileMetadata = validateFile(file);
     const existingProof = await this.paymentProofRepository.findByBookingId(booking.bookingId);
     if (existingProof?.status === 'UPLOADED') {
-      await this.notifyBooking(booking.bookingId, existingProof.file_key);
+      await this.notifyBooking(existingProof, existingProof.file_key);
       return { paymentProof: existingProof, expiresAt: booking.expiresAt, total: booking.total };
     }
     if (booking.acceptsPaymentProof !== true) throw new BookingNotPayableError();
@@ -151,7 +160,7 @@ class UploadPaymentProof {
       throw error;
     }
 
-    await this.notifyBooking(booking.bookingId, fileKey);
+    await this.notifyBooking(savedProof, fileKey);
 
     return { paymentProof: savedProof, expiresAt: booking.expiresAt, total: booking.total };
   }

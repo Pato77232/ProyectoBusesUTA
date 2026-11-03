@@ -38,4 +38,15 @@ describe('LocalPrivateFileStorage', () => {
       'La clave del archivo no es válida.',
     );
   });
+
+  test('lee bytes privados usando una clave opaca válida', async () => {
+    const bytes = Buffer.from('private receipt');
+    const fileKey = await storage.save({ buffer: bytes });
+
+    await expect(storage.read(fileKey)).resolves.toEqual(bytes);
+  });
+
+  test('rechaza claves inválidas al leer', async () => {
+    await expect(storage.read('../secreto')).rejects.toThrow('La clave del archivo no es válida.');
+  });
 });

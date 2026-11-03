@@ -17,6 +17,7 @@ export function httpError(status, body) {
   const defaults = {
     401: ['UNAUTHENTICATED', 'Sesión inválida o vencida.'],
     403: ['FORBIDDEN', 'Acceso no permitido.'],
+    413: ['PAYLOAD_TOO_LARGE', 'La carga supera el tamaño permitido.'],
     429: ['TOO_MANY_ATTEMPTS', 'Demasiados intentos. Intenta más tarde.'],
   };
   const fallback =

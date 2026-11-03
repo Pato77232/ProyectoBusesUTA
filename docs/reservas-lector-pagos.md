@@ -72,3 +72,14 @@ La creación de reservas sigue pendiente de adaptar cotización/inventario y com
 Revisión de Pablo/Shirley e integración del equipo pendientes. No commits, push, merge, rebase ni tags en esta sesión.
 
 Limpieza confirmada al terminar: contenedor y red busesuta-leslie-lector retirados; consulta posterior sin recursos de ese proyecto. Los demás servicios Docker del usuario permanecen fuera del alcance.
+
+
+## Resultado de conciliación de PR #51 — 2 de noviembre de 2026
+
+Develop 5abc36d incorporado en la rama feature de Leslie, partiendo de 67b333b, con autorización humana. Once conflictos resueltos conservando avances de ambos lados; no se fusiona la PR hacia develop. [Evidencia actual](evidence/BOOK-07-L05-T1/2026-11-02-conciliacion-pr51.md).
+
+Backend: lint aprobado, 1572 unitarias aprobadas. Integración global: 459/462 aprobadas antes de ajustar dos pruebas de reversión; esas suites se verificaron después (programación aprobada y viajes comerciales 19/19). Persiste timeout de fotografía de Fleet, reproducido sin cambiar su código/límite. La suite global no se declara aprobada. Formato global fallido en 17 archivos ajenos; formato de resolución aprobado.
+
+Frontend: lint, 181 pruebas, arranque Nginx y ocho grupos Chrome aprobados. Compatibilidad directa con consumidor actual Payments: nueve comprobaciones aprobadas, sin conectar rutas productivas. Entorno temporal retirado.
+
+Bloqueo de despliegue reproducido: una base ya migrada con develop rechaza create-bookings por orden de migración; historial de 17 registros intacto. Propuesta para el siguiente incremento: acordar con Pablo una actualización no destructiva, con spec y pruebas sobre datos previos. No se editan migraciones existentes ni se desactiva globalmente checkOrder. PR #51 permanece en borrador; revisión humana y resolución de pendientes requeridas.

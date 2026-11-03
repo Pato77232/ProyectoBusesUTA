@@ -2,9 +2,35 @@ const express = require('express');
 const createPaymentProofController = require('./payment-proof.controller');
 const { parsePaymentProofMultipart } = require('./payment-proof-multipart');
 
-function createPaymentProofRouter({ auth, uploadPaymentProof }) {
+function createPaymentProofRouter({
+  auth,
+  uploadPaymentProof,
+  listPendingPaymentProofs,
+  readPaymentProofFile,
+  approvePaymentProof,
+}) {
   const router = express.Router();
-  const controller = createPaymentProofController({ uploadPaymentProof });
+  const controller = createPaymentProofController({
+    uploadPaymentProof,
+    listPendingPaymentProofs,
+    readPaymentProofFile,
+    approvePaymentProof,
+  });
+
+  router.get('/', auth.authenticate, auth.authorize('CLERK'), controller.listPending);
+  router.get(
+    '/:paymentProofId/file',
+    auth.authenticate,
+    auth.authorize('CLERK'),
+    controller.readFile,
+  );
+  router.post(
+    '/:paymentProofId/approve',
+    auth.authenticate,
+    auth.authorize('CLERK'),
+    auth.csrfProtection,
+    controller.approve,
+  );
 
   router.post(
     '/',

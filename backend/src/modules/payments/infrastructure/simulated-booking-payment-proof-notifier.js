@@ -3,16 +3,24 @@ const { BookingPaymentProofRejectedError } = require('../domain/payment-proof-er
 class SimulatedBookingPaymentProofNotifier {
   constructor(rejections = new Map()) {
     this.rejections = rejections;
-    this.receivedBookingIds = new Set();
+    this.receivedProofs = new Map();
   }
 
-  async markPaymentProofReceived(bookingId) {
-    if (this.rejections.has(bookingId)) throw this.rejections.get(bookingId);
-    this.receivedBookingIds.add(bookingId);
+  async markPaymentProofReceived(receipt) {
+    const { bookingId, cooperativeId, paymentProofId } = receipt;
+    if (this.rejections.has(paymentProofId)) throw this.rejections.get(paymentProofId);
+    const priorReceipt = this.receivedProofs.get(paymentProofId);
+    if (
+      priorReceipt &&
+      (priorReceipt.bookingId !== bookingId || priorReceipt.cooperativeId !== cooperativeId)
+    ) {
+      throw new BookingPaymentProofRejectedError();
+    }
+    this.receivedProofs.set(paymentProofId, Object.freeze({ ...receipt }));
   }
 
-  rejectDefinitively(bookingId) {
-    this.rejections.set(bookingId, new BookingPaymentProofRejectedError());
+  rejectDefinitively(paymentProofId) {
+    this.rejections.set(paymentProofId, new BookingPaymentProofRejectedError());
   }
 }
 

@@ -5,8 +5,8 @@
 - **Revisor propuesto:** Pablo para contexto/arquitectura; Shirley para compatibilidad del consumidor. No se atribuye aceptación de revisión de este incremento.
 - **Estado:** Pasos A–C implementados y verificados localmente; revisión humana pendiente. Autorizados por Leslie el 2 de noviembre de 2026.
 - **Autorización actual:** Leslie solicita empezar lo pendiente después de indicar que corresponde completar esta spec. Leslie respondió expresamente «si autorizo sigamos porfavor» a la solicitud de implementar pasos A–C de esta spec. Autorización de implementación registrada; revisión humana de código pendiente.
-- **Rama local:** feature/BOOK-03-resumen-creacion-dominio, HEAD c7ceed9; cambios documentales posteriores sin commit.
-- **Remoto comprobado:** origin/develop 1daa3c4, 2 de noviembre de 2026; no incorporado localmente.
+- **Rama publicada:** feature/BOOK-03-resumen-creacion-dominio, [PR #51](https://github.com/Pato77232/ProyectoBusesUTA/pull/51) en borrador hacia develop. Publicación en 67b333b; conciliación posterior en curso, sin integración hacia develop.
+- **Base de conciliación comprobada:** origin/develop 5abc36d, 2 de noviembre de 2026. Los resultados anteriores sobre 1daa3c4 conservan su alcance histórico.
 - **Contrato de destino:** [PR #46, contrato publicado](https://github.com/Pato77232/ProyectoBusesUTA/blob/e414f7ad4bcc35a4bd208abc468867d91ee84200/docs/contratos/lectura-reservas-pagos.md). Diseño seleccionado según delegación reportada por Pablo; no reabrir firma/contexto/errores como propuestas genéricas.
 - **Consumidor:** PR #47 integrada, adaptador preparado pero sin conexión real en rutas. Proveedor implementado y probado localmente en este incremento; rutas productivas de Payments aún no conectadas.
 
@@ -212,3 +212,20 @@ Formato de los 10 JS modificados/nuevos aprobado; formato global falla en 24 arc
 T01–T18 tienen evidencia distribuida entre las pruebas nuevas y las suites anteriores conservadas. F11 de workflow en revisión no se declara implementado; semilla RECEIVED solo verifica restricciones/lector. Ninguna operación pública de recepción/venta/liberación creada. La historia UNKNOWN no se concilia automáticamente ni se oculta como false. Down/up pierde metadatos nuevos expresamente; down incompatible falla sin cambiar datos.
 
 Código local sin commit ni PR. Pendiente revisión humana, autorización/publicación cuando corresponda e integración real con Payments. No cierre ni despliegue. Retirada confirmada: contenedor y red del proyecto busesuta-leslie-lector eliminados; sin recursos propios restantes.
+
+## Conciliación de la PR #51 con develop — 2 de noviembre de 2026
+
+Leslie autoriza incorporar develop en su rama mediante «listo empecemos a resolver todo entonces porfavor». Base incorporada: 5abc36d; cabeza previa de la rama: 67b333b. Se conserva el alcance A–C: esta conciliación no autoriza recepción, expiración, venta ni conexión productiva de Payments.
+
+Se aplicó frontend/DESIGN.md al conservar los tokens y pantallas del equipo sin rediseñarlos. Los conflictos afectan montaje de rutas en backend/src/app.js, scripts y reglas de comprobación de frontend, tokens compartidos y documentación histórica. Se preservan las protecciones de Reservas y Fleet, todas las suites y las composiciones públicas de server.js. Las comprobaciones de composición deben representar los módulos realmente montados y mantener las expectativas de negocio. Verificación conjunta pendiente en este momento; no equivale a revisión humana ni integración hacia develop.
+
+
+## Resultado de conciliación de PR #51 — 2 de noviembre de 2026
+
+Develop 5abc36d incorporado en la rama feature de Leslie, partiendo de 67b333b, con autorización humana. Once conflictos resueltos conservando avances de ambos lados; no se fusiona la PR hacia develop. [Evidencia actual](../evidence/BOOK-07-L05-T1/2026-11-02-conciliacion-pr51.md).
+
+Backend: lint aprobado, 1572 unitarias aprobadas. Integración global: 459/462 aprobadas antes de ajustar dos pruebas de reversión; esas suites se verificaron después (programación aprobada y viajes comerciales 19/19). Persiste timeout de fotografía de Fleet, reproducido sin cambiar su código/límite. La suite global no se declara aprobada. Formato global fallido en 17 archivos ajenos; formato de resolución aprobado.
+
+Frontend: lint, 181 pruebas, arranque Nginx y ocho grupos Chrome aprobados. Compatibilidad directa con consumidor actual Payments: nueve comprobaciones aprobadas, sin conectar rutas productivas. Entorno temporal retirado.
+
+Bloqueo de despliegue reproducido: una base ya migrada con develop rechaza create-bookings por orden de migración; historial de 17 registros intacto. Propuesta para el siguiente incremento: acordar con Pablo una actualización no destructiva, con spec y pruebas sobre datos previos. No se editan migraciones existentes ni se desactiva globalmente checkOrder. PR #51 permanece en borrador; revisión humana y resolución de pendientes requeridas.

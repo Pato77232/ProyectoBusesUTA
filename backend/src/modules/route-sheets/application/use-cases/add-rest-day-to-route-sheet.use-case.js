@@ -1,12 +1,30 @@
 const RouteSheetRestDay = require('../../domain/entities/route-sheet-rest-day');
 const RouteSheetDTO = require('../dtos/route-sheet.dto');
 const RouteSheetValidationService = require('../services/route-sheet-validation.service');
-const { RouteSheetNotFoundError, BusNotFromCooperativeError } = require('../../domain/errors/route-sheet-errors');
+const {
+  RouteSheetNotFoundError,
+  BusNotFromCooperativeError,
+  BusNotInRouteSheetGroupError,
+} = require('../../domain/errors/route-sheet-errors');
 
-function addRestDayToRouteSheetUseCase({ routeSheetRepository, routeSheetRestDayRepository, routeSheetAssignmentRepository, busQueryPort, bookingQueryPort }) {
+function addRestDayToRouteSheetUseCase({
+  routeSheetRepository,
+  routeSheetRestDayRepository,
+  routeSheetAssignmentRepository,
+  busQueryPort,
+  bookingQueryPort,
+}) {
   const validationService = new RouteSheetValidationService();
 
-  return async ({ routeSheetId, cooperativeId, busId, reason, modifiedBy, reasonForChange, forceWithPassengersWarning }) => {
+  return async ({
+    routeSheetId,
+    cooperativeId,
+    busId,
+    reason,
+    modifiedBy,
+    reasonForChange,
+    forceWithPassengersWarning,
+  }) => {
     const routeSheet = await routeSheetRepository.findById(routeSheetId, cooperativeId);
     if (!routeSheet) {
       throw new RouteSheetNotFoundError();
@@ -17,17 +35,34 @@ function addRestDayToRouteSheetUseCase({ routeSheetRepository, routeSheetRestDay
     if (!bus) {
       throw new BusNotFromCooperativeError();
     }
+    if (bus.busGroupId !== routeSheet.busGroupId) {
+      throw new BusNotInRouteSheetGroupError();
+    }
 
-    const assignments = await routeSheetAssignmentRepository.findByRouteSheetId(routeSheetId, cooperativeId);
+    const assignments = await routeSheetAssignmentRepository.findByRouteSheetId(
+      routeSheetId,
+      cooperativeId,
+    );
     validationService.validateBusNotAssigned(assignments, busId);
 
-    const restDays = await routeSheetRestDayRepository.findByRouteSheetId(routeSheetId, cooperativeId);
+    const restDays = await routeSheetRestDayRepository.findByRouteSheetId(
+      routeSheetId,
+      cooperativeId,
+    );
     validationService.validateBusNotInRestDay(restDays, busId);
 
     const changeReason = reasonForChange || reason;
     if (bookingQueryPort && !routeSheet.isEditable()) {
-      const hasPassengers = await bookingQueryPort.hasPassengersForBusOnRouteSheet(routeSheetId, busId, cooperativeId);
-      validationService.validatePassengersConflict(hasPassengers, forceWithPassengersWarning, changeReason);
+      const hasPassengers = await bookingQueryPort.hasPassengersForBusOnRouteSheet(
+        routeSheetId,
+        busId,
+        cooperativeId,
+      );
+      validationService.validatePassengersConflict(
+        hasPassengers,
+        forceWithPassengersWarning,
+        changeReason,
+      );
     }
 
     const restDay = new RouteSheetRestDay({
@@ -38,7 +73,9 @@ function addRestDayToRouteSheetUseCase({ routeSheetRepository, routeSheetRestDay
       reason,
     });
 
-    const savedRestDay = routeSheetRestDayRepository.save ? await routeSheetRestDayRepository.save(restDay) : restDay;
+    const savedRestDay = routeSheetRestDayRepository.save
+      ? await routeSheetRestDayRepository.save(restDay)
+      : restDay;
     const updatedRestDays = [...restDays, savedRestDay];
     return RouteSheetDTO.fromEntity(routeSheet, assignments, updatedRestDays);
   };

@@ -2,6 +2,8 @@
 
 > Replanificación del 1 de noviembre de 2026: [BOOK-08-L06](BOOK-08-L06.md) complementa esta spec con un borrador bajo los nuevos acuerdos. La evidencia inferior conserva su fecha/alcance histórico; no acredita adaptación a tarifas configurables congeladas ni proveedores reales. La política histórica incompatible no autoriza el nuevo comportamiento. Ningún incremento nuevo se considera aprobado por esta nota.
 
+> Actualización documental del 1 de noviembre de 2026: aplicar las [reglas vigentes](../business-rules.md) y los [acuerdos de primera entrega](../acuerdos-primera-entrega.md), bajo [ACUERDOS-01](ACUERDOS-01.md). Los contratos anteriores incompatibles son evidencia histórica, no autorización para implementar la regla reemplazada. Esta actualización no modifica código ni acredita adaptación funcional. Las propuestas técnicas y pendientes conservan ese estado.
+
 - **Responsable:** Leslie
 - **Revisor:** Edwin
 - **Módulo:** bookings
