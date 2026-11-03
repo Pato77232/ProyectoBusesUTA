@@ -11,6 +11,9 @@ COPY pages/login.html /usr/share/nginx/html/pages/login.html
 COPY pages/crear-frecuencia.html /usr/share/nginx/html/pages/crear-frecuencia.html
 COPY src/frequencies /usr/share/nginx/html/src/frequencies
 COPY src/styles/frequency-form.css /usr/share/nginx/html/src/styles/frequency-form.css
+COPY pages/comprobantes.html /usr/share/nginx/html/pages/comprobantes.html
+COPY src/payments /usr/share/nginx/html/src/payments
+COPY src/styles/payments.css /usr/share/nginx/html/src/styles/payments.css
 COPY src/auth /usr/share/nginx/html/src/auth
 COPY src/fleet /usr/share/nginx/html/src/fleet
 COPY src/styles/app.css /usr/share/nginx/html/src/styles/app.css
@@ -21,3 +24,8 @@ COPY assets /usr/share/nginx/html/assets
 USER nginx
 EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]
+
+# BOOK-03: pantalla y módulos consumidos; no copiar tests ni documentación.
+COPY pages/reservas.html /usr/share/nginx/html/pages/reservas.html
+COPY src/bookings /usr/share/nginx/html/src/bookings
+COPY src/api/json-transport.js src/api/api-error.js /usr/share/nginx/html/src/api/

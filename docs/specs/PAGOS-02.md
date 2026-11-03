@@ -1,5 +1,10 @@
 # PAGOS-02: Revisar y aprobar comprobantes
 
+> Estado vigente de #55: actualización local sobre develop b4fe717, documentada
+> al final de §18 y en la evidencia del lector. PR publicada en ca63a36 sigue
+> Draft; no se ha actualizado su cabeza. Registros anteriores conservan sus
+> fechas y no describen por sí solos el estado actual de publicación/proveedor.
+
 - **ID local:** PAGOS-02
 - **Módulo:** `payments`
 - **Alcance de commit:** `pagos`
@@ -216,6 +221,14 @@ Ejecutar pruebas dirigidas y, desde backend, lint, format:check y npm test con P
 
 [Evidencia y límites](../evidence/PAGOS-02/2026-11-02-adaptador-lector.md) y [descripción detallada de PR](../evidence/PAGOS-02/descripcion-pr.md). Sigue pendiente conexión a rutas/proveedor real, clasificación del null de bandeja, otros estados explícitos y verificación de la combinación con develop `3d053a4`. No hay PR publicada de PAGOS-02 en las consultas realizadas.
 
+## Pantalla posterior a PR #47
+
+El incremento web solicitado por Shirley el 2 de noviembre se separa en
+[PAGOS-WEB-01](PAGOS-WEB-01.md), sin reabrir bandeja/aprobación backend ya
+integradas en PR #47. La pantalla de lectura no acredita proveedor real de
+Reservas ni venta productiva. Evidencia y revisión humana en su spec propia.
+
+
 ## 18. Consumidor HTTP de lectura con contexto — 3 de noviembre de 2026
 
 Shirley pidió continuar sus pendientes. Se aplica el diseño ya decidido del
@@ -278,3 +291,28 @@ y [descripción del incremento](../evidence/PAGOS-02/descripcion-pr-lector-conte
 Sin activar el proveedor en producción ni ejecutar Bookings real en las pruebas.
 Preparado para el commit local autorizado por Shirley el 3 de noviembre.
 Publicación y revisión humana pendientes; no integrada/cerrada.
+
+### Actualización solicitada de PR #55 — 3 de noviembre de 2026
+
+Shirley solicita actualizar #55 y dejarla preparada. Cabeza remota comprobada
+ca63a36, Draft y con conflictos. Candidato local feature/PAGOS-02-prepara-55 sobre
+develop b4fe717 (PR #51/#60 integradas). Se conserva la spec de develop, incluida
+la sección de pantalla, y se incorpora §18 sin borrar antecedentes. No modificar
+#56 ni incorporar su script/configuración al diff propio de #55. Sin cambios
+funcionales al código publicado del consumidor; proveedor real accesible en base.
+
+Actualizar evidencia/estado/descripción para distinguir PR publicada de candidato
+local. Repetir backend lint, formato, npm test y contrato conjunto con Bookings
+actual. Frontend sin cambios: ejecutar sus pruebas/lint cuando el entorno lo
+permita. Conservar 17 archivos de formato ajenos. No inventar aprobación de Pablo,
+CI remoto ni acuerdo de evidencia manual; no marcar integrada/cerrada.
+Las reglas Git vigentes prohíben ejecutar merge/push. Preparar el árbol revisable
+sin actualizar silenciosamente la cabeza publicada ni crear otra PR sustitutiva.
+
+Resultado del candidato: 1676 unitarias y 524 integraciones aprobadas, 2200 total
+y 127 suites, npm test salida 0. Contrato real actual: 12 grupos aprobados.
+Frontend 205 y lint aprobados. Backend lint, formato propio y arranque real
+aprobados; formato global mantiene 17 archivos ajenos pendientes. No se cambian
+pruebas previas, dependencias, migraciones ni los ocho JS originales de #55.
+Quedan publicación de la combinación en la rama original, revisión de Pablo y
+CI correcto o acuerdo explícito de evidencia manual. No nueva PR sustitutiva.

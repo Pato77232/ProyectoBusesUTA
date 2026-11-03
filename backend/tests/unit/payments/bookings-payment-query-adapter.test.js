@@ -304,3 +304,14 @@ describe('traducción mediante el middleware HTTP real', () => {
     expect(body.error).not.toHaveProperty('stack');
   });
 });
+
+test('acepta reserva EXPIRED únicamente con carga deshabilitada', async () => {
+  const { adapter } = harness({ ...BOOKING, status: 'EXPIRED', canUploadProof: false });
+  const response = await adapter.findForPayment(QUERY, CUSTOMER);
+  expect(response.status).toBe('EXPIRED');
+  expect(response.acceptsPaymentProof).toBe(false);
+  const invalid = harness({ ...BOOKING, status: 'EXPIRED', canUploadProof: true });
+  await expect(invalid.adapter.findForPayment(QUERY, CUSTOMER)).rejects.toMatchObject({
+    code: 'BOOKING_DATA_INTEGRITY_ERROR',
+  });
+});
