@@ -158,6 +158,8 @@ Antes de orientar a alguien:
 | PAGOS-CAJA-01, relacionada con S-04 | Shirley; Pablo aceptó revisar el incremento | Borrador local conciliado el 2 de noviembre, separado de la publicación PAGOS-02; no aprobado para implementar | PR #35 confirma efectivo mediante reserva y sin archivo de depósito. Plazo de caja, titularidad, abandono/cancelación, resultados e idempotencia siguen pendientes. Depende de P-02, L-03 y L-05. |
 | CI | Pablo | Sin workflow versionado en la base | Proponer una spec propia; no afirmar protecciones remotas sin consultarlas |
 
+Actualización de AUTH-BOOTSTRAP-01 (2 de noviembre): la [PR #52](https://github.com/Pato77232/ProyectoBusesUTA/pull/52) se concilió con `develop` `f5b9bde` sin marcadores de conflicto. La combinación temporal aprobó lint, 1315 unitarias y 385 integraciones PostgreSQL (1700); el formato global conserva 17 archivos ajenos. [Evidencia detallada](specs/AUTH-BOOTSTRAP-01.md#conciliación-de-la-pr-52-con-develop--2-de-noviembre-de-2026). Revisión humana e integración pendientes; la fila conserva el conteo histórico de la rama anterior.
+
 ## Próximos pasos por integrante
 
 ### Actualización de Fleet — 29 de octubre de 2026

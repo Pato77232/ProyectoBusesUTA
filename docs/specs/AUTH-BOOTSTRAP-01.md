@@ -79,3 +79,16 @@ rebase. No se modificaron migraciones ni dependencias.
   [PR #52](https://github.com/Pato77232/ProyectoBusesUTA/pull/52) contra `develop`.
   GitHub muestra a Shirley (`shirley6126`) como revisora solicitada. Revisión
   humana, pruebas tras combinar con la base vigente e integración pendientes.
+
+### Conciliación de la PR #52 con `develop` — 2 de noviembre de 2026
+
+- Base remota comprobada: `origin/develop` `f5b9bde`. El contrato de puertos
+  conserva AUTH-BOOTSTRAP-01 y AUTH-06; el seguimiento conserva la PR #52 y
+  la PR #53. La composición de Auth combina ambos cambios sin edición adicional.
+- `git merge-tree` no muestra marcadores de conflicto. La combinación temporal
+  se materializó en el árbol `da1b00d` sin integrar ninguna rama.
+- Sobre ese árbol: `npm run lint` aprobado; `npm test` con PostgreSQL 16.13
+  aislado aprobó 1315 unitarias y 385 integraciones (1700 en total).
+  `npm run format:check` sigue fallando en 17 archivos previos ajenos a bootstrap.
+- La base temporal se retiró. Pruebas ejecutadas con Node local 22; repetirlas
+  bajo Node 24 sigue pendiente. La revisión humana e integración siguen pendientes.
