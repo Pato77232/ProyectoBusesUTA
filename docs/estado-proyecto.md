@@ -1,4 +1,22 @@
 # Estado compartido del proyecto
+
+## PAGOS-01 — puente interno de recepción preparado, 3 de noviembre de 2026
+
+Base develop `b4fe717` con PR #60 integrada; rama
+`feature/PAGOS-01-puente-recepcion`. Consulta pública interna del comprobante/outbox
+persistidos y adaptador estricto del receptor de Bookings, sin proveedor simulado
+en esta capacidad nueva. Aceptación, rechazo confirmado y resultado incierto
+clasificados sin compensación por errores genéricos. No activa rutas/servidor:
+conectar UPLOAD_PROOF y Auth reales sigue como siguiente incremento.
+37 pruebas nuevas dirigidas; regresión completa 1686 unitarias + 525 integraciones
+aprobadas, 127 suites. Lint y formato propio aprobados; 17 pendientes globales
+ajenos. Arranque salud 200 y Pagos sin sesión 401. Sin UI, dependencias,
+migraciones o pruebas previas modificadas. Sin commit/PR/revisión humana nueva;
+no integrada/cerrada. Validación de formatos local y PR #55/#56 siguen separadas.
+[Spec](specs/PAGOS-01.md#16-puente-interno-de-recepción-real--3-de-noviembre-de-2026),
+[evidencia](evidence/PAGOS-01/2026-11-03-puente-recepcion.md) y
+[descripción de PR](evidence/PAGOS-01/descripcion-pr-recepcion.md).
+
 ## PAGOS-WEB-01 — bandeja web preparada para revisión, 2 de noviembre de 2026
 
 Shirley precisó «Por ahora termina la pantalla y prepara la PR». Rama
