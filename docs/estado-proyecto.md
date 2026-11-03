@@ -1,5 +1,11 @@
 # Estado compartido del proyecto
 
+## D-04 — sección 2 local, 2 de noviembre de 2026
+
+Sobre 2e3cdca, David confirmó Q5 y autorizó API interna `tripQueries.findBookableById` y `findBookableForSegment`, sin GET público ni cambios en Bookings. [ROUTE-SHEETS-07 §14](specs/ROUTE-SHEETS-07.md#14-sección-2--consulta-comercial-por-embarque) documenta identidad estable, copias congeladas, cierre por parada y horizonte de ciclos publicados. Lectura coherente de tablas propias y fuentes mediante APIs públicas, liberando la conexión antes de consultar otros módulos. La consulta no reserva asientos; Leslie debe conectar el control por par y las ocupaciones en Bookings.
+
+1297 unitarias globales aprobadas; integración global: 370 aprobadas y una falla por timeout en bus-photo-storage, reproducida aisladamente (17 aprobadas/una falla), sin modificar esa prueba ni su límite. Comprobación final de las 36 nuevas registrada en §14. Lint y formato de cambios aprobados; formato global conserva 41 pendientes anteriores. Node local 22.19.0; Node 24 pendiente. Sin dependencias, migraciones ni pruebas anteriores modificadas; revisión humana/integración remota pendientes, sin commit/PR/merge ejecutados. Los estados inferiores conservan evidencia histórica.
+
 ## D-04 — sección 1 local, 2 de noviembre de 2026
 
 En feature/ROUTE-SHEETS-07-viajes-comercializables sobre 4e5c8df, David solicitó sección 1 y confirmó Q1–Q4: publicaciones nuevas, captura atómica, copia propia de asientos desde Fleet de solo lectura y vínculo explícito de serie/ciclos sin renovación automática. [ROUTE-SHEETS-07 §13](specs/ROUTE-SHEETS-07.md#13-sección-1--captura-comercial-al-publicar) documenta cuatro tablas nuevas, identidades estables, copias inmutables por hoja/bus, referencias al recorrido/tarifa y respuesta de publicación con manifiesto comercial. Hoja histórica publicada no se reconstruye; ciclo siguiente requiere seriesId explícito y período consecutivo de igual duración.

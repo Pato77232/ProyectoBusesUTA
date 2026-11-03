@@ -2,11 +2,11 @@
 
 - **Referencia de planificación:** D-04; referencia local, sin ticket externo.
 - **Responsable:** David, por actividad seleccionada por el solicitante.
-- **Estado:** En desarrollo; sección 0 guardada en 4e5c8df por el humano; sección 1 implementada y verificada localmente, pendiente de revisión humana y commit. Sección 2 sin autorización.
+- **Estado:** Secciones 0 y 1 guardadas por el humano (4e5c8df y 2e3cdca). Sección 2 implementada localmente; revisión humana e integración pendientes.
 - **Fecha:** 2 de noviembre de 2026, America/Guayaquil.
 - **Rama / base comprobada:** feature/ROUTE-SHEETS-07-viajes-comercializables, 1dcbd6d; inicialmente limpia. La base contiene integración de D-03 mediante PR #48. No se refrescó remoto en esta sección; en la revisión anterior origin/develop se comprobó en ese mismo commit.
 - **Revisora propuesta:** Leslie; aceptación de revisar esta tarea pendiente. Edwin participa en el contrato de inventario. No se atribuyen aprobaciones individuales nuevas.
-- **Autorización:** David solicitó sección 1 y confirmó Q1/Q3 (publicaciones nuevas y captura atómica), Q2 (copia propia desde Fleet de solo lectura) y Q4 (vínculo explícito de serie/ciclos sin renovación automática). Autorizó solo la preparación necesaria de pruebas anteriores/listas de limpieza y, en una consulta aparte, la preparación de la prueba de reversión de programación. No solicitó commits ni publicación. Q5 sigue pendiente para sección 2.
+- **Autorización:** David confirmó Q1–Q4 y las adaptaciones de preparación registradas en sección 1. El 2 de noviembre autorizó sección 2 y confirmó Q5: ambas funciones y DTO como API interna, sin GET público ni cambios en Bookings. No solicitó commits ni publicación; no se atribuyen aprobaciones individuales a Leslie/Edwin.
 
 ## 1. Objetivo y fuentes
 
@@ -75,18 +75,18 @@ Dos ciclos siguen siendo **dos totales, incluida la base**, no base más dos. Bo
 
 **Q4 confirmado:** persistir el vínculo explícito de serie, hoja base, inicio y duración común, sin inferirlo por fechas ni generar programación. La primera publicación de una nueva base crea la serie en servidor. Para enlazar una hoja siguiente ya programada se envía seriesId al publicar; debe pertenecer al mismo grupo/tenant, continuar exactamente el último fin exclusivo y conservar L días. No crear otra serie mientras exista una vigente en el grupo ni superponer una nueva base al cierre histórico. La numeración preserva historia y puede superar dos solo cuando hay cupo: el límite es dos períodos no terminados, no dos durante toda la vida de la serie. Una publicación manual puede enlazar una hoja existente; no copia, crea o renueva hojas automáticamente. La consulta del horizonte se implementará en sección 2 sobre estas relaciones persistidas.
 
-## 6. APIs públicas propuestas — pendientes de Leslie
+## 6. API pública interna — Q5 confirmado por David
 
-Nombres de `routeSheets.tripQueries`, aún no implementados:
+Funciones implementadas en `routeSheets.tripQueries`; la conexión del consumidor de Leslie queda fuera de esta tarea:
 
-| Función | Semántica propuesta |
+| Función | Semántica confirmada |
 |---|---|
 | findBookableById(tripId) | null si ausente/no elegible o sin ningún embarque comercializable; de lo contrario snapshot mínimo compatible con TripCatalog y datos comerciales permitidos. No autoriza cualquier posición por sí sola |
 | findBookableForSegment({ tripId, fromPosition, toPosition }) | Comprueba el par, plazo de ese embarque y tarifa explícita; devuelve snapshot del par o null si ya no admite compra |
 
 Entrada no admite cooperativeId, busId, seatIds, precio, porcentajes ni reloj elegidos por comprador. La aplicación deriva tenant y relaciones del viaje real; el reloj se inyecta en la composición para pruebas, no desde HTTP. Consulta con ID inválido/posiciones inválidas: error de dominio; inexistente/no comercializable: null; proveedor ausente, copia corrupta o error técnico: error, nunca null o inventario vacío ficticio.
 
-Propuesta de DTO (tipos, no respuesta real ni API confirmada):
+DTO confirmado (tipos):
 
 ```text
 tripId, cooperativeId, routeSheetId, assignmentId, requiredServiceId,
@@ -146,9 +146,9 @@ Unitarias de identidad, proyección, elegibilidad y reloj; integración PostgreS
 
 Un commit lógico incluye código, pruebas y evidencia de su sección. Implementar no autoriza ejecutar commit/push/merge. La sección 0 no acredita que el contrato de Fleet/Bookings ya exista. No ampliar automáticamente a D-05 para suplir una decisión pendiente de series.
 
-## 10. Acuerdos confirmados y pendiente de sección 2
+## 10. Acuerdos y registro histórico de alternativas
 
-El 2 de noviembre el solicitante confirmó las recomendaciones de publicación nueva/atómica y copia comercial bajo la inmutabilidad actual de Fleet, y eligió «Vínculo explícito de serie y ciclos, sin renovación automática». Quedan confirmados Q1–Q4 en ese alcance por David; no son respuestas individuales de Leslie o Edwin ni revisión humana del código. La tabla conserva alternativas/recomendaciones históricas. Q5 conserva estado pendiente y no se modifica Bookings en sección 1.
+El 2 de noviembre el solicitante confirmó las recomendaciones de publicación nueva/atómica y copia comercial bajo la inmutabilidad actual de Fleet, y eligió «Vínculo explícito de serie y ciclos, sin renovación automática». Quedan confirmados Q1–Q4 en ese alcance por David; no son respuestas individuales de Leslie o Edwin ni revisión humana del código. La tabla conserva alternativas/recomendaciones históricas. Posteriormente David confirmó Q5 como consta en sección 14: API interna, sin GET ni cambios en Bookings.
 
 | ID / participantes | Pregunta concreta y alternativas | Recomendación / impacto |
 |---|---|---|
@@ -211,3 +211,27 @@ Lint y formato de todos los JS cambiados/nuevos aprobados; format:check global c
 Pendientes propios de esta tarea: Q5 y sección 2 (consultas comerciales/elegibilidad por embarque), no autorizar compra por disponer solo de un tripId. La conciliación de hojas históricas y la recuperación de borradores creados con una fecha incompatible necesitan tarea/alcance explícito; este incremento no añade edición de fecha ni eliminación de borradores. No se implementan reservas, búsqueda consolidada, pantallas, cobros o defectos inducidos.
 
 Mensaje sugerido: `feat(hojas-ruta): persiste los viajes de las hojas publicadas`. Sin commit, PR, revisión humana ni integración nueva ejecutados por el asistente.
+
+## 14. Sección 2 — consulta comercial por embarque
+
+Base local 2e3cdca en feature/ROUTE-SHEETS-07-viajes-comercializables, árbol inicialmente limpio. David confirmó Q5 y su alcance el 2 de noviembre de 2026: `tripQueries.findBookableById(tripId)` y `tripQueries.findBookableForSegment({ tripId, fromPosition, toPosition })`, DTO de sección 6, únicamente API interna. Las menciones anteriores a Q5 pendiente conservan contexto histórico; esta confirmación las resuelve sin atribuir aceptación individual a Leslie.
+
+La composición exporta ambas funciones. El UUID estable resuelve el catálogo comercial autorizado; todas las consultas posteriores de tablas propias filtran por la cooperativa derivada del viaje. No se aceptan tenant, bus, asientos, precios ni reloj del consumidor. El repositorio obtiene las relaciones, copias y serie en una transacción REPEATABLE READ READ ONLY, con rollback/liberación ante errores. Libera esa conexión antes de consultar APIs públicas de Fleet/Frecuencias para evitar agotar el pool con consultas paralelas. No consulta tablas privadas de otros módulos.
+
+Domain comprueba identidades, revisiones, ciclo consecutivo y pertenencia, recorrido fechado/ordenado, inventario ofrecido y matriz tarifaria completa. La respuesta congela objeto, recorrido, asientos y política, sin mutar fuentes. La consulta por par agrega `fromPosition`, `toPosition`, `boardingAt`, `currency: 'USD'`, `amountCents` y `policy`; el precio es la combinación explícita, nunca suma de tramos. Los porcentajes son puntos básicos enteros de la política congelada de D-02; no se calcula acreditación ni total final aquí.
+
+El reloj se toma después de consultar las fuentes actuales. La igualdad con la salida del embarque cierra ese par; haber salido del origen no cierra paradas posteriores, incluso al cruzar medianoche. La consulta general exige que quede algún embarque futuro y no autoriza por sí sola cualquier par. El horizonte se calcula exclusivamente con ciclos publicados de la serie persistida, conserva su referencia base y no se amplía por un borrador ni por hoy+2L. No se generan ciclos al leer.
+
+Ausencia del viaje, borrador, ausencia normal de frecuencia/bus, frecuencia inactiva, bus de otro grupo o embarque cerrado devuelven null. Puerto ausente, fuente malformada, copia inconsistente o reloj inválido generan error; errores técnicos de proveedores se propagan, sin convertirlos en ausencia. La ausencia normal de una entidad es distinta de carecer del proveedor de consulta. Los asientos y precios provienen siempre de copias congeladas; comprobar existencia/grupo del bus o estado actual de la frecuencia no reescribe esas copias.
+
+Esta lectura observa fuentes actuales sin bloquearlas junto a Reservas. No garantiza asiento libre ni reserva: Bookings debe conectar la consulta por par, comprobar ocupaciones RESERVED/SOLD y revalidar bajo su concurrencia. No se modifica Bookings, no hay GET público ni búsqueda consolidada, frontend, renovación automática, Wallet o Chofer. Sin nuevas migraciones/dependencias ni cambios a pruebas anteriores en esta sección.
+
+### Verificación de sección 2
+
+Comprobación final del código definitivo: **36 pruebas nuevas aprobadas (30 unitarias y 6 integraciones)**. Cubren precio independiente de tramos, política/inventario congelados, inmutabilidad del DTO, medianoche y cierre exacto, entradas ajenas al contrato, corrupción, ausencia y errores técnicos, reloj tras proveedores, arranque real, ausencia de GET, continuación explícita de serie, borradores sin ampliar horizonte, rollback/liberación de conexión y doce consultas paralelas con proveedores reales. Dos errores iniciales de preparación de la suite nueva (puerto opcional de Bookings y nombre de tabla de asientos) se corrigieron conservando sus comprobaciones.
+
+`npm test`: **1297 unitarias aprobadas; 370 integraciones aprobadas y una fallida** por timeout de 20 segundos en `fleet/bus-photo-storage.test.js`, caso «prepara y promueve todos los bytes sin conservar nombres ni rutas del cliente». Repetición aislada: 17 aprobadas y el mismo caso fallido. No se modifica esa prueba, su límite ni Fleet; la suite global no se declara verde. La comprobación final dirigida incorpora además el sexto caso nuevo de concurrencia, añadido después de iniciar la global; por eso no se suman estos conteos como una sola ejecución global.
+
+Lint aprobado; formato de todos los JS nuevos/cambiados aprobado; `format:check` global mantiene los 41 archivos previos pendientes, incluidas cuatro migraciones históricas intactas. Diff revisado y `git diff --check` aprobado. Sin `.env` leído. PostgreSQL aislado con credenciales ficticias versionadas, proyecto busesuta-trips-s2, retirado al terminar. Node local 22.19.0; sigue pendiente verificar Node 24. No constituye aprobación humana ni integración remota; no se ejecutan commit, push ni merge.
+
+Commit sugerido: `feat(hojas-ruta): consulta viajes y valida su comercialización`.

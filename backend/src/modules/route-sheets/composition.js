@@ -7,6 +7,8 @@ const saveProgrammingFactory = require('./application/use-cases/save-route-sheet
 const getProgrammingFactory = require('./application/use-cases/get-route-sheet-programming.use-case');
 const assertLegacyFactory = require('./application/use-cases/assert-legacy-programming-operation.use-case');
 const legacyProgrammingPool = require('./infrastructure/legacy-programming-pool');
+const createTripQueries = require('./application/create-trip-queries');
+const PgTripQueryRepository = require('./infrastructure/repositories/pg-commercial-trip-query-repository');
 
 const createRouteSheetUseCaseFactory = require('./application/use-cases/create-route-sheet.use-case');
 const getRouteSheetByDateAndGroupUseCaseFactory = require('./application/use-cases/get-route-sheet-by-date-and-group.use-case');
@@ -123,6 +125,11 @@ function createRouteSheetsModule({
   });
 
   return {
+    tripQueries: createTripQueries({
+      tripRepository: new PgTripQueryRepository(pool),
+      frequencyQueryPort,
+      busQueryPort,
+    }),
     tariffQueries: createTariffQueries({ tariffRepository }),
     router: createRouter({
       auth,
