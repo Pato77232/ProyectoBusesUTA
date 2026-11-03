@@ -4,8 +4,8 @@
 - **Ticket externo:** pendiente de elegir gestor después del 4 de noviembre de 2026
 - **Módulo:** `fleet`; lo consume `route-sheets` mediante `seatQueries.listByBus`
 - **Responsable:** Edwin
-- **Revisor propuesto / confirmado:** David propuesto, por ser dueño de la copia comercial de Route Sheets; sin confirmación registrada
-- **Estado:** Borrador; decisiones de la sección 10 pendientes de acuerdo con David
+- **Revisor propuesto / confirmado:** David; aceptó revisar el 3 de noviembre de 2026, según su mensaje reportado por Edwin
+- **Estado:** Decisiones acordadas con David; la implementación de T1 espera autorización de Edwin y la aprobación final queda para la revisión de David
 - **Prioridad y dependencias:** FLEET-06, FLEET-07 T1 y ROUTE-SHEETS-07 presentes en develop. La sustitución pertenece a D-05 de ROUTE-SHEETS-04.
 - **Rama / PR / base comprobada:** `feature/FLEET-09-configuracion-hojas`, creada desde `origin/develop` en `04868b2` el 3 de noviembre de 2026; sin PR.
 - **Autorización de alcance:** el 3 de noviembre de 2026 Edwin pidió acordar con David cómo una hoja conserva la configuración usada. Esta spec no autoriza implementar hasta cerrar la sección 10.
@@ -74,42 +74,42 @@ No aplica. `seatQueries.listByBus` conserva su contrato.
 
 ## 10. Preguntas abiertas
 
-Nada de esta sección está acordado con David.
+David respondió el 3 de noviembre de 2026; Edwin reportó su mensaje. Acordó las tres decisiones con las condiciones registradas en cada una. La aprobación final de la implementación queda para su revisión.
 
 ### Decisión 1: ¿cómo garantiza Fleet la inmutabilidad en esta entrega?
 
-- Estado: Propuesta
-- Fecha y participantes consultados: pendiente; Edwin y David
+- Estado: Decidida
+- Fecha y participantes consultados: 3 de noviembre de 2026; Edwin y David
 - Reglas, specs y contratos afectados: RN-12, ROUTE-SHEETS-07 §4.2, FLEET-02 y FLEET-06
 - Opciones y recomendación: (A) trigger en la base que rechace cambios y borrados de asientos; (B) solo documentar que Fleet no edita. Se recomienda A: convierte en garantía el supuesto del que depende la copia de David. Su costo es que las pruebas que hoy usan `UPDATE bus_seats SET offered = false` deberán preparar datos con `disabledSeatKeys` en el alta, cambio que necesita autorización de cada responsable.
-- Respuesta humana y evidencia de confirmación: pendiente
-- Decisión y justificación: pendiente
-- Responsable de aplicarla y revisor: Edwin; David propuesto
+- Respuesta humana y evidencia de confirmación: David aceptó proteger la configuración en la base y adaptar sus pruebas conservando su cobertura
+- Decisión y justificación: A, con tres condiciones de David para sus pruebas: (1) los asientos no ofrecidos se preparan con `disabledSeatKeys` en el alta; (2) las pruebas que simulan un cambio después de publicar conservan la comprobación de que la copia comercial no se recaptura, mediante un proveedor de prueba controlado; (3) se mantiene el caso de inventario vacío sin permitir registrar buses inválidos, porque el alta exige al menos un asiento ofrecido
+- Responsable de aplicarla y revisor: Edwin en Fleet; David adapta las pruebas de Route Sheets y revisa
 - Criterios de aceptación/pruebas que cambian: sección 7 y preparación de pruebas de Fleet y Route Sheets
 - Trabajo dependiente e independiente: depende T1
 - Decisión anterior que reemplaza, si aplica: ninguna
 
 ### Decisión 2: ¿cómo se hará una edición ordinaria futura?
 
-- Estado: Propuesta
-- Fecha y participantes consultados: pendiente; Edwin y David
+- Estado: Decidida como modelo futuro, fuera de la implementación actual
+- Fecha y participantes consultados: 3 de noviembre de 2026; Edwin y David
 - Reglas, specs y contratos afectados: RN-12 y ROUTE-SHEETS-07 §4.2
 - Opciones y recomendación: (A) versiones inmutables de configuración: editar crea una versión nueva, conserva el `seatId` de cada posición y `listByBus` informa la versión leída; (B) edición en el lugar dentro de una sesión transaccional pública compartida con la publicación. Se recomienda A: no exige coordinar transacciones entre módulos y la próxima publicación captura la versión vigente. Solo se acuerda el modelo; se implementará cuando exista una necesidad de edición.
-- Respuesta humana y evidencia de confirmación: pendiente
-- Decisión y justificación: pendiente
-- Responsable de aplicarla y revisor: Edwin; David propuesto
+- Respuesta humana y evidencia de confirmación: David aceptó el versionado inmutable como propuesta futura documentada
+- Decisión y justificación: A, sin implementar ahora. Conserva los `seatId` de los mismos asientos del bus, la publicación captura la versión vigente y las copias ya publicadas se conservan
+- Responsable de aplicarla y revisor: Edwin; David
 - Criterios de aceptación/pruebas que cambian: ninguno en T1
 - Trabajo dependiente e independiente: no bloquea T1
 - Decisión anterior que reemplaza, si aplica: ninguna
 
 ### Decisión 3: ¿qué aporta Fleet a la sustitución excepcional?
 
-- Estado: Propuesta
-- Fecha y participantes consultados: pendiente; Edwin, David y Leslie
+- Estado: Decidida entre Edwin y David; falta Leslie para los asientos comprometidos
+- Fecha y participantes consultados: 3 de noviembre de 2026; Edwin y David. Leslie, pendiente
 - Reglas, specs y contratos afectados: acuerdos §3.6 y D-05 de ROUTE-SHEETS-04
 - Opciones y recomendación: Fleet no modifica ningún bus al sustituir. Route Sheets registra la excepción y lee el inventario del bus nuevo con `listByBus` para comprobar compatibilidad por `layoutSeatKey`, `label` y `category`; Reservas aporta los asientos comprometidos por su API pública. Si un asiento no tiene correspondencia, no se completa automáticamente.
-- Respuesta humana y evidencia de confirmación: pendiente
-- Decisión y justificación: pendiente
+- Respuesta humana y evidencia de confirmación: David aceptó la separación para D-05
+- Decisión y justificación: Route Sheets registra la sustitución y consulta Fleet por su API pública. La comparación por `layoutSeatKey`, `label` y `category` valida compatibilidad entre ambos buses sin asumir que comparten `seatId`. Si la consulta de asientos comprometidos falta o falla, no se asume que no hay reservas. El contrato de esa consulta sigue pendiente con Leslie
 - Responsable de aplicarla y revisor: David; Edwin como consultado
 - Criterios de aceptación/pruebas que cambian: ninguno en Fleet
 - Trabajo dependiente e independiente: D-05 depende; T1 no
@@ -129,10 +129,10 @@ No aplica.
 
 | Paso | Resultado comprobable | Archivos compartidos |
 |---|---|---|
-| T1: inmutabilidad en la base | Migración con trigger y pruebas de rechazo, si se elige la opción A de la decisión 1 | Preparación de pruebas de Fleet y Route Sheets que hoy actualizan `bus_seats` |
+| T1: inmutabilidad en la base | Migración con trigger y pruebas de rechazo | Preparación de pruebas de Fleet y Route Sheets que hoy actualizan `bus_seats`; las de Route Sheets las adapta David con sus condiciones |
 
 **Evidencias:** pendientes; no hay implementación.
 
 ## 14. Revisión y cierre
 
-Pendientes. Próxima acción: consultar a David las decisiones de la sección 10.
+Pendientes. Próxima acción: compartir la rama con David para su revisión, autorizar T1 y confirmar con Leslie el contrato de asientos comprometidos para D-05.
