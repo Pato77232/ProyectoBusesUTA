@@ -177,12 +177,26 @@ test('404 de grupo recarga la lista de grupos y lo indica', async () => {
   assert.match(last(events, 'status')[1], /grupo elegido ya no está disponible/);
 });
 
-test('una respuesta 201 sin los datos esperados no se confirma como éxito', async () => {
-  const { controller, events } = fixture({ 'POST /api/v1/buses': () => ({ bus: { plate: 'X' } }) });
-  await controller.submit(DATA, PHOTOS);
-  assert.equal(last(events, 'registered'), undefined);
-  assert.match(last(events, 'status')[1], /No se aceptó el registro/);
-});
+for (const [name, reply] of [
+  ['sin los datos esperados', () => ({ bus: { plate: 'X' } })],
+  ['sin cuerpo', () => null],
+  [
+    'no válida',
+    () => {
+      throw failure(201, 'RESPONSE_INVALID');
+    },
+  ],
+]) {
+  test(`una respuesta exitosa ${name} indica resultado incierto y no reintenta`, async () => {
+    const { controller, calls, events } = fixture({ 'POST /api/v1/buses': reply });
+    await controller.submit(DATA, PHOTOS);
+    assert.equal(last(events, 'registered'), undefined);
+    assert.match(last(events, 'status')[1], /No pudimos confirmar si el bus se registró/);
+    assert.doesNotMatch(last(events, 'status')[1], /No se aceptó/);
+    assert.equal(calls.filter((call) => call.key === 'POST /api/v1/buses').length, 1);
+    assert.deepEqual(last(events, 'busy'), ['busy', false]);
+  });
+}
 
 test('si la sesión cambia de cooperativa antes de enviar, no envía', async () => {
   let user = ADMIN;

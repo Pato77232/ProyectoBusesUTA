@@ -5,6 +5,7 @@ const SEAT_LAYOUTS = '/api/v1/seat-layouts';
 const BUSES = '/api/v1/buses';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const UNCERTAIN_STATUSES = [502, 503, 504];
+const UNCERTAIN_CODES = ['NETWORK_ERROR', 'RESPONSE_INVALID'];
 
 const REJECTIONS = {
   VALIDATION_ERROR: 'Revisa los datos y las fotografías. El servidor no pudo aceptarlos.',
@@ -96,7 +97,7 @@ export function createBusController({ client, view }) {
     if (error?.status === 401 || (error?.status === 403 && error.code !== 'CSRF_TOKEN_INVALID'))
       return accessError(error);
     if (error?.status === 404) return reloadGroups();
-    if (UNCERTAIN_STATUSES.includes(error?.status) || error?.code === 'NETWORK_ERROR')
+    if (UNCERTAIN_STATUSES.includes(error?.status) || UNCERTAIN_CODES.includes(error?.code))
       return view.status(UNCERTAIN, 'error');
     view.status(
       REJECTIONS[error?.code] ??
@@ -112,12 +113,13 @@ export function createBusController({ client, view }) {
     view.status('Registrando el bus y subiendo las fotografías…', 'info');
     try {
       if (!(await verifySession())) return;
-      const { bus } = await client.request(BUSES, {
+      const response = await client.request(BUSES, {
         method: 'POST',
         formData: busFormData(data, files),
       });
-      if (!isRegisteredBus(bus)) throw new Error('Respuesta de alta no verificable.');
-      view.registered(bus);
+      // Un éxito sin los datos esperados no prueba ni el alta ni el rechazo.
+      if (isRegisteredBus(response?.bus)) view.registered(response.bus);
+      else view.status(UNCERTAIN, 'error');
     } catch (error) {
       rejected(error);
     } finally {

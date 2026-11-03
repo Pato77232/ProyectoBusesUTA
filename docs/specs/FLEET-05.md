@@ -259,7 +259,7 @@ Edwin pidió conectar el registro antes del listado. Rama `feature/FLEET-05-T3-r
 
 **Implementación:**
 
-- `src/fleet/bus-controller.js`: verifica con `/api/v1/auth/me` que la sesión sea `COOPERATIVE_ADMIN`, carga grupos y plantillas, revalida la sesión antes de enviar y manda `data` y `photos` como multipart por el cliente común. La cooperativa sale de la sesión, nunca del formulario. Una respuesta 201 sin `id`, `plate`, `unitNumber` y `capacity` válidos no se confirma.
+- `src/fleet/bus-controller.js`: verifica con `/api/v1/auth/me` que la sesión sea `COOPERATIVE_ADMIN`, carga grupos y plantillas, revalida la sesión antes de enviar y manda `data` y `photos` como multipart por el cliente común. La cooperativa sale de la sesión, nunca del formulario. Una respuesta 201 sin `id`, `plate`, `unitNumber` y `capacity` válidos no se confirma: se trata como resultado incierto (ver corrección del hallazgo).
 - Errores según la sección 8: 409, 400, 413, 415 y CSRF vencido conservan el formulario con su mensaje; 404 recarga la lista de grupos; 401 muestra el enlace al login; 403 bloquea; 502, 503, 504 y fallo de red muestran el aviso de resultado incierto acordado con Pablo, sin reintento automático.
 - `bus-form-view.js` agrega `createBusFormView` (estados ocupado, bloqueado, sin sesión y registrado). `bus-page.js` es el punto de entrada. La página arranca con «Comprobando tu sesión…» y, tras el alta, ofrece «Registrar otro bus» junto al mensaje.
 
@@ -283,3 +283,11 @@ Repetición real: **225/225 pruebas frontend** de las suites actuales, `npm run 
 Formato HTML/JS del incremento aprobado con configuración backend; `app.css` advierte formato, y la copia de esa hoja anterior a T3 también falla el mismo check. No se declara formato global aprobado ni se reformatea la hoja compartida. `git diff --check` aprobado. No se repitió `container-smoke.cjs`; su fallo previo de portada permanece documentado.
 
 Hallazgo pendiente antes de integrar: una respuesta exitosa incompleta o `RESPONSE_INVALID` no permite concluir que el alta fue rechazada. Actualmente cae en «No se aceptó el registro»; debe conservarse como resultado incierto y pedir comprobar existencia antes de reenviar, igual que los demás resultados ambiguos, sin reintento automático. Se mantiene este punto explícito en el borrador, sin cambiar producto ni pruebas durante la evaluación. La revisión/publicación fue asistida por Codex; falta revisión humana de Pablo.
+
+### Corrección del hallazgo de publicación, 3 de noviembre
+
+Edwin pidió resolver el hallazgo anterior. Una respuesta exitosa sin `bus` verificable, sin cuerpo o con `RESPONSE_INVALID` ya no muestra «No se aceptó el registro»: muestra el aviso de resultado incierto, conserva datos y fotos, libera el formulario y no reintenta, igual que 502, 503, 504 y fallo de red. Solo cambió `src/fleet/bus-controller.js`.
+
+La prueba unitaria que fijaba el mensaje de rechazo para ese caso describía el comportamiento que el hallazgo declaró incorrecto; se reemplazó por tres casos (datos incompletos, sin cuerpo y `RESPONSE_INVALID`) que exigen el aviso incierto, un único envío y el formulario liberado. No se debilitó ninguna otra aserción.
+
+Evidencia en Windows: 227 de 227 pruebas frontend (20 del controlador); ESLint y Prettier correctos en los dos archivos tocados. No se repitieron las comprobaciones con Chrome, porque no cubren este caso ni cambió la página. Falta revisión humana de Pablo.
