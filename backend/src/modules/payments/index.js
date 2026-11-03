@@ -71,4 +71,8 @@ function createPaymentReceiptModule({ pool, createPaymentProofReceiver } = {}) {
   });
 }
 
-module.exports = { createPaymentsModule, createPaymentReceiptModule };
+module.exports = {
+  createPaymentsModule,
+  createPaymentReceiptModule,
+  createBookingPaymentProofNotifier: require('./infrastructure/create-booking-payment-proof-notifier'),
+};

@@ -6,34 +6,40 @@ const {
 
 const RECEIPT_FIELDS = Object.freeze(['bookingId', 'cooperativeId', 'paymentProofId']);
 function receiptRequest(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input))
+    throw new PaymentProofValidationError();
+  const copy = { ...input };
   if (
-    !input ||
-    typeof input !== 'object' ||
-    Array.isArray(input) ||
-    Object.keys(input).length !== RECEIPT_FIELDS.length ||
-    Object.keys(input).some((key) => !RECEIPT_FIELDS.includes(key)) ||
-    RECEIPT_FIELDS.some((key) => typeof input[key] !== 'string' || !input[key].trim())
+    Object.keys(copy).length !== RECEIPT_FIELDS.length ||
+    Object.keys(copy).some((key) => !RECEIPT_FIELDS.includes(key)) ||
+    RECEIPT_FIELDS.some((key) => typeof copy[key] !== 'string' || !copy[key].trim())
   )
     throw new PaymentProofValidationError();
-  return Object.freeze(Object.fromEntries(RECEIPT_FIELDS.map((key) => [key, input[key]])));
+  return Object.freeze(Object.fromEntries(RECEIPT_FIELDS.map((key) => [key, copy[key]])));
 }
-function acknowledgeReceipt(result, request) {
-  const timeKey = result?.outcome === 'ACCEPTED' ? 'acceptedAt' : 'rejectedAt';
-  const time = typeof result?.[timeKey] === 'string' ? new Date(result[timeKey]) : null;
+function receiptResult(result, request) {
+  if (!result || typeof result !== 'object' || Array.isArray(result))
+    throw new BookingNotificationUncertainError();
+  const copy = { ...result };
+  const timeKey = copy.outcome === 'ACCEPTED' ? 'acceptedAt' : 'rejectedAt';
+  const value = copy[timeKey];
+  const time = typeof value === 'string' ? new Date(value) : null;
   const allowed = [...RECEIPT_FIELDS, 'outcome', timeKey];
   if (
-    !result ||
-    typeof result !== 'object' ||
-    Array.isArray(result) ||
-    !['ACCEPTED', 'REJECTED_EXPIRED'].includes(result.outcome) ||
-    Object.keys(result).length !== allowed.length ||
-    Object.keys(result).some((key) => !allowed.includes(key)) ||
-    RECEIPT_FIELDS.some((key) => result[key] !== request[key]) ||
+    !['ACCEPTED', 'REJECTED_EXPIRED'].includes(copy.outcome) ||
+    Object.keys(copy).length !== allowed.length ||
+    Object.keys(copy).some((key) => !allowed.includes(key)) ||
+    RECEIPT_FIELDS.some((key) => copy[key] !== request[key]) ||
     !time ||
     !Number.isFinite(time.getTime()) ||
-    time.toISOString() !== result[timeKey]
+    time.toISOString() !== value
   )
     throw new BookingNotificationUncertainError();
-  if (result.outcome === 'REJECTED_EXPIRED') throw new PaymentProofUploadDeadlineExpiredError();
+  return Object.freeze(copy);
 }
-module.exports = { receiptRequest, acknowledgeReceipt };
+function acknowledgeReceipt(result, request) {
+  const copy = receiptResult(result, request);
+  if (copy.outcome === 'REJECTED_EXPIRED') throw new PaymentProofUploadDeadlineExpiredError();
+  return copy;
+}
+module.exports = { receiptRequest, receiptResult, acknowledgeReceipt };

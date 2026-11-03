@@ -553,3 +553,32 @@ PR #51 abierta y Ready for review; se verificaron aprobaciones anteriores de Pab
 Backend: lint y 2173 pruebas globales aprobadas (1658 unitarias + 515 integraciones, 125 suites), con arranque real; catálogo ampliado posterior 14/14 dirigido. Frontend lint y 205 pruebas, Nginx y ocho grupos Chrome aprobados. Formato propio aprobado; global mantiene 17 archivos ajenos. Fotografías sin cambios y aprobadas; bases/contenedores/redes propios retirados.
 
 Diff de la nueva PR limitado a recepción/expiración. C sigue pendiente (fuente real de Payments, autorización inicial y compensación segura); D sigue pendiente (planificador/recuperación). No se declara compra comercial completa, revisión humana ni integración de B.
+
+
+## Leslie: adaptador seguro de aviso de Payments — 3 de noviembre de 2026
+
+| Spec / área | Estado comprobado | Evidencia y límite |
+| --- | --- | --- |
+| BOOK-06-L04-T2 / PR #60 | Integrada en develop b4fe717 a las 19:07:02Z, comprobado por GitHub | Recepción/expiración internas integradas; C y D conservan sus pendientes. |
+| BOOK-06-L04-T3, C1 | Implementado/probado localmente en feature/BOOK-06-adaptador-aviso-pagos desde b4fe717, sin commit/push/PR ni revisión humana | [Spec](specs/BOOK-06-L04-T3.md), [evidencia](evidence/BOOK-06-L04-T3/2026-11-03-adaptador-aviso.md). Adaptador público de resultados de Bookings para Payments, sin activar servidor/rutas. |
+
+PR #55 ca63a36 y #56 15218ae de Shirley siguen abiertas, comprobadas directamente; no se duplica su lector ni su prueba. C1 preserva ACCEPTED y solo convierte REJECTED_EXPIRED vinculado en el error existente de plazo. Fallos, clases genéricas de rechazo, vínculos distintos y resultados inválidos conservan incertidumbre sin autorizar borrado.
+
+Primera global: 1688 unitarias + 521 integraciones = 2209 aprobadas, 127 suites, con arranque real. Repetición final tras captura única: todas las unitarias 1689/1689 y cinco integraciones propias 5/5. Casos nuevos: 31 unitarias + cinco integraciones. Lint y formato propio aprobados; global conserva 17 archivos ajenos. Fotografías aprobadas sin cambios; PostgreSQL/red exclusivos retirados.
+
+Fuente QA persistida en pruebas; no procedencia Auth de la carga ni conexión productiva. C2 (fuente pública de Payments y autorización inicial), C3 (composición real y compensación), D (planificador), venta/rechazo/correcciones/caja/invitado siguen separados. Sin nuevas dependencias o migraciones ni pruebas debilitadas. Commit/publicación y revisión humana pendientes; no se marca C1 integrada.
+
+Leslie autoriza posteriormente guardar y publicar C1 de BOOK-06-L04-T3 en feature/BOOK-06-adaptador-aviso-pagos. La autorización no incluye integrar la PR ni activar la conexión productiva.
+
+
+## Leslie: conciliación de PR #62 con el puente integrado — 3 de noviembre de 2026
+
+| Spec / área | Estado comprobado | Evidencia y límite |
+| --- | --- | --- |
+| BOOK-06-L04-T3 / PR #62 | Tres conflictos resueltos en feature/BOOK-06-adaptador-aviso-pagos, combinando 4030709 con develop 61fd65a | [Spec](specs/BOOK-06-L04-T3.md), [evidencia](evidence/BOOK-06-L04-T3/2026-11-03-conciliacion-pr62.md). Un puente compartido, ambos contratos conservados; revisión humana pendiente, sin integrar PR. |
+
+Develop ya incorpora la fuente persistida/createPaymentReceiptModule de Shirley (9131787); la conciliación los conserva y reutiliza. Fábrica de Leslie como fachada, captura inmutable y clasificación segura. Ambas suites originales conservadas byte a byte; siete regresiones adicionales. Sin cambios de fuente SQL, migraciones, rutas, servidor, dependencias o frontend.
+
+Pruebas propias dirigidas: 66 unitarias y 14 integraciones aprobadas. Global: 1724 unitarias aprobadas y 529/530 integraciones; fallo de Fleet por timeout original de 20000 ms en fotografías. Repetición aislada: 17/18, mismo fallo. No declarar suite global aprobada. Lint/formato propio aprobados; global mantiene 17 ajenos. Arranque real aprobado; contenedor/red temporales retirados.
+
+La fuente persistida está preparada, pero la autorización HTTP de carga, procedencia histórica, activación productiva y planificador conservan sus pendientes. Revisión del commit de conciliación y evaluación del fallo de Fleet necesarias antes de integrar.

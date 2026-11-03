@@ -1,22 +1,39 @@
-const { receiptRequest, acknowledgeReceipt } = require('../domain/booking-proof-receipt');
-const { BookingNotificationUncertainError } = require('../domain/payment-proof-error');
+const {
+  receiptRequest,
+  receiptResult,
+  acknowledgeReceipt,
+} = require('../domain/booking-proof-receipt');
+const {
+  PaymentProofValidationError,
+  BookingNotificationUncertainError,
+} = require('../domain/payment-proof-error');
 
 class BookingsPaymentProofNotifier {
   constructor({ receiver }) {
     if (typeof receiver?.markPaymentProofReceived !== 'function')
       throw new TypeError('Se requiere el receptor público de Reservas.');
-    this.receiver = receiver;
+    this.receive = receiver.markPaymentProofReceived.bind(receiver);
   }
-  async markPaymentProofReceived(input) {
-    const target = receiptRequest(input);
-    let result;
+  async receiveAcknowledgement(input) {
+    let target;
     try {
-      result = await this.receiver.markPaymentProofReceived(target);
-    } catch {
-      // Ninguna excepción del proveedor certifica un rechazo con COMMIT conocido.
+      target = receiptRequest(input);
+    } catch (error) {
+      if (error instanceof PaymentProofValidationError) throw error;
       throw new BookingNotificationUncertainError();
     }
-    acknowledgeReceipt(result, target);
+    let result;
+    try {
+      result = receiptResult(await this.receive(target), target);
+    } catch {
+      // Leer el payload o invocar al proveedor no certifica un rechazo durable.
+      throw new BookingNotificationUncertainError();
+    }
+    // Solo el resultado ya capturado y validado puede autorizar compensación.
+    return acknowledgeReceipt(result, target);
+  }
+  async markPaymentProofReceived(input) {
+    await this.receiveAcknowledgement(input);
   }
 }
 module.exports = BookingsPaymentProofNotifier;
