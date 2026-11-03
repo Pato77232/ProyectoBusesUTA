@@ -218,3 +218,16 @@ test.each([
     pg.findPaymentRecord({ bookingId: 'x', purpose: 'UPLOAD_PROOF', userId: 'cliente' }),
   ).rejects.toMatchObject({ code: expected });
 });
+
+test('reserva expirada conserva lectura autorizada con carga deshabilitada', async () => {
+  const { paymentBooking } = require('../../../src/modules/bookings/domain/payment-booking');
+  const { row, query, customer } = require('./helpers/payment-booking-fixtures');
+  const { paymentReadRequest } = require('../../../src/modules/bookings/domain/payment-booking');
+  const response = paymentBooking(
+    row({ status: 'EXPIRED' }),
+    paymentReadRequest(query(), customer()),
+    new Date('2026-11-02T14:06:00Z'),
+  );
+  expect(response.status).toBe('EXPIRED');
+  expect(response.canUploadProof).toBe(false);
+});

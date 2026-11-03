@@ -1,3 +1,6 @@
+const PgBookingLifecycleRepository = require('./infrastructure/pg-booking-lifecycle.repository');
+const receivePaymentProof = require('./application/receive-payment-proof.use-case');
+const expireBooking = require('./application/expire-booking.use-case');
 const { randomUUID } = require('node:crypto');
 const PgBookingRepository = require('./infrastructure/pg-booking.repository');
 const createVerifiedCustomerIdentity = require('./infrastructure/verified-customer-identity');
@@ -51,7 +54,18 @@ function createBookingsModule({
     buyerIdentity: createVerifiedCustomerIdentity(),
     ...readBookingConfig(env),
   };
+  const lifecycle = new PgBookingLifecycleRepository({ pool });
   return {
+    createPaymentProofReceiver({ receiptSource } = {}) {
+      return Object.freeze({
+        markPaymentProofReceived: receivePaymentProof({
+          repository: lifecycle,
+          receiptSource,
+          clock,
+        }),
+      });
+    },
+    maintenance: Object.freeze({ expireBooking: expireBooking({ repository: lifecycle, clock }) }),
     paymentQueries: Object.freeze({ findForPayment: findForPayment({ repository, clock }) }),
     router: createRouter({
       auth,

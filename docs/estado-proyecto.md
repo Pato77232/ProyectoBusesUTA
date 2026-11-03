@@ -488,6 +488,30 @@ Rama feature/BOOK-03-resumen-creacion-dominio desde 4e252c1, incorporando develo
 Código de Auth/Fleet y migraciones de ambas partes conservados, sin adaptar incidentalmente cotización o proveedores de compra. Resolución para revisión de Pablo/Shirley, sin autoaprobación ni merge hacia develop. Los registros anteriores mantienen su alcance histórico.
 
 
+## Leslie: revisión humana y siguiente incremento — 3 de noviembre de 2026
+
+GitHub comprobado: PR #51 abierta, fuera de borrador y sin integrar, f0a9c2f; PabloToapanta APPROVED el 3 de noviembre, Shirley solicitada. No se marca integrada/cerrada ni se modifica esa rama publicada. Origin/develop 517473d contiene documentación nueva de Fleet; PR #55/#56 de lectura de Pagos y #59 de Fleet siguen abiertas.
+
+Preparación local separada: feature/BOOK-06-recepcion-expiracion desde f0a9c2f, sin publicar. BOOK-06-L04-T2 continúa en borrador de contrato. [Propuesta concreta](contratos/recepcion-reservas-pagos-propuesta.md): puerto interno ligado a consulta persistida de Payments, outcomes recuperables y compensación restringida, compatibilidad de EXPIRED y matriz de carreras/fallos. Tres decisiones compartidas pendientes; no se implementan comandos por la aprobación del lector.
+
+Se detectan dos adaptaciones necesarias del consumidor actual: no marcar entregado cualquier resultado resuelto y no borrar evidencia por errores de vínculo/fuente/timeout. No se modifica el código de Shirley. Cambios únicamente Markdown; validación documental propia, sin nuevas pruebas funcionales ni resultados reutilizados como integración de este borrador. Sin commits, push, merge de PR, tags, dependencias o lectura de secretos.
+
+
+## Leslie: recepción y expiración locales — 3 de noviembre de 2026
+
+| Spec / área | Estado comprobado | Evidencia y límite |
+| --- | --- | --- |
+| BOOK-06-L04-T2, incremento B | Implementado y probado localmente en feature/BOOK-06-recepcion-expiracion desde f0a9c2f; sin commit/publicación ni revisión humana | [Spec](specs/BOOK-06-L04-T2.md), [evidencia](evidence/BOOK-06-L04-T2/2026-11-03-recepcion-expiracion.md). Primera recepción y expiración serializadas, resultado durable, rollback y recuperación tras respuesta perdida. Fuente externa QA persistida, no conexión productiva con Payments. |
+
+Leslie delegó escoger el diseño y continuar; no se inventa aprobación individual de Shirley/Pablo. Esta actualización sustituye el estado de preparación solo documental anterior. Origin/develop contrastado en 1a411ef, sin incorporación; PR #51 y su rama publicada no cambian.
+
+npm test completo: 1657 unitarias y 514 integraciones aprobadas (2171, 124 suites), con arranque real. Caso posterior adicional de dos expiradores simultáneos + catálogo: 38/38 dirigidas. Lint y formato propio aprobados; formato global mantiene 17 archivos ajenos. Frontend lint y 181 pruebas aprobados. Fotografías pasó sin ampliar timeout ni cambiar expectativas. Contenedor/red exclusivos retirados, sin tocar servicios ajenos.
+
+Compatibilidad de lectura EXPIRED con carga deshabilitada implementada en lector y adaptador preparado. C sigue pendiente: fuente pública real de Payments, autorización inicial UPLOAD_PROOF y adaptador que interprete outcomes/compensación. D sigue pendiente: planificador y recuperación de candidatos. Venta, rechazo, correcciones, caja e invitado separados. Este resultado no certifica compra completa ni integración.
+
+Leslie autoriza posteriormente el commit y push de BOOK-06-L04-T2 en su rama feature/BOOK-06-recepcion-expiracion. La autorización no incluye merge ni acredita revisión humana de este incremento.
+
+
 ## Leslie: corrección de conflicto de PR #51 con Pagos Web — 3 de noviembre de 2026
 
 | Spec / área | Estado comprobado | Evidencia y límite |
@@ -497,3 +521,17 @@ Código de Auth/Fleet y migraciones de ambas partes conservados, sin adaptar inc
 Backend: lint y 2108 pruebas aprobados (1615 unitarias + 493 integraciones, 123 suites), con arranque real. Frontend: lint y 205 pruebas aprobados; Nginx con recursos de ambas pantallas y ocho grupos Chrome de Reservas aprobados. Formato propio aprobado; global mantiene 17 archivos ajenos. Fotografías sin cambios y aprobadas. Recursos QA exclusivos retirados.
 
 PR #51 abierta y Ready for review; se verificaron aprobaciones anteriores de Pablo y Shirley, sin atribuirlas al commit de resolución. La rama feature/BOOK-06-recepcion-expiracion continúa intacta en 4233811. Conexión productiva de Pagos y comandos nuevos siguen separados; no se declara compra completa ni cierre.
+
+
+## Leslie: BOOK-06-L04-T2 actualizado con develop — 3 de noviembre de 2026
+
+| Spec / área | Estado comprobado | Evidencia y límite |
+| --- | --- | --- |
+| BOOK-07-L05-T1 / PR #51 | Integrada por Leslie en develop mediante 5a40702, 17:48:31Z, comprobado en GitHub | Los registros anteriores conservan su alcance histórico. No implica aprobación del incremento B de recepción. |
+| BOOK-06-L04-T2, incremento B | Publicado inicialmente en 4233811; combinación con develop 5a40702 resuelta y probada, publicación autorizada para preparar PR | [Spec](specs/BOOK-06-L04-T2.md), [evidencia](evidence/BOOK-06-L04-T2/2026-11-03-actualizacion-develop.md), [descripción](evidence/BOOK-06-L04-T2/descripcion-pr.md). Sin PR nueva ni revisión humana acreditadas. |
+
+Único conflicto en este registro, conservando ambas evidencias. Catálogo de 20 entradas; originales y código productivo de B intactos. Regresión nueva de actualización desde las 19 migraciones integradas con reservas/plazos/ocupaciones conservados.
+
+Backend: lint y 2173 pruebas globales aprobadas (1658 unitarias + 515 integraciones, 125 suites), con arranque real; catálogo ampliado posterior 14/14 dirigido. Frontend lint y 205 pruebas, Nginx y ocho grupos Chrome aprobados. Formato propio aprobado; global mantiene 17 archivos ajenos. Fotografías sin cambios y aprobadas; bases/contenedores/redes propios retirados.
+
+Diff de la nueva PR limitado a recepción/expiración. C sigue pendiente (fuente real de Payments, autorización inicial y compensación segura); D sigue pendiente (planificador/recuperación). No se declara compra comercial completa, revisión humana ni integración de B.

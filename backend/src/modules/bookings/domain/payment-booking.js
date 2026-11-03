@@ -76,7 +76,7 @@ function paymentBooking(row, request, now) {
   if (
     row.currency !== 'USD' ||
     cents(row.summary_total) !== total ||
-    row.status !== 'PENDING_PAYMENT'
+    !['PENDING_PAYMENT', 'EXPIRED'].includes(row.status)
   )
     integrity();
   const created = timestamp(row.created_at);
@@ -98,6 +98,7 @@ function paymentBooking(row, request, now) {
     const accepted = timestamp(row.proof_received_at);
     if (accepted < start || accepted >= deadline) integrity();
   } else integrity();
+  if (row.status === 'EXPIRED' && !absent) integrity();
   if (!(now instanceof Date) || !Number.isFinite(now.getTime()))
     throw new BookingPaymentQueryError();
   return Object.freeze({
@@ -111,7 +112,7 @@ function paymentBooking(row, request, now) {
     proofWindowSeconds: row.proof_window_seconds,
     expiresAt: new Date(deadline).toISOString(),
     evaluatedAt: now.toISOString(),
-    canUploadProof: absent && now.getTime() < deadline,
+    canUploadProof: row.status === 'PENDING_PAYMENT' && absent && now.getTime() < deadline,
     ...(request.purpose === 'UPLOAD_PROOF' ? { ownerId: row.owner_id } : {}),
   });
 }
