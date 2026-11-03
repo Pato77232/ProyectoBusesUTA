@@ -200,8 +200,17 @@ test('asientos congelados sobreviven cambios de fuente; frecuencia inactiva impi
   const tripId = await publishedTrip();
   const queries = publicQueries();
   const original = await queries.findBookableById(tripId);
-  await pool.query('UPDATE bus_seats SET offered=false WHERE bus_id=$1', [bus.id]);
-  expect((await queries.findBookableById(tripId)).seatIds).toEqual(original.seatIds);
+  const source = await seatQueries.listByBus({ busId: bus.id, cooperativeId: owner.cooperativeId });
+  const changedSource = jest.spyOn(seatQueries, 'listByBus').mockResolvedValue({
+    ...source,
+    seats: source.seats.map((seat) => ({ ...seat, offered: false })),
+  });
+  try {
+    expect((await queries.findBookableById(tripId)).seatIds).toEqual(original.seatIds);
+    expect(changedSource).not.toHaveBeenCalled();
+  } finally {
+    changedSource.mockRestore();
+  }
   await pool.query("UPDATE frequencies SET status='INACTIVE' WHERE id=$1", [f.frequencies[0].id]);
   expect(await queries.findBookableById(tripId)).toBeNull();
 });

@@ -1,4 +1,8 @@
 const http = require('node:http');
+jest.mock('../../../src/modules/fleet', () => {
+  const actual = jest.requireActual('../../../src/modules/fleet');
+  return { ...actual, createFleetModule: jest.fn(actual.createFleetModule) };
+});
 const { randomUUID } = require('node:crypto');
 const { start } = require('../../../src/server');
 const { createHasher } = require('../../../src/modules/auth/infrastructure/password-hasher');
@@ -8,6 +12,7 @@ const PgBusRepository = require('../../../src/modules/fleet/infrastructure/pg-bu
 const PgTariffRepository = require('../../../src/modules/route-sheets/infrastructure/repositories/pg-route-sheet-tariff-repository');
 const publishFactory = require('../../../src/modules/route-sheets/application/use-cases/publish-route-sheet.use-case');
 const { runMigration } = require('../../helpers/database');
+const { rollbackBefore } = require('../../helpers/migration-target');
 const { assertTestDatabase } = require('../../../scripts/test-database');
 const { fleetFixtures, busRequest } = require('../../helpers/fleet-bus');
 const makeFixture = require('../../helpers/route-programming');
@@ -110,14 +115,15 @@ beforeAll(async () => {
     PORT: String(await freePort()),
   });
   pool = running.pool;
+  seatQueries = createFleetModule.mock.results.at(-1).value.seatQueries;
   server = running.server;
   url = `http://127.0.0.1:${server.address().port}`;
   const fleet = createFleetModule({ pool, auth, env: { NODE_ENV: 'test' } });
-  seatQueries = fleet.seatQueries;
   busQueries = fleet.busQueries;
   frequencyQueries = createFrequenciesModule({ pool, auth }).frequencyQueries;
 });
 beforeEach(async () => {
+  jest.restoreAllMocks();
   assertTestDatabase();
   await pool.query('TRUNCATE cooperatives,users,auth_sessions CASCADE');
   const owners = await fleetFixtures(pool);
@@ -189,8 +195,11 @@ test('reintentos simultáneos conservan identidad, actor, fecha y copia sin reca
   expect(second.commercial).toEqual(first.commercial);
   const previous = await sheetRow();
   const before = (await pool.query('SELECT * FROM route_sheet_commercial_inventories')).rows[0];
-  // Inyección de cambio de fuente solo en la base aislada; Fleet aún no ofrece edición.
-  await pool.query('UPDATE bus_seats SET offered=false WHERE bus_id=$1', [bus.id]);
+  const source = await seatQueries.listByBus({ busId: bus.id, cooperativeId: owner.cooperativeId });
+  const changedSource = jest.spyOn(seatQueries, 'listByBus').mockResolvedValue({
+    ...source,
+    seats: source.seats.map((seat) => ({ ...seat, offered: false })),
+  });
   await pool.query("UPDATE frequencies SET status='INACTIVE' WHERE cooperative_id=$1", [
     owner.cooperativeId,
   ]);
@@ -198,13 +207,30 @@ test('reintentos simultáneos conservan identidad, actor, fecha y copia sin reca
   expect(replay.status).toBe(200);
   expect((await replay.json()).routeSheet.commercial).toEqual(first.commercial);
   expect((await sheetRow()).published_at).toEqual(previous.published_at);
+  expect(changedSource).not.toHaveBeenCalled();
   expect((await pool.query('SELECT * FROM route_sheet_commercial_inventories')).rows[0]).toEqual(
     before,
   );
 });
 
-test('captura únicamente asientos ofrecidos y falla si no se ofrece ninguno', async () => {
-  await pool.query('UPDATE bus_seats SET offered=false WHERE bus_id=$1 AND label=1', [bus.id]);
+test('captura únicamente asientos ofrecidos', async () => {
+  const input = busRequest({ ...owner, data: { plate: 'TBC0026', vin: 'VIN0026', unitNumber: 2 } });
+  const disabled = input.configuration.seats.find((seat) => seat.label === 1);
+  bus = await new PgBusRepository(pool).create(
+    busRequest({
+      ...owner,
+      data: { ...input.data, disabledSeatKeys: [disabled.layoutSeatKey] },
+    }),
+  );
+  f.body.programming.agendas[0].busId = bus.id;
+  expect(
+    (
+      await admin.request(endpoint(f, 'programming'), 'PUT', {
+        ...f.body,
+        expectedRevision: 1,
+      })
+    ).status,
+  ).toBe(200);
   expect((await publish()).status).toBe(200);
   const seats = (await pool.query('SELECT snapshot FROM route_sheet_commercial_inventories'))
     .rows[0].snapshot.seats;
@@ -213,10 +239,15 @@ test('captura únicamente asientos ofrecidos y falla si no se ofrece ninguno', a
 });
 
 test('inventario vacío no deja publicación, viajes ni serie parciales', async () => {
-  await pool.query('UPDATE bus_seats SET offered=false WHERE bus_id=$1', [bus.id]);
+  const source = await seatQueries.listByBus({ busId: bus.id, cooperativeId: owner.cooperativeId });
+  const emptySource = jest.spyOn(seatQueries, 'listByBus').mockResolvedValue({
+    ...source,
+    seats: source.seats.map((seat) => ({ ...seat, offered: false })),
+  });
   const response = await publish();
   expect(response.status).toBe(409);
   expect((await response.json()).error.code).toBe('COMMERCIAL_INVENTORY_EMPTY');
+  expect(emptySource).toHaveBeenCalledWith({ busId: bus.id, cooperativeId: owner.cooperativeId });
   for (const table of TABLES) expect(await count(table)).toBe(0);
   expect((await sheetRow()).status).toBe('DRAFT');
   expect((await sheetRow()).tariff_frozen).toBeNull();
@@ -379,8 +410,13 @@ test('hoja histórica publicada sin viajes no se reconstruye al reintentar', asy
 
 test('down no destruye información comercial y los reintentos siguen estables', async () => {
   const before = (await (await publish()).json()).routeSheet.commercial;
-  expect(() => runMigration('down')).toThrow();
-  expect((await (await publish()).json()).routeSheet.commercial).toEqual(before);
+  try {
+    await rollbackBefore(pool, '1793730000000-commercial-trips');
+    expect(() => runMigration('down')).toThrow();
+    expect((await (await publish()).json()).routeSheet.commercial).toEqual(before);
+  } finally {
+    runMigration();
+  }
 });
 
 test('dos buses capturan dos inventarios y los traslados no crean viajes', async () => {

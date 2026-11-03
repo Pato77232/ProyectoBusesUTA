@@ -1,5 +1,6 @@
 const { randomUUID } = require('node:crypto');
 const { runMigration, testPool } = require('../../helpers/database');
+const { rollbackBefore } = require('../../helpers/migration-target');
 const { assertTestDatabase } = require('../../../scripts/test-database');
 const { createFrequenciesModule } = require('../../../src/modules/frequencies');
 const { createFleetModule } = require('../../../src/modules/fleet');
@@ -39,8 +40,7 @@ beforeAll(async () => {
   pool = testPool();
   // Probar la transición desde el esquema previo y datos legados, no solo creación vacía.
   await pool.query('TRUNCATE cooperatives CASCADE');
-  // Retirar la migración comercial posterior vacía; la prueba sigue siendo de programación.
-  runMigration('down');
+  await rollbackBefore(pool, '1793650000000-route-sheet-programming');
   runMigration('down');
   await pool.query('TRUNCATE cooperatives CASCADE');
   const owners = await fleetFixtures(pool);
@@ -353,8 +353,8 @@ test('un escritor legado no puede insertar ni retirar asignaciones programadas',
 
 test('la migración no permite down que destruya programación real', async () => {
   await save({ ...f.context, ...f.body });
-  runMigration('down');
   try {
+    await rollbackBefore(pool, '1793650000000-route-sheet-programming');
     expect(() => runMigration('down')).toThrow();
     expect((await readProgramming(pool, f.context.routeSheetId, f.cooperativeId)).revision).toBe(1);
   } finally {
