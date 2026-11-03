@@ -10,6 +10,11 @@ function createPaymentProofRouter({
   approvePaymentProof,
 }) {
   const router = express.Router();
+  // La bandeja y los archivos privados no deben conservarse en cachés HTTP.
+  router.use((request, response, next) => {
+    response.set('Cache-Control', 'no-store');
+    next();
+  });
   const controller = createPaymentProofController({
     uploadPaymentProof,
     listPendingPaymentProofs,

@@ -11,6 +11,9 @@ COPY pages/login.html /usr/share/nginx/html/pages/login.html
 COPY pages/crear-frecuencia.html /usr/share/nginx/html/pages/crear-frecuencia.html
 COPY src/frequencies /usr/share/nginx/html/src/frequencies
 COPY src/styles/frequency-form.css /usr/share/nginx/html/src/styles/frequency-form.css
+COPY pages/comprobantes.html /usr/share/nginx/html/pages/comprobantes.html
+COPY src/payments /usr/share/nginx/html/src/payments
+COPY src/styles/payments.css /usr/share/nginx/html/src/styles/payments.css
 COPY src/auth /usr/share/nginx/html/src/auth
 COPY src/fleet /usr/share/nginx/html/src/fleet
 COPY src/styles/app.css /usr/share/nginx/html/src/styles/app.css
