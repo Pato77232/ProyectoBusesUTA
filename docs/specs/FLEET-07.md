@@ -115,7 +115,7 @@ No aplica.
 | Paso | Resultado comprobable | Archivos compartidos |
 |---|---|---|
 | T1: VIP en backend | Alta y consulta con categoría VIP, con migración nueva | `bus-registration.js`, `bus-seat-configuration.js`, `pg-bus.repository.js` |
-| T2: formulario | Selección en la pantalla de registro | `bus-form.js`, `bus-form-view.js`, de la PR #37 |
+| T2: formulario | Lista de asientos VIP en la pantalla de registro, enviada como `vipSeatKeys` | `registrar-bus.html`, `bus-form.js`, `bus-form-view.js`, `app.css` y sus pruebas, integrados por la PR #37 |
 
 **Evidencias anteriores registradas (2 de noviembre de 2026, PostgreSQL aislado):** implementación en `5846d93`. Lint sin errores y Prettier correcto en los archivos tocados. Integración: 280 de 280 aprobadas en 25 suites. Unitarias: 1074 aprobadas y 2 fallidas de 1076, las mismas de `publish-route-sheet.use-case.test.js`; por eso la suite global no queda en verde y la integración se ejecutó aparte. Edwin autorizó cambiar en `bus.migration.test.js` el valor `VIP` por `OTRA`, porque esa prueba exigía el contrato anterior; la comprobación de rechazo se conserva.
 
@@ -140,3 +140,27 @@ Los primeros intentos del auxiliar temporal de upgrade fallaron por resolución 
 Resultado final reproducible con Node 24.21.0 sobre Linux y PostgreSQL 16.13: integración completa **280/280 en 25 suites**, incluida `database.test.js` (6,805 s), sin ampliar su timeout. El timeout previo de Windows no se reprodujo en esta ejecución; no se afirma una causa demostrada ni una corrección universal de rendimiento. Escenario de migración posterior: **5/5**; upgrade de migraciones de develop a VIP: aprobado con orden activo. Contenedores, redes y volúmenes exclusivos retirados. Ningún archivo de hojas de ruta, pagos o reservas fue modificado. El resultado global sigue sin declararse verde por los dos fallos unitarios existentes; la rama conserva su base por decisión explícita de Edwin.
 
 Pendientes externos al cierre de Fleet T1: confirmación de Leslie del contrato, revisión humana y comprobación global de la combinación final antes de integrar. VIP no ofrecido está confirmado por Edwin; FLEET-06 y PR #37 están integradas. T2 se gestiona en su rama. No se enviaron mensajes a Leslie desde esta revisión ni se integró PR #44.
+
+### T2: formulario, 3 de noviembre de 2026
+
+Rama `feature/FLEET-07-T2-formulario-vip`, sin publicar, rehecha sobre `origin/develop` en `04868b2`, que ya incluye T1 (PR #44) y el formulario de la PR #37. El commit de T2 se reaplicó con cherry-pick, sin merge ni rebase; la versión anterior, sobre `1dcbd6d`, no se publicó.
+
+**Alcance:**
+
+- Lista «Asientos VIP» por piso, debajo de «Asientos no ofrecidos», con título y texto propios: VIP y no ofrecido no se distinguen solo por color.
+- `buildBusData` agrega `vipSeatKeys` solo si hay asientos marcados; sin marcas, el alta conserva su forma anterior.
+- Cambiar de plantilla limpia también las marcas VIP y muestra el aviso existente.
+- La introducción indica que los asientos VIP son opcionales.
+- No incluye conectar el formulario a la API, que es T3 de FLEET-05.
+
+**Evidencia en Windows con Chrome, sobre `04868b2`:**
+
+- Pruebas frontend: 117 de 117 aprobadas, 2 nuevas para `vipSeatKeys`.
+- `registrar-bus-smoke.cjs`: 9 de 9 comprobaciones aprobadas, una nueva de selección VIP y limpieza. Incluye 360 px sin desbordamiento y orden de teclado; se revisó la captura móvil.
+- ESLint directo y Prettier correctos en los archivos tocados.
+- Unitarias backend de la base: 1323 de 1323 aprobadas. T2 no modifica backend; no se repitió la integración.
+- Durante el desarrollo, una comprobación existente contaba también los pisos de la lista VIP; se corrigió el código con una clase propia y la prueba quedó intacta.
+
+**Fallo ajeno documentado:** `frontend/tests/smoke.cjs`, que también ejecuta `container-smoke.cjs`, falla con «Todos los enlaces deben tener un destino real». La portada y esa prueba son idénticas a develop: la prueba solo admite anclas internas y el commit `a7135f2` (2 de noviembre, AUTH-WEB-01) agregó el enlace `./pages/login.html`. T2 no toca la portada ni esa prueba, y no se modificó la prueba. Corresponde al responsable de AUTH-WEB-01 decidir si la prueba admite enlaces a páginas locales.
+
+Pendiente: revisión humana de T2 y conexión del formulario a la API en T3 de FLEET-05.
