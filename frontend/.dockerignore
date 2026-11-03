@@ -8,10 +8,14 @@
 !pages/
 !pages/registrar-bus.html
 !pages/login.html
+!pages/crear-frecuencia.html
 !src/
 !src/styles/
 !src/styles/app.css
 !src/styles/login.css
+!src/styles/frequency-form.css
+!src/frequencies/
+!src/frequencies/*.js
 !src/auth/
 !src/auth/*.js
 !src/api/

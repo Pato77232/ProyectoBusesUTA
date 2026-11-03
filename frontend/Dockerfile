@@ -8,6 +8,9 @@ COPY proxy-api.conf /etc/nginx/proxy-api.conf
 COPY index.html /usr/share/nginx/html/index.html
 COPY pages/registrar-bus.html /usr/share/nginx/html/pages/registrar-bus.html
 COPY pages/login.html /usr/share/nginx/html/pages/login.html
+COPY pages/crear-frecuencia.html /usr/share/nginx/html/pages/crear-frecuencia.html
+COPY src/frequencies /usr/share/nginx/html/src/frequencies
+COPY src/styles/frequency-form.css /usr/share/nginx/html/src/styles/frequency-form.css
 COPY src/auth /usr/share/nginx/html/src/auth
 COPY src/fleet /usr/share/nginx/html/src/fleet
 COPY src/styles/app.css /usr/share/nginx/html/src/styles/app.css

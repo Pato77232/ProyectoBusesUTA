@@ -7,6 +7,8 @@ export default [
       'tests/fleet/**/*.js',
       'src/auth/**/*.js',
       'tests/auth/**/*.js',
+      'src/frequencies/**/*.js',
+      'tests/frequencies/**/*.js',
     ],
     languageOptions: {
       ecmaVersion: 2022,
