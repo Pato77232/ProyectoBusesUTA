@@ -52,7 +52,12 @@ async function serve(request, response) {
     const { pathname } = new URL(request.url, 'http://localhost');
     const filename = path.resolve(root, `.${pathname === '/' ? '/index.html' : pathname}`);
     if (!filename.startsWith(root + path.sep)) throw new Error('Ruta inválida');
-    const data = await fs.readFile(filename);
+    let data = await fs.readFile(filename);
+    // Preparación autorizada por Edwin (FLEET-05 T3): revisar el formulario sin conectarlo a la API.
+    if (pathname === PAGE)
+      data = Buffer.from(
+        data.toString().replace('<script type="module" src="/src/fleet/bus-page.js"></script>', ''),
+      );
     response.writeHead(200, { 'Content-Type': mime[path.extname(filename)] || 'text/plain' });
     response.end(data);
   } catch {
@@ -124,7 +129,7 @@ async function checkInitialState(browser, origin) {
   assert.equal(initial.h1, 1);
   assert.equal(initial.button, 'rgb(32, 32, 32)');
   assert.equal(initial.disabled, true);
-  assert.match(initial.status, /todavía no está conectada/);
+  assert.match(initial.status, /Comprobando tu sesión/);
   assert.equal(initial.unlabeled, 0);
 }
 

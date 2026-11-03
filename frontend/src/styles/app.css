@@ -400,6 +400,10 @@ p {
   border: 1px solid var(--color-muted);
   border-radius: var(--radius-card);
 }
+.form-action {
+  display: inline-block;
+  margin-bottom: 16px;
+}
 .form-status[data-tone='error'] {
   background: var(--color-error-surface);
   border-color: var(--color-error);
