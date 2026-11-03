@@ -154,7 +154,7 @@ test.each([
 });
 
 test.each([
-  ['bus_seats', 'category', 'VIP'],
+  ['bus_seats', 'category', 'OTRA'],
   ['bus_seats', 'label', 0],
   ['bus_photos', 'size', 5_000_001],
   ['bus_photos', 'sort_order', 10],
