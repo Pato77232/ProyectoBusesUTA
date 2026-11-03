@@ -74,5 +74,8 @@ rebase. No se modificaron migraciones ni dependencias.
 - `npm test` con PostgreSQL temporal `busesuta_test`: 71 suites/1249 unitarias y
   28 suites/352 integraciones aprobadas; salida 0.
 - Las 16 pruebas dirigidas de bootstrap pasaron. No se ejecutó el aprovisionamiento
-  sobre una base operativa. Revisión humana, publicación e integración
-  de este worktree siguen pendientes.
+  sobre una base operativa. El commit `be75524` se publicó en
+  `feature/AUTH-BOOTSTRAP-01-base-actual` y abrió la
+  [PR #52](https://github.com/Pato77232/ProyectoBusesUTA/pull/52) contra `develop`.
+  GitHub muestra a Shirley (`shirley6126`) como revisora solicitada. Revisión
+  humana, pruebas tras combinar con la base vigente e integración pendientes.
