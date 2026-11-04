@@ -1,6 +1,6 @@
 # Guía del equipo: usar la base de transViaje
 
-Alcance: FRONT-01 T2, para Pablo, Edwin, David, Leslie y Shirley. T1 está integrada; T2 está preparado localmente para revisión. Esta guía no autoriza pantallas nuevas. [Spec](../docs/specs/FRONT-01.md), [guía visual](DESIGN.md) y [revisión/evidencia de T2](../docs/revision-FRONT-01-T2.md).
+Guía de la base compartida para Pablo, Edwin, David, Leslie y Shirley. Las referencias T1/T2/T3 describen los incrementos originales de FRONT-01; su evidencia histórica no sustituye el estado del checkout actual. Inventario de pantallas y ejecución: [README frontend](README.md). Esta guía no autoriza pantallas nuevas. [Spec](../docs/specs/FRONT-01.md), [guía visual](DESIGN.md) y [revisión/evidencia de T2](../docs/revision-FRONT-01-T2.md).
 
 ## 1. Levantar la portada y API reales
 
@@ -42,7 +42,7 @@ Linux fue comprobado; Windows/Docker Desktop y ayudas técnicas siguen sin prueb
 
 | Necesidad | Cómo comprobar | Qué acredita |
 |---|---|---|
-| Revisar solo apariencia/teclado | Servidor Python de [README.md](README.md) | Portada estática, sin API |
+| Revisar solo apariencia/teclado | Imagen estática descrita en [README.md](README.md) | Portada estática, sin API |
 | Verificar imagen estática de T1 | `node frontend/tests/container-smoke.cjs` | Empaquetado, MIME, exclusiones, 404 y API 503 explícita del modo estático |
 | Probar un stack ya activo | `node frontend/tests/proxy-smoke.cjs`, con FRONTEND_URL | Portada, health y 404; con API_UNAVAILABLE=1 verifica caída. No construye ni retira el stack |
 | Probar cookies/CSRF | `node frontend/tests/csrf-smoke.cjs` | Navegador y backend reales; receptor QA separado para observar transporte |
