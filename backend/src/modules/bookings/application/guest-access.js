@@ -60,7 +60,7 @@ function createGuestAccess({
           tripId: row.trip_id,
           fromPosition: row.from_position,
           toPosition: row.to_position,
-          totalPriceCents: row.total_price_cents,
+          totalPriceCents: Number(row.total_price_cents),
           currency: row.currency,
           createdAt: row.created_at,
         };

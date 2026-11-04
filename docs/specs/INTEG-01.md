@@ -5,7 +5,7 @@
 - **Módulos:** catálogo de migraciones (`backend/scripts`), `bookings`, `payments` y composición del servidor
 - **Responsable:** Edwin, por acuerdo del equipo de que cualquier integrante puede resolver los bloqueos comunes
 - **Revisor propuesto:** pendiente; la revisión de IA no sustituye revisión humana
-- **Estado:** T1 en `feature/INTEG-01-catalogo-migraciones` (commits `cf285b3` y `183d95b`), pendiente de PR. T2 en `feature/INTEG-01-T2-historial-reservas` (`44cd95b`), creada sobre T1. T3 en `feature/INTEG-01-T3-rechazo-comprobantes` (`3d3261f`), creada sobre T2. T4 en `feature/INTEG-01-T4-confirmador-venta`, creada sobre T3. T5–T6 sin empezar.
+- **Estado:** T1 en `feature/INTEG-01-catalogo-migraciones` (commits `cf285b3` y `183d95b`), pendiente de PR. T2 en `feature/INTEG-01-T2-historial-reservas` (`44cd95b`), creada sobre T1. T3 en `feature/INTEG-01-T3-rechazo-comprobantes` (`3d3261f`), creada sobre T2. T4 en `feature/INTEG-01-T4-confirmador-venta` (`3e6f4ef`), creada sobre T3. T5 en `feature/INTEG-01-T5-acceso-invitado`, creada sobre T4. T6 sin empezar.
 - **Base comprobada:** `origin/develop` en `64f39cd`, sin PR abiertas.
 
 ## 1. Objetivo
@@ -120,3 +120,23 @@ Además, desde `696e15d` Pagos devolvía el parámetro recibido en lugar del con
 - Quedan 10 fallos: compra comercial (T6, 6) y carga autorizada 404 (4).
 
 **Hallazgo para revisión:** `server.js` decide la composición según `createBookingsModule?._isMockFunction` y `createPaymentsModule?._isMockFunction` (introducido en `fcf3ed9`). El código de producción depende de si una prueba lo simula. No se modificó en T4, para no mezclar cambios; conviene retirarlo en una tarea propia, ajustando `tests/unit/server.test.js`.
+
+### T5: acceso de invitado, 4 de noviembre de 2026
+
+**Causa:** `01a282e` (Leslie) componía `createGuestAccess` y un `guestRouter` dentro de `createBookingsModule`, y `app.js` lo monta en `/api/v1/guest/bookings` si existe. El merge `fcf3ed9` conservó el servicio, la migración y el montaje en `app.js`, pero perdió la composición: Reservas no entregaba `guestRouter` ni `guestAccess`, y el canje documentado en BOOK-09-L07 (`GET /api/v1/guest/bookings/:token`) respondía 404 de ruta inexistente.
+
+**Cambios:**
+
+- `bookings/interfaces/guest-booking-router.js`, nuevo: el router de canje, en la capa `interfaces` según la arquitectura en lugar de dentro de `index.js`. Fija `Cache-Control: no-store` antes de la ruta, así que también cubre los errores.
+- `bookings/index.js`: compone `createGuestAccess({ pool, clock })` y expone `guestAccess` y `guestRouter`, como en `01a282e`.
+- `bookings/application/guest-access.js`: el canje devolvía `totalPriceCents` como texto, porque PostgreSQL entrega `bigint` como cadena. Ahora lo convierte a número, igual que el historial. Se detectó al conectar la ruta.
+
+La emisión del enlace sigue sin endpoint: el servicio `issue` recibe un puerto de envío y depende de la entrega por correo, que está fuera de esta tarea.
+
+**Pruebas nuevas** en `tests/integration/bookings/guest-access.http.test.js`, con servidor HTTP y PostgreSQL:
+
+- El canje devuelve solo datos mínimos (sin propietario ni cooperativa), sin caché y una sola vez. En la base queda el hash del token, nunca el token, y el uso queda registrado.
+- Un enlace inexistente, corto, vencido o ya usado responde 404 con un cuerpo idéntico (`GUEST_ACCESS_INVALID`), sin revelar cuál falló.
+- No se emite un enlace para una reserva de otro propietario.
+
+**Resultados** (rama basada en T4, PostgreSQL aislado, sin leer `.env`): lint y formato aprobados; **1925/1925 unitarias**; integración **637/647**. Siguen los 10 fallos conocidos: compra comercial (T6) y carga autorizada 404.
