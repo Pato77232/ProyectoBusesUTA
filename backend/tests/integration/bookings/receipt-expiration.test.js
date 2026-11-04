@@ -1,6 +1,7 @@
 const { randomUUID } = require('node:crypto');
 const { setTimeout: delay } = require('node:timers/promises');
 const { runMigration, testPool } = require('../../helpers/database');
+const { rollbackBefore } = require('../../helpers/migration-target');
 const { assertTestDatabase } = require('../../../scripts/test-database');
 const { createBookingsModule } = require('../../../src/modules/bookings');
 const PgBookingRepository = require('../../../src/modules/bookings/infrastructure/pg-booking.repository');
@@ -469,6 +470,7 @@ test('UNKNOWN no inventa ausencia ni permite liberar', async () => {
 test('down protege evidencia y estados persistidos sin alterar historial', async () => {
   const { input } = await setup();
   await receiver().markPaymentProofReceived(input);
+  await rollbackBefore(pool, '1794000000000-payment-booking-identifiers');
   expect(
     (await pool.query('SELECT name FROM pgmigrations ORDER BY id DESC LIMIT 1')).rows[0].name,
   ).toBe('1794000000000-payment-booking-identifiers');

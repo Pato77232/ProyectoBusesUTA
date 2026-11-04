@@ -1,13 +1,42 @@
+const { randomUUID } = require('node:crypto');
+const { execFileSync } = require('node:child_process');
+const path = require('node:path');
+const { Pool } = require('pg');
 const { activeNames } = require('../../scripts/migration-catalog');
-const { runMigration, testPool } = require('../helpers/database');
-let pool;
+const { assertTestDatabase } = require('../../scripts/test-database');
+const { testPool } = require('../helpers/database');
+let pool, admin, databaseUrl;
+let created = false;
+const databaseName = 'migration_cycle_' + randomUUID().replaceAll('-', '') + '_test';
 const migrationNames = [...activeNames];
-beforeAll(() => {
+// La reversión de toda la cadena se comprueba en una base vacía propia, no sobre los datos de otras suites.
+function runMigration(direction = 'up') {
+  execFileSync(process.execPath, [path.join(__dirname, '../../scripts/migrate.js'), direction], {
+    env: { ...process.env, DATABASE_URL: databaseUrl },
+    stdio: 'pipe',
+  });
+}
+beforeAll(async () => {
+  const url = new URL(assertTestDatabase());
+  admin = testPool();
+  await admin.query('CREATE DATABASE ' + databaseName);
+  created = true;
+  url.pathname = '/' + databaseName;
+  databaseUrl = url.href;
+  pool = new Pool({ connectionString: databaseUrl });
   runMigration();
-  pool = testPool();
 });
 afterAll(async () => {
-  if (pool) await pool.end();
+  try {
+    if (pool) await pool.end();
+    if (created) {
+      if (!/^migration_cycle_[a-f0-9]{32}_test$/.test(databaseName))
+        throw new Error('Base QA inválida.');
+      await admin.query('DROP DATABASE ' + databaseName);
+    }
+  } finally {
+    if (admin) await admin.end();
+  }
 });
 test('migraciones reversibles y reaplicación sin duplicados en PostgreSQL', async () => {
   expect(migrationNames.length).toBeGreaterThanOrEqual(2);

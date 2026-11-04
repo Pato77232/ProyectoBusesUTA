@@ -116,7 +116,13 @@ test('en dos pisos entrega primero el piso 2 y cada piso sigue la numeración', 
 
 test('un bus con todos sus asientos no ofrecidos los devuelve con offered en false', async () => {
   const bus = await registerBus(fixtures.first);
-  await pool.query('UPDATE bus_seats SET offered = false WHERE bus_id = $1', [bus.id]);
+  // El alta exige un asiento ofrecido y FLEET-09 impide editar: el estado se fuerza solo para la lectura.
+  await pool.query('ALTER TABLE bus_seats DISABLE TRIGGER bus_seats_immutable');
+  try {
+    await pool.query('UPDATE bus_seats SET offered = false WHERE bus_id = $1', [bus.id]);
+  } finally {
+    await pool.query('ALTER TABLE bus_seats ENABLE TRIGGER bus_seats_immutable');
+  }
   const { seats } = await seatQueries.listByBus({
     busId: bus.id,
     cooperativeId: fixtures.first.cooperativeId,
