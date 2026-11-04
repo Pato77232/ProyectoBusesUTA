@@ -632,3 +632,19 @@ Planificador T5 preservado aparte en stash 38fd1d8 de feature/BOOK-06-planificad
 
 
 Leslie autoriza guardar y publicar únicamente el incremento de identificadores en feature/BOOK-06-carga-autorizada tras las 2266 pruebas aprobadas. Revisión humana e integración siguen pendientes; planificador excluido de esta publicación.
+
+## Leslie: planificador automático de expiración — 3 de noviembre de 2026
+
+| Spec / área | Estado comprobado | Evidencia y límite |
+| --- | --- | --- |
+| BOOK-06-L04-T4 / PR #64 | Integrada en develop c95cc73 el 3 de noviembre, 23:35:53Z | Comprobado por Git y GitHub; no significa conexión Auth de carga ni aprobación del planificador. |
+| BOOK-06-L04-T5 / planificador | Recuperado y adaptado localmente en feature/BOOK-06-planificador-expiracion, base actual 4bb6861; commit/publicación autorizados, revisión humana pendiente | [Spec](specs/BOOK-06-L04-T5.md), [evidencia](evidence/BOOK-06-L04-T5/2026-11-03-planificador.md). Lotes periódicos, recuperación tras reinicio y cierre con drenaje; conserva recepción aceptada e históricos desconocidos. |
+
+Verificaciones anteriores sobre feb7f75/c95cc73 conservadas en la evidencia, incluidos los timeouts históricos de fotografías. Validación final sobre 4bb6861 y catálogo 22: 1772/1772 unitarias y 564/564 integraciones, 2336 pruebas en 135 suites aprobadas, incluido arranque real. Lint y formato propio aprobados; formato global conserva 17 archivos ajenos. Fotografías pasó sin cambiar código/timeout, sin declarar resuelto su antecedente intermitente. Commit/push y preparación de PR autorizados; revisión humana/integración pendientes.
+
+Se preservó el registro completo de develop y la sección propia al resolver el único conflicto del stash, estado-proyecto.md. Código aplicado sin conflictos; no hay cambios al catálogo, migraciones o dependencias. Stash 38fd1d8 conservado como respaldo, con sus 14 archivos originales. Rama avanzada de forma fast-forward sin commits exclusivos anteriores, sin merge/rebase ni cambios a main/develop.
+
+Shirley asume la conexión de carga/autorización en su trabajo propio. No se duplica ese consumidor ni se implementan ventas/rechazos, acreditación, consecuencias nuevas del plazo de corrección o pantallas. El planificador conserva todas sus tareas en este incremento independiente.
+
+
+Actualización previa a publicación: develop avanzó a 4bb6861 con FLEET-09 y catálogo 22; la rama del planificador se avanzó sin commits exclusivos y se recuperó desde respaldo 85bc73e. Se conserva rollbackBefore integrado para las pruebas de migración y no se modifica el catálogo como parte de T5. Commit/push y preparación de PR autorizados por Leslie; revalidación global completada con 2336 pruebas aprobadas. Los resultados anteriores de c95cc73 se mantienen como historia, sin atribuirlos a esta combinación nueva.

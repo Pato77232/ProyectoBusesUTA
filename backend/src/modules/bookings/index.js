@@ -1,3 +1,7 @@
+const expireDueBookings = require('./application/expire-due-bookings.use-case');
+const readExpirationConfig = require('./infrastructure/expiration-worker-config');
+const startExpirationWorker = require('./infrastructure/booking-expiration-worker');
+const expirationFailure = require('./domain/expiration-failure');
 const PgBookingLifecycleRepository = require('./infrastructure/pg-booking-lifecycle.repository');
 const receivePaymentProof = require('./application/receive-payment-proof.use-case');
 const expireBooking = require('./application/expire-booking.use-case');
@@ -55,6 +59,16 @@ function createBookingsModule({
     ...readBookingConfig(env),
   };
   const lifecycle = new PgBookingLifecycleRepository({ pool });
+  const expirationConfig = readExpirationConfig(env);
+  const expire = expireBooking({ repository: lifecycle, clock });
+  const coordinator = (onFailure) =>
+    expireDueBookings({
+      reader: lifecycle,
+      expireBooking: expire,
+      clock,
+      batchSize: expirationConfig.batchSize,
+      onFailure,
+    });
   return {
     createPaymentProofReceiver({ receiptSource } = {}) {
       return Object.freeze({
@@ -65,7 +79,19 @@ function createBookingsModule({
         }),
       });
     },
-    maintenance: Object.freeze({ expireBooking: expireBooking({ repository: lifecycle, clock }) }),
+
+    maintenance: Object.freeze({
+      expireBooking: expire,
+      runExpirationBatch: coordinator(),
+      startExpirationWorker({ onFailure = () => {} } = {}) {
+        return startExpirationWorker({
+          runBatch: coordinator((error) => onFailure(expirationFailure(error, 'booking'))),
+          enabled: expirationConfig.enabled,
+          intervalMs: expirationConfig.intervalMs,
+          onError: (error) => onFailure(expirationFailure(error, 'batch')),
+        });
+      },
+    }),
     paymentQueries: Object.freeze({ findForPayment: findForPayment({ repository, clock }) }),
     router: createRouter({
       auth,
