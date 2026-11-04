@@ -5,12 +5,19 @@ jest.mock('../../src/modules/auth', () => ({ createAuthModule: jest.fn() }));
 jest.mock('../../src/modules/tenants', () => ({ createTenantsModule: jest.fn() }));
 jest.mock('../../src/modules/fleet', () => ({ createFleetModule: jest.fn() }));
 jest.mock('../../src/modules/frequencies', () => ({ createFrequenciesModule: jest.fn() }));
-jest.mock('../../src/modules/route-sheets', () => ({ createRouteSheetsModule: jest.fn() }));
+jest.mock('../../src/modules/route-sheets', () => ({
+  createRouteSheetsModule: jest.fn(),
+  createFrequencyCommitmentQueries: jest.fn(),
+}));
 jest.mock('../../src/modules/payments', () => ({
   createPaymentsModule: jest.fn(),
   createPaymentReceiptModule: jest.fn(),
+  createPaymentReviewModule: jest.fn(),
 }));
-jest.mock('../../src/modules/bookings', () => ({ createBookingsModule: jest.fn() }));
+jest.mock('../../src/modules/bookings', () => ({
+  createBookingsModule: jest.fn(),
+  createBookingOccupancyQueries: jest.fn(),
+}));
 
 const createApp = require('../../src/app');
 const { createPool } = require('../../src/shared/database');
@@ -19,6 +26,8 @@ const { createTenantsModule } = require('../../src/modules/tenants');
 const { createFleetModule } = require('../../src/modules/fleet');
 const { createFrequenciesModule } = require('../../src/modules/frequencies');
 const { createRouteSheetsModule } = require('../../src/modules/route-sheets');
+const { createFrequencyCommitmentQueries } = require('../../src/modules/route-sheets');
+const { createBookingOccupancyQueries } = require('../../src/modules/bookings');
 const { createPaymentsModule } = require('../../src/modules/payments');
 const { createPaymentReceiptModule } = require('../../src/modules/payments');
 const { createBookingsModule } = require('../../src/modules/bookings');
@@ -40,7 +49,13 @@ describe('server startup', () => {
     pool = { query: jest.fn().mockResolvedValue({ rows: [] }), end: jest.fn() };
     auth = { router: {} };
     frequencies = { router: {} };
-    routeSheets = { router: {}, tripQueries: {}, tariffQueries: {} };
+    routeSheets = {
+      router: {},
+      tripQueries: { findBookableForSegment: jest.fn() },
+      tariffQueries: {},
+    };
+    createBookingOccupancyQueries.mockReturnValue({ hasActiveOccupations: jest.fn() });
+    createFrequencyCommitmentQueries.mockReturnValue({ forTransaction: jest.fn() });
     fleet = { busGroupQueries: {}, busQueries: {}, seatQueries: {} };
     bookings = {
       router: {},
@@ -80,7 +95,14 @@ describe('server startup', () => {
     const env = { PORT: '3100', DATABASE_URL: 'postgres://test' };
     const result = await start(env);
 
-    expect(createFrequenciesModule).toHaveBeenCalledWith({ pool, auth });
+    expect(createBookingOccupancyQueries).toHaveBeenCalledWith({ pool });
+    const occupancyQueries = createBookingOccupancyQueries.mock.results[0].value;
+    expect(createFrequencyCommitmentQueries).toHaveBeenCalledWith({ occupancyQueries });
+    expect(createFrequenciesModule).toHaveBeenCalledWith({
+      pool,
+      auth,
+      commitmentQueries: createFrequencyCommitmentQueries.mock.results[0].value,
+    });
     expect(createRouteSheetsModule).toHaveBeenCalledWith({
       pool,
       auth,
@@ -88,13 +110,13 @@ describe('server startup', () => {
       busGroupQueries: expect.any(Object),
       busQueries: expect.any(Object),
       seatQueries: fleet.seatQueries,
+      occupancyQueries,
     });
     expect(createBookingsModule).toHaveBeenCalledWith({
       pool,
       auth,
       env,
-      tripCatalog: routeSheets.tripQueries,
-      tariffQueries: routeSheets.tariffQueries,
+      availabilityQueries: routeSheets.tripQueries,
     });
     expect(createPaymentReceiptModule).toHaveBeenCalledWith({
       pool,
@@ -106,6 +128,7 @@ describe('server startup', () => {
       env,
       bookingPaymentProofNotifier: {},
       bookingSaleConfirmer: bookings.saleConfirmer,
+      paymentQueries: bookings.paymentQueries,
     });
     expect(createApp).toHaveBeenCalledWith(
       expect.objectContaining({ frequencies, routeSheets, bookings, fleet, pool, auth }),
@@ -132,6 +155,15 @@ describe('server startup', () => {
     expect(pool.end).toHaveBeenCalledTimes(1);
     expect(createApp).not.toHaveBeenCalled();
     expect(app.listen).not.toHaveBeenCalled();
+  });
+  it('rechaza un catálogo ausente incluso cuando la composición usa dobles', async () => {
+    routeSheets.tripQueries = {};
+    await expect(start({ PORT: '3100', DATABASE_URL: 'postgres://test' })).rejects.toThrow(
+      'catálogo de viajes por tramo',
+    );
+    expect(createBookingsModule).not.toHaveBeenCalled();
+    expect(app.listen).not.toHaveBeenCalled();
+    expect(pool.end).toHaveBeenCalledTimes(1);
   });
   it('drena la expiración antes de cerrar el pool y detiene de forma idempotente', async () => {
     jest.spyOn(process, 'once').mockImplementation(() => process);
