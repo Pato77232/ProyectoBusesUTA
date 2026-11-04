@@ -4,10 +4,11 @@
 - **Referencia de planificación:** D-05, primera tarea: renovación. Paradas operativas y sustitución tendrán specs separadas; no se les asigna un ID definitivo aquí.
 - **Módulo / responsable:** `route-sheets` / David, por solicitud expresa en esta sesión.
 - **Revisora propuesta:** Leslie. Su respuesta permite continuar la preparación de renovación; no confirma aceptación de revisar código ni aprobación de esta spec completa.
-- **Estado:** Borrador; sección 0 documental preparada. Secciones funcionales pendientes de resolver las preguntas propias y de autorización de David.
+- **Estado:** Sección 0 guardada por David en `80c2211`; sección 1 implementada y probada localmente. Sección 2, revisión humana e integración pendientes; ejecución global fallida por timeout conocido de fotos de Fleet.
 - **Fecha:** 3 de noviembre de 2026, America/Guayaquil.
 - **Rama / base comprobada:** `feature/ROUTE-SHEETS-08-renovacion-ciclos`, ya existente en `072f845`, inicialmente limpia. Se reutiliza sin merge/rebase. Fetch comprobó `origin/develop` en `4bb6861`, que incorpora FLEET-09 T1. La base de implementación deberá contrastarse con ese avance; esta sección no acredita la combinación ni modifica la historia Git.
 - **Autorización:** David pidió realizar únicamente la sección 0 y aportó la respuesta de Leslie. Autoriza planificación, registro del acuerdo y seguimiento; no código, migraciones, commits, publicación ni cambios en Bookings/Fleet.
+- **Autorización posterior de sección 1:** David solicitó implementarla y respondió expresamente «Confirmo las cuatro recomendaciones» a Q1–Q4 en esta sesión del 3 de noviembre. Autoriza dominio, contrato de puertos y pruebas de esta sección; no sección 2, commits, publicación ni cambios de módulos ajenos.
 
 ## 1. Objetivo y fuentes
 
@@ -45,11 +46,11 @@ La ruta antigua de generación de ciclos y `purchase-window` no acreditan este c
 6. Persiste de forma atómica borrador, vínculo de procedencia/serie, programación, tarifa editable, actor/fecha y clave de reintento. Una respuesta perdida permite recuperar el mismo resultado sin duplicar el siguiente ciclo.
 7. El administrador revisa/edita el borrador con los casos de uso vigentes y realiza una publicación explícita. La publicación revalida cupo, pertenencia a la serie, revisión/continuidad, frecuencias, buses, programación y tarifa; crea nuevos viajes y nueva copia comercial mediante ROUTE-SHEETS-07. El vínculo persistido debe impedir publicar la renovación como otra serie o con otro `seriesId`.
 
-Es una propuesta de concreción del contrato; Q1–Q4 de §10 deben resolverse antes de implementar lo dependiente. No se presume aceptación de Leslie de estos detalles.
+Q1–Q4 fueron confirmadas después por David según §10. Su respuesta autoriza la concreción de dominio de sección 1; no se presume aceptación de Leslie de esos detalles ni disponibilidad del endpoint/persistencia de sección 2.
 
 ## 5. Datos y persistencia propuestos
 
-Entrada conceptual: hoja origen (UUID en ruta), revisiones esperadas de programación y tarifa congelada y clave de solicitud para idempotencia. Tenant/autor vienen de sesión; tiempo del reloj del servidor inyectable en pruebas. Campos definitivos y alcance de la clave se cierran en Q2/Q3.
+Entrada definida en sección 1: `sourceRouteSheetId`, `expectedProgrammingRevision`, `expectedTariffRevision` y `requestKey` según §15. Tenant/autor vienen de sesión; tiempo del reloj del servidor inyectable en pruebas. La distribución ruta/body y su validación HTTP se implementarán en sección 2.
 
 Salida propuesta: ID del nuevo borrador, ID de origen, serie vinculada, inicio/fin exclusivo, duración y revisiones propias. La respuesta indica DRAFT y no presenta viajes vendibles ni un horizonte ampliado. Una repetición idéntica devuelve el mismo destino; reutilizar la clave con otra operación produce conflicto.
 
@@ -76,11 +77,11 @@ Resultados previstos: 201 al preparar, 200 al recuperar el mismo resultado; 400 
 
 ## 8. Bordes y límites por resolver
 
-Origen legado sin programación o copia tarifaria verificable: conflicto, sin reconstrucción ficticia. La serie agotada y el siguiente período completamente pasado necesitan una política explícita (Q4); no saltar fechas silenciosamente. La fecha/hora exacta de límite se prueba con reloj inyectable.
+Origen legado sin programación o copia tarifaria verificable: error de fuente no verificable, sin reconstrucción ficticia; origen conocido pero no publicado: conflicto. Q4 confirma rechazar el siguiente período completamente pasado; no saltar fechas silenciosamente. La fecha/hora exacta de límite se prueba con reloj inyectable.
 
 Descanso/mantenimiento copiados mantienen su significado; no se convierten en disponibilidad de respaldo. Un bus que ya no sirve para la nueva programación bloquea la validación; sustituirlo en viajes vendidos corresponde a otra spec.
 
-Los borradores programados ya consumen cupo en el validador de compromisos actual: permitir preparar un tercero exige decidir Q1, no debilitar pruebas o confundir ese conteo con el máximo comercial de publicados.
+Los borradores programados ya consumen cupo en el validador de compromisos actual: Q1 conserva ese comportamiento. Permitir preparar un tercero requeriría otra decisión explícita; no debilitar pruebas o confundir ese conteo con el máximo comercial de publicados.
 
 ## 9. Verificación prevista de secciones funcionales
 
@@ -91,16 +92,16 @@ Los borradores programados ya consumen cupo en el validador de compromisos actua
 
 ## 10. Decisiones propias y coordinación con Leslie
 
-### Preguntas de renovación antes de implementar
+### Decisiones de renovación confirmadas por David
 
-| ID | Pregunta | Propuesta para revisión / impacto |
+| ID | Pregunta | Decisión confirmada / impacto |
 |---|---|---|
-| Q1 | ¿Se prepara un tercer borrador mientras hay dos ciclos no terminados? | Para el primer incremento, conservar el conteo conservador de programación y preparar cuando haya cupo. Permitir un borrador adicional requeriría un cambio explícito y pruebas del validador de compromisos. No cambiar el límite comercial de dos publicados. |
-| Q2 | ¿Desde qué hoja se copia y cómo se modifica el destino? | Recomiendo únicamente último ciclo publicado de la serie, copia íntegra con tarifa congelada como nuevo borrador editable y edición por los casos de uso existentes. Rechazar origen legado/incompleto en lugar de copiar parcialmente. |
-| Q3 | ¿Cómo se identifica un reintento y se vincula la publicación? | Recomiendo clave de solicitud y vínculo persistido origen/destino/serie con unicidad del siguiente período; publicación deriva/contrasta ese vínculo. Definir campos/revisiones y resultado de otra clave para el mismo destino antes de persistencia. |
-| Q4 | ¿Qué hacer si la serie terminó y su siguiente intervalo ya pasó? | Recomiendo rechazar la renovación automática de intervalos históricos y usar una nueva base manual validada; confirmar antes de implementar. No inventar saltos hasta hoy ni recrear viajes históricos. |
+| Q1 | ¿Se prepara un tercer borrador mientras hay dos ciclos no terminados? | Conservar el conteo conservador de programación y preparar cuando haya cupo. Permitir un borrador adicional requeriría otro cambio explícito. No cambiar el límite comercial de dos publicados. |
+| Q2 | ¿Desde qué hoja se copia y cómo se modifica el destino? | Únicamente último ciclo publicado de la serie, copia íntegra con tarifa congelada como nuevo borrador editable y edición por los casos de uso existentes. Rechazar origen legado/incompleto. |
+| Q3 | ¿Cómo se identifica un reintento y se vincula la publicación? | Clave de solicitud y vínculo persistido origen/destino/serie, unicidad del siguiente período y publicación derivando/contrastando el vínculo. El contrato de sección 1 se detalla en §15 y en el puerto. |
+| Q4 | ¿Qué hacer si la serie terminó y su siguiente intervalo ya pasó? | Rechazar si el siguiente intervalo terminó (`endExclusive <= now`) y usar una nueva base manual validada. No saltar fechas ni recrear viajes históricos; un intervalo que todavía no termina no se considera completamente pasado. |
 
-Las recomendaciones anteriores no están aprobadas por el mensaje de Leslie. David puede decidir los detalles de su módulo dentro del contrato; cambios a reglas compartidas se consultan según [el protocolo](../equipo-y-acuerdos.md).
+Fuente: respuesta directa de David «Confirmo las cuatro recomendaciones», tras autorizar sección 1, el 3 de noviembre de 2026. No se atribuye aprobación adicional a Leslie, Edwin o Shirley. Los demás acuerdos compartidos mantienen su estado y alcance.
 
 ### Decisión compartida: preparar renovación sin modificar compromisos previos
 
@@ -137,7 +138,7 @@ Sin interfaz de usuario en esta spec: no se adopta ni modifica un diseño fronte
 | Sección | Resultado pequeño | Autorización / archivos compartidos |
 |---|---|---|
 | 0 | Esta spec, respuesta humana trazada y fila de estado; referencias desde specs afectadas. | Autorizada por David; solo Markdown. |
-| 1 | Tras resolver Q1–Q4: transformación y contrato de renovación, puertos/errores e idempotencia definidos, pruebas de dominio. | Pendiente de autorización; no producto en esta sección 0. |
+| 1 | Transformación y contrato de renovación, puertos/errores e idempotencia definidos, pruebas de dominio. | Autorizada por David con Q1–Q4 confirmadas; implementación local, evidencia en §15. |
 | 2 | Caso de uso de preparación persistida y endpoint, vínculo con publicación y pruebas reales de concurrencia/rollback/arranque. | Pendiente; revisar si requiere dividir el incremento antes de autorizarlo. Coordinar composición, migraciones/catálogo, pruebas y registro. |
 
 Una sección funcional reúne código, pruebas y evidencia en un cambio lógico; commits solo por petición humana. Esta planificación no concede autorización para las secciones siguientes.
@@ -146,4 +147,22 @@ Evidencia de sección 0: rama inicialmente limpia en `072f845`, `origin/develop`
 
 ## 14. Revisión y siguiente paso
 
-Sección 0 preparada para revisión humana de David y consulta a Leslie según alcance. Resolver Q1–Q4 y confirmar revisora antes de la implementación dependiente; actualización de base y autorización de sección 1 pendientes. Las respuestas de Leslie no autorizan cambios de su módulo ni sustitución. No hay PR nueva, integración ni cierre de tarea acreditados.
+Q1–Q4 confirmadas y sección 1 autorizada por David; revisión humana y aceptación de la revisora propuesta pendientes. El desarrollo local conserva base `80c2211` sin incorporar el avance de `develop`; no se acredita combinación final. Sección 2 exige autorización separada. Las respuestas de Leslie no autorizan cambios de su módulo ni sustitución. No hay PR nueva, integración ni cierre de tarea acreditados.
+
+## 15. Sección 1 — plan puro y contrato transaccional
+
+Base `80c2211`, rama `feature/ROUTE-SHEETS-08-renovacion-ciclos`, inicialmente limpia. David autorizó la sección y confirmó Q1–Q4 en esta sesión. Solo se añaden archivos nuevos de dominio/puertos/pruebas y se actualiza evidencia; ningún caso de uso público, migración, endpoint o cambio de composición.
+
+`domain/services/plan-route-sheet-renewal.js` valida origen publicado propio, revisiones esperadas y último ciclo de la serie; exige período de origen coherente y produce plan DRAFT contiguo con identidades nuevas, actor/fecha y revisiones propias iniciales 1. Reutiliza validación de ciclos y compromisos, incluido el conteo de borradores. No genera viajes, no copia inventario/ocupaciones ni modifica el horizonte. Los proveedores actuales de Fleet/Frecuencias deberán revalidarse en aplicación dentro de sección 2; el plan puro no sustituye esa comprobación.
+
+`renewal-programming.js` usa la solicitud canónica de programación y los recorridos de la tarifa congelada para validar cobertura, vínculos, todos los puntos, continuidad, preparación y repetibilidad. Desplaza disponibilidad, servicios/traslados, puntos y REST/MAINTENANCE en L días y renueva sus IDs. El cálculo no depende de zona horaria del equipo ni del reloj global. La tarifa se restaura en una copia separada, preservando precios explícitos no aditivos y todos los porcentajes, incluidos cero. El objeto de intercambio es inmutable; editable se refiere al estado del nuevo borrador, no a mutar objetos del dominio.
+
+`renewal-request.js` define entrada estricta de cuatro campos: sourceRouteSheetId, expectedProgrammingRevision, expectedTariffRevision y requestKey. IDs/clave UUID canónicos, revisiones positivas hasta 2147483646. `assertSameRenewalRequest` compara la solicitud canónica con el registro previo y rechaza clave/origen/revisiones distintos. [Puerto de renovación](../../backend/src/modules/route-sheets/domain/ports/renewal-ports.md): sesión de Route Sheets bajo ADR 0006, recuperación antes de revalidar reloj/cupo, unicidad tenant/clave y tenant/serie/inicio, misma transacción para todos los registros y vínculo obligatorio en publicación. Otra clave para un destino ya preparado produce conflicto. **La idempotencia durable y la exclusión concurrente están especificadas, no implementadas**; corresponden a sección 2.
+
+Errores propios: petición inválida 400; origen ausente/ajeno 404; origen no publicado/no último, revisiones incompatibles, solicitud distinta e intervalo completamente pasado 409; fuente ilegible/no disponible o generador defectuoso 503. Los errores existentes de agenda/ciclo conservan sus códigos. No se convierte falta de proveedor en lista vacía. El generador UUID y reloj son suministrados por composición; no se importa Express/pg/adaptadores desde dominio.
+
+Verificación final del código con Node 24.21.0/Linux y PostgreSQL 16.13 aislado, proyecto `busesuta-route08-s1`: **1774/1774 unitarias (91 suites), incluidas 32 nuevas**, y **537/538 integraciones (42 suites)**. Único fallo: timeout de 20 segundos en `fleet/bus-photo-storage.test.js`, caso «prepara y promueve todos los bytes sin conservar nombres ni rutas del cliente», ya registrado anteriormente; no se modifica esa prueba ni su límite y no se declara verde la suite global. Todas las suites de programación/tarifario/viajes, Reservas y migraciones aprobaron. No cambia composición, por lo que no se ejecuta un escenario de arranque adicional al ya cubierto por las suites existentes.
+
+Lint, Prettier de los cinco JS nuevos, diff revisado y `git diff --check` aprobados; `format:check` global mantiene 39 archivos previos sin cambios. La validación inicial corrigió solo una referencia nueva de prueba a `globalThis.structuredClone` señalada por ESLint; los 32 casos finales también aprobaron en Windows. La primera ejecución de `npm test` aprobó 1772 unitarias (con los 30 casos iniciales), pero la integración se lanzó sin URL aislada y sus guards la rechazaron; ese intento no acredita integración y tampoco se oculta. Docker estaba apagado y se inició Docker Desktop desde su instalación local antes de repetir con la URL explícita de la base aislada.
+
+La repetición final instaló dependencias del lock con `npm ci` solo en un contenedor efímero; se verificó lock idéntico al de la imagen para reutilizar sus binarios nativos de Sharp. No se actualizaron dependencias ni archivos del proyecto, no se leyó `.env` y los recursos propios de PostgreSQL se retiran al terminar. Asistencia de Codex en implementación/pruebas/documentación; sin commits, publicación ni integración. Mensaje sugerido para este cambio lógico: `feat(hojas-ruta): prepara el dominio de renovación de ciclos`.
