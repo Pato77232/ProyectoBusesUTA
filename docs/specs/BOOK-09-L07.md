@@ -80,3 +80,10 @@ Historial autenticado y acceso de invitado quedan como incrementos siguientes.
 
 Verificación PostgreSQL temporal: 22/22 pruebas de migraciones y ciclo de
 venta/rechazo aprobadas; unitarias dirigidas: 259/259.
+
+El historial autenticado quedó implementado en el mismo incremento posterior:
+`GET /api/v1/bookings` pagina con cursor opaco y `GET /api/v1/bookings/:id`
+consulta únicamente mediante el `user.id` de la sesión `CUSTOMER`. La consulta
+no recibe propietario ni cooperativa desde el cliente y minimiza los campos
+devueltos. Las pruebas unitarias totales de la rama alcanzan 1785/1785 y las
+pruebas PostgreSQL dirigidas de repositorio 44/44.

@@ -688,3 +688,14 @@ Actualización previa a publicación: develop avanzó a 4bb6861 con FLEET-09 y c
 En la rama `feature/BOOK-06-L04-T5-leslie` quedó implementado el segundo incremento de `BOOK-09-L07`: `POST /api/v1/payment-proofs/:paymentProofId/reject`, la migración `1794100000000-payment-proof-rejection` y el puente de rechazo hacia Reservas. Exige actor y justificación, marca comprobante y reserva como `REJECTED`, desactiva asignaciones reservadas y permite reintentar de forma idempotente ante una persistencia incierta.
 
 La verificación dirigida aprobó 259/259 unitarias y 22/22 pruebas PostgreSQL. Quedan como siguiente incremento el historial autenticado y el acceso de invitado; revisión humana, push, PR e integración no se declaran realizados.
+
+## Leslie: historial autenticado de reservas — 4 de noviembre de 2026
+
+En la misma rama quedó implementado el historial de `BOOK-09-L07`: `GET
+/api/v1/bookings` con cursor opaco y `GET /api/v1/bookings/:id`. Ambos endpoints
+usan exclusivamente el `user.id` de la sesión `CUSTOMER`; no aceptan propietario
+ni cooperativa desde la petición y devuelven una vista minimizada de la reserva.
+
+La verificación aprobó 1785/1785 pruebas unitarias y 44/44 pruebas PostgreSQL
+dirigidas de repositorio. Queda pendiente el acceso seguro de invitado, además
+de revisión humana, push, PR e integración.

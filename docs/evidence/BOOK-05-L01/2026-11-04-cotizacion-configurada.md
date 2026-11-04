@@ -29,7 +29,10 @@ Fecha: 4 de noviembre de 2026, America/Guayaquil.
 - La integración se ejecutó con PostgreSQL temporal `busesuta_test`; el contenedor y la red fueron retirados al finalizar.
 - El segundo incremento de `BOOK-09-L07` implementa rechazo justificado de comprobantes, persistencia `REJECTED`, desactivación de asignaciones reservadas y reintento idempotente.
 - La verificación dirigida adicional aprobó 259/259 unitarias y 22/22 pruebas PostgreSQL de catálogo y ciclo de venta/rechazo.
+- El historial autenticado de reservas quedó implementado con listado paginado
+  y detalle protegido por `user.id`; las pruebas unitarias de la rama aprobaron
+  1785/1785 y las pruebas PostgreSQL dirigidas de repositorio 44/44.
 
 ## Límites
 
-El historial autenticado y el acceso de invitado siguen pendientes en `BOOK-09-L07`; la revisión humana e integración siguen pendientes.
+El acceso de invitado sigue pendiente en `BOOK-09-L07`; la revisión humana e integración siguen pendientes.
