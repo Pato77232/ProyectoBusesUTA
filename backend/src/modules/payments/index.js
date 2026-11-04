@@ -12,7 +12,13 @@ const SimulatedBookingPaymentProofNotifier = require('./infrastructure/simulated
 const SimulatedBookingSaleConfirmer = require('./infrastructure/simulated-booking-sale-confirmer');
 const createPaymentProofRouter = require('./interfaces/http/payment-proof.routes');
 
-function createPaymentsModule({ pool, auth, env = process.env } = {}) {
+function createPaymentsModule({
+  pool,
+  auth,
+  env = process.env,
+  bookingPaymentProofNotifier,
+  bookingSaleConfirmer,
+} = {}) {
   const paymentProofRepository = new PgPaymentProofRepository(pool);
   const fileStorage = new LocalPrivateFileStorage({
     rootDirectory:
@@ -20,13 +26,13 @@ function createPaymentsModule({ pool, auth, env = process.env } = {}) {
       path.resolve(__dirname, '../../../private-storage/payment-proofs'),
   });
   const bookingReader = new SimulatedBookingReader();
-  const bookingPaymentProofNotifier = new SimulatedBookingPaymentProofNotifier();
-  const bookingSaleConfirmer = new SimulatedBookingSaleConfirmer();
+  const notifier = bookingPaymentProofNotifier || new SimulatedBookingPaymentProofNotifier();
+  const saleConfirmer = bookingSaleConfirmer || new SimulatedBookingSaleConfirmer();
   const uploadPaymentProof = new UploadPaymentProof({
     bookingReader,
     fileStorage,
     paymentProofRepository,
-    bookingPaymentProofNotifier,
+    bookingPaymentProofNotifier: notifier,
   });
   const listPendingPaymentProofs = new ListPendingPaymentProofs({
     paymentProofRepository,
@@ -38,7 +44,7 @@ function createPaymentsModule({ pool, auth, env = process.env } = {}) {
   });
   const approvePaymentProof = new ApprovePaymentProof({
     paymentProofRepository,
-    bookingSaleConfirmer,
+    bookingSaleConfirmer: saleConfirmer,
   });
 
   return {
