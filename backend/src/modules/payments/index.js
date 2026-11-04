@@ -1,6 +1,7 @@
 const path = require('node:path');
 const PgPaymentProofReceiptSource = require('./infrastructure/pg-payment-proof-receipt-source');
 const BookingsPaymentProofNotifier = require('./infrastructure/bookings-payment-proof-notifier');
+const BookingsPaymentQueryAdapter = require('./infrastructure/bookings-payment-query-adapter');
 const UploadPaymentProof = require('./application/upload-payment-proof.use-case');
 const ListPendingPaymentProofs = require('./application/list-pending-payment-proofs.use-case');
 const ReadPaymentProofFile = require('./application/read-payment-proof-file.use-case');
@@ -12,15 +13,25 @@ const SimulatedBookingPaymentProofNotifier = require('./infrastructure/simulated
 const SimulatedBookingSaleConfirmer = require('./infrastructure/simulated-booking-sale-confirmer');
 const createPaymentProofRouter = require('./interfaces/http/payment-proof.routes');
 
-function createPaymentsModule({ pool, auth, env = process.env } = {}) {
+function createPaymentsModule({
+  pool,
+  auth,
+  env = process.env,
+  paymentQueries,
+  bookingPaymentProofNotifier: configuredNotifier,
+  clock = () => new Date(),
+} = {}) {
   const paymentProofRepository = new PgPaymentProofRepository(pool);
   const fileStorage = new LocalPrivateFileStorage({
     rootDirectory:
       env.PAYMENT_PROOF_STORAGE_DIR ||
       path.resolve(__dirname, '../../../private-storage/payment-proofs'),
   });
-  const bookingReader = new SimulatedBookingReader();
-  const bookingPaymentProofNotifier = new SimulatedBookingPaymentProofNotifier();
+  const bookingReader = paymentQueries
+    ? new BookingsPaymentQueryAdapter({ paymentQueries })
+    : new SimulatedBookingReader();
+  const bookingPaymentProofNotifier =
+    configuredNotifier || new SimulatedBookingPaymentProofNotifier();
   const bookingSaleConfirmer = new SimulatedBookingSaleConfirmer();
   const uploadPaymentProof = new UploadPaymentProof({
     bookingReader,
@@ -48,6 +59,7 @@ function createPaymentsModule({ pool, auth, env = process.env } = {}) {
       listPendingPaymentProofs,
       readPaymentProofFile,
       approvePaymentProof,
+      clock,
     }),
     bookingReader,
     bookingPaymentProofNotifier,

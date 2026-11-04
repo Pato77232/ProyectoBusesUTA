@@ -125,6 +125,17 @@ class BookingNotPayableError extends PaymentProofError {
   }
 }
 
+class PaymentProofReconciliationRequiredError extends PaymentProofError {
+  constructor() {
+    super(
+      'PAYMENT_PROOF_RECONCILIATION_REQUIRED',
+      409,
+      'El comprobante requiere conciliación antes de reintentarse.',
+    );
+    this.name = 'PaymentProofReconciliationRequiredError';
+  }
+}
+
 class BookingPaymentProofRejectedError extends PaymentProofError {
   constructor() {
     super(
@@ -174,6 +185,7 @@ module.exports = {
   PaymentProofApprovalIntentPersistenceError,
   BookingNotFoundOrNotOwnedError,
   BookingNotPayableError,
+  PaymentProofReconciliationRequiredError,
   BookingPaymentProofRejectedError,
   BookingNotificationUncertainError,
   PaymentProofPersistenceUncertainError,

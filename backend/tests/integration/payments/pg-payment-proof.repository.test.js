@@ -123,6 +123,8 @@ test('las migraciones crean payment_proofs sin duplicar plazo ni total', async (
     'approved_by',
     'approval_requested_at',
     'approval_requested_by',
+    'upload_authorized_by',
+    'upload_authorized_at',
   ]);
   const { rows: indexRows } = await pool.query(
     `SELECT indexdef FROM pg_indexes WHERE tablename = 'payment_proofs'

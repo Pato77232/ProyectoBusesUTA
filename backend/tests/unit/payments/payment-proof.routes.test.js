@@ -147,7 +147,11 @@ describe('POST /api/v1/payment-proofs', () => {
     expect(uploadPaymentProof.execute).toHaveBeenCalledWith(
       expect.objectContaining({
         bookingId: BOOKING_ID,
-        customerId: 'customer-1',
+        authContext: {
+          userId: 'customer-1',
+          role: 'CUSTOMER',
+          cooperativeId: 'cooperative-1',
+        },
         file: expect.objectContaining({ originalFileName: 'comprobante.png' }),
         now: expect.any(Date),
       }),

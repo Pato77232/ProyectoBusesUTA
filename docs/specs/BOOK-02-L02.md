@@ -161,3 +161,17 @@ Repetir controles sobre catálogo 23 y la prueba de arranque ya adaptada; no tra
 Resultado final sobre 9920792: npm test aprobado, 1838/1838 unitarias (95 suites) y 581/581 integraciones (46 suites), salida 0. Total 2419 pruebas y 141 suites. Integración 337,724 s. Incluye arranque y prueba HTTP adaptada, hoja publicada con parada, ocupaciones persistidas y las pruebas integradas de renovación. No cambió código productivo al conciliar la base.
 
 Lint y formato propio (12 JS) aprobados; format:check global mantiene 17 archivos ajenos. Fotografías pasó sin cambiar código/límite; sus fallos anteriores conservan fecha/alcance histórico y no se declaran corregidos de forma determinista. Diff revisado. Checkpoint local autorizado: feat(reservas): conecta la disponibilidad con viajes publicados. Publicación, PR y revisión humana pendientes; no integración atribuida.
+
+
+## 18. Conciliación de PR #70 con Pagos integrado — 4 de noviembre de 2026
+
+Leslie solicita corregir los conflictos de la PR publicada. Cabeza e262428, base develop 9f7ac91, con lectura/carga productivas y procedencia de Pagos. Se incorpora develop en la misma rama mediante merge sin rebase ni force-push; no se integra la PR ni se cambia a main/develop. Se conservan las migraciones/contratos de Pagos, sin editarlos.
+
+Conflictos reales: server.js y tests/unit/server.test.js. La composición conserva Bookings con availabilityQueries reales; paymentReceipt recibe su createPaymentProofReceiver; carga y lectura reciben sus paymentQueries, y createApp conserva paymentReview. El trabajador de expiración/cierre sigue igual. Se preservan las aserciones de ambos lados y se adapta el doble de Route Sheets en la prueba de composición de Pagos, añadiendo la comprobación del proveedor de disponibilidad. Estado-proyecto se fusionó automáticamente conservando ambos registros.
+
+Pruebas requeridas antes de publicar: unitarias de ambas composiciones/adaptador, integraciones reales de disponibilidad/carga/lectura/recepción, lint/formato/npm test completos y arranque real con catálogo actual. No alterar tests/timeouts de fotografías ni inventar cierre/CI/aprobación humana. La corrección solicitada autoriza commit y push únicamente en la rama de la PR #70.
+
+
+Evidencia de conciliación: [PR #70](../evidence/BOOK-02-L02/2026-11-04-conciliacion-pr70.md). El catálogo 24 integrado rechaza el catálogo previo de 23 con renovación aplicada antes de procedencia; comprobado sin cambios en copia efímera. No se alteran migraciones o historial para resolverlo incidentalmente: las bases persistentes con esa historia requieren plan aparte con Pablo/Shirley. No se afirma haber encontrado una base persistente en ese estado.
+
+Resultado de conciliación: 1842 unitarias y 588 integraciones aprobadas (2430 pruebas, 143 suites), incluido arranque real. Lint y formato de los tres JS conciliados aprobados; formato global conserva 17 archivos ajenos. Fotografías pasó sin alterar su timeout. Entorno PostgreSQL temporal eliminado. Corrección lista para publicar en la PR #70; revisión humana e integración pendientes.

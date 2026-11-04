@@ -12,6 +12,7 @@ const {
 
 const PAYMENT_PROOF_COLUMNS = `id, booking_id, cooperative_id, status, file_key,
   original_file_name, media_type, file_size_bytes, uploaded_at, expired_at,
+  upload_authorized_by, upload_authorized_at,
   approved_at, approved_by, approval_requested_at, approval_requested_by,
   created_at, updated_at`;
 
@@ -46,7 +47,7 @@ function createCursor(paymentProof) {
 }
 
 function asDate(value) {
-  return value === null ? null : new Date(value);
+  return value === null || value === undefined ? null : new Date(value);
 }
 
 function withPersistenceDates(paymentProof, row) {
@@ -66,6 +67,8 @@ function toPaymentProof(row) {
     id: row.id,
     booking_id: row.booking_id,
     cooperative_id: row.cooperative_id,
+    upload_authorized_by: row.upload_authorized_by,
+    upload_authorized_at: asDate(row.upload_authorized_at),
   });
 
   if (row.status === 'AWAITING_UPLOAD') {
@@ -183,8 +186,9 @@ class PgPaymentProofRepository extends PaymentProofRepository {
     const { rows } = await this.pool.query(
       `INSERT INTO payment_proofs(
         booking_id, cooperative_id, status, file_key, original_file_name,
-        media_type, file_size_bytes, uploaded_at, expired_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        media_type, file_size_bytes, uploaded_at, expired_at,
+        upload_authorized_by, upload_authorized_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
       ON CONFLICT (booking_id) DO UPDATE SET
         cooperative_id = EXCLUDED.cooperative_id,
         status = EXCLUDED.status,
@@ -194,6 +198,8 @@ class PgPaymentProofRepository extends PaymentProofRepository {
         file_size_bytes = EXCLUDED.file_size_bytes,
         uploaded_at = EXCLUDED.uploaded_at,
         expired_at = EXCLUDED.expired_at,
+        upload_authorized_by = EXCLUDED.upload_authorized_by,
+        upload_authorized_at = EXCLUDED.upload_authorized_at,
         updated_at = CURRENT_TIMESTAMP
       WHERE payment_proofs.approved_at IS NULL
         AND payment_proofs.approval_requested_at IS NULL
@@ -208,6 +214,8 @@ class PgPaymentProofRepository extends PaymentProofRepository {
         paymentProof.file_size_bytes,
         paymentProof.uploaded_at,
         paymentProof.expired_at,
+        paymentProof.upload_authorized_by,
+        paymentProof.upload_authorized_at,
       ],
     );
     if (rows.length === 0) throw new PaymentProofAlreadyUploadedError();
@@ -222,8 +230,9 @@ class PgPaymentProofRepository extends PaymentProofRepository {
       const { rows } = await client.query(
         `INSERT INTO payment_proofs(
           booking_id, cooperative_id, status, file_key, original_file_name,
-          media_type, file_size_bytes, uploaded_at, expired_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+          media_type, file_size_bytes, uploaded_at, expired_at,
+          upload_authorized_by, upload_authorized_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         ON CONFLICT (booking_id) DO UPDATE SET
           cooperative_id = EXCLUDED.cooperative_id,
           status = EXCLUDED.status,
@@ -233,6 +242,8 @@ class PgPaymentProofRepository extends PaymentProofRepository {
           file_size_bytes = EXCLUDED.file_size_bytes,
           uploaded_at = EXCLUDED.uploaded_at,
           expired_at = EXCLUDED.expired_at,
+          upload_authorized_by = EXCLUDED.upload_authorized_by,
+          upload_authorized_at = EXCLUDED.upload_authorized_at,
           updated_at = CURRENT_TIMESTAMP
         WHERE payment_proofs.status = 'AWAITING_UPLOAD'
         RETURNING ${PAYMENT_PROOF_COLUMNS}`,
@@ -246,6 +257,8 @@ class PgPaymentProofRepository extends PaymentProofRepository {
           paymentProof.file_size_bytes,
           paymentProof.uploaded_at,
           paymentProof.expired_at,
+          paymentProof.upload_authorized_by,
+          paymentProof.upload_authorized_at,
         ],
       );
       if (rows.length === 0) throw new PaymentProofAlreadyUploadedError();

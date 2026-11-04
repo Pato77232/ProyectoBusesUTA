@@ -27,7 +27,8 @@ class PgPaymentProofReceiptSource {
          FROM payment_proofs p JOIN payment_proof_notification_outbox o
          ON o.payment_proof_id=p.id AND o.booking_id=p.booking_id
          WHERE p.id=$1 AND p.file_key IS NOT NULL AND p.uploaded_at IS NOT NULL
-           AND p.file_size_bytes>0`,
+           AND p.file_size_bytes>0 AND p.upload_authorized_by IS NOT NULL
+           AND p.upload_authorized_at IS NOT NULL`,
         [paymentProofId],
       );
       if (rows.length === 0) return null;

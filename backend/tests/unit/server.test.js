@@ -6,7 +6,11 @@ jest.mock('../../src/modules/tenants', () => ({ createTenantsModule: jest.fn() }
 jest.mock('../../src/modules/fleet', () => ({ createFleetModule: jest.fn() }));
 jest.mock('../../src/modules/frequencies', () => ({ createFrequenciesModule: jest.fn() }));
 jest.mock('../../src/modules/route-sheets', () => ({ createRouteSheetsModule: jest.fn() }));
-jest.mock('../../src/modules/payments', () => ({ createPaymentsModule: jest.fn() }));
+jest.mock('../../src/modules/payments', () => ({
+  createPaymentsModule: jest.fn(),
+  createPaymentReceiptModule: jest.fn(),
+  createPaymentReviewModule: jest.fn(),
+}));
 jest.mock('../../src/modules/bookings', () => ({ createBookingsModule: jest.fn() }));
 
 const createApp = require('../../src/app');
@@ -16,7 +20,11 @@ const { createTenantsModule } = require('../../src/modules/tenants');
 const { createFleetModule } = require('../../src/modules/fleet');
 const { createFrequenciesModule } = require('../../src/modules/frequencies');
 const { createRouteSheetsModule } = require('../../src/modules/route-sheets');
-const { createPaymentsModule } = require('../../src/modules/payments');
+const {
+  createPaymentsModule,
+  createPaymentReceiptModule,
+  createPaymentReviewModule,
+} = require('../../src/modules/payments');
 const { createBookingsModule } = require('../../src/modules/bookings');
 const { start } = require('../../src/server');
 
@@ -27,6 +35,8 @@ describe('server startup', () => {
   let routeSheets;
   let bookings;
   let fleet;
+  let paymentReview;
+  let paymentReceipt;
   let app;
   let server;
 
@@ -45,6 +55,8 @@ describe('server startup', () => {
         startExpirationWorker: jest.fn(() => ({ stop: jest.fn().mockResolvedValue() })),
       },
     };
+    paymentReview = { router: {} };
+    paymentReceipt = { bookingPaymentProofNotifier: {} };
     server = { once: jest.fn(), close: jest.fn((callback) => callback()) };
     app = {
       listen: jest.fn((_port, onListening) => {
@@ -60,6 +72,8 @@ describe('server startup', () => {
     createFrequenciesModule.mockReturnValue(frequencies);
     createRouteSheetsModule.mockReturnValue(routeSheets);
     createPaymentsModule.mockReturnValue({});
+    createPaymentReceiptModule.mockReturnValue(paymentReceipt);
+    createPaymentReviewModule.mockReturnValue(paymentReview);
     createBookingsModule.mockReturnValue(bookings);
     createApp.mockReturnValue(app);
   });
@@ -89,8 +103,33 @@ describe('server startup', () => {
       env,
       availabilityQueries: routeSheets.tripQueries,
     });
+    expect(createPaymentReceiptModule).toHaveBeenCalledWith({
+      pool,
+      createPaymentProofReceiver: bookings.createPaymentProofReceiver,
+    });
+    expect(createPaymentsModule).toHaveBeenCalledWith({
+      pool,
+      auth,
+      env,
+      paymentQueries: bookings.paymentQueries,
+      bookingPaymentProofNotifier: paymentReceipt.bookingPaymentProofNotifier,
+    });
+    expect(createPaymentReviewModule).toHaveBeenCalledWith({
+      pool,
+      auth,
+      paymentQueries: bookings.paymentQueries,
+      env,
+    });
     expect(createApp).toHaveBeenCalledWith(
-      expect.objectContaining({ frequencies, routeSheets, bookings, fleet, pool, auth }),
+      expect.objectContaining({
+        frequencies,
+        routeSheets,
+        bookings,
+        paymentReview,
+        fleet,
+        pool,
+        auth,
+      }),
     );
     expect(app.listen).toHaveBeenCalledWith(3100, expect.any(Function));
     expect(result).toEqual({ server, pool, stop: expect.any(Function) });
