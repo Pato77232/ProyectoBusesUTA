@@ -36,14 +36,21 @@
       <p class="eyebrow">FLOTA</p>
       <h1>Registrar bus</h1>
       <p class="form-page-intro">
-        Todos los campos son obligatorios, salvo los asientos no ofrecidos. Después de registrar el
-        bus no se pueden cambiar sus datos.
+        Todos los campos son obligatorios, salvo los asientos no ofrecidos y los VIP. Después de
+        registrar el bus no se pueden cambiar sus datos.
       </p>
 
       <form id="bus-form" novalidate>
         <p id="bus-form-status" class="form-status" role="status" tabindex="-1" data-tone="info">
-          Esta pantalla todavía no está conectada. Pronto podrás registrar buses desde aquí.
+          Comprobando tu sesión…
         </p>
+
+        <a id="login-link" class="form-action" href="/pages/login.html" hidden>
+          Ir a iniciar sesión
+        </a>
+        <a id="new-bus" class="form-action" href="/pages/registrar-bus.html" hidden>
+          Registrar otro bus
+        </a>
 
         <fieldset id="bus-fields" class="form-sections" disabled>
           <section class="form-card" aria-labelledby="datos-title">
@@ -147,6 +154,9 @@
                 Cambiaste de plantilla, así que se limpiaron los asientos marcados.
               </p>
               <div id="seat-decks"></div>
+              <h3 class="seat-subtitle">Asientos VIP</h3>
+              <p class="field-hint">Marca los asientos que se venderán con recargo VIP.</p>
+              <div id="vip-decks"></div>
             </div>
           </section>
 
@@ -181,5 +191,6 @@
         <p class="mb-0">transViaje <span aria-hidden="true">·</span> Proyecto académico</p>
       </div>
     </footer>
+    <script type="module" src="/src/fleet/bus-page.js"></script>
   </body>
 </html>

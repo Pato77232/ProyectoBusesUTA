@@ -1,4 +1,4 @@
-// FLEET-05 T1: presenta el formulario. Los datos llegan por parámetro; T3 los pedirá a la API.
+// FLEET-05: presenta el formulario. Los datos llegan por parámetro; bus-controller.js los pide a la API.
 import {
   buildBusData,
   formatPhotoSize,
@@ -17,6 +17,8 @@ const FIELD_NAMES = [
   'seatLayoutId',
 ];
 const PHOTOS_FIELD = 'photos';
+const DISABLED_SEATS = { name: 'disabledSeatKeys', deckClass: 'seat-deck' };
+const VIP_SEATS = { name: 'vipSeatKeys', deckClass: 'vip-deck' };
 
 function addOptions(select, items, describe) {
   for (const item of items) select.add(new Option(describe(item), item.id));
@@ -37,11 +39,11 @@ function setFieldError(form, name, message) {
   else control.removeAttribute('aria-invalid');
 }
 
-function renderSeats(container, layout) {
+function renderSeats(container, layout, { name, deckClass }) {
   container.replaceChildren();
   for (const deck of layout ? seatsByDeck(layout) : []) {
     const group = document.createElement('fieldset');
-    group.className = 'seat-deck';
+    group.className = deckClass;
     const legend = document.createElement('legend');
     legend.textContent = `Piso ${deck.number}`;
     const seats = document.createElement('div');
@@ -51,7 +53,7 @@ function renderSeats(container, layout) {
       label.className = 'seat-option';
       const input = document.createElement('input');
       input.type = 'checkbox';
-      input.name = 'disabledSeatKeys';
+      input.name = name;
       input.value = seat.key;
       label.append(input, ` ${seat.label}`);
       seats.append(label);
@@ -75,10 +77,8 @@ function readValues(form) {
   return Object.fromEntries(FIELD_NAMES.map((name) => [name, form.elements[name].value]));
 }
 
-function selectedSeats(form) {
-  return [...form.querySelectorAll('input[name="disabledSeatKeys"]:checked')].map(
-    (input) => input.value,
-  );
+function selectedSeats(form, name) {
+  return [...form.querySelectorAll(`input[name="${name}"]:checked`)].map((input) => input.value);
 }
 
 export function mountBusForm(form, { busGroups, seatLayouts, onValid }) {
@@ -86,6 +86,7 @@ export function mountBusForm(form, { busGroups, seatLayouts, onValid }) {
   const status = form.querySelector('#bus-form-status');
   const seatSection = form.querySelector('#seat-section');
   const seatDecks = form.querySelector('#seat-decks');
+  const vipDecks = form.querySelector('#vip-decks');
   const seatNotice = form.querySelector('#seat-notice');
   const photoList = form.querySelector('#photo-list');
   const findLayout = (id) => seatLayouts.find((layout) => layout.id === id);
@@ -108,9 +109,12 @@ export function mountBusForm(form, { busGroups, seatLayouts, onValid }) {
   status.hidden = true;
 
   form.elements.seatLayoutId.addEventListener('change', (event) => {
-    const hadSelection = selectedSeats(form).length > 0;
+    const hadSelection =
+      selectedSeats(form, DISABLED_SEATS.name).length + selectedSeats(form, VIP_SEATS.name).length >
+      0;
     const layout = findLayout(event.target.value);
-    renderSeats(seatDecks, layout);
+    renderSeats(seatDecks, layout, DISABLED_SEATS);
+    renderSeats(vipDecks, layout, VIP_SEATS);
     seatSection.hidden = !layout;
     seatNotice.hidden = !hadSelection;
   });
@@ -137,7 +141,15 @@ export function mountBusForm(form, { busGroups, seatLayouts, onValid }) {
     }
     status.hidden = true;
     const layout = findLayout(values.seatLayoutId);
-    onValid(buildBusData(values, layout, selectedSeats(form)), files);
+    onValid(
+      buildBusData(
+        values,
+        layout,
+        selectedSeats(form, DISABLED_SEATS.name),
+        selectedSeats(form, VIP_SEATS.name),
+      ),
+      files,
+    );
   });
 }
 
@@ -145,4 +157,46 @@ export function showFormStatus(form, text, tone) {
   const status = form.querySelector('#bus-form-status');
   showStatus(status, text, tone);
   status.focus();
+}
+
+// Adaptador para bus-controller.js; un estado final bloquea el formulario para no reenviar.
+export function createBusFormView(form) {
+  const fields = form.querySelector('#bus-fields');
+  const submitButton = fields.querySelector('button[type="submit"]');
+  const submitLabel = submitButton.textContent;
+  const loginLink = form.querySelector('#login-link');
+  const newBus = form.querySelector('#new-bus');
+  let locked = false;
+
+  function lock(text, tone) {
+    locked = true;
+    fields.disabled = true;
+    showFormStatus(form, text, tone);
+  }
+
+  return {
+    mount: (options) => mountBusForm(form, options),
+    status: (text, tone) => showFormStatus(form, text, tone),
+    busy(active) {
+      submitButton.textContent = active ? 'Registrando…' : submitLabel;
+      fields.disabled = active || locked;
+    },
+    replaceGroups(busGroups) {
+      const select = form.elements.busGroupId;
+      [...select.options].slice(1).forEach((option) => option.remove());
+      addOptions(select, busGroups, (group) => group.name);
+    },
+    registered(bus) {
+      lock(
+        `Bus ${bus.plate} registrado: unidad ${bus.unitNumber}, ${bus.capacity} asientos ofrecidos.`,
+        'success',
+      );
+      newBus.hidden = false;
+    },
+    signedOut(text) {
+      lock(text, 'error');
+      loginLink.hidden = false;
+    },
+    blocked: (text) => lock(text, 'error'),
+  };
 }

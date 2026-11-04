@@ -1,5 +1,75 @@
 # PAGOS-02: consumidor de lectura con contexto
 
+## Resolución de conflictos publicada en la misma PR #55
+
+Pablo autorizó de forma excepcional actualizar la rama de #55 para que él haga
+el merge final desde GitHub. Se incorporó `origin/develop` `feb7f75` sobre la
+cabeza `7448e1a`. Los dos conflictos reales fueron `payments/index.js` y
+`docs/estado-proyecto.md`: se conservaron la composición de lectura de #55, las
+dos capacidades de recepción añadidas en develop y ambas fotografías de estado.
+No se incorporó el incremento propio de #56.
+
+Node 24.21.0: lint y formato del archivo resuelto aprobados; las cuatro
+exportaciones públicas cargaron; 84 pruebas dirigidas y 1742 unitarias/90 suites
+aprobaron. La primera unitaria global quedó limitada por `listen EPERM` dentro
+del sandbox y la repetición con acceso local aprobado pasó completa. PostgreSQL
+aislado no pudo iniciarse porque Docker Desktop estaba apagado. No se usó `.env`
+ni otra base: integración, arranque y contrato conjunto no se atribuyen a esta
+cabeza. Los 2200 casos y 12 grupos inferiores pertenecen al candidato anterior
+`7448e1a` y se conservan como evidencia histórica, no como repetición nueva.
+
+La aprobación de Pablo existente corresponde a `7448e1a`; la cabeza conciliada
+requiere inspección humana final. La PR no queda integrada/cerrada por publicar
+esta resolución y #56 permanece separada.
+
+## Preparación histórica anterior de PR #55
+
+3 de noviembre de 2026: PR #55 existe, cabeza publicada `ca63a36`, Draft y
+con conflictos. Candidato local `feature/PAGOS-02-prepara-55` sobre develop
+`b4fe71704aaab382f62a7220f871cda79be6ffa5`. Esta preparación no actualiza
+automáticamente su rama remota. Los apartados inferiores son evidencia histórica
+de la primera publicación sobre f5b9bde; sus pendientes se leen con esta sección.
+
+La base actual incluye PR #51 y #60. Se aplican los ocho archivos JS propios
+de #55 sin cambios funcionales respecto a ca63a36. Se conservan la compatibilidad
+EXPIRED y los archivos de Bookings/Auth/VIP/pantalla de develop. Se reconcilia
+la spec conservando su sección de pantalla y el registro sin borrar evidencias
+de otros integrantes. No se incluye el script ni package/eslint de #56.
+
+Resultados actuales: lint backend aprobado; formato propio aprobado y global
+fallido en los mismos 17 archivos ajenos. Frontend: 205 pruebas y lint aprobados.
+Primera ejecución frontend incompleta por omitir los montajes de fixtures y
+dominio backend que importa flow.test.js: se corrige el entorno y se repiten
+las pruebas completas sin cambiar código ni expectativas.
+
+Contrato conjunto: **12 grupos aprobados** con API pública real de Bookings
+de esta base, Auth, PG y archivo privado reales. El runner de QA de #56 se monta
+externamente; no se añade a #55. `BOOKINGS_QA_ROOT=/app` señala el backend
+actual montado, no un proveedor antiguo ni una ruta de contenedor sin explicar.
+Se monta su runner en `/app/qa/contracts/review.cjs` y helpers en `/app/qa/helpers`;
+src/scripts/migrations/package JSON del candidato van en `/app`, solo lectura.
+PG 16.13 tmpfs en red interna, base exclusiva `pr55_contract_test`; Node 24.21.0
+e imagen con dependencias del lock existente. Sin .env ni puertos publicados.
+No se ejecuta una mutación de recepción para atribuir disponibilidad comercial:
+la recepción sembrada por ese contrato sigue siendo exclusivamente una fixture.
+
+- `npm test` completo: **1676 unitarias + 524 integraciones = 2200 aprobadas**,
+  127 suites, salida 0. Integración 156,513 s. No reaparecen los dos fallos de
+  reversión de la base anterior.
+- Arranque real: `/api/v1/health` 200 y `/api/v1/payment-proofs` sin sesión 401.
+- Ocho JS propios idénticos a ca63a36; formato propio y diff completo aprobados.
+- Log externo: `C:/Users/VivoBook/.codex/visualizations/2026/11/03/01a19fa6-e4f5-7552-9ce3-50f3b4d1fd44/pr55-actualizacion/backend-npm-test.log`.
+
+GitHub devuelve cero workflow runs para ca63a36. No se atribuye CI verde.
+Sin workflow/CI nuevo ni acuerdo humano para sustituir CI por evidencia manual.
+Pablo debe revisar la actualización publicada; no hay aprobación nueva atribuida.
+Sin merge/push, commit nuevo ni cambio a Ready en esta preparación.
+
+Los recursos QA propios se retiran al terminar. El candidato contiene solamente
+los 12 archivos propios de #55 contra b4fe717. Su parche completo y copia de los
+archivos resueltos se guardan fuera del repositorio para completar después la
+actualización de la rama original, preservando su historial y número de PR.
+
 Fecha: 3 de noviembre de 2026, America/Guayaquil.
 
 ## Estado comprobado

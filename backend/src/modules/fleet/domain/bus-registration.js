@@ -13,6 +13,7 @@ const FIELDS = [
   'seatLayoutId',
   'seatLayoutVersion',
   'disabledSeatKeys',
+  'vipSeatKeys',
 ];
 const PLATE_PATTERN = /^[A-Z]{3}-?[0-9]{4}$/;
 const DECIMAL_PATTERN = /^[0-9]+$/;
@@ -44,7 +45,7 @@ function unitNumber(value) {
   return normalized;
 }
 
-function disabledSeatKeys(value = []) {
+function seatKeys(value = []) {
   requireValid(Array.isArray(value));
   const keys = [];
   for (const key of value) {
@@ -71,7 +72,9 @@ function createBusRegistrationData(input) {
     busGroupId,
     seatLayoutId: requiredText(input.seatLayoutId),
     seatLayoutVersion: input.seatLayoutVersion,
-    disabledSeatKeys: disabledSeatKeys(input.disabledSeatKeys),
+    disabledSeatKeys: seatKeys(input.disabledSeatKeys),
+    // Campo opcional: un alta sin marcas conserva exactamente su forma anterior.
+    ...(input.vipSeatKeys !== undefined && { vipSeatKeys: seatKeys(input.vipSeatKeys) }),
   });
 }
 

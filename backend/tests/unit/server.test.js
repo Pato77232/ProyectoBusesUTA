@@ -7,6 +7,7 @@ jest.mock('../../src/modules/fleet', () => ({ createFleetModule: jest.fn() }));
 jest.mock('../../src/modules/frequencies', () => ({ createFrequenciesModule: jest.fn() }));
 jest.mock('../../src/modules/route-sheets', () => ({ createRouteSheetsModule: jest.fn() }));
 jest.mock('../../src/modules/payments', () => ({ createPaymentsModule: jest.fn() }));
+jest.mock('../../src/modules/bookings', () => ({ createBookingsModule: jest.fn() }));
 
 const createApp = require('../../src/app');
 const { createPool } = require('../../src/shared/database');
@@ -16,6 +17,7 @@ const { createFleetModule } = require('../../src/modules/fleet');
 const { createFrequenciesModule } = require('../../src/modules/frequencies');
 const { createRouteSheetsModule } = require('../../src/modules/route-sheets');
 const { createPaymentsModule } = require('../../src/modules/payments');
+const { createBookingsModule } = require('../../src/modules/bookings');
 const { start } = require('../../src/server');
 
 describe('server startup', () => {
@@ -23,6 +25,8 @@ describe('server startup', () => {
   let auth;
   let frequencies;
   let routeSheets;
+  let bookings;
+  let fleet;
   let app;
   let server;
 
@@ -33,7 +37,8 @@ describe('server startup', () => {
     auth = { router: {} };
     frequencies = { router: {} };
     routeSheets = { router: {} };
-    const fleet = { busGroupQueries: {}, busQueries: {} };
+    fleet = { busGroupQueries: {}, busQueries: {}, seatQueries: {} };
+    bookings = { router: {}, paymentQueries: {} };
     server = { once: jest.fn(), close: jest.fn((callback) => callback()) };
     app = {
       listen: jest.fn((_port, onListening) => {
@@ -49,6 +54,7 @@ describe('server startup', () => {
     createFrequenciesModule.mockReturnValue(frequencies);
     createRouteSheetsModule.mockReturnValue(routeSheets);
     createPaymentsModule.mockReturnValue({});
+    createBookingsModule.mockReturnValue(bookings);
     createApp.mockReturnValue(app);
   });
 
@@ -59,7 +65,8 @@ describe('server startup', () => {
   it('composes Route Sheets with the public Fleet and frequency queries before listening', async () => {
     const processOnce = jest.spyOn(process, 'once').mockImplementation(() => process);
 
-    const result = await start({ PORT: '3100', DATABASE_URL: 'postgres://test' });
+    const env = { PORT: '3100', DATABASE_URL: 'postgres://test' };
+    const result = await start(env);
 
     expect(createFrequenciesModule).toHaveBeenCalledWith({ pool, auth });
     expect(createRouteSheetsModule).toHaveBeenCalledWith({
@@ -68,9 +75,11 @@ describe('server startup', () => {
       frequencyQueries: frequencies.frequencyQueries,
       busGroupQueries: expect.any(Object),
       busQueries: expect.any(Object),
+      seatQueries: fleet.seatQueries,
     });
+    expect(createBookingsModule).toHaveBeenCalledWith({ pool, auth, env });
     expect(createApp).toHaveBeenCalledWith(
-      expect.objectContaining({ frequencies, routeSheets, pool, auth }),
+      expect.objectContaining({ frequencies, routeSheets, bookings, fleet, pool, auth }),
     );
     expect(app.listen).toHaveBeenCalledWith(3100, expect.any(Function));
     expect(result).toEqual({ server, pool });

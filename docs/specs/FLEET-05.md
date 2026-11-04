@@ -5,7 +5,7 @@
 - **Módulo:** `frontend`; consume la API de `fleet`
 - **Responsable:** Edwin, responsable de Fleet y solicitante de revisión/publicación
 - **Revisor propuesto / confirmado:** Pablo propuesto, por ser responsable de la base frontend; sin confirmación registrada
-- **Estado:** T1a integrada por PR #36; T1b en revisión en PR #37. T2a/T2b implementadas y verificadas para publicación; revisión humana pendiente. T3 pendiente; no es un alta funcional desde la pantalla.
+- **Estado:** T1a, T1b, T2a y T2b integradas. T3 en [PR #63](https://github.com/Pato77232/ProyectoBusesUTA/pull/63), preparada para revisión: implementación `ffc0798`, hallazgo de respuesta ambigua resuelto en `53df664`. Revisión humana pendiente; no integrada ni cerrada.
 - **Prioridad y dependencias:** FLEET-01, FLEET-02, FLEET-03 y FRONT-01 T3c/T3d, presentes en develop. T3 requiere además la pantalla de inicio de sesión (sección 10).
 - **Rama / PR / base comprobada:** `feature/FLEET-05-T1a-validacion` y `feature/FLEET-05-T1b-formulario`, creadas desde `origin/develop` en `b60201e` el 1 de noviembre de 2026. Reemplazan a `feature/FLEET-05-pantalla-registro-buses` y a PR #31: https://github.com/Pato77232/ProyectoBusesUTA/pull/31.
 - **Autorización de alcance:** el 31 de octubre de 2026 se aprobó por chat esta spec e iniciar solo T1. El 1 de noviembre Edwin aprobó dividir PR #31. La decisión sobre T2 consta en la sección 10.
@@ -85,15 +85,15 @@ Rutas comprobadas en `backend/src/app.js`. El 201 devuelve `bus` con `plate` for
 
 ## 7. Criterios de aceptación
 
-- [ ] Dado un administrador con sesión, cuando abre la pantalla, entonces ve solo los grupos de su cooperativa y las plantillas del catálogo.
-- [ ] Dado un formulario válido con foto, cuando lo envía, entonces el bus queda registrado y la pantalla confirma con los datos devueltos por el servidor.
-- [ ] Dado un doble clic en enviar, cuando la petición está en curso, entonces solo se envía un alta.
-- [ ] Dada una foto cercana a 5 MB y una carga de 10 fotos, cuando se envían por el proxy real, entonces el alta responde 201.
-- [ ] Dado un cambio de plantilla, cuando ya había asientos marcados, entonces esas marcas se limpian y la pantalla lo indica.
-- [ ] Dada una cooperativa sin grupos, cuando abre la pantalla, entonces se explica que hace falta un grupo y no se permite enviar.
-- [ ] Dado un 409, cuando el servidor rechaza el bus, entonces el formulario conserva datos y fotos y muestra el error.
-- [ ] Dado un error, cuando se muestra, entonces el foco llega al mensaje y el texto no depende solo del color.
-- [ ] Dado cualquier envío, cuando se inspecciona la petición, entonces no incluye `cooperative_id`.
+- [x] Dado un administrador con sesión, cuando abre la pantalla, entonces ve solo los grupos de su cooperativa y las plantillas del catálogo.
+- [x] Dado un formulario válido con foto, cuando lo envía, entonces el bus queda registrado y la pantalla confirma con los datos devueltos por el servidor.
+- [x] Dado un doble clic en enviar, cuando la petición está en curso, entonces solo se envía un alta.
+- [x] Dada una foto cercana a 5 MB y una carga de 10 fotos, cuando se envían por el proxy real, entonces el alta responde 201. Acreditado en T2b (PR #40); no se repitió en T3.
+- [x] Dado un cambio de plantilla, cuando ya había asientos marcados, entonces esas marcas se limpian y la pantalla lo indica.
+- [x] Dada una cooperativa sin grupos, cuando abre la pantalla, entonces se explica que hace falta un grupo y no se permite enviar.
+- [x] Dado un 409, cuando el servidor rechaza el bus, entonces el formulario conserva datos y fotos y muestra el error.
+- [x] Dado un error, cuando se muestra, entonces el foco llega al mensaje y el texto no depende solo del color.
+- [x] Dado cualquier envío, cuando se inspecciona la petición, entonces no incluye `cooperative_id`.
 
 ## 8. Casos borde y errores
 
@@ -252,3 +252,44 @@ Capturas de T1 con datos ficticios inyectados solo por la prueba, sin red/API ni
 
 La pantalla real publicada permanece deshabilitada y avisa que no está conectada. Sin revisión de código humana, integración ni cierre. Implementación original asistida por Claude Code (consta en 00085d5); revisión, repetición de pruebas y preparación de PR asistidas por Codex.
 Publicación confirmada el 1 de noviembre: PR #31 abierta en borrador hacia develop, https://github.com/Pato77232/ProyectoBusesUTA/pull/31, con implementación 00085d5 y evidencia de revisión/capturas 213f8ab. Se publicaron las limitaciones de lint en Windows y del smoke Docker 502/503; no se presenta T1 como funcionalidad completa. Revisión humana, acuerdos con Pablo, conexión real e integración pendientes.
+
+### T3: registro conectado, 3 de noviembre de 2026
+
+Edwin pidió conectar el registro antes del listado. Rama `feature/FLEET-05-T3-registro-conectado`, creada desde `origin/feature/FLEET-07-T2-formulario-vip` en `aef6707` (PR #57, que ya incorpora develop), para no duplicar el formulario VIP. La pregunta 1 de la sección 10 quedó resuelta: el login está en develop por la PR #45.
+
+**Implementación:**
+
+- `src/fleet/bus-controller.js`: verifica con `/api/v1/auth/me` que la sesión sea `COOPERATIVE_ADMIN`, carga grupos y plantillas, revalida la sesión antes de enviar y manda `data` y `photos` como multipart por el cliente común. La cooperativa sale de la sesión, nunca del formulario. Una respuesta 201 sin `id`, `plate`, `unitNumber` y `capacity` válidos no se confirma: se trata como resultado incierto (ver corrección del hallazgo).
+- Errores según la sección 8: 409, 400, 413, 415 y CSRF vencido conservan el formulario con su mensaje; 404 recarga la lista de grupos; 401 muestra el enlace al login; 403 bloquea; 502, 503, 504 y fallo de red muestran el aviso de resultado incierto acordado con Pablo, sin reintento automático.
+- `bus-form-view.js` agrega `createBusFormView` (estados ocupado, bloqueado, sin sesión y registrado). `bus-page.js` es el punto de entrada. La página arranca con «Comprobando tu sesión…» y, tras el alta, ofrece «Registrar otro bus» junto al mensaje.
+
+**Evidencia en Windows con Chrome:**
+
+- Pruebas frontend: 135 de 135 aprobadas, 18 nuevas del controlador (sesión y roles, multipart sin cooperativa, revalidación, doble envío, cada error y respuesta no verificable).
+- ESLint directo y Prettier correctos en los archivos tocados.
+- `registrar-bus-smoke.cjs`: 9 de 9. Edwin autorizó adaptar su preparación: sirve la página sin `bus-page.js`, siguiendo el patrón de la prueba de frecuencias, y espera el nuevo texto inicial. Sus demás comprobaciones no cambiaron.
+- `registrar-bus-api-smoke.cjs`, nueva, con backend, Nginx y PostgreSQL efímeros: sin sesión muestra el enlace al login; con administrador solo aparecen los grupos de su cooperativa; un doble clic registra un único bus con la cooperativa de la sesión, el asiento no ofrecido y el VIP correctos y una fotografía; repetir el alta responde 409 conservando placa y foto, con el foco en el mensaje. 3 de 3 aprobadas; se revisó la captura.
+- Persistencia de fotografías: con `docker-compose.yml`, un archivo escrito en `/home/node/fleet-photos` desde un contenedor se leyó desde otro distinto, gracias al volumen `fleet_photos`. Variables ficticias en el entorno del proceso, sin leer `.env`; recursos retirados. El compose de desarrollo no tiene ese volumen, así que allí las fotos no sobreviven a recrear el contenedor.
+- `container-smoke.cjs` falla en la portada por el enlace al login de AUTH-WEB-01, igual que en develop; no se modificó.
+
+Pendiente: revisión humana. El listado y el detalle de buses quedan para una spec propia, porque requieren endpoints nuevos.
+
+### Revisión de publicación de T3 por Codex, 3 de noviembre
+
+PR #63 abierta en borrador desde `feature/FLEET-05-T3-registro-conectado`, commit funcional `ffc0798`, base `aef6707`. PR #57 comprobada integrada; `origin/develop` consultado en `c08ce6c`, sin merge/rebase en esta revisión. El diff solo incluye frontend Fleet y documentación; FLEET-08 permanece local y fuera del cambio. Se aplica frontend/DESIGN.md para mensajes, foco y acciones usando los estilos comunes (D-02/03/04/05/07).
+
+Repetición real: **225/225 pruebas frontend** de las suites actuales, `npm run lint` aprobado, nueve comprobaciones del formulario y tres de API real aprobadas. La última cifra registrada de 135 corresponde a una ejecución anterior y no es el total de esta revisión. Chrome/Nginx/backend/PostgreSQL efímeros verificaron sin sesión, grupos del tenant, alta única con doble clic, VIP/no ofrecido/foto y 409 conservando datos/foco. Se inspeccionó la captura de confirmación con datos ficticios. Recursos Docker de QA eliminados, sin leer `.env`. No se repitió la suite completa backend ni el escenario de persistencia entre contenedores de producción, al no modificar esos archivos.
+
+Formato HTML/JS del incremento aprobado con configuración backend; `app.css` advierte formato, y la copia de esa hoja anterior a T3 también falla el mismo check. No se declara formato global aprobado ni se reformatea la hoja compartida. `git diff --check` aprobado. No se repitió `container-smoke.cjs`; su fallo previo de portada permanece documentado.
+
+Hallazgo pendiente antes de integrar: una respuesta exitosa incompleta o `RESPONSE_INVALID` no permite concluir que el alta fue rechazada. Actualmente cae en «No se aceptó el registro»; debe conservarse como resultado incierto y pedir comprobar existencia antes de reenviar, igual que los demás resultados ambiguos, sin reintento automático. Se mantiene este punto explícito en el borrador, sin cambiar producto ni pruebas durante la evaluación. La revisión/publicación fue asistida por Codex; falta revisión humana de Pablo.
+
+### Corrección del hallazgo de publicación, 3 de noviembre
+
+Edwin pidió resolver el hallazgo anterior. Una respuesta exitosa sin `bus` verificable, sin cuerpo o con `RESPONSE_INVALID` ya no muestra «No se aceptó el registro»: muestra el aviso de resultado incierto, conserva datos y fotos, libera el formulario y no reintenta, igual que 502, 503, 504 y fallo de red. Solo cambió `src/fleet/bus-controller.js`.
+
+La prueba unitaria que fijaba el mensaje de rechazo para ese caso describía el comportamiento que el hallazgo declaró incorrecto; se reemplazó por tres casos (datos incompletos, sin cuerpo y `RESPONSE_INVALID`) que exigen el aviso incierto, un único envío y el formulario liberado. No se debilitó ninguna otra aserción.
+
+Evidencia en Windows: 227 de 227 pruebas frontend (20 del controlador); ESLint y Prettier correctos en los dos archivos tocados. No se repitieron las comprobaciones con Chrome, porque no cubren este caso ni cambió la página. Falta revisión humana de Pablo.
+
+Codex revisó `53df664` y repitió la validación antes de publicar: **227/227 pruebas frontend**, `npm run lint`, Prettier de controlador/prueba y `git diff --check` aprobados. La prueba de regresión exige mensaje incierto, ausencia de confirmación de éxito, un único POST y liberación del estado ocupado en los tres casos. No se modificó producto ni pruebas en esta revisión. Las nueve comprobaciones de formulario y tres de API real anteriores siguen como evidencia histórica, sin nueva ejecución; tampoco se repitió backend ni Docker. El aviso preexistente de CSS y el fallo previo del smoke de portada permanecen documentados. PR #63 pasa a revisión humana; FLEET-08 queda local y fuera del cambio.

@@ -120,3 +120,9 @@ Recepción durable, confirmSale, releaseBooking, correcciones, caja, QR y correo
 conservan sus tareas/contratos. Sembrar un estado de recepción no los implementa.
 Sin commits, push, PR nueva, mensajes enviados ni defectos académicos.
 Asistencia de IA en el ensayo y documentación; revisión humana pendiente.
+
+## Actualización contra develop c95cc73 — 3 de noviembre de 2026
+
+Las PR #54, #55, #60 y #62 están integradas. Se repitió la prueba con el snapshot de develop c95cc732b7a895fc3f4d1b00f39aa1dd9fb2345e y PostgreSQL QA aislado. npm ci en el snapshot temporal resolvió los imports ESM de node-pg-migrate; el contrato terminó con salida 0 y 12 grupos aprobados.
+
+Regresión del candidato: 1747 unitarias y 545 integraciones aprobadas; lint y Prettier de package.json/script CJS aprobados. format:check global sigue fallando en 17 archivos previos de Route Sheets, sin cambios en ellos. El ensayo sigue limitado a fixtures QA y no acredita aceptación productiva, venta o liberación. PR #56 permanece en borrador; revisión de Pablo y CI pendientes.

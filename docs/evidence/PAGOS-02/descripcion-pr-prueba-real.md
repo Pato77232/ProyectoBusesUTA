@@ -25,3 +25,7 @@ ensayo. Revisor: Pablo. Asistencia de IA en prueba/documentación.
 
 Evidencia: docs/evidence/PAGOS-02/2026-11-03-contrato-real.md.
 Refs: docs/specs/PAGOS-02.md
+
+## Verificación actualizada para la conciliación con develop
+
+Base verificada: develop c95cc732b7a895fc3f4d1b00f39aa1dd9fb2345e, con #54, #55, #60 y #62 integradas. El contrato real con snapshot actual terminó con salida 0 y 12 grupos aprobados. La regresión del candidato pasó con 1747 unitarias y 545 integraciones; lint y Prettier de los archivos propios aprobaron. format:check global reportó 17 archivos previos de Route Sheets y se conservaron sin cambios. Revisión humana de Pablo y CI pendientes; la PR sigue en borrador.

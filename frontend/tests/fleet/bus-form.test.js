@@ -105,6 +105,17 @@ test('agrupa solo asientos por piso, en orden de numeración', () => {
   ]);
 });
 
+test('agrega los asientos VIP elegidos sin compartir la lista recibida', () => {
+  const vip = ['d2-s10'];
+  const data = buildBusData(VALID, LAYOUT, [], vip);
+  vip.push('d1-s45');
+  assert.deepEqual(data.vipSeatKeys, ['d2-s10']);
+});
+
+test('sin asientos VIP omite el campo opcional', () => {
+  assert.equal('vipSeatKeys' in buildBusData(VALID, LAYOUT, [], []), false);
+});
+
 test('arma el contrato del alta sin datos de cooperativa', () => {
   const data = buildBusData(VALID, LAYOUT, ['d2-s2']);
   assert.deepEqual(data, {

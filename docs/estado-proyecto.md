@@ -1,44 +1,60 @@
 # Estado compartido del proyecto
 
-## PAGOS-02 — prueba conjunta con Reservas real, 3 de noviembre de 2026
+## PAGOS-02 — prueba conjunta con Reservas real, actualizada el 3 de noviembre de 2026
 
-Shirley pidió continuar. PR #54 abierta y #55 abierta en borrador, sin integración
-inferida. Rama feature/PAGOS-02-prueba-lector-real desde ca63a36. Snapshot público
-de Leslie 901d308 montado de solo lectura, mismas dependencias y migraciones
-originales; sin incorporar archivos ni cambiar el producto.
+Las PR #54 y #55 están integradas; también las PR #60 y #62. La rama de trabajo es codex/PAGOS-02-pr56, con la cabeza de #56 15218ae conciliándose localmente con develop c95cc73. El proveedor de QA se obtuvo de c95cc732b7a895fc3f4d1b00f39aa1dd9fb2345e y se montó desde un snapshot temporal.
 
-12 grupos de contrato aprobados con paymentQueries real, Auth/PostgreSQL/bytes
-privados reales: contexto, tenant, DTO, total/plazo, límites, lectura sin efectos,
-archivos e integridad. La recepción se siembra como fixture; no acredita su API.
-Regresión aislada adicional: 1317 unitarias y 388 integraciones aprobadas. Lint y
-formato propio/diff pasan; formato global sigue fallando en 17 archivos previos.
-Prueba inicial falló en limpieza; corregida y repetida con salida 0.
+La prueba conjunta con Auth, PostgreSQL aislado y archivos privados reales aprobó sus 12 grupos. La regresión del candidato aprobó 1747 pruebas unitarias y 545 integraciones; lint y Prettier de package.json y del script CJS aprobaron. format:check global continúa fallando en 17 archivos previos de Route Sheets. Para resolver la carga ESM del snapshot se instalaron allí sus dependencias bloqueadas con npm ci; no se actualizaron versiones ni archivos del producto.
 
-La compatibilidad de lectura queda probada para esas revisiones; falta integrar
-proveedor/consumidor y revisar con Pablo, sin activar aún server.js. Recepción,
-venta, rechazo/corrección/caja y QR conservan sus pendientes. Sin commits o PR
-nueva. [Spec §19](specs/PAGOS-02.md) y [evidencia](evidence/PAGOS-02/2026-11-03-contrato-real.md).
+La prueba no acredita mutaciones productivas, aceptación real de comprobantes ni venta. #56 continúa en borrador; falta completar y registrar el merge local, publicar la rama y obtener revisión de Pablo y resultado de CI. [Spec §19](specs/PAGOS-02.md#19-prueba-conjunta-con-el-proveedor-integrado-3-de-noviembre-de-2026), [evidencia](evidence/PAGOS-02/2026-11-03-contrato-real.md) y [descripción](evidence/PAGOS-02/descripcion-pr-prueba-real.md).
 
-## PAGOS-02 — consumidor HTTP con contexto, 3 de noviembre de 2026
+## PAGOS-02 — resolución local de conflictos de PR #55, 3 de noviembre de 2026
 
-Shirley pidió continuar. Rama feature/PAGOS-02-lector-contexto sobre develop
-f5b9bde comprobado por fetch. La pantalla permanece en PR #54 abierta (700bcf3),
-sin modificarla ni marcarla integrada. La rama publicada de Leslie ya expone
-paymentQueries.findForPayment con DTO conforme al contrato; inspeccionada por
-GitHub, sin incorporar/ejecutar código remoto.
+PR #55 publicada en `7448e1a`, con aprobación de Pablo registrada sobre esa
+cabeza. Resolución excepcional solicitada por Pablo incorpora `origin/develop`
+`feb7f75` en la misma rama y conserva tanto `createPaymentReviewModule` de #55
+como `createPaymentReceiptModule` y `createBookingPaymentProofNotifier` de
+develop. También conserva íntegra la fotografía PAGOS-01 inferior. Lint, formato
+del archivo conciliado, comprobación de las cuatro exportaciones, 84 pruebas
+dirigidas y las 1742 unitarias aprobaron con Node 24.21.0. La integración no se
+repitió porque Docker Desktop estaba apagado; no se leyó `.env` ni se usó otra
+base. La aprobación anterior no se atribuye automáticamente a la nueva cabeza.
+Publicación de la resolución autorizada por Pablo; no integrada/cerrada.
+[Spec](specs/PAGOS-02.md#18-consumidor-http-de-lectura-con-contexto--3-de-noviembre-de-2026)
+y [evidencia](evidence/PAGOS-02/2026-11-03-lector-contexto.md).
 
-Nuevo consumidor y composición pública de lectura explícita, contexto mínimo
-desde Auth, tenant verificado, errores seguros e integridad sin listas parciales.
-Solo GET listado/archivo; no-store, sin fallback al simulador. Preparado para
-integrar Bookings después; server.js conserva composición anterior.
+## PAGOS-01 — puente interno de recepción preparado, 3 de noviembre de 2026
 
-Lint y formato propio aprobados; npm test backend: 1317 unitarias y 388
-integraciones aprobadas. 28 pruebas nuevas; Auth/PostgreSQL/archivos reales con
-lector controlado. Frontend sin cambios: 144 aprobadas. Formato global falla en
-17 archivos previos. Arranque real: salud 200 y Pagos sin sesión 401. Shirley
-autorizó guardar el commit local el 3 de noviembre; publicación, revisión humana
-e integración productiva pendientes. Pablo pendiente de revisión.
-[Spec §18](specs/PAGOS-02.md), [evidencia y límites](evidence/PAGOS-02/2026-11-03-lector-contexto.md).
+Base develop `b4fe717` con PR #60 integrada; rama
+`feature/PAGOS-01-puente-recepcion`. Consulta pública interna del comprobante/outbox
+persistidos y adaptador estricto del receptor de Bookings, sin proveedor simulado
+en esta capacidad nueva. Aceptación, rechazo confirmado y resultado incierto
+clasificados sin compensación por errores genéricos. No activa rutas/servidor:
+conectar UPLOAD_PROOF y Auth reales sigue como siguiente incremento.
+37 pruebas nuevas dirigidas; regresión completa 1686 unitarias + 525 integraciones
+aprobadas, 127 suites. Lint y formato propio aprobados; 17 pendientes globales
+ajenos. Arranque salud 200 y Pagos sin sesión 401. Sin UI, dependencias,
+migraciones o pruebas previas modificadas. Sin commit/PR/revisión humana nueva;
+no integrada/cerrada. Validación de formatos local y PR #55/#56 siguen separadas.
+[Spec](specs/PAGOS-01.md#16-puente-interno-de-recepción-real--3-de-noviembre-de-2026),
+[evidencia](evidence/PAGOS-01/2026-11-03-puente-recepcion.md) y
+[descripción de PR](evidence/PAGOS-01/descripcion-pr-recepcion.md).
+
+## PAGOS-WEB-01 — bandeja web preparada para revisión, 2 de noviembre de 2026
+
+Shirley precisó «Por ahora termina la pantalla y prepara la PR». Rama
+feature/PAGOS-WEB-01-bandeja-pr sobre develop comprobado 5abc36d; conserva
+Frecuencias y separa los borradores previos. Pantalla CLERK con listado real,
+paginación, archivo privado, estados accesibles y diseño transViaje. Cabecera
+no-store en Payments para listados/bytes privados; sin reglas nuevas de Reservas.
+
+168 pruebas frontend y navegador con imagen/proxy/Auth/PostgreSQL reales
+aprobados. Backend: lint aprobado, 1298 unitarias y 372 integraciones aprobadas;
+formato global fallido en 17 archivos previos. Arranque real: salud 200 y Pagos
+sin sesión 401. Reservas sigue simulado: no acredita venta completa. Sin commits,
+push, PR publicada ni revisión humana nueva; no integrada/cerrada.
+[Spec](specs/PAGOS-WEB-01.md), [evidencia y límites](evidence/PAGOS-WEB-01/2026-11-02-verificacion.md)
+y [descripción de PR](evidence/PAGOS-WEB-01/descripcion-pr.md). Revisor Pablo pendiente.
 
 ## D-06 — creación de frecuencias, sección 2 local, 2 de noviembre de 2026
 
@@ -225,8 +241,10 @@ Antes de orientar a alguien:
 | [INFRA-04](specs/INFRA-04.md) | Pablo; revisora propuesta Shirley | Integrada: su código documental está contenido en c89b1b9 | La presencia en develop está comprobada; no se inventa evidencia de revisión humana/cierre |
 | [FRONT-01](specs/FRONT-01.md) | Pablo | T3c/T3d integradas; T4 pendiente | PR #32 aprobada por David22x e integrada en d0a5f8d. Login funcional se verifica aparte mediante AUTH-WEB-01; no implica cierre de toda la base frontend. |
 | [AUTH-WEB-01](specs/AUTH-WEB-01.md) | Pablo; Shirley aprobó controlador/lint, pantalla por revisar | Controlador integrado en PR #42/8fdf7e4; pantalla verificada localmente, guardado atómico solicitado; sin PR | 2 de noviembre: rama feature/AUTH-WEB-01-pantalla-login, base 8fdf7e4. Lint/formato propio y 115 pruebas frontend aprobados; test:login con API/Docker real aprobado. Backend: lint y npm test completo aprobados (1068 unitarias + 275 integraciones); formato previo falla en 17 archivos. Spec sección 19; revisión humana de pantalla pendiente. |
-| [FLEET-05](specs/FLEET-05.md) | Edwin | T1 en división: T1a y T1b reemplazan a PR #31, en borrador | Formulario sin API. Pablo integró T3c/T3d y propuso que Edwin haga multipart y proxy como T2; decisión en la spec. T3 espera el login. |
+| [FLEET-05](specs/FLEET-05.md) | Edwin | T1/T2 integradas; T3 en [PR #63](https://github.com/Pato77232/ProyectoBusesUTA/pull/63) para revisión, implementación ffc0798 y corrección 53df664 | Repetición de corrección: 227 pruebas frontend, lint y formato de los dos JS aprobados. Respuesta de alta no verificable se trata como incierta sin reintentos. Evidencia anterior: 9 comprobaciones Chrome y 3 de API real; no repetidas en esta actualización. CSS y smoke de portada con pendientes previos documentados. Falta revisión humana; listado/detalle fuera del alcance. |
 | [FLEET-06](specs/FLEET-06.md) | Edwin | T1 en [PR #41](https://github.com/Pato77232/ProyectoBusesUTA/pull/41) en borrador; implementación 7d6353a sobre 1fb0ade | listByBus entrega todos los asientos con identidad propia, layoutSeatKey y offered; confirmación de Leslie pendiente. 21 pruebas específicas aprobadas. Global: 1066 unitarias aprobadas/2 fallidas; integración 274 aprobadas/1 timeout en user-cooperative-integrity. Versión por hoja, VIP y accesibilidad pendientes; detalles en la spec. |
+| [FLEET-07](specs/FLEET-07.md) | Edwin | T1 preparada para revisión en [PR #44](https://github.com/Pato77232/ProyectoBusesUTA/pull/44); sin integración | 3 de noviembre: VIP no ofrecido confirmado por Edwin; migración VIP renumerada con autorización y SQL intacto; reversión independiente de la última migración. Integración Linux/PostgreSQL aislado 280/280, prueba con migración posterior 5/5 y upgrade desde develop aprobados. Unitarias globales 1074 aprobadas/2 fallidas de hojas de ruta; base conservada sin merge por decisión de Edwin. Leslie y revisión humana pendientes; T2 aparte. |
+| [FLEET-09](specs/FLEET-09.md) | Edwin | Plan documental en [PR #58](https://github.com/Pato77232/ProyectoBusesUTA/pull/58), sin implementación; decisiones acordadas con David el 3 de noviembre | Inmutabilidad en BD propuesta con pruebas adaptadas conservando cobertura; versiones como modelo futuro y sustitución en D-05 de Route Sheets. David aceptó revisar según mensaje reportado por Edwin; falta autorización de T1 y contrato con Leslie para D-05. Diff documental comprobado, sin pruebas de producto. |
 | search, bookings, payments y tickets | Según propuesta inferior | Sin implementación en la base examinada | Confirmar ramas de los responsables antes de crear tareas |
 | [PAGOS-01](specs/PAGOS-01.md) | Shirley | Código integrado en `origin/develop` en `f26415d`; revisión/cierre humano no se infieren | El merge commit `f26415d` incorpora PAGOS-01 (`518c46b` como segundo padre). La evidencia de pruebas registrada corresponde a la rama de origen, no a una repetición posterior al merge. `bookings` sigue simulado conforme al alcance T4. |
 | [PAGOS-02](specs/PAGOS-02.md) | Shirley; Pablo (@PabloToapanta) revisor aceptado; Leslie complementaria propuesta | En desarrollo; adaptador no conectado y pruebas verificadas, descripción detallada de PR sin publicación | Rama `feature/PAGOS-02-aprobar-comprobante`, base común `518c46b`; rutas con Reservas simulado. Nuevo adaptador de contrato con 74 casos; suite global 668 unitarias + 134 integraciones aprobadas (802). Lint/formato propio aprobados; formato global fallido en 48 ajenos. Conexión real, versiones/importe observado y combinación con develop pendientes. [Evidencia](evidence/PAGOS-02/2026-11-02-adaptador-lector.md). |
@@ -235,6 +253,27 @@ Antes de orientar a alguien:
 | PAGOS-CORR-01, planificación S-03 | Shirley; Pablo aceptó revisar el incremento | Borrador local conciliado el 2 de noviembre, separado de la publicación PAGOS-02; no aprobado para implementar | PR #35 ya confirma 3/15 minutos; eventos técnicos, rondas, versionado/correo y efecto del vencimiento siguen pendientes. Leslie no aprobó cerrar edición/mantener revisión al vencer. Depende de S-02, L-05, PAGOS-01/02 y P-03. |
 | PAGOS-CAJA-01, relacionada con S-04 | Shirley; Pablo aceptó revisar el incremento | Borrador local conciliado el 2 de noviembre, separado de la publicación PAGOS-02; no aprobado para implementar | PR #35 confirma efectivo mediante reserva y sin archivo de depósito. Plazo de caja, titularidad, abandono/cancelación, resultados e idempotencia siguen pendientes. Depende de P-02, L-03 y L-05. |
 | CI | Pablo | Sin workflow versionado en la base | Proponer una spec propia; no afirmar protecciones remotas sin consultarlas |
+
+## Actualización parcial de reservas — 27 de octubre de 2026
+
+Solo tareas de Leslie, contrastadas con origin/develop e96a277; las filas anteriores conservan su fotografía histórica.
+
+| Spec / área | Estado comprobado | Evidencia y dependencia |
+| --- | --- | --- |
+| BOOK-02/04/05/06, incrementos del PR #15 | Integrados en e96a277 | GitHub confirma PR #15 fusionado. El dominio no incorpora por sí solo almacenamiento ni pantallas. |
+| BOOK-07 T1 | PR #17 abierto, aprobado por Shirley | Contrato documental; no equivale a funciones ni pruebas de carrera implementadas. |
+| BOOK-03 T1 | A y B implementadas localmente; revisión humana pendiente | BOOK-03-T1.md; 81 pruebas nuevas, 631 unitarias aprobadas. Integración sin base aislada disponible en esta sesión. Viajes y plantillas reales siguen sin proveedor público comprobado; no se sustituye por inventario ficticio. |
+## Actualización parcial de reservas — 28 de octubre de 2026
+
+Solo tareas de Leslie. Misma rama local feature/BOOK-03-resumen-creacion-dominio; se conserva la fotografía histórica anterior.
+
+| Spec / área | Estado local | Evidencia y siguiente paso |
+| --- | --- | --- |
+| BOOK-03 T1 | Partes A/B implementadas localmente | ae5f29d y 7eb41ba; resumen y valor inicial de dominio, ahora comprobados también en la suite completa con base aislada. |
+| BOOK-03 T2 | Persistencia y concurrencia verificadas localmente; revisión humana pendiente | BOOK-03-T2.md, ADR 0005 y 16 pruebas nuevas de PostgreSQL. Total de esta rama: 754 aprobadas. Faltan T3/T4 y proveedores reales antes de habilitar compra. |
+| Contrato de viaje y plantilla | Seleccionado por Leslie según delegación transmitida de David/Edwin | TripCatalog.findBookableById y snapshot de BOOK-03-T1/T2; esto no implementa los adaptadores ni certifica su funcionamiento. |
+
+Actualización de AUTH-BOOTSTRAP-01 (2 de noviembre): la [PR #52](https://github.com/Pato77232/ProyectoBusesUTA/pull/52) se concilió con `develop` `f5b9bde` sin marcadores de conflicto. La combinación temporal aprobó lint, 1315 unitarias y 385 integraciones PostgreSQL (1700); el formato global conserva 17 archivos ajenos. [Evidencia detallada](specs/AUTH-BOOTSTRAP-01.md#conciliación-de-la-pr-52-con-develop--2-de-noviembre-de-2026). Revisión humana e integración pendientes; la fila conserva el conteo histórico de la rama anterior.
 
 ## Próximos pasos por integrante
 
@@ -304,6 +343,129 @@ Usar [equipo-y-acuerdos.md](equipo-y-acuerdos.md) para preparar la consulta y re
 
 Resultados actuales de INFRA-04 se registran en su [spec](specs/INFRA-04.md). No confundir evidencia histórica de otras specs con una ejecución actual. Los fallos preexistentes se reportan sin corregirlos de paso ni declarar la entrega lista.
 
+## Actualización parcial de reservas — 29 de octubre de 2026
+
+Solo tareas de Leslie. origin/develop consultado en e556e59, aún no incorporado a esta rama.
+
+| Spec / área | Estado comprobado | Evidencia y siguiente paso |
+| --- | --- | --- |
+| BOOK-03 T3 A | Caso de uso de resumen implementado localmente | BOOK-03-T3.md; 32 pruebas nuevas y 663 unitarias aprobadas, lint aprobado. Falta B, integración del incremento y T4. No abrir PR por este commit. |
+| BOOK-07 T1 | PR #17 cerrado sin merge | Contrato conservado en 292617b. Leslie decide recuperarlo con la implementación de pagos/expiración en una entrega funcional, sin rehacerlo ni abrir otro PR solo documental. |
+
+| BOOK-03 T3 B | Creación transaccional implementada y verificada localmente | BOOK-03-T3.md; 30 unitarias nuevas y siete de PostgreSQL. Suite completa: 693 unitarias + 130 integración = 823 aprobadas. No hay endpoints ni proveedores reales compuestos; revisión humana pendiente. |
+| Entrega funcional de reservas | En preparación, sin PR nuevo | Leslie solicita un PR por funcionalidad hacia develop, con varios commits, specs y pruebas. Faltan T4, proveedores reales y recuperación segura de creación incierta; no se publica cada paso. |
+
+## Actualización parcial de reservas — recuperación de creación, 29 de octubre de 2026
+
+Solo tareas de Leslie. Misma rama local feature/BOOK-03-resumen-creacion-dominio. origin/develop consultado en f26415d, todavía no incorporado.
+
+| Spec / área | Estado comprobado | Evidencia y siguiente paso |
+| --- | --- | --- |
+| BOOK-03 T3 R | Recuperación idempotente implementada localmente; revisión humana pendiente | BOOK-03-T3-R.md; 53 pruebas nuevas. npm test completo: 725 unitarias y 151 de integración, 876 aprobadas. Misma clave/dueño/datos recupera ID, total y plazo; otros datos dan conflicto. |
+| Entrega funcional BOOK-03 | En preparación, sin PR nuevo | Continúan pendientes T4, proveedores reales y actualización con develop. Se conserva un único PR futuro de funcionalidad hacia develop, con especificaciones, código, pruebas y varios commits. |
+
+## Actualización parcial de reservas — API protegida, 29 de octubre de 2026
+
+Solo tareas de Leslie. Misma rama local feature/BOOK-03-resumen-creacion-dominio, actualizada desde develop f26415d mediante 8df558a; sin integrar la entrega hacia develop.
+
+| Spec / área | Estado comprobado | Evidencia y siguiente paso |
+| --- | --- | --- |
+| BOOK-03 T4 A | API montada y verificada localmente; revisión humana pendiente | BOOK-03-T4.md y reservas-api.md; 27 unitarias nuevas y 25 HTTP. Suite conjunta: 766 unitarias + 185 integración = 951 aprobadas; arranque real comprobado. |
+| Catálogo/acreditación | Aún no compuestos con proveedores reales | Rutas nuevas responden 503 sin datos simulados; reintentos de reservas existentes conservan recuperación con sesión válida. No se afirma compra operativa. |
+| Entrega funcional BOOK-03 | En preparación, sin PR nuevo | Falta T4 B (pantalla), proveedores reales y revisión humana. Mantener un solo PR funcional hacia develop con todos sus commits/specs/pruebas. |
+
+## Actualización parcial de reservas — recuperación de pantalla, 29 de octubre de 2026
+
+| Spec / área de Leslie | Estado local | Evidencia |
+| --- | --- | --- |
+| BOOK-03 T4 B, parte A | Consulta del resultado implementada; revisión humana pendiente | GET propio por clave y dueño; siete unitarias y tres HTTP nuevas. Suite completa: 773 unitarias + 188 integración = 961 aprobadas. Pantalla B aún en implementación, sin afirmar QA visual. |
+
+## Actualización parcial de reservas — pantalla, 29 de octubre de 2026
+
+| Spec / área de Leslie | Estado comprobado | Evidencia y dependencia |
+| --- | --- | --- |
+| BOOK-03 T4 B, pantalla | Implementada y verificada localmente; revisión humana pendiente | 45 pruebas frontend, lint/formato, Chrome con API/PostgreSQL reales, contenedor y portada aprobados. Selección/pasajeros/resumen/aceptación/recuperación. Guía reservas-pantalla.md. |
+| BOOK-03 T4 B, lectura de resultado | Implementada en 7a57e1c | Suite backend completa: 773 unitarias + 188 integración = 961 aprobadas. Consulta solo propio comprador, sin reactivar ni prorrogar. |
+| Integración de compra real | Pendiente | Catálogo de viajes/plantillas, acreditación/revisión asistida y entrada desde búsqueda/login. Sin proveedores el servidor da 503; no hay datos simulados de producción. |
+| Revisión de entrega | Pendiente | Un solo PR futuro de funcionalidad hacia develop, con specs/código/pruebas y commits por tarea. QA con datos ficticios no equivale a aprobación humana ni compra de producción. |
+
+## Actualización parcial de reservas — acceso de cliente, 29 de octubre de 2026
+
+| Spec / área de Leslie | Estado comprobado | Evidencia y siguiente paso |
+| --- | --- | --- |
+| BOOK-03 T4 C | Acceso real integrado en pantalla; revisión humana pendiente | 54 pruebas frontend, lint/formato, Chrome con argon2/JWT/cookies/CSRF/PostgreSQL reales y contenedor aprobado. No se modificaron módulos internos de auth. |
+| Recuperación de sesión | Implementada localmente | Sesión revocada retira datos privados, conserva clave y nuevo acceso recupera mismo ID/plazo por GET, sin otro POST. |
+| Activación de compra real | Pendiente | origin/develop sigue en f26415d al consultar; no hay catálogo/plantilla real disponible en ramas revisadas. Faltan esos proveedores, acreditación/revisión asistida y entrada desde búsqueda. |
+
+## Planificación de reservas L-01 a L-06 — 1 de noviembre de 2026
+
+Comprobación de esta sesión: rama original feature/BOOK-03-resumen-creacion-dominio en c7ceed9, limpia al comenzar. Fetch actualizado: origin/develop b60201e, sin integrar. Se verificaron PR #25/#26/#27/#29/#33/#35 integrados y #31 abierto. Fleet ya tiene registro/consultas de buses y catálogo; hojas y frecuencias ya se componen en develop. Las filas históricas que los presentan pendientes no describen esta base actual. Sigue pendiente el catálogo público de viaje comercializable con política/inventario congelados.
+
+| Planificación de Leslie | Spec / estado | Evidencia y próxima condición |
+| --- | --- | --- |
+| L-01, cotización | [BOOK-05-L01](specs/BOOK-05-L01.md), Borrador | Leslie confirma mayor beneficio sin acumular en este chat. Acreditación, límites/precisión, congelación y desglose pendientes. 50 % fijo y suma obligatoria no son autoridad nueva. |
+| L-02, disponibilidad | [BOOK-02-L02](specs/BOOK-02-L02.md), Borrador | Reutilizar T2a; falta proveedor de viaje real/versionado, no recrear buses. HTTP/pantalla locales no acreditan integración real. |
+| L-03, persistencia | [BOOK-03-L03](specs/BOOK-03-L03.md), Borrador | Transacción, ocupaciones e idempotencia existen localmente; falta relación hoja/asignación y política nueva. Invitado pendiente de contrato propio. |
+| L-04, expiración | [BOOK-06-L04](specs/BOOK-06-L04.md), Borrador | Coordinar recepción, expiración durable y recuperación. No decidir consecuencia por vencer corrección de 15 minutos. |
+| L-05, API pública | [BOOK-07-L05](specs/BOOK-07-L05.md), Borrador | Consultas booleanas de David documentadas en ROUTE-SHEETS-02 según su reporte; implementación real pendiente. Firmas y autorización de pagos requieren cierre con Shirley. |
+| L-06, pantallas | [BOOK-08-L06](specs/BOOK-08-L06.md), Borrador | Reutilizar pantalla/acceso locales; DESIGN.md aplicado como requisito del borrador. Datos reales, contactos, acreditación e invitado pendientes. |
+
+[Plan, referencias remotas y puertas de implementación](reservas-plan-primera-entrega.md). No se implementa producto, altera migraciones/pruebas, instala dependencias o ejecuta commit/push/merge/rebase/tag. No se introduce defecto inducido. Los 961 tests backend y 54 frontend son evidencia histórica, no ejecución actual ni prueba de la nueva política. Lint/format:check/npm test/PostgreSQL/arranque no ejecutados en esta sesión exclusivamente documental; Verificación documental: 62 referencias locales en 14 documentos comprobadas sin destinos inexistentes, sin espacios finales; git diff --check aprobado. Rama y HEAD permanecen iguales. Revisión humana, autorización de incrementos e integración pendientes.
+
+## Contrato de tarifas recibido de David — 2 de noviembre de 2026
+
+Fuente: respuesta de David pegada por Leslie. Fetch actualiza origin/develop a 1fb0ade; rama de tarifas publicada en 43a0a30; PR #39 comprobada merged. La rama local de Leslie permanece c7ceed9, con borradores documentales sin commit.
+
+| Área de Leslie | Evidencia actual | Próxima condición |
+| --- | --- | --- |
+| L-01, proveedor de tarifa | API tariffQueries publicada e integrada: findPublishedByRouteSheetId y findPrice; pares explícitos, bps 0..10000, congelación al publicar y revisión comercial | Desempate confirmado por Leslie: conservar categorías empatadas y aplicar una vez. Completar acreditación con Shirley y conciliación del desglose; después autorizar cálculo puro |
+| L-02, proveedor de viaje | David confirma identidad estable y reglas comerciales; tripQueries.findBookableById es propuesta, no implementación | Precisar posición/fecha de embarque y contrato con inventario histórico de Edwin |
+| Calidad del tarifario de David | 110 pruebas dirigidas reportadas; fallos globales y arranque bloqueado documentados en ROUTE-SHEETS-05/PR #39 | No presentar integración como prueba global aprobada; reproducción y revisión pendientes |
+
+Detalles en [BOOK-05-L01](specs/BOOK-05-L01.md) y [BOOK-02-L02](specs/BOOK-02-L02.md). No código, migraciones, dependencias, cambios de pruebas ni operaciones de commit/publicación/integración en esta sesión. No se repiten pruebas de producto para este registro documental.
+
+## Inventario de Edwin recibido — 2 de noviembre de 2026
+
+Leslie transmite respuesta de Edwin sobre FLEET-06. Comprobación independiente: origin/develop 7c150c7 contiene 7d6353a y API seatQueries.listByBus({ busId, cooperativeId }); ya existe PR #41, por lo que «sin PR» en el mensaje recibido es histórico. API con UUID de asiento por bus, geometría/categoría NORMAL/offered y errores propagados. Ver actualización de [L-02](specs/BOOK-02-L02.md) y [L-03](specs/BOOK-03-L03.md).
+
+El mínimo permite preparar integración de NORMAL ofrecidos; no acredita versión por hoja, VIP/accesibilidad, viaje comercializable ni compra completa. No se atribuye aceptación del contrato a Leslie por reenviar el mensaje. Confirmación/autorización y coordinación con David pendientes. Sin cambios funcionales ni repetición de pruebas del proveedor.
+## Documentos locales de Shirley revisados — 2 de noviembre de 2026
+
+Leslie aporta mensaje y cuatro adjuntos PAGOS-01/02/CORR-01/CAJA-01. [Revisión de contratos](reservas-contrato-pagos-revision.md) distingue implementación reportada, confirmaciones históricas atribuidas por Shirley y propuestas nuevas. Su rama feature/PAGOS-02-aprobar-comprobante es local según reporte, HEAD 4e6bbf7 con cambios adicionales sin commit; no se certifica código privado ni prueba productiva con Bookings. L-01: acreditación previa al total aceptado propuesta, respuesta de Leslie pendiente; L-04/L-05: versión, contexto autorizado, corrección y caja sin contrato final. Corregir en los borradores de pagos las alusiones desactualizadas a ventanas 3/15 y efectivo como totalmente sin decidir frente a PR #35. Solo notas documentales propias, sin tocar adjuntos/implementación de Shirley, pruebas, migraciones, dependencias o Git de publicación.
+### Acreditación: confirmación de Leslie, 2 de noviembre de 2026
+
+Respuesta humana en este chat: «Sí, verificar antes del total aceptado». Se acepta la propuesta de Shirley de acreditar antes de que el comprador acepte el total y pague. Una estimación anterior no equivale a resumen final aceptado ni autoriza pago con beneficio sin verificar. Esta confirmación reemplaza el pendiente sobre el momento de acreditación; siguen pendientes autoridad verificadora, evidencia, registro y acceso privado. No autoriza una integración ficticia ni acredita implementación. Los demás acuerdos de versiones, correcciones y efectivo propuestos siguen pendientes.
+## L-01: tabla de ejemplos preparada — 2 de noviembre de 2026
+
+Leslie solicita completar la tabla, sin implementar cálculo. [Tabla propuesta](reservas-cotizacion-ejemplos.md), enlazada en BOOK-05-L01: 24 casos monetarios, edades, empates, acreditación, hojas, redondeo por pasajero y datos inválidos. Los 24 exactos/totales se contrastaron con aritmética entera/racional y decimal independiente; seis edades y suma por pasajero comprobadas. No son pruebas del módulo ni acreditan proveedores reales. No se cambió passenger-quote.js, sus pruebas ni la política histórica implementada. Sin lint/Jest/PostgreSQL/arranque al ser documentación; quedan revisión de tabla, desglose, acreditación, fechas ambiguas, total cero y techo de total antes de autorizar cálculo nuevo. Sin commits ni integración.
+## Preparación de archivos para Shirley — 2 de noviembre de 2026
+
+BOOK-06-L04 y BOOK-07-L05 incorporan el estado actual de confirmaciones y pendientes, incluidos los cambios sin commit posteriores a c7ceed9. Shirley propone conciliar primero findForPayment; no hay autorización nueva de implementación. Se preparan dos copias documentales para intercambio manual y ZIP, cotejadas con los originales; no copia del proyecto ni modificación de Git. API de pagos de Bookings sigue pendiente. La propuesta de consecuencia al vencer corrección de 15 minutos no queda aprobada por enviar archivos. Sin mensaje externo ni pruebas funcionales en esta sesión documental.
+## L-05: propuesta de lectura autorizada preparada — 2 de noviembre de 2026
+
+Leslie pide avanzar en la propuesta mientras Shirley responde. [Contrato propuesto findForPayment](reservas-find-for-payment-propuesta.md), enlazado en BOOK-07-L05: firma/contexto, matriz de permisos, DTO y errores con 20 ejemplos previstos. Registra cambio explícito del puerto antiguo sin contexto, límites de estados/datos reales y efectos de lectura nulos; no permiso por UUID, rol de body o tenant elegido. No implementado ni aprobado por Shirley. Revisar contrato antes del incremento de código; no migraciones/dependencias ni pruebas funcionales en esta preparación. Los archivos de intercambio anteriores para Shirley conservan su contenido previo y no se sobrescriben con una nueva versión sin avisar.
+## L-05: respuesta técnica a conciliación de Shirley — 2 de noviembre de 2026
+
+Revisados los dos contratos recibidos; versión consolidada sustituye su primera firma de un objeto. Se comprueba estáticamente que createdAt es el mismo startedAt con el que se calcula expiresAt en creación local, sin nueva ejecución de pruebas. Se propone minimizar ownerId a carga y, ante falta de recepción persistida, primer lector base sin canUploadProof, sin datos de recepción inventados y sin habilitar carga productiva. Requiere confirmación de Shirley; Auth/contexto y errores con Pablo, más autorización posterior de implementación. Detalles en reservas-find-for-payment-propuesta.md §12 y BOOK-07-L05. Otros pendientes de pagos conservados; no se crea otra ronda de decisiones sobre reglas ya confirmadas. Solo documentación, sin código, pruebas, migraciones, dependencias o Git de publicación.
+## Conciliación con PR #46/#47 y decisión de corrección — 2 de noviembre de 2026
+
+Fetch: origin/develop 1dcbd6d. GitHub confirma PR #46 (contrato) y #47 (bandeja/adaptador consumidor) integradas. Se leyó contrato publicado: proofWindowStartedAt y duración explícitos, recepción aceptada persistida, DTO con canUploadProof, contexto userId/role/cooperativeId y códigos seleccionados. El lector reducido local sin booleano queda superado como propuesta de compatibilidad; falta spec de persistencia y conformidad, no otra aceptación genérica del diseño seleccionado por delegación reportada.
+
+Leslie confirma expresamente en este chat: cerrar edición al vencer 15 minutos y mantener revisión/asientos, sin rechazo/liberación automáticos. Los demás detalles de corrección y mutaciones siguen pendientes. [Conciliación de once puntos](reservas-pagos-conciliacion-20261102.md) registra contratos vigentes, propuestas, responsables y objetivos de fechas no comprometidos. Rama local c7ceed9 sin integrar remoto; proveedor aún no implementado. No pruebas funcionales nuevas, código, migraciones, dependencias, commits o publicación. Las copias ya preparadas para Shirley son instantáneas anteriores.
+## Incremento técnico persistencia/lector preparado — 2 de noviembre de 2026
+
+[BOOK-07-L05-T1](specs/BOOK-07-L05-T1.md), borrador completo para autorización, concreta migración nueva, creación atómica y API de lectura de PR #46; 18 grupos de aceptación previstos, sin pruebas ejecutadas ni implementación. Define tratamiento seguro de historia desconocida y restricciones/reversión sin editar migraciones antiguas. origin/develop actualizado a 1daa3c4; PR #49 de viajes comprobada integrada. Rama local conserva c7ceed9 y cambios documentales; no integración/publicación. No se reabre el contrato seleccionado ni se atribuye aprobación de este esquema técnico. Próximo paso: autorizar pasos A–C e implementar con PostgreSQL aislado, lint/formato/suite y arranque real.
+## L-05 A–C: lector y persistencia verificados localmente — 2 de noviembre de 2026
+
+Autorización expresa de Leslie en este chat. [BOOK-07-L05-T1](specs/BOOK-07-L05-T1.md) y [guía/evidencia](reservas-lector-pagos.md): migración nueva 1793740000000, nuevas reservas con plazo/ausencia conocida atómicos, historia UNKNOWN, protección de hechos y lector paymentQueries.findForPayment real. Código en feature/BOOK-03-resumen-creacion-dominio sobre c7ceed9, sin commit/PR ni integrar develop.
+
+npm run lint aprobado. npm test final: 839 unitarias + 206 integraciones = 1045 aprobadas, 68 suites; 84 pruebas nuevas incluidas. Arranque real y sesión/revocación comprobados. Consumidor de PR #47 leído de Git en memoria y PostgreSQL aislado: nueve comprobaciones aprobadas, sin conectar rutas productivas ni copiar proyecto. Formato de 10 JS del incremento aprobado; format:check global sigue fallido en 24 archivos ajenos. Prueba previa de reversión ahora alcanza su migración por nombre conservando aserciones; primer fallo documentado y repetición global aprobada. No pruebas borradas/omitidas ni timeouts ampliados.
+
+Entorno QA exclusivo busesuta-leslie-lector, PostgreSQL 16.13 inicialmente sin tablas, Node 24.21.0; sin .env/cuentas reales/dependencias nuevas. Retirada confirmada: contenedor y red busesuta-leslie-lector eliminados, sin recursos propios restantes. Recepción/expiración real, venta/liberación, rutas Payments, cotización/proveedores de compra y revisión humana siguen pendientes; no declarar integración/cierre o compra comercial completa.
+## Checkpoint de commit y siguiente borrador — 2 de noviembre de 2026
+
+Leslie pide continuar y avisar cuándo guardar un commit. Se informa que el lector/persistencia de BOOK-07-L05-T1 está listo para commit local con mensaje sugerido feat(reservas): agrega lectura autorizada para pagos; no se hace stage, commit o push. [Recepción/expiración T2](specs/BOOK-06-L04-T2.md) preparado como borrador con bloqueos/resultados/pruebas. Autoridad de operación durable y estado EXPIRED compatible con consumidor requieren contrato específico con Pablo/Shirley; no inventar un SERVICE ni usar contexto del lector para escribir. Sin cambios funcionales desde las 1045 pruebas aprobadas; no se repiten por estos cambios Markdown. Rama/HEAD conservados, develop consultado 1daa3c4.
+
 ### Conciliación documental de Pagos — 2 de noviembre de 2026
 
 - Se leyeron íntegros los dos adjuntos de Leslie y el código actual de lectura/carga/listado, y se comprobó el remoto con GitHub sin incorporar commits a la rama local. Su rama `feature/BOOK-03-resumen-creacion-dominio` no apareció publicada; `c7ceed9` y los borradores posteriores son procedencia reportada, no código inspeccionado de esa rama.
@@ -334,3 +496,139 @@ Resultados actuales de INFRA-04 se registran en su [spec](specs/INFRA-04.md). No
 - [Evidencia del incremento](evidence/PAGOS-02/2026-11-02-adaptador-lector.md) y [descripción detallada de PR](evidence/PAGOS-02/descripcion-pr.md). Revisor principal Pablo confirmado; Leslie revisión complementaria propuesta, sin segunda aprobación obligatoria inferida. Proveedor/conexión, contratos de mutaciones, revisión humana y combinación con develop pendientes. Sin commits, push, merge, rebase, tags o publicación.
 - Comprobación final: PR #46 pasó a `782f54a` con conciliación documental, sin cambiar el contrato del lector de `ad74d25`. No se atribuye aprobación nueva al commit posterior. `git diff --check` aprobado; 89 enlaces locales de diez documentos sin destinos inexistentes, sin validar anclas/URLs externas.
 - Preparación de selección para publicación: PAGOS-CORR-01 y PAGOS-CAJA-01 permanecen como archivos locales separados. Sus filas se conservan sin enlaces a specs que no se incluirán en la PR de PAGOS-02. Los comandos propuestos seleccionan rutas concretas; no se ejecutó staging, commit o publicación en esta preparación.
+
+
+## Leslie: resolución de conflictos de PR #51 — 2 de noviembre de 2026
+
+PR [#51](https://github.com/Pato77232/ProyectoBusesUTA/pull/51), rama feature/BOOK-03-resumen-creacion-dominio, hacia develop, en borrador. Leslie autoriza incorporar develop 5abc36d en su rama publicada 67b333b y guardar/publicar la resolución. Once conflictos resueltos preservando módulos, suites, contratos y evidencia de ambos lados; no merge de PR hacia develop.
+
+BOOK-07-L05-T1 conserva alcance A–C. Lint backend/frontend aprobados; 1572 unitarias backend y 181 pruebas frontend aprobadas; Nginx real, ocho grupos Chrome y nueve comprobaciones con consumidor Payments aprobados. Integración global 459/462 antes de ajustar dos pruebas de reversión, verificadas después; persiste timeout de fotografías de Fleet. Formato global: 17 archivos ajenos pendientes. No declarar suite global aprobada.
+
+Base previa de develop: actualización bloqueada por orden de migración create-bookings; historia intacta. Requiere estrategia no destructiva acordada con Pablo antes de desplegar. No se editaron migraciones ni se debilitaron expectativas/timeouts. [Evidencia y siguiente incremento propuesto](evidence/BOOK-07-L05-T1/2026-11-02-conciliacion-pr51.md). Contenedor/red/bases temporales retirados; revisión humana de Pablo/Shirley pendiente. Los registros anteriores de «sin PR» o «develop no incorporado» conservan su fecha histórica y quedan supersedidos por esta actualización.
+
+
+## Leslie: desbloqueo de migraciones de PR #51 — 3 de noviembre de 2026
+
+| Spec / área | Estado comprobado | Evidencia y límite |
+| --- | --- | --- |
+| BOOK-07-L05-T1, catálogo de migraciones | Implementado y probado en la rama feature de PR #51; revisión humana pendiente | [Evidencia](evidence/BOOK-07-L05-T1/2026-11-03-catalogo-migraciones.md). Originales intactos, nueva entrada 1793820000000 posterior a develop, catálogo explícito y rechazo previo de historia heredada/desconocida. Base vacía y esquema de develop con datos conservados; rollback y bloqueo reales. |
+
+HEAD inicial 901d308 limpio; origin/develop contrastado en 2df5949 con las mismas 17 migraciones. No se incorpora incidentalmente su código posterior de Auth. Repetición completa final: 1588 unitarias + 474 integraciones = 2062 aprobadas, 116 suites; arranque real incluido. Última comprobación dirigida 28/28 y lint aprobados; formato propio aprobado, formato global pendiente en 17 archivos ajenos. Timeout anterior de fotografía conservado como incidencia; prueba aprobada finalmente sin cambios ni ampliación de tiempo. Primera regresión de historial vacío corregida y verificada, sin debilitar aserciones.
+
+Leslie autoriza commit/publicación solo en su rama y actualización de descripción; PR en borrador, sin merge a develop ni aprobación humana inferida. Bases persistentes no consultadas: cualquiera con originales aplicados requiere un plan aparte y se rechaza sin conversión. No cambia la disponibilidad de recepción/venta/liberación ni proveedores comerciales pendientes.
+
+Limpieza confirmada: bases catalog_<UUID>_test retiradas por sus fixtures; contenedor y red busesuta-leslie-migraciones eliminados al terminar. Sin recursos propios restantes ni cambios a los demás servicios Docker.
+
+
+## Leslie: conciliación de PR #51 con Auth/VIP — 3 de noviembre de 2026
+
+Rama feature/BOOK-03-resumen-creacion-dominio desde 4e252c1, incorporando develop 04868b2 por autorización de Leslie. Único conflicto textual en este registro: se conservan evidencias de ambos lados. Catálogo activo actualizado a 19 entradas (18 de develop + instalación de Reservas), manteniendo exclusión exacta de originales y validación estricta.
+
+[Evidencia](evidence/BOOK-07-L05-T1/2026-11-03-conciliacion-vip.md): 29 comprobaciones dirigidas de catálogo; 1614 unitarias + 493 integraciones = 2107 backend aprobadas, 122 suites, con arranque real. Frontend lint y 181 pruebas aprobados. Lint y formato propio aprobados; formato global pendiente en 17 archivos ajenos. Se verifica conservación de asiento VIP en la copia de develop actual y actualización con datos de la base anterior de 17 migraciones.
+
+Código de Auth/Fleet y migraciones de ambas partes conservados, sin adaptar incidentalmente cotización o proveedores de compra. Resolución para revisión de Pablo/Shirley, sin autoaprobación ni merge hacia develop. Los registros anteriores mantienen su alcance histórico.
+
+
+## Leslie: revisión humana y siguiente incremento — 3 de noviembre de 2026
+
+GitHub comprobado: PR #51 abierta, fuera de borrador y sin integrar, f0a9c2f; PabloToapanta APPROVED el 3 de noviembre, Shirley solicitada. No se marca integrada/cerrada ni se modifica esa rama publicada. Origin/develop 517473d contiene documentación nueva de Fleet; PR #55/#56 de lectura de Pagos y #59 de Fleet siguen abiertas.
+
+Preparación local separada: feature/BOOK-06-recepcion-expiracion desde f0a9c2f, sin publicar. BOOK-06-L04-T2 continúa en borrador de contrato. [Propuesta concreta](contratos/recepcion-reservas-pagos-propuesta.md): puerto interno ligado a consulta persistida de Payments, outcomes recuperables y compensación restringida, compatibilidad de EXPIRED y matriz de carreras/fallos. Tres decisiones compartidas pendientes; no se implementan comandos por la aprobación del lector.
+
+Se detectan dos adaptaciones necesarias del consumidor actual: no marcar entregado cualquier resultado resuelto y no borrar evidencia por errores de vínculo/fuente/timeout. No se modifica el código de Shirley. Cambios únicamente Markdown; validación documental propia, sin nuevas pruebas funcionales ni resultados reutilizados como integración de este borrador. Sin commits, push, merge de PR, tags, dependencias o lectura de secretos.
+
+
+## Leslie: recepción y expiración locales — 3 de noviembre de 2026
+
+| Spec / área | Estado comprobado | Evidencia y límite |
+| --- | --- | --- |
+| BOOK-06-L04-T2, incremento B | Implementado y probado localmente en feature/BOOK-06-recepcion-expiracion desde f0a9c2f; sin commit/publicación ni revisión humana | [Spec](specs/BOOK-06-L04-T2.md), [evidencia](evidence/BOOK-06-L04-T2/2026-11-03-recepcion-expiracion.md). Primera recepción y expiración serializadas, resultado durable, rollback y recuperación tras respuesta perdida. Fuente externa QA persistida, no conexión productiva con Payments. |
+
+Leslie delegó escoger el diseño y continuar; no se inventa aprobación individual de Shirley/Pablo. Esta actualización sustituye el estado de preparación solo documental anterior. Origin/develop contrastado en 1a411ef, sin incorporación; PR #51 y su rama publicada no cambian.
+
+npm test completo: 1657 unitarias y 514 integraciones aprobadas (2171, 124 suites), con arranque real. Caso posterior adicional de dos expiradores simultáneos + catálogo: 38/38 dirigidas. Lint y formato propio aprobados; formato global mantiene 17 archivos ajenos. Frontend lint y 181 pruebas aprobados. Fotografías pasó sin ampliar timeout ni cambiar expectativas. Contenedor/red exclusivos retirados, sin tocar servicios ajenos.
+
+Compatibilidad de lectura EXPIRED con carga deshabilitada implementada en lector y adaptador preparado. C sigue pendiente: fuente pública real de Payments, autorización inicial UPLOAD_PROOF y adaptador que interprete outcomes/compensación. D sigue pendiente: planificador y recuperación de candidatos. Venta, rechazo, correcciones, caja e invitado separados. Este resultado no certifica compra completa ni integración.
+
+Leslie autoriza posteriormente el commit y push de BOOK-06-L04-T2 en su rama feature/BOOK-06-recepcion-expiracion. La autorización no incluye merge ni acredita revisión humana de este incremento.
+
+
+## Leslie: corrección de conflicto de PR #51 con Pagos Web — 3 de noviembre de 2026
+
+| Spec / área | Estado comprobado | Evidencia y límite |
+| --- | --- | --- |
+| BOOK-07-L05-T1, conciliación de PR #51 | Conflicto resuelto en feature/BOOK-03-resumen-creacion-dominio, incorporando develop 1a411ef desde f0a9c2f; publicación autorizada | [Evidencia](evidence/BOOK-07-L05-T1/2026-11-03-conciliacion-pagos-web.md). Se conservan test/lint y comprobadores de Reservas/Pagos, sin migraciones ni negocio nuevos. No integra la PR. |
+
+Backend: lint y 2108 pruebas aprobados (1615 unitarias + 493 integraciones, 123 suites), con arranque real. Frontend: lint y 205 pruebas aprobados; Nginx con recursos de ambas pantallas y ocho grupos Chrome de Reservas aprobados. Formato propio aprobado; global mantiene 17 archivos ajenos. Fotografías sin cambios y aprobadas. Recursos QA exclusivos retirados.
+
+PR #51 abierta y Ready for review; se verificaron aprobaciones anteriores de Pablo y Shirley, sin atribuirlas al commit de resolución. La rama feature/BOOK-06-recepcion-expiracion continúa intacta en 4233811. Conexión productiva de Pagos y comandos nuevos siguen separados; no se declara compra completa ni cierre.
+
+
+## Leslie: BOOK-06-L04-T2 actualizado con develop — 3 de noviembre de 2026
+
+| Spec / área | Estado comprobado | Evidencia y límite |
+| --- | --- | --- |
+| BOOK-07-L05-T1 / PR #51 | Integrada por Leslie en develop mediante 5a40702, 17:48:31Z, comprobado en GitHub | Los registros anteriores conservan su alcance histórico. No implica aprobación del incremento B de recepción. |
+| BOOK-06-L04-T2, incremento B | Publicado inicialmente en 4233811; combinación con develop 5a40702 resuelta y probada, publicación autorizada para preparar PR | [Spec](specs/BOOK-06-L04-T2.md), [evidencia](evidence/BOOK-06-L04-T2/2026-11-03-actualizacion-develop.md), [descripción](evidence/BOOK-06-L04-T2/descripcion-pr.md). Sin PR nueva ni revisión humana acreditadas. |
+
+Único conflicto en este registro, conservando ambas evidencias. Catálogo de 20 entradas; originales y código productivo de B intactos. Regresión nueva de actualización desde las 19 migraciones integradas con reservas/plazos/ocupaciones conservados.
+
+Backend: lint y 2173 pruebas globales aprobadas (1658 unitarias + 515 integraciones, 125 suites), con arranque real; catálogo ampliado posterior 14/14 dirigido. Frontend lint y 205 pruebas, Nginx y ocho grupos Chrome aprobados. Formato propio aprobado; global mantiene 17 archivos ajenos. Fotografías sin cambios y aprobadas; bases/contenedores/redes propios retirados.
+
+Diff de la nueva PR limitado a recepción/expiración. C sigue pendiente (fuente real de Payments, autorización inicial y compensación segura); D sigue pendiente (planificador/recuperación). No se declara compra comercial completa, revisión humana ni integración de B.
+
+
+## Leslie: adaptador seguro de aviso de Payments — 3 de noviembre de 2026
+
+| Spec / área | Estado comprobado | Evidencia y límite |
+| --- | --- | --- |
+| BOOK-06-L04-T2 / PR #60 | Integrada en develop b4fe717 a las 19:07:02Z, comprobado por GitHub | Recepción/expiración internas integradas; C y D conservan sus pendientes. |
+| BOOK-06-L04-T3, C1 | Implementado/probado localmente en feature/BOOK-06-adaptador-aviso-pagos desde b4fe717, sin commit/push/PR ni revisión humana | [Spec](specs/BOOK-06-L04-T3.md), [evidencia](evidence/BOOK-06-L04-T3/2026-11-03-adaptador-aviso.md). Adaptador público de resultados de Bookings para Payments, sin activar servidor/rutas. |
+
+PR #55 ca63a36 y #56 15218ae de Shirley siguen abiertas, comprobadas directamente; no se duplica su lector ni su prueba. C1 preserva ACCEPTED y solo convierte REJECTED_EXPIRED vinculado en el error existente de plazo. Fallos, clases genéricas de rechazo, vínculos distintos y resultados inválidos conservan incertidumbre sin autorizar borrado.
+
+Primera global: 1688 unitarias + 521 integraciones = 2209 aprobadas, 127 suites, con arranque real. Repetición final tras captura única: todas las unitarias 1689/1689 y cinco integraciones propias 5/5. Casos nuevos: 31 unitarias + cinco integraciones. Lint y formato propio aprobados; global conserva 17 archivos ajenos. Fotografías aprobadas sin cambios; PostgreSQL/red exclusivos retirados.
+
+Fuente QA persistida en pruebas; no procedencia Auth de la carga ni conexión productiva. C2 (fuente pública de Payments y autorización inicial), C3 (composición real y compensación), D (planificador), venta/rechazo/correcciones/caja/invitado siguen separados. Sin nuevas dependencias o migraciones ni pruebas debilitadas. Commit/publicación y revisión humana pendientes; no se marca C1 integrada.
+
+Leslie autoriza posteriormente guardar y publicar C1 de BOOK-06-L04-T3 en feature/BOOK-06-adaptador-aviso-pagos. La autorización no incluye integrar la PR ni activar la conexión productiva.
+
+
+## Leslie: conciliación de PR #62 con el puente integrado — 3 de noviembre de 2026
+
+| Spec / área | Estado comprobado | Evidencia y límite |
+| --- | --- | --- |
+| BOOK-06-L04-T3 / PR #62 | Tres conflictos resueltos en feature/BOOK-06-adaptador-aviso-pagos, combinando 4030709 con develop 61fd65a | [Spec](specs/BOOK-06-L04-T3.md), [evidencia](evidence/BOOK-06-L04-T3/2026-11-03-conciliacion-pr62.md). Un puente compartido, ambos contratos conservados; revisión humana pendiente, sin integrar PR. |
+
+Develop ya incorpora la fuente persistida/createPaymentReceiptModule de Shirley (9131787); la conciliación los conserva y reutiliza. Fábrica de Leslie como fachada, captura inmutable y clasificación segura. Ambas suites originales conservadas byte a byte; siete regresiones adicionales. Sin cambios de fuente SQL, migraciones, rutas, servidor, dependencias o frontend.
+
+Pruebas propias dirigidas: 66 unitarias y 14 integraciones aprobadas. Global: 1724 unitarias aprobadas y 529/530 integraciones; fallo de Fleet por timeout original de 20000 ms en fotografías. Repetición aislada: 17/18, mismo fallo. No declarar suite global aprobada. Lint/formato propio aprobados; global mantiene 17 ajenos. Arranque real aprobado; contenedor/red temporales retirados.
+
+La fuente persistida está preparada, pero la autorización HTTP de carga, procedencia histórica, activación productiva y planificador conservan sus pendientes. Revisión del commit de conciliación y evaluación del fallo de Fleet necesarias antes de integrar.
+
+## Leslie: prerrequisito de carga autorizada, IDs opacos — 3 de noviembre de 2026
+
+| Spec / área | Estado comprobado | Evidencia y límite |
+| --- | --- | --- |
+| BOOK-06-L04-T3 / PR #62 | Integrada en develop feb7f75 a las 20:25:30Z, comprobado por GitHub | Timeout de Fleet pendiente; integrar PR no lo resuelve. |
+| BOOK-06-L04-T4, I | Compatibilidad de identificadores implementada y probada localmente en feature/BOOK-06-carga-autorizada desde feb7f75; checkpoint c3e9450 local, sin push/PR | [Spec](specs/BOOK-06-L04-T4.md), [evidencia](evidence/BOOK-06-L04-T4/2026-11-03-identificadores-opacos.md). Migración nueva, 21 entradas activas, comprobante/outbox aceptan el ID de texto de Bookings sin alterar los UUID existentes. |
+
+Leslie confirma conservar comprobantes antiguos con archivo sin procesarlos/borrarlos automáticamente y exigir procedencia registrada al flujo nuevo. Se registra como respuesta de Leslie, no aprobación individual de Shirley/Pablo. En la comprobación histórica anterior, quién implementaba la carga seguía consultado y PR #55/#56 estaban abiertas en 7448e1a/15218ae; el estado actual se precisa en la actualización siguiente.
+
+66 pruebas dirigidas aprobadas, con cinco casos nuevos: copia de develop con filas preservadas, down/up canónico, rechazo de down opaco/mayúsculas sin cambios, rollback de segunda tabla y puente real con ID de texto. Global: 1724 unitarias y 534/535 integraciones; fallo de timeout de fotografías de Fleet, no suite global aprobada. Lint/formato propio aprobados; global conserva 17 ajenos. Arranque real aprobado; recursos PostgreSQL/red exclusivos retirados.
+
+La migración no acredita procedencia Auth ni procesa comprobantes antiguos. Consumidor autenticado y activación siguen pendientes; su contrato está en borrador y debe preservar el ID exacto, sin normalización implícita. No se alteran servidor, casos de uso, dependencias, frontend o migraciones existentes. Revisión humana pendiente; sin cierre/integración del incremento local.
+
+
+### Actualización del reparto y compatibilidad — 3 de noviembre
+
+Shirley comunica feature/PAGOS-WEB-01-bandeja, c1d638f y cambios posteriores sin commit; asume conexión UPLOAD_PROOF/Auth/receptor y procedencia de cada carga. Leslie acepta continuar con migración de IDs y outbox, conservando comprobantes antiguos sin procesarlos ni borrarlos. El código privado de Shirley no se considera publicado o revisado.
+
+Revisión actual: origin/develop c08ce6c; PR #55 integrada en 75ee7a0, #56 todavía en borrador. Las observaciones previas de ambas abiertas se conservan como historia. Los archivos de las 20 migraciones y catálogo base son idénticos a feb7f75. Esta rama no integra los nuevos commits de develop; el registro documental conserva sus filas vigentes sin mezclar cambios productivos.
+
+Prerrequisito adicional de compatibilidad: conservar booking_id sin trim al reconstruir comprobantes evita insertar un ID diferente en el outbox. Modelo, escritura/lectura, separación por espacios/case y replay del receptor cuentan con pruebas nuevas. No se modifica la carga legada ni se activa su composición. Validación global nueva: 1729/1729 unitarias y 537/537 integraciones aprobadas (2266), incluido arranque real. Lint/formato propio aprobados; formato global mantiene 17 archivos ajenos. Fotografías pasó sin cambios de código/timeout; se conserva el antecedente intermitente. Estos resultados tienen alcance de esta rama, no de una combinación de aplicación con develop no incorporada.
+
+Planificador T5 preservado aparte en stash 38fd1d8 de feature/BOOK-06-planificador-expiracion, sin pérdida de sus archivos y sin incorporarlo a esta entrega. Revisión humana/commit de ajustes/publicación pendientes.
+
+
+Leslie autoriza guardar y publicar únicamente el incremento de identificadores en feature/BOOK-06-carga-autorizada tras las 2266 pruebas aprobadas. Revisión humana e integración siguen pendientes; planificador excluido de esta publicación.

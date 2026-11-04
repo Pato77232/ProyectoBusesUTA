@@ -379,8 +379,22 @@ test('hoja histórica publicada sin viajes no se reconstruye al reintentar', asy
 
 test('down no destruye información comercial y los reintentos siguen estables', async () => {
   const before = (await (await publish()).json()).routeSheet.commercial;
-  expect(() => runMigration('down')).toThrow();
-  expect((await (await publish()).json()).routeSheet.commercial).toEqual(before);
+  const target = '1793730000000-commercial-trips';
+  const applied = (await pool.query('SELECT name FROM pgmigrations ORDER BY id DESC')).rows;
+  expect(applied.map(({ name }) => name)).toContain(target);
+  try {
+    for (const { name } of applied) {
+      if (name === target) break;
+      runMigration('down');
+    }
+    expect(
+      (await pool.query('SELECT name FROM pgmigrations ORDER BY id DESC LIMIT 1')).rows[0].name,
+    ).toBe(target);
+    expect(() => runMigration('down')).toThrow();
+    expect((await (await publish()).json()).routeSheet.commercial).toEqual(before);
+  } finally {
+    runMigration();
+  }
 });
 
 test('dos buses capturan dos inventarios y los traslados no crean viajes', async () => {

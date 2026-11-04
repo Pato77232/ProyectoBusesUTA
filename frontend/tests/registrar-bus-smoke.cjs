@@ -52,7 +52,12 @@ async function serve(request, response) {
     const { pathname } = new URL(request.url, 'http://localhost');
     const filename = path.resolve(root, `.${pathname === '/' ? '/index.html' : pathname}`);
     if (!filename.startsWith(root + path.sep)) throw new Error('Ruta inválida');
-    const data = await fs.readFile(filename);
+    let data = await fs.readFile(filename);
+    // Preparación autorizada por Edwin (FLEET-05 T3): revisar el formulario sin conectarlo a la API.
+    if (pathname === PAGE)
+      data = Buffer.from(
+        data.toString().replace('<script type="module" src="/src/fleet/bus-page.js"></script>', ''),
+      );
     response.writeHead(200, { 'Content-Type': mime[path.extname(filename)] || 'text/plain' });
     response.end(data);
   } catch {
@@ -124,7 +129,7 @@ async function checkInitialState(browser, origin) {
   assert.equal(initial.h1, 1);
   assert.equal(initial.button, 'rgb(32, 32, 32)');
   assert.equal(initial.disabled, true);
-  assert.match(initial.status, /todavía no está conectada/);
+  assert.match(initial.status, /Comprobando tu sesión/);
   assert.equal(initial.unlabeled, 0);
 }
 
@@ -169,6 +174,27 @@ async function checkLayoutChange(browser, origin) {
     seats: document.querySelectorAll('[name="disabledSeatKeys"]').length,
   })`);
   assert.deepEqual(state, { notice: true, checked: 0, seats: 1 });
+}
+
+async function checkVipSelection(browser, origin) {
+  await loadPage(browser, origin, 1280);
+  await mount(browser, SETUP);
+  await fillValidForm(browser);
+  await browser.evaluate(`document.querySelector('[name="vipSeatKeys"][value="s1"]').click()`);
+  const labels = await browser.evaluate(
+    `[...document.querySelectorAll('#seat-section h3')].map((e) => e.textContent)`,
+  );
+  assert.deepEqual(labels, ['Asientos no ofrecidos', 'Asientos VIP']);
+  await submit(browser);
+  const [{ data }] = await browser.evaluate('window.sent');
+  assert.deepEqual(data.vipSeatKeys, ['s1']);
+  assert.deepEqual(data.disabledSeatKeys, ['s2']);
+  await setValue(browser, 'seatLayoutId', 'UNO');
+  const cleared = await browser.evaluate(
+    `document.querySelectorAll('[name="vipSeatKeys"]:checked').length`,
+  );
+  assert.equal(cleared, 0);
+  await screenshot(browser, 'vip-1280.png');
 }
 
 async function fillValidForm(browser) {
@@ -250,6 +276,7 @@ async function main() {
     checkErrors,
     checkLayoutChange,
     checkValidSubmission,
+    checkVipSelection,
     checkPhotoLimit,
     checkMobileReflow,
     checkKeyboardOrder,

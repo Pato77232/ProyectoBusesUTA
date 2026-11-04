@@ -1,5 +1,10 @@
 # PAGOS-02: Revisar y aprobar comprobantes
 
+> Estado vigente de #55: conciliada en su rama original con develop `feb7f75`,
+> documentada al final de §18 y en la evidencia del lector. La aprobación humana
+> anterior corresponde a `7448e1a`; la cabeza conciliada requiere inspección
+> final. Los registros anteriores conservan sus fechas como evidencia histórica.
+
 - **ID local:** PAGOS-02
 - **Módulo:** `payments`
 - **Alcance de commit:** `pagos`
@@ -216,6 +221,14 @@ Ejecutar pruebas dirigidas y, desde backend, lint, format:check y npm test con P
 
 [Evidencia y límites](../evidence/PAGOS-02/2026-11-02-adaptador-lector.md) y [descripción detallada de PR](../evidence/PAGOS-02/descripcion-pr.md). Sigue pendiente conexión a rutas/proveedor real, clasificación del null de bandeja, otros estados explícitos y verificación de la combinación con develop `3d053a4`. No hay PR publicada de PAGOS-02 en las consultas realizadas.
 
+## Pantalla posterior a PR #47
+
+El incremento web solicitado por Shirley el 2 de noviembre se separa en
+[PAGOS-WEB-01](PAGOS-WEB-01.md), sin reabrir bandeja/aprobación backend ya
+integradas en PR #47. La pantalla de lectura no acredita proveedor real de
+Reservas ni venta productiva. Evidencia y revisión humana en su spec propia.
+
+
 ## 18. Consumidor HTTP de lectura con contexto — 3 de noviembre de 2026
 
 Shirley pidió continuar sus pendientes. Se aplica el diseño ya decidido del
@@ -279,43 +292,64 @@ Sin activar el proveedor en producción ni ejecutar Bookings real en las pruebas
 Preparado para el commit local autorizado por Shirley el 3 de noviembre.
 Publicación y revisión humana pendientes; no integrada/cerrada.
 
-## 19. Prueba conjunta con el proveedor publicado — 3 de noviembre de 2026
+### Actualización solicitada de PR #55 — 3 de noviembre de 2026
 
-Shirley pidió continuar. PR #54 (pantalla) abierta y PR #55 (consumidor) abierta
-en borrador, cabeza ca63a36. Base de este incremento: ca63a36; rama separada
-feature/PAGOS-02-prueba-lector-real. No se modifica la rama de las PR existentes.
+Shirley solicita actualizar #55 y dejarla preparada. Cabeza remota comprobada
+ca63a36, Draft y con conflictos. Candidato local feature/PAGOS-02-prepara-55 sobre
+develop b4fe717 (PR #51/#60 integradas). Se conserva la spec de develop, incluida
+la sección de pantalla, y se incorpora §18 sin borrar antecedentes. No modificar
+#56 ni incorporar su script/configuración al diff propio de #55. Sin cambios
+funcionales al código publicado del consumidor; proveedor real accesible en base.
 
-Objetivo: ejecutar createPaymentReviewModule con
-createBookingsModule(...).paymentQueries reales y PostgreSQL aislado. Proveedor
-fijado en 901d30897ce2668581f25b2e4e055235b8171939 de la rama pública de Leslie
-feature/BOOK-03-resumen-creacion-dominio; lockfile/shared sin diferencias frente
-al consumidor comprobado. No se incorporan sus archivos al código productivo.
+Actualizar evidencia/estado/descripción para distinguir PR publicada de candidato
+local. Repetir backend lint, formato, npm test y contrato conjunto con Bookings
+actual. Frontend sin cambios: ejecutar sus pruebas/lint cuando el entorno lo
+permita. Conservar 17 archivos de formato ajenos. No inventar aprobación de Pablo,
+CI remoto ni acuerdo de evidencia manual; no marcar integrada/cerrada.
+Las reglas Git vigentes prohíben ejecutar merge/push. Preparar el árbol revisable
+sin actualizar silenciosamente la cabeza publicada ni crear otra PR sustitutiva.
 
-Prueba reproducible explícita en tests/contracts (fuera de Jest ordinario porque
-exige otra revisión de proveedor). Requiere ruta BOOKINGS_QA_ROOT y NODE_ENV=test
-con base *_test; si falta configuración falla, no salta ni debilita pruebas.
-La copia externa se obtiene con git archive de directorios expresos de backend,
-sin .env, se monta de solo lectura y ejecuta sus migraciones originales. No se
-editan migraciones ni esquema manualmente. Se insertan únicamente fixtures QA.
+Resultado del candidato: 1676 unitarias y 524 integraciones aprobadas, 2200 total
+y 127 suites, npm test salida 0. Contrato real actual: 12 grupos aprobados.
+Frontend 205 y lint aprobados. Backend lint, formato propio y arranque real
+aprobados; formato global mantiene 17 archivos ajenos pendientes. No se cambian
+pruebas previas, dependencias, migraciones ni los ocho JS originales de #55.
+Quedan publicación de la combinación en la rama original, revisión de Pablo y
+CI correcto o acuerdo explícito de evidencia manual. No nueva PR sustitutiva.
 
-Criterios: lectura pública real, fechas de creación/inicio distintas, plazo y
-centavos persistidos, contexto Auth, aislamiento de cooperativas, DTO mínimo,
-bytes privados, antes/en límite de plazo, recepción sembrada de QA sin recarga,
-integridad de total inconsistente y ausencia de efectos sobre reserva/asientos.
-No se acredita recepción/venta/expiración por sembrar datos; esas APIs y sus
-carreras conservan contratos propios. No cambia server.js ni se activa producto.
+### Conciliación de PR #55 con develop `feb7f75` — 3 de noviembre de 2026
 
-Ejecutar además lint, format:check y npm test del consumidor; documentar el
-alcance de la ejecución cruzada y el resultado de cada comprobación. Sin nueva
-UI, migraciones, dependencias, commits o publicación inferidos por «continuar».
+Pablo autoriza excepcionalmente incorporar develop, resolver, confirmar y
+publicar la misma rama para dejar el merge final en GitHub a su cargo. La
+conciliación conserva `createPaymentReviewModule` de #55 y las capacidades
+`createPaymentReceiptModule` y `createBookingPaymentProofNotifier` añadidas en
+develop; no sustituye ni duplica sus contratos. El conflicto documental conserva
+las fotografías PAGOS-02 y PAGOS-01 con su evidencia histórica.
 
-### Resultado de §19
+Comprobación local con Node 24.21.0: lint aprobado, Prettier del archivo resuelto
+aprobado, cuatro exportaciones públicas cargadas, 84 pruebas dirigidas aprobadas
+y 1742 unitarias aprobadas en 90 suites. La primera ejecución unitaria global
+falló por `listen EPERM` del sandbox; la repetición con acceso local aprobado
+pasó completa. Docker Desktop estaba apagado y no fue posible iniciar PostgreSQL
+16.13 aislado, por lo que integración, arranque y contrato conjunto no se
+redeclaran como ejecutados sobre la cabeza conciliada. No se usó `.env`, otra
+base ni se modificaron pruebas o límites. La evidencia anterior de 2200 pruebas
+permanece histórica para `7448e1a` y no sustituye esta limitación.
 
-Ensayo con proveedor real 901d308 aprobado: 12 grupos, salida 0. Regresión en
-otra base limpia: 1317 unitarias + 388 integraciones aprobadas. Lint incluye el
-nuevo CJS y pasa; formato propio/diff pasan, global falla en 17 archivos previos.
-[Evidencia, reproducción y límites](../evidence/PAGOS-02/2026-11-03-contrato-real.md)
-y [descripción preparada](../evidence/PAGOS-02/descripcion-pr-prueba-real.md).
-La primera ejecución falló en limpieza después de las aserciones; corregida y
-repetida completa. Sin modificaciones a src, migraciones o dependencias.
-Pendiente integración/revisión humana; no se marca conexión productiva ni venta.
+La aprobación de Pablo registrada sobre `7448e1a` acredita esa cabeza, no se
+traslada automáticamente al commit de conciliación. La PR queda preparada para
+que Pablo inspeccione la nueva cabeza y ejecute el merge desde GitHub. #56 se
+mantiene separada y en borrador.
+## 19. Prueba conjunta con el proveedor integrado — 3 de noviembre de 2026
+
+Las PR #54 (pantalla) y #55 (consumidor) están integradas. La base actual de conciliación es develop c95cc732b7a895fc3f4d1b00f39aa1dd9fb2345e, que incluye los cambios integrados de recepción/expiración y el puente de Pagos. La rama de trabajo codex/PAGOS-02-pr56 conserva el incremento de contrato de la cabeza 15218ae.
+
+El ensayo ejecuta createPaymentReviewModule con createBookingsModule(...).paymentQueries del snapshot público de develop, junto con Auth, PostgreSQL aislado y archivos privados reales. No incorpora el snapshot al producto. BOOKINGS_QA_ROOT debe apuntar a una copia absoluta de backend; la base debe terminar en _test. El snapshot temporal requiere npm ci con su package-lock para que los imports ESM de node-pg-migrate y sus dependencias resuelvan localmente. No se editan migraciones ni se modifica el esquema a mano.
+
+Los 12 grupos cubren DTO y total, contexto autenticado, roles y aislamiento entre cooperativas, límites temporales, ausencia de mutaciones sobre reservas/asientos, privacidad de listado y archivo, recepción sembrada solo como fixture e integridad ante total incoherente. Sembrar la recepción no acredita una API real de aceptación, y la prueba no acredita expiración productiva, venta ni liberación.
+
+### Resultado de ejecución contra develop c95cc73
+
+La ejecución del contrato terminó con salida 0: 12 grupos aprobados. En el candidato conciliado, npm test aprobó 1747 unitarias y 545 integraciones (2292 en total, 132 suites); lint y Prettier de package.json y del script CJS aprobaron. format:check global falló en 17 archivos previos de Route Sheets, conservados sin modificación. El primer intento del contrato falló porque los imports ESM no usan NODE_PATH; instalar las dependencias bloqueadas en el snapshot temporal permitió repetirlo correctamente.
+
+No hay cambios de producto, migraciones, dependencias o pruebas anteriores atribuibles a #56. La composición productiva no se activa. GitHub todavía debe recibir la rama conciliada; la revisión de Pablo y los checks de CI están pendientes. La PR permanece en borrador hasta inspeccionar esos resultados.
