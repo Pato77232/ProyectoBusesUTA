@@ -4,12 +4,26 @@ const {
 } = require('../domain/availability-request');
 const { BookingValidationError } = require('../domain/booking-error');
 const BookingTripUnavailableError = require('../domain/booking-trip-unavailable-error');
+const BookingServiceUnavailableError = require('../domain/booking-service-unavailable-error');
 const { listSeatAvailability } = require('../domain/seat-availability');
 
 function getSeatAvailability({ tripCatalog, allocationReader }) {
   return async (input) => {
     const request = createAvailabilityRequest(input);
-    const foundTrip = await tripCatalog.findBookableById(request.tripId);
+    let foundTrip;
+    try {
+      foundTrip =
+        typeof tripCatalog.findBookableForSegment === 'function'
+          ? await tripCatalog.findBookableForSegment(request)
+          : await tripCatalog.findBookableById(request.tripId);
+    } catch (error) {
+      if (
+        error?.code === 'COMMERCIAL_TRIP_SOURCE_UNAVAILABLE' ||
+        error?.code === 'COMMERCIAL_TRIP_INVALID'
+      )
+        throw new BookingServiceUnavailableError();
+      throw error;
+    }
     if (foundTrip === null) throw new BookingTripUnavailableError();
     const trip = createAvailabilityTrip(foundTrip, request.tripId);
     if (request.toPosition >= trip.routePointCount) throw new BookingValidationError();

@@ -1,5 +1,6 @@
 const {
   quotePassenger,
+  quotePassengerWithPolicy,
   ageOnDate,
 } = require('../../../src/modules/bookings/domain/passenger-quote');
 const { BookingValidationError } = require('../../../src/modules/bookings/domain/booking-error');
@@ -118,4 +119,49 @@ test('congela la cotización y no altera tarifas ni datos de entrada', () => {
   expect(Object.isFrozen(result)).toBe(true);
   expect(Object.isFrozen(result.eligibleCategories)).toBe(true);
   expect(valid.segmentPricesCents).toEqual([300, 550]);
+});
+
+test('cotiza una tarifa explícita con VIP y el mayor beneficio sin acumular', () => {
+  expect(
+    quotePassengerWithPolicy({
+      amountCents: 450,
+      birthDate: '1950-01-01',
+      departureDate: '2026-10-20',
+      disabilityVerified: true,
+      policy: {
+        vipSurchargeBps: 2500,
+        minorDiscountBps: 2000,
+        seniorDiscountBps: 5000,
+        disabilityDiscountBps: 5000,
+      },
+    }),
+  ).toEqual({
+    currency: 'USD',
+    basePriceCents: 450,
+    grossPriceCents: 563,
+    vipSurchargeBps: 2500,
+    discountBps: 5000,
+    discountPercent: 50,
+    discountCents: 282,
+    totalPriceCents: 281,
+    eligibleCategories: ['SENIOR', 'DISABILITY'],
+  });
+});
+
+test('rechaza política ausente o porcentajes fuera de límites', () => {
+  expect(() => quotePassengerWithPolicy()).toThrow(BookingValidationError);
+  expect(() =>
+    quotePassengerWithPolicy({
+      amountCents: 100,
+      birthDate: valid.birthDate,
+      departureDate: valid.departureDate,
+      disabilityVerified: false,
+      policy: {
+        vipSurchargeBps: 10001,
+        minorDiscountBps: 0,
+        seniorDiscountBps: 0,
+        disabilityDiscountBps: 0,
+      },
+    }),
+  ).toThrow(BookingValidationError);
 });

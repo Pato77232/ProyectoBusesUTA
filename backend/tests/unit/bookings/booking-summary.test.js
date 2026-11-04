@@ -47,6 +47,30 @@ test('no acumula discapacidad acreditada con el descuento por edad', () => {
   });
 });
 
+test('usa la tarifa publicada explícita y la política congelada del contexto', () => {
+  const context = summaryContext();
+  context.trip.publishedPriceCents = 450;
+  context.trip.tariffPolicy = {
+    vipSurchargeBps: 2500,
+    minorDiscountBps: 5000,
+    seniorDiscountBps: 5000,
+    disabilityDiscountBps: 5000,
+  };
+  context.trip.tariffRevision = 7;
+  const summary = createBookingSummary(summaryInput(), context);
+  expect(summary.tariffRevision).toBe(7);
+  expect(summary.passengers[0].quote).toMatchObject({
+    basePriceCents: 450,
+    totalPriceCents: 563,
+    discountBps: 0,
+  });
+  expect(summary.passengers[1].quote).toMatchObject({
+    basePriceCents: 450,
+    totalPriceCents: 281,
+    discountBps: 5000,
+  });
+});
+
 test('incluye tercera edad en la fecha de salida y suma cotizaciones', () => {
   const input = summaryInput();
   input.passengers[1].birthDate = '1961-10-28';

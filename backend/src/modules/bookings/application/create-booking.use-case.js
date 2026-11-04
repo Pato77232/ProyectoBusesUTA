@@ -36,11 +36,11 @@ function createBooking(dependencies) {
     const ownerId = await resolveOwner(dependencies.buyerIdentity, authContext);
 
     const locate = async () => {
-      const trip = await readTrip(dependencies.tripCatalog, request.tripId);
+      const trip = await readTrip(dependencies.tripCatalog, request, dependencies.tariffQueries);
       return Object.freeze({ tripId: trip.tripId, cooperativeId: trip.cooperativeId });
     };
     const prepare = async (scope) => {
-      const trip = await readTrip(dependencies.tripCatalog, request.tripId);
+      const trip = await readTrip(dependencies.tripCatalog, request, dependencies.tariffQueries);
       if (trip.cooperativeId !== scope.cooperativeId) {
         throw new BookingPurchaseError('BOOKING_SUMMARY_CHANGED');
       }

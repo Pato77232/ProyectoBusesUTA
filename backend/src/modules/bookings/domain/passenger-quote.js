@@ -3,6 +3,7 @@ const { BookingValidationError } = require('./booking-error');
 const MINOR_AGE_LIMIT = 18;
 const SENIOR_AGE_START = 65;
 const PREFERENTIAL_DISCOUNT_PERCENT = 50;
+const BASIS_POINTS = 10000;
 
 function calendarDate(value) {
   if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
@@ -35,6 +36,62 @@ function totalSegmentPrices(prices) {
   return sum;
 }
 
+function validBasisPoints(value) {
+  if (!Number.isSafeInteger(value) || value < 0 || value > BASIS_POINTS)
+    throw new BookingValidationError();
+  return value;
+}
+
+function roundHalfUp(numerator, denominator) {
+  const quotient = Math.floor(numerator / denominator);
+  return quotient + (numerator % denominator) * 2 >= denominator ? quotient + 1 : quotient;
+}
+
+function quotePassengerWithPolicy({
+  amountCents,
+  birthDate,
+  departureDate,
+  disabilityVerified,
+  policy,
+} = {}) {
+  if (!Number.isSafeInteger(amountCents) || amountCents <= 0) throw new BookingValidationError();
+  if (typeof disabilityVerified !== 'boolean' || !policy || typeof policy !== 'object')
+    throw new BookingValidationError();
+  const age = ageOnDate(birthDate, departureDate);
+  const eligibleCategories = [];
+  if (age < MINOR_AGE_LIMIT) eligibleCategories.push('MINOR');
+  if (age >= SENIOR_AGE_START) eligibleCategories.push('SENIOR');
+  if (disabilityVerified) eligibleCategories.push('DISABILITY');
+  const rates = {
+    MINOR: validBasisPoints(policy.minorDiscountBps),
+    SENIOR: validBasisPoints(policy.seniorDiscountBps),
+    DISABILITY: validBasisPoints(policy.disabilityDiscountBps),
+  };
+  const maximum = eligibleCategories.reduce(
+    (current, category) => Math.max(current, rates[category]),
+    0,
+  );
+  const selectedCategories = eligibleCategories.filter((category) => rates[category] === maximum);
+  const vipSurchargeBps = validBasisPoints(policy.vipSurchargeBps);
+  const grossNumerator = amountCents * (BASIS_POINTS + vipSurchargeBps);
+  const grossPriceCents = roundHalfUp(grossNumerator, BASIS_POINTS);
+  const totalNumerator = grossNumerator * (BASIS_POINTS - maximum);
+  const totalPriceCents = roundHalfUp(totalNumerator, BASIS_POINTS * BASIS_POINTS);
+  if (!Number.isSafeInteger(totalPriceCents) || totalPriceCents <= 0)
+    throw new BookingValidationError();
+  return Object.freeze({
+    currency: 'USD',
+    basePriceCents: amountCents,
+    grossPriceCents,
+    vipSurchargeBps,
+    discountBps: maximum,
+    discountPercent: maximum / 100,
+    discountCents: grossPriceCents - totalPriceCents,
+    totalPriceCents,
+    eligibleCategories: Object.freeze(selectedCategories),
+  });
+}
+
 // Recibe fechas y acreditación del servidor. Calcular no acredita datos declarados.
 function quotePassenger({ segmentPricesCents, birthDate, departureDate, disabilityVerified } = {}) {
   if (typeof disabilityVerified !== 'boolean') throw new BookingValidationError();
@@ -60,4 +117,4 @@ function quotePassenger({ segmentPricesCents, birthDate, departureDate, disabili
   });
 }
 
-module.exports = { quotePassenger, ageOnDate };
+module.exports = { quotePassenger, quotePassengerWithPolicy, ageOnDate };

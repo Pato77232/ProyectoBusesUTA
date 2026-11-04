@@ -1,7 +1,7 @@
 const { BookingValidationError } = require('./booking-error');
 const { createAvailabilityRequest, createAvailabilityTrip } = require('./availability-request');
 const { createPassengerManifest } = require('./passenger-manifest');
-const { quotePassenger, ageOnDate } = require('./passenger-quote');
+const { quotePassenger, quotePassengerWithPolicy, ageOnDate } = require('./passenger-quote');
 
 const INPUT_FIELDS = Object.freeze([
   'tripId',
@@ -13,6 +13,11 @@ const INPUT_FIELDS = Object.freeze([
 const TOTAL_FIELDS = Object.freeze(['basePriceCents', 'discountCents', 'totalPriceCents']);
 
 function selectedPrices(trip, request) {
+  if (trip.publishedPriceCents !== undefined) {
+    if (!Number.isSafeInteger(trip.publishedPriceCents) || trip.publishedPriceCents <= 0)
+      throw new BookingValidationError();
+    return [trip.publishedPriceCents];
+  }
   if (
     !Array.isArray(trip.segmentPricesCents) ||
     trip.segmentPricesCents.length !== trip.routePointCount - 1
@@ -82,27 +87,42 @@ function createBookingSummary(input, context) {
   ageOnDate(context.onDate, departureDate);
   const prices = selectedPrices(context.trip, request);
   const benefits = benefitsForPassengers(context.passengerBenefits, manifest);
+  const configuredQuote = context.trip.publishedPriceCents !== undefined;
   const passengers = Object.freeze(
     manifest.map((passenger) =>
       Object.freeze({
         ...passenger,
-        quote: quotePassenger({
-          segmentPricesCents: prices,
-          birthDate: passenger.birthDate,
-          departureDate,
-          disabilityVerified: benefits.get(passenger.seatId),
-        }),
+        quote: configuredQuote
+          ? quotePassengerWithPolicy({
+              amountCents: prices[0],
+              birthDate: passenger.birthDate,
+              departureDate,
+              disabilityVerified: benefits.get(passenger.seatId),
+              policy: context.trip.tariffPolicy,
+            })
+          : quotePassenger({
+              segmentPricesCents: prices,
+              birthDate: passenger.birthDate,
+              departureDate,
+              disabilityVerified: benefits.get(passenger.seatId),
+            }),
       }),
     ),
   );
-  return Object.freeze({
+  const result = {
     ...request,
     cooperativeId: trip.cooperativeId,
     departureDate,
     currency: 'USD',
     passengers,
     totals: sumQuotes(passengers),
-  });
+  };
+  if (configuredQuote) {
+    if (!Number.isSafeInteger(context.trip.tariffRevision) || context.trip.tariffRevision < 1)
+      throw new BookingValidationError();
+    result.tariffRevision = context.trip.tariffRevision;
+  }
+  return Object.freeze(result);
 }
 
 module.exports = { createBookingSummary };
