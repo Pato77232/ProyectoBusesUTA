@@ -11,7 +11,7 @@ Node.js (LTS) + Express · PostgreSQL · Bootstrap 5 · Docker y Docker Compose 
 - `docs/conventions.md`: nombres, errores, pruebas, commits y ramas.
 - `docs/specs/<ID>.md`: la spec de la tarea actual. Si no existe spec, pide que se escriba antes de implementar.
 - `docs/adr/`: decisiones de arquitectura ya tomadas.
-- `docs/errores-inducidos.md`: protocolo obligatorio de defectos académicos para la primera revisión.
+- `docs/errores-inducidos.md`: decisión de v0.1.0 y protocolo para una eventual actividad académica autorizada.
 - `docs/estado-proyecto.md`: fotografía comprobada, pendientes por integrante y dependencias; contrastarla con Git y la spec antes de orientar.
 - `docs/flujo-codex.md` y `docs/equipo-y-acuerdos.md`: guía para principiantes, roles de trabajo, trazabilidad y decisiones compartidas.
 - `docs/calidad.md`: criterios SOLID y de usabilidad para el alcance del cambio.
@@ -52,8 +52,8 @@ Arquitectura limpia por módulos: `backend/src/modules/<modulo>/{domain,applicat
 7. Actualiza la fila y evidencia de la tarea en `docs/estado-proyecto.md` junto con la spec; no marques Integrada/Cerrada sin evidencia. Antes de confirmar cambios, revisa el diff completo y prepara commits por cambio lógico.
 
 ## Primera revisión: 4 de noviembre de 2026
-- La entrega funcional en `main` debe contener errores inducidos a propósito, identificados y autorizados conforme a `docs/errores-inducidos.md`. No inventes defectos ni los corrijas incidentalmente.
-- La excepción académica solo cubre el comportamiento y la versión documentados en la spec; no cambia la regla de negocio esperada. Reporta todos los resultados reales y nunca debilites las pruebas.
+- La versión 0.1.0 se entregó sin errores inducidos por decisión de Edwin registrada en `docs/releases/v0.1.0.md`. No introduzcas defectos académicos por iniciativa propia. Si una actividad futura los requiere, exige spec y autorización concreta conforme a `docs/errores-inducidos.md`; no confundas fallos imprevistos con defectos autorizados.
+- Si una actividad futura autoriza una excepción académica, esta solo cubre el comportamiento y la versión documentados en la spec; no cambia la regla de negocio esperada. Reporta todos los resultados reales y nunca debilites las pruebas.
 - Jira o GitHub Issues se decidirá e implementará después de esta revisión por petición del docente. Hasta entonces usa el ID de la spec como referencia local; no exijas tickets externos ni inventes sus claves.
 - Versionado SemVer exclusivamente `MAJOR.MINOR.PATCH`, sin cuarto componente ni sufijos de prerelease. Tags `vMAJOR.MINOR.PATCH`.
 - Commits atómicos con Conventional Commits: tipo en inglés; alcance y descripción en español, verbo en imperativo.
