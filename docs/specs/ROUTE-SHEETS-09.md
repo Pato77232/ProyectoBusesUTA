@@ -4,17 +4,18 @@
 - **Módulo:** `route-sheets` (backend). No modifica otros módulos.
 - **Responsable:** David, por solicitud directa del 4 de noviembre de 2026.
 - **Revisor propuesto / confirmado:** Leslie / sin confirmación registrada.
-- **Estado:** Sección 1 implementada localmente, con pruebas unitarias y HTTP aprobadas. Pendiente revisión humana, commit y publicación; no se afirma integración.
+- **Estado:** Sección 1 guardada por David en `268160f`. Sección 2 añade verificación con Node 24 y arranque real; evidencia en §15. Revisión humana, commit de sección 2 y publicación pendientes; no se afirma integración.
 - **Prioridad y dependencias:** interna al módulo. Conserva el contrato de [ROUTE-SHEETS-01](ROUTE-SHEETS-01.md) y convive con la programación persistida de [ROUTE-SHEETS-06](ROUTE-SHEETS-06.md). El registro de logs no depende de Fleet, Frecuencias ni Bookings; la comprobación de pasajeros sigue dependiendo de `bookingQueries`, que hoy no se inyecta en `server.js`.
 - **Rama / base comprobada:** `feature/ROUTE-SHEETS-09-auditoria-modificaciones`, creada por David el 4 de noviembre de 2026 sobre `7f378fc` (`develop`); la sección 0 se registró en `73f1b58`.
 - **Autorización de alcance:** David pidió revisar los módulos pendientes, autorizó redactar la sección 0 y, el 4 de noviembre de 2026, confirmó las recomendaciones Q1–Q4 y autorizó la sección 1 en esa rama. Siguen sin autorizar commits, push, merge, tag ni integración.
+- **Sección 2 autorizada el 4 de noviembre:** David eligió «Cerrar la verificación con Node 24 y arranque real, conservando el 503 cuando falta el proveedor». Base limpia `268160f`, sección 1 ya guardada por David. Esta sección añade pruebas de la composición productiva y evidencia; no implementa APIs de Bookings ni cambia decisiones Q1–Q4.
 - **Fuentes:** [reglas](../business-rules.md), [arquitectura](../architecture.md), [convenciones](../conventions.md), [calidad](../calidad.md), [defectos académicos](../errores-inducidos.md), [equipo](../equipo-y-acuerdos.md), [flujo](../flujo-codex.md) y [estado](../estado-proyecto.md).
 
 ## 1. Objetivo
 
 Hacer que la auditoría de modificaciones de hojas de ruta funcione de extremo a extremo: que cada cambio registrable deje un log persistido y que `GET /api/v1/route-sheets/:id/modification-logs` devuelva registros reales de la cooperativa autenticada.
 
-Hoy la infraestructura existe pero no se usa:
+Diagnóstico previo a la sección 1 (conservado como antecedente):
 
 - La tabla `route_sheet_modification_logs` y `PgRouteSheetModificationLogRepository` (guardar, listar por hoja y filtrar) están implementadas.
 - El caso de uso `modify-route-sheet-with-audit.use-case.js` existe, pero **no está importado en `composition.js`**: es código sin cablear.
@@ -187,5 +188,26 @@ Límites comprobados:
 ## 14. Revisión y cierre
 
 - Revisora propuesta: Leslie, sin respuesta registrada.
-- Sin commit, push, PR ni integración. Rama creada sobre `7f378fc`; sección 0 en `73f1b58`.
-- Próxima acción: revisión humana de la sección 1. Si se aprueba, commit sugerido `feat(hojas-ruta): registra la auditoría de modificaciones`, con pie `Refs: docs/specs/ROUTE-SHEETS-09.md`. Después, conectar `bookingQueries` desde la API pública de Bookings para habilitar la auditoría de las bajas.
+- Sección 0 en `73f1b58` y sección 1 en `268160f`, guardadas por David. La sección 2 se registra en §15; no se acredita publicación, aprobación ni integración.
+- Próxima acción: revisión humana de las secciones 1 y 2 y publicación por el responsable. No se presenta habilitada la auditoría de bajas en producción: conectar `bookingQueries` requiere una tarea coordinada con Bookings, fuera de este incremento. Q1–Q4 siguen vigentes, incluido el límite de no atomicidad.
+
+## 15. Sección 2 — cierre de verificación con composición real
+
+Alcance confirmado por David: ejecutar las comprobaciones con Node 24 y PostgreSQL aislado y añadir una regresión que invoque `server.start` y use HTTP real, autenticación, Fleet y Frecuencias públicos sin sustituir sus proveedores. Preparar únicamente usuarios, buses y frecuencias ficticios en la base aislada; la hoja y sus cambios se crean por HTTP. Usar el cierre real `stop` del servidor y su worker.
+
+Casos: salud del servidor, altas de asignación/parada con y sin motivo, lectura del log real, actor/tenant del contexto, aislamiento, CSRF y los dos DELETE sin bookingQueries. Las bajas deben responder 503/BOOKING_QUERIES_UNAVAILABLE y conservar filas/logs idénticos, incluso con advertencia forzada y reintento. No se interpreta proveedor ausente como `false` ni se inyecta un doble para habilitar producción.
+
+No hay cambios a código productivo, migraciones, dependencias, pruebas anteriores ni frontend. La no atomicidad aceptada en Q2 permanece y no se acredita resuelta por estas pruebas. El contrato público de pasajeros sigue como dependencia de una tarea coordinada con Leslie; `bookings/index.js` no expone actualmente esas dos consultas.
+
+Verificación final con **Node 24.21.0/Linux y PostgreSQL 16.13 aislado**:
+
+- Prueba nueva `tests/integration/route-sheets/modification-audit-server.test.js`: **8/8 aprobadas**, primero de forma dirigida y después dentro de la regresión completa. Inicia el servidor real sin mocks de módulos/proveedores y termina con `running.stop()`, cerrando HTTP, worker y pool.
+- `npm run lint`: aprobado, también comprobado localmente antes de la corrida con Node 24.
+- `npm run format:check`: falla por los mismos **37 archivos previos**, sin cambios de esta sección. El JS nuevo pasa Prettier por separado.
+- `npm test`: **1826/1826 unitarias (96 suites)** y **602/602 integraciones (48 suites)** aprobadas. También aprobaron fotos de Fleet y administradores en esta ejecución, sin modificar sus pruebas ni sus tiempos; no se presenta esto como una corrección permanente de sus fallos históricos.
+
+El primer intento de levantar docker-compose.test.yml no pudo ocupar el puerto 55433, ya usado por otro entorno. No se detuvo ni reutilizó ese entorno. Se creó una base exclusiva en una red propia sin publicar puertos; solo contenedores QA accedieron a ella. Al terminar se retiraron el contenedor/base, el contenedor detenido del intento inicial y la red propios. No se leyó .env. Npm ci solo se ejecutó en el contenedor efímero, sin cambiar dependencias; se verificó lock idéntico antes de reutilizar los binarios nativos de Sharp de la imagen local.
+
+El diff final contiene únicamente esta spec, la fila de estado y una prueba nueva. Se revisaron los archivos completos, `git diff --check`, el formato del JS nuevo y las referencias locales; sin conflictos ni espacios finales. No cambió código de producción, otra prueba, migración ni dependencia. Las evidencias de sección 1 conservan su alcance histórico. Asistencia de Codex en planificación, pruebas y documentación; revisión humana, commit de esta sección, publicación e integración pendientes.
+
+Commit sugerido: `test(hojas-ruta): verifica la auditoría con el servidor real`, con pie `Refs: docs/specs/ROUTE-SHEETS-09.md`.
