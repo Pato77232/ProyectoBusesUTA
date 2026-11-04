@@ -48,6 +48,7 @@ function createBookingRouter({
   getBookingSummary,
   createBooking,
   getBookingAttempt,
+  getBookingHistory,
 }) {
   const router = express.Router();
   router.use((req, res, next) => {
@@ -62,6 +63,15 @@ function createBookingRouter({
   router.get('/attempts/:requestKey', async (req, res) => {
     if (Object.keys(req.query).length) throw new errors.BookingValidationError();
     res.json({ booking: await getBookingAttempt(req.params.requestKey, req.auth) });
+  });
+  router.get('/', async (req, res) => {
+    if (Object.keys(req.query).some((key) => !['cursor', 'limit'].includes(key)))
+      throw new errors.BookingValidationError();
+    res.json({ bookings: await getBookingHistory.list(req.query, req.auth) });
+  });
+  router.get('/:bookingId', async (req, res) => {
+    if (Object.keys(req.query).length) throw new errors.BookingValidationError();
+    res.json({ booking: await getBookingHistory.get(req.params.bookingId, req.auth) });
   });
   router.post('/summary', auth.csrfProtection, requireJson, async (req, res) => {
     res.json(await getBookingSummary(req.body, req.auth));

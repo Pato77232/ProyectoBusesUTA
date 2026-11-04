@@ -36,6 +36,23 @@ function privateBooking(row) {
   });
 }
 
+function historyBooking(row) {
+  return Object.freeze({
+    bookingId: row.id,
+    status: row.status,
+    tripId: row.trip_id,
+    fromPosition: Number(row.from_position),
+    toPosition: Number(row.to_position),
+    totalPriceCents: Number(row.total_price_cents),
+    currency: row.currency,
+    summary: row.summary,
+    createdAt: row.created_at.toISOString(),
+    expiresAt: row.expires_at?.toISOString() ?? null,
+    soldAt: row.sold_at?.toISOString() ?? null,
+    rejectedAt: row.rejected_at?.toISOString() ?? null,
+  });
+}
+
 async function readAllocations(client, scope) {
   const { rows } = await client.query(
     `SELECT trip_id, cooperative_id, seat_id, from_position, to_position, status
@@ -249,14 +266,59 @@ class PgBookingRepository {
   async findByOwner(scope) {
     const target = {
       bookingId: identifier(scope?.bookingId),
-      cooperativeId: identifier(scope?.cooperativeId),
       ownerId: identifier(scope?.ownerId),
     };
-    const { rows } = await this.pool.query(
-      'SELECT * FROM bookings WHERE id = $1 AND cooperative_id = $2 AND owner_id = $3',
-      [target.bookingId, target.cooperativeId, target.ownerId],
-    );
+    const values = [target.bookingId, target.ownerId];
+    let query = 'SELECT * FROM bookings WHERE id = $1 AND owner_id = $2';
+    if (scope?.cooperativeId !== undefined) {
+      const cooperativeId = identifier(scope.cooperativeId);
+      query = 'SELECT * FROM bookings WHERE id = $1 AND cooperative_id = $3 AND owner_id = $2';
+      values.push(cooperativeId);
+    }
+    const { rows } = await this.pool.query(query, values);
     return rows.length ? privateBooking(rows[0]) : null;
+  }
+
+  async listByOwner({ ownerId, cursor, limit = 20 } = {}) {
+    const customerId = identifier(ownerId);
+    if (!Number.isSafeInteger(limit) || limit < 1 || limit > 50) throw new BookingValidationError();
+    const values = [customerId];
+    const cursorClause = cursor
+      ? (() => {
+          try {
+            const decoded = JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8'));
+            if (
+              !decoded.createdAt ||
+              !decoded.bookingId ||
+              Number.isNaN(new Date(decoded.createdAt).getTime())
+            )
+              throw new Error();
+            values.push(new Date(decoded.createdAt), decoded.bookingId);
+            return `AND (created_at, id) < ($2, $3)`;
+          } catch {
+            throw new BookingValidationError();
+          }
+        })()
+      : '';
+    values.push(limit + 1);
+    const { rows } = await this.pool.query(
+      `SELECT id,status,trip_id,from_position,to_position,total_price_cents,
+          summary->>'currency' AS currency,summary,created_at,expires_at,sold_at,rejected_at
+       FROM bookings WHERE owner_id=$1 ${cursorClause}
+       ORDER BY created_at DESC,id DESC LIMIT $${values.length}`,
+      values,
+    );
+    const page = rows.slice(0, limit).map(historyBooking);
+    const next =
+      rows.length > limit
+        ? Buffer.from(
+            JSON.stringify({
+              createdAt: rows[limit - 1].created_at.toISOString(),
+              bookingId: rows[limit - 1].id,
+            }),
+          ).toString('base64url')
+        : null;
+    return { items: page, nextCursor: next };
   }
 }
 module.exports = PgBookingRepository;

@@ -39,6 +39,13 @@ class PaymentProofExpiredError extends PaymentProofError {
   }
 }
 
+class PaymentProofRejectedError extends PaymentProofError {
+  constructor() {
+    super('PAYMENT_PROOF_REJECTED', 409, 'El comprobante fue rechazado y no puede modificarse.');
+    this.name = 'PaymentProofRejectedError';
+  }
+}
+
 class PaymentProofCannotExpireError extends PaymentProofError {
   constructor() {
     super('PAYMENT_PROOF_CANNOT_EXPIRE', 409, 'Un comprobante cargado no puede expirar.');
@@ -175,6 +182,7 @@ module.exports = {
   PaymentProofUploadDeadlineExpiredError,
   PaymentProofAlreadyUploadedError,
   PaymentProofExpiredError,
+  PaymentProofRejectedError,
   PaymentProofCannotExpireError,
   PaymentProofNotFoundError,
   PaymentProofNotPendingError,

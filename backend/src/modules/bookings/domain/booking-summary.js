@@ -1,7 +1,7 @@
 const { BookingValidationError } = require('./booking-error');
 const { createAvailabilityRequest, createAvailabilityTrip } = require('./availability-request');
 const { createPassengerManifest } = require('./passenger-manifest');
-const { quotePassenger, ageOnDate } = require('./passenger-quote');
+const { quotePassenger, quotePassengerWithPolicy, ageOnDate } = require('./passenger-quote');
 const commercialBookingSummary = require('./commercial-booking-summary');
 
 const INPUT_FIELDS = Object.freeze([
@@ -14,6 +14,11 @@ const INPUT_FIELDS = Object.freeze([
 const TOTAL_FIELDS = Object.freeze(['basePriceCents', 'discountCents', 'totalPriceCents']);
 
 function selectedPrices(trip, request) {
+  if (trip.publishedPriceCents !== undefined) {
+    if (!Number.isSafeInteger(trip.publishedPriceCents) || trip.publishedPriceCents <= 0)
+      throw new BookingValidationError();
+    return [trip.publishedPriceCents];
+  }
   if (
     !Array.isArray(trip.segmentPricesCents) ||
     trip.segmentPricesCents.length !== trip.routePointCount - 1
@@ -70,41 +75,56 @@ function createBookingSummary(input, context) {
     fromPosition: input.fromPosition,
     toPosition: input.toPosition,
   });
-  const trip = createAvailabilityTrip(context?.trip, request.tripId);
-  if (request.toPosition >= trip.routePointCount) throw new BookingValidationError();
   const manifest = createPassengerManifest(
     { seatIds: input.seatIds, passengers: input.passengers },
     context,
   );
+  if (context?.trip?.commercial === true) return commercialBookingSummary(request, manifest, context);
+  const trip = createAvailabilityTrip(context?.trip, request.tripId);
+  if (request.toPosition >= trip.routePointCount) throw new BookingValidationError();
   const inventory = new Set(trip.seatIds);
   if (manifest.some((passenger) => !inventory.has(passenger.seatId)))
     throw new BookingValidationError();
-  if (context.trip.commercial === true) return commercialBookingSummary(request, manifest, context);
   const departureDate = context.trip.departureDate;
   ageOnDate(context.onDate, departureDate);
   const prices = selectedPrices(context.trip, request);
   const benefits = benefitsForPassengers(context.passengerBenefits, manifest);
+  const configuredQuote = context.trip.publishedPriceCents !== undefined;
   const passengers = Object.freeze(
     manifest.map((passenger) =>
       Object.freeze({
         ...passenger,
-        quote: quotePassenger({
-          segmentPricesCents: prices,
-          birthDate: passenger.birthDate,
-          departureDate,
-          disabilityVerified: benefits.get(passenger.seatId),
-        }),
+        quote: configuredQuote
+          ? quotePassengerWithPolicy({
+              amountCents: prices[0],
+              birthDate: passenger.birthDate,
+              departureDate,
+              disabilityVerified: benefits.get(passenger.seatId),
+              policy: context.trip.tariffPolicy,
+            })
+          : quotePassenger({
+              segmentPricesCents: prices,
+              birthDate: passenger.birthDate,
+              departureDate,
+              disabilityVerified: benefits.get(passenger.seatId),
+            }),
       }),
     ),
   );
-  return Object.freeze({
+  const result = {
     ...request,
     cooperativeId: trip.cooperativeId,
     departureDate,
     currency: 'USD',
     passengers,
     totals: sumQuotes(passengers),
-  });
+  };
+  if (configuredQuote) {
+    if (!Number.isSafeInteger(context.trip.tariffRevision) || context.trip.tariffRevision < 1)
+      throw new BookingValidationError();
+    result.tariffRevision = context.trip.tariffRevision;
+  }
+  return Object.freeze(result);
 }
 
 module.exports = { createBookingSummary };

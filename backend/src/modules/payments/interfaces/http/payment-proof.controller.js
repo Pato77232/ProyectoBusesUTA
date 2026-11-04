@@ -5,6 +5,7 @@ function createPaymentProofController({
   listPendingPaymentProofs,
   readPaymentProofFile,
   approvePaymentProof,
+  rejectPaymentProof,
   clock = () => new Date(),
 }) {
   function contentDispositionFileName(originalFileName) {
@@ -56,6 +57,27 @@ function createPaymentProofController({
             id: proof.id,
             decision: 'APPROVED',
             approvedAt: proof.approved_at,
+          },
+        });
+      } catch (error) {
+        return next(error);
+      }
+    },
+
+    async reject(request, response, next) {
+      try {
+        const proof = await rejectPaymentProof.execute({
+          paymentProofId: request.params.paymentProofId,
+          cooperativeId: request.auth.user.cooperative_id,
+          rejectedBy: request.auth.user.id,
+          justification: request.body?.justification,
+          now: clock(),
+        });
+        return response.json({
+          paymentProof: {
+            id: proof.id,
+            decision: 'REJECTED',
+            rejectedAt: proof.rejected_at,
           },
         });
       } catch (error) {

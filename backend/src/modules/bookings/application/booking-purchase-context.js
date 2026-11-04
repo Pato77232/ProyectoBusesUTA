@@ -7,6 +7,7 @@ const { createBookingSummary } = require('../domain/booking-summary');
 const { BookingValidationError } = require('../domain/booking-error');
 const BookingPurchaseError = require('../domain/booking-purchase-error');
 const BookingTripUnavailableError = require('../domain/booking-trip-unavailable-error');
+const BookingServiceUnavailableError = require('../domain/booking-service-unavailable-error');
 
 const INPUT_FIELDS = ['tripId', 'fromPosition', 'toPosition', 'seatIds', 'passengers'];
 const PASSENGER_FIELDS = ['seatId', 'identificationNumber', 'fullName', 'birthDate'];
@@ -57,20 +58,58 @@ async function resolveOwner(buyerIdentity, authContext) {
   return identity.ownerId.trim();
 }
 
-async function readTrip(tripCatalog, tripId) {
-  const found = await tripCatalog.findBookableById(tripId);
+async function readTrip(tripCatalog, request, tariffQueries) {
+  const { tripId, fromPosition, toPosition } = request;
+  let found;
+  try {
+    found =
+      typeof tripCatalog.findBookableForSegment === 'function'
+        ? await tripCatalog.findBookableForSegment({ tripId, fromPosition, toPosition })
+        : await tripCatalog.findBookableById(tripId);
+  } catch (error) {
+    if (
+      error?.code === 'COMMERCIAL_TRIP_SOURCE_UNAVAILABLE' ||
+      error?.code === 'COMMERCIAL_TRIP_INVALID'
+    )
+      throw new BookingServiceUnavailableError();
+    throw error;
+  }
   if (found === null) throw new BookingTripUnavailableError();
-  const trip = createAvailabilityTrip(found, tripId);
-  if (!Array.isArray(found.segmentPricesCents)) throw new BookingValidationError();
-  return Object.freeze({
-    ...trip,
+  const availabilityTrip = createAvailabilityTrip(found, tripId);
+  if (!Array.isArray(found.segmentPricesCents) && typeof tariffQueries?.findPrice !== 'function')
+    throw new BookingValidationError();
+  const trip = {
+    ...availabilityTrip,
     departureDate: found.departureDate,
-    segmentPricesCents: Object.freeze([...found.segmentPricesCents]),
-  });
+    segmentPricesCents: Array.isArray(found.segmentPricesCents)
+      ? Object.freeze([...found.segmentPricesCents])
+      : undefined,
+  };
+  if (typeof tariffQueries?.findPrice === 'function') {
+    let price;
+    try {
+      price = await tariffQueries.findPrice({
+        routeSheetId: found.routeSheetId,
+        cooperativeId: found.cooperativeId,
+        frequencyId: found.frequencyId,
+        fromPosition,
+        toPosition,
+      });
+    } catch (error) {
+      if (error?.code === 'TARIFF_SOURCE_UNAVAILABLE') throw new BookingServiceUnavailableError();
+      throw error;
+    }
+    if (price) {
+      trip.publishedPriceCents = price.amountCents;
+      trip.tariffPolicy = price.policy;
+      trip.tariffRevision = price.revision;
+    }
+  }
+  return Object.freeze(trip);
 }
 
 async function readPurchaseTrip(dependencies, request) {
-  if (!dependencies.purchaseCatalog) return readTrip(dependencies.tripCatalog, request.tripId);
+  if (!dependencies.purchaseCatalog) return readTrip(dependencies.tripCatalog, request);
   const trip = await dependencies.purchaseCatalog.findPurchaseContext({
     tripId: request.tripId,
     fromPosition: request.fromPosition,

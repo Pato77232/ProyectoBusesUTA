@@ -8,7 +8,7 @@ function createPaymentProofRouter({
   listPendingPaymentProofs,
   readPaymentProofFile,
   approvePaymentProof,
-  clock = () => new Date(),
+  rejectPaymentProof,
 }) {
   const router = express.Router();
   // La bandeja y los archivos privados no deben conservarse en cachés HTTP.
@@ -21,7 +21,6 @@ function createPaymentProofRouter({
     listPendingPaymentProofs,
     readPaymentProofFile,
     approvePaymentProof,
-    clock,
   });
 
   router.get('/', auth.authenticate, auth.authorize('CLERK'), controller.listPending);
@@ -37,6 +36,14 @@ function createPaymentProofRouter({
     auth.authorize('CLERK'),
     auth.csrfProtection,
     controller.approve,
+  );
+  router.post(
+    '/:paymentProofId/reject',
+    auth.authenticate,
+    auth.authorize('CLERK'),
+    auth.csrfProtection,
+    express.json(),
+    controller.reject,
   );
 
   router.post(

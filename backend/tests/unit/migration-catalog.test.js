@@ -9,7 +9,7 @@ const { transactionClient } = require('../../scripts/migrate');
 const entry = (name) => ({ name, isFile: () => true });
 const files = () => activeNames.map((name) => entry(name + '.js'));
 
-test('catálogo explícito conserva develop, protección, procedencia de Pagos, renovación y totales comerciales', () => {
+test('catálogo explícito conserva la cadena de develop, identificadores de Pagos y protección de asientos', () => {
   expect(activeNames).toHaveLength(25);
   expect(activeNames[16]).toBe('1793730000000-commercial-trips');
   expect(activeNames[17]).toBe('1793740000000-allow-vip-bus-seats');
@@ -17,11 +17,10 @@ test('catálogo explícito conserva develop, protección, procedencia de Pagos, 
   expect(activeNames[19]).toBe('1793910000000-booking-proof-receipts');
   expect(activeNames[20]).toBe('1794000000000-payment-booking-identifiers');
   expect(activeNames[21]).toBe('1794080000000-protect-bus-seats');
-  expect(activeNames[22]).toBe('1794086400000-payment-proof-upload-provenance');
-  expect(activeNames[23]).toBe('1794160000000-route-sheet-renewals');
-  expect(activeNames[24]).toBe('1794250000000-booking-commercial-totals');
-  expect(() => validateHistory(activeNames.slice(0, 23))).not.toThrow();
-  expect(() => validateHistory(activeNames.slice(0, 24))).not.toThrow();
+  expect(activeNames[22]).toBe('1794090000000-booking-sale-lifecycle');
+  expect(activeNames[23]).toBe('1794100000000-payment-proof-rejection');
+  expect(activeNames[24]).toBe('1794110000000-booking-guest-access');
+  expect(() => validateHistory(activeNames.slice(0, 22))).not.toThrow();
   expect(new Set(activeNames).size).toBe(activeNames.length);
   expect([...activeNames].sort()).toEqual(activeNames);
   expect(() => validateCatalog(files())).not.toThrow();

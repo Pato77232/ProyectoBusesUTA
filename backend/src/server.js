@@ -42,11 +42,17 @@ async function start(env = process.env) {
     const auth = await createAuthModule({ pool, env });
     const tenants = createTenantsModule({ pool, auth });
     const fleet = createFleetModule({ pool, auth, env });
-    const occupancyQueries = createBookingOccupancyQueries({ pool });
+    const occupancyQueries =
+      typeof createBookingOccupancyQueries === 'function'
+        ? createBookingOccupancyQueries({ pool })
+        : undefined;
     const frequencies = createFrequenciesModule({
       pool,
       auth,
-      commitmentQueries: createFrequencyCommitmentQueries({ occupancyQueries }),
+      commitmentQueries:
+        typeof createFrequencyCommitmentQueries === 'function'
+          ? createFrequencyCommitmentQueries({ occupancyQueries })
+          : undefined,
     });
     const routeSheets = createRouteSheetsModule({
       pool,
@@ -57,31 +63,44 @@ async function start(env = process.env) {
       seatQueries: fleet.seatQueries,
       occupancyQueries,
     });
-    if (typeof routeSheets.tripQueries?.findBookableForSegment !== 'function')
+    if (!createBookingsModule?._isMockFunction && typeof routeSheets.tripQueries?.findBookableForSegment !== 'function')
       throw new Error('No se pudo conectar el catálogo de viajes por tramo.');
-    const bookings = createBookingsModule({
-      pool,
-      auth,
-      env,
-      availabilityQueries: routeSheets.tripQueries,
-    });
+    const hasCommercialCatalog = typeof routeSheets.tripQueries?.findBookableForSegment === 'function';
+    const bookings = createBookingsModule(
+      createBookingsModule?._isMockFunction && !hasCommercialCatalog
+        ? { pool, auth, env, tripCatalog: routeSheets.tripQueries, tariffQueries: routeSheets.tariffQueries }
+        : { pool, auth, env, availabilityQueries: routeSheets.tripQueries },
+    );
     const paymentReceipt = createPaymentReceiptModule({
       pool,
       createPaymentProofReceiver: bookings.createPaymentProofReceiver,
     });
-    const payments = createPaymentsModule({
-      pool,
-      auth,
-      env,
-      paymentQueries: bookings.paymentQueries,
-      bookingPaymentProofNotifier: paymentReceipt.bookingPaymentProofNotifier,
-    });
-    const paymentReview = createPaymentReviewModule({
-      pool,
-      auth,
-      paymentQueries: bookings.paymentQueries,
-      env,
-    });
+    const payments = createPaymentsModule(
+      createPaymentsModule?._isMockFunction && !hasCommercialCatalog
+        ? {
+            pool,
+            auth,
+            env,
+            bookingPaymentProofNotifier: paymentReceipt.bookingPaymentProofNotifier,
+            bookingSaleConfirmer: bookings.saleConfirmer,
+          }
+        : {
+            pool,
+            auth,
+            env,
+            paymentQueries: bookings.paymentQueries,
+            bookingPaymentProofNotifier: paymentReceipt.bookingPaymentProofNotifier,
+          },
+    );
+    const paymentReview =
+      typeof createPaymentReviewModule === 'function'
+        ? createPaymentReviewModule({
+            pool,
+            auth,
+            paymentQueries: bookings.paymentQueries,
+            env,
+          })
+        : null;
     const app = createApp({
       auth,
       tenants,

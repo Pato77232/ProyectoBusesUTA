@@ -69,7 +69,13 @@ class ApprovePaymentProof {
       });
       if (confirmed !== true) throw new BookingSaleUncertainError();
     } catch (error) {
-      if (error instanceof BookingSaleRejectedError || error instanceof BookingSaleUncertainError) {
+      if (
+        error instanceof BookingSaleRejectedError ||
+        error instanceof BookingSaleUncertainError ||
+        error?.code === 'BOOKING_SALE_REJECTED'
+      ) {
+        if (error?.code === 'BOOKING_SALE_REJECTED' && !(error instanceof BookingSaleRejectedError))
+          throw new BookingSaleRejectedError();
         throw error;
       }
       throw new BookingSaleUncertainError();

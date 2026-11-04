@@ -14,6 +14,7 @@ const PAYMENT_PROOF_COLUMNS = `id, booking_id, cooperative_id, status, file_key,
   original_file_name, media_type, file_size_bytes, uploaded_at, expired_at,
   upload_authorized_by, upload_authorized_at,
   approved_at, approved_by, approval_requested_at, approval_requested_by,
+  rejected_at, rejected_by, rejection_justification,
   created_at, updated_at`;
 
 const MAX_PAGE_SIZE = 50;
@@ -57,6 +58,9 @@ function withPersistenceDates(paymentProof, row) {
     approved_by: row.approved_by,
     approval_requested_at: asDate(row.approval_requested_at),
     approval_requested_by: row.approval_requested_by,
+    rejected_at: asDate(row.rejected_at),
+    rejected_by: row.rejected_by,
+    rejection_justification: row.rejection_justification,
     created_at: asDate(row.created_at),
     updated_at: asDate(row.updated_at),
   });
@@ -91,6 +95,18 @@ function toPaymentProof(row) {
     return withPersistenceDates(uploaded, row);
   }
 
+  if (row.status === 'REJECTED') {
+    return withPersistenceDates(
+      {
+        ...awaitingUpload,
+        status: 'REJECTED',
+        rejected_at: asDate(row.rejected_at),
+        rejected_by: row.rejected_by,
+        rejection_justification: row.rejection_justification,
+      },
+      row,
+    );
+  }
   return withPersistenceDates(expirePaymentProof(awaitingUpload, asDate(row.expired_at)), row);
 }
 
@@ -158,6 +174,23 @@ class PgPaymentProofRepository extends PaymentProofRepository {
          AND approval_requested_at IS NOT NULL
        RETURNING ${PAYMENT_PROOF_COLUMNS}`,
       [paymentProofId, cooperativeId, approvedBy, approvedAt],
+    );
+    return rows.length === 0 ? null : toPaymentProof(rows[0]);
+  }
+
+  async markRejectedIfPending({
+    paymentProofId,
+    cooperativeId,
+    rejectedBy,
+    rejectionJustification,
+    rejectedAt,
+  }) {
+    const { rows } = await this.pool.query(
+      `UPDATE payment_proofs SET status='REJECTED', rejected_by=$3,
+         rejection_justification=$4, rejected_at=$5, updated_at=CURRENT_TIMESTAMP
+       WHERE id=$1 AND cooperative_id=$2 AND status='UPLOADED' AND approved_at IS NULL
+       RETURNING ${PAYMENT_PROOF_COLUMNS}`,
+      [paymentProofId, cooperativeId, rejectedBy, rejectionJustification, rejectedAt],
     );
     return rows.length === 0 ? null : toPaymentProof(rows[0]);
   }
