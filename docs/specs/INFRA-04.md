@@ -3,8 +3,8 @@
 - **ID local:** INFRA-04
 - **Módulo:** infra / documentación
 - **Responsable:** Pablo
-- **Revisora propuesta:** Shirley; aceptación de la revisión pendiente.
-- **Estado:** En desarrollo; implementación local completada y preparada para revisión. PR, revisión humana e integración pendientes.
+- **Revisores confirmados:** David y Leslie.
+- **Estado:** Cerrada; PR #14 aprobada e integrada en `develop`.
 - **Fecha:** 25 de octubre de 2026.
 - **Base:** `origin/develop` en `67ee38d`, actualizado mediante fetch antes de crear la rama.
 - **Rama:** `feature/INFRA-04-flujo-codex-y-estado-proyecto`.
@@ -82,4 +82,19 @@ Revisión documental de escenarios, sin simular aprobación humana ni afirmar un
 
 La carga automática de la skill en una sesión nueva y su uso por los cinco integrantes quedan pendientes de comprobación en sus instalaciones. No se evaluó la usabilidad de pantallas, porque esta tarea no implementa frontend. No se afirma conformidad SOLID del código existente. No hay fallos inducidos autorizados en esta tarea.
 
-PR, revisión humana, commit de integración y verificación en develop pendientes. No marcar Cerrada hasta registrar esos datos.
+Los textos anteriores describen el estado de la sesión original. La evidencia de
+cierre se registra a continuación.
+
+## 9. Revisión, integración y cierre — 25 de octubre de 2026
+
+David y Leslie aprobaron la
+[PR #14](https://github.com/Pato77232/ProyectoBusesUTA/pull/14). La cabeza
+`853375e` se integró en `develop` mediante `c89b1b9` a las 18:50
+(America/Guayaquil). La PR conservó la evidencia de lint aprobado, 239 pruebas
+unitarias y 107 de integración aprobadas, skill válida y 36 enlaces locales sin
+roturas; los 26 avisos de formato preexistentes permanecieron visibles.
+
+La skill continúa presente y fue utilizada para esta conciliación sobre la base
+`65957a9`. Esto comprueba su uso en esta instalación, no en las instalaciones de
+los demás integrantes. INFRA-04 queda Cerrada sin afirmar adopción individual de
+todo el equipo ni corregir archivos ajenos.

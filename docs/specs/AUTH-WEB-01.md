@@ -2,10 +2,10 @@
 
 - **ID local:** AUTH-WEB-01; sin ticket externo antes de la revisión académica.
 - **Responsable:** Pablo, conforme a la coordinación de autenticación y F-A6.
-- **Revisora propuesta:** Shirley; aceptación de esta revisión pendiente.
-- **Estado:** Controlador integrado en PR #42; pantalla implementada y verificada localmente, pendiente de revisión humana.
-- **Fecha / base actual:** 2 de noviembre de 2026; origin/develop 8fdf7e4.
-- **Rama actual:** feature/AUTH-WEB-01-pantalla-login; procedencia de vista b1f3761 y prueba 99c8a91.
+- **Revisora confirmada:** Shirley.
+- **Estado:** Cerrada; controlador y pantalla revisados e integrados mediante las PR #42 y #45.
+- **Fecha / base comprobada:** 3 de noviembre de 2026; `origin/develop` `65957a9`.
+- **Rama de procedencia:** feature/AUTH-WEB-01-pantalla-login; cabeza integrada `74c17ee`.
 - **Autorización:** preparación documental original durante la revisión de T3c;
   Pablo autorizó después el incremento visual T1, según sección 15. No implica
   fechas comprometidas ni aceptación de propuestas por parte de Edwin.
@@ -413,3 +413,19 @@ y empaquetado se guardan en un primer commit; la prueba reproducible de navegado
 comando, guía y evidencia se guardan en el siguiente. Se mantienen los resultados
 reales anteriores: no se repiten suites por cambios exclusivamente documentales
 y guardado Git. Sin push, PR nueva ni aprobación humana de la pantalla.
+
+## 20. Revisión, integración y cierre
+
+Shirley aprobó la cabeza `74c17ee` de la
+[PR #45](https://github.com/Pato77232/ProyectoBusesUTA/pull/45) después de
+reproducir en Windows las 115 pruebas frontend, lint, formato y `test:login`
+con Chrome, API y PostgreSQL aislados. La revisión incluyó sesión, errores de
+credenciales y CSRF, doble envío, recuperación sin repetir POST, backend no
+disponible y capturas de escritorio, móvil y ampliación CSS al 200 %.
+
+La PR se integró en `develop` mediante `3d053a4` el 2 de noviembre a las 13:38
+(America/Guayaquil). La base `65957a9` conserva ese merge y la regresión global
+posterior registrada con PR #65 aprobó 1772 pruebas unitarias y 564 de integración.
+Zoom nativo y lector de pantalla no fueron certificados y permanecen como límites
+de la evidencia, no como funcionalidad prometida por esta spec. AUTH-WEB-01 queda
+Cerrada sin incluir paneles por rol, recuperación de contraseña ni logout visual.

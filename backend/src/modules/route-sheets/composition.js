@@ -1,4 +1,7 @@
 const createRouter = require('./interfaces/http/route-sheet.routes');
+const { randomUUID } = require('node:crypto');
+const prepareRenewalFactory = require('./application/use-cases/prepare-route-sheet-renewal.use-case');
+const PgRenewalRepository = require('./infrastructure/repositories/pg-route-sheet-renewal-repository');
 const createTariffQueries = require('./application/create-tariff-queries');
 const configureTariffFactory = require('./application/use-cases/configure-route-sheet-tariff.use-case');
 const PgRouteSheetTariffRepository = require('./infrastructure/repositories/pg-route-sheet-tariff-repository');
@@ -68,6 +71,14 @@ function createRouteSheetsModule({
     tariffRepository,
     frequencyQueryPort,
   });
+  const prepareRenewalUseCase = prepareRenewalFactory({
+    renewalRepository: new PgRenewalRepository(pool, {
+      frequencySessionFactory: frequencyQueries.forTransaction,
+    }),
+    busQueryPort,
+    now: () => new Date().toISOString(),
+    newId: randomUUID,
+  });
 
   const createRouteSheetUseCase = createRouteSheetUseCaseFactory({
     routeSheetRepository,
@@ -134,6 +145,7 @@ function createRouteSheetsModule({
     router: createRouter({
       auth,
       configureTariffUseCase,
+      prepareRenewalUseCase,
       saveProgrammingUseCase,
       getProgrammingUseCase,
       assertLegacyProgrammingOperation,

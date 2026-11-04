@@ -162,6 +162,10 @@ test('base vacía instala esquema real, omite ocultos/originales y no duplica al
     expect(await snapshot(pool)).toEqual(before);
     await migrate(url, 'down');
     expect(
+      (await pool.query("SELECT to_regclass('route_sheet_renewals') AS name")).rows[0].name,
+    ).toBeNull();
+    await migrate(url, 'down');
+    expect(
       (
         await pool.query(
           "SELECT column_name FROM information_schema.columns WHERE table_name='payment_proofs' AND column_name='upload_authorized_at'",
@@ -219,7 +223,7 @@ test('copia de develop conserva filas/definiciones y añade Reservas con procede
         table === 'pgmigrations' ? expect.arrayContaining(rows) : expectedUpgradedRows(table, rows),
       );
     }
-    expect(after.data.pgmigrations).toHaveLength(23);
+    expect(after.data.pgmigrations).toHaveLength(24);
     expect(after.definitions).toEqual(
       expect.arrayContaining(
         before.definitions.map((entry) =>
@@ -240,6 +244,7 @@ test('copia de develop conserva filas/definiciones y añade Reservas con procede
       'booking_seat_allocations',
       'booking_trip_locks',
       'bookings',
+      'route_sheet_renewals',
     ]);
     expect(after.data.bookings).toEqual([]);
   });
@@ -325,7 +330,7 @@ test.each([false, true])(
       expect(await snapshot(pool)).toEqual(before);
       expect((await pool.query("SELECT to_regclass('bookings') AS name")).rows[0].name).toBeNull();
       await pool.query('DROP EVENT TRIGGER qa_fail_bookings; DROP SCHEMA qa_failure CASCADE');
-      await expect(migrate(url)).resolves.toHaveLength(withDevelop ? 5 : 23);
+      await expect(migrate(url)).resolves.toHaveLength(withDevelop ? 6 : 24);
     });
   },
 );
@@ -343,7 +348,7 @@ test('el bloqueo compartido impide validar mientras otro migrador tiene autorida
       await holder.query('SELECT pg_advisory_unlock($1)', [lockId]);
       holder.release();
     }
-    await expect(migrate(url)).resolves.toHaveLength(23);
+    await expect(migrate(url)).resolves.toHaveLength(24);
   });
 });
 
@@ -355,7 +360,7 @@ test('historial legítimo vacío tras down conserva su índice interno y permite
     expect((await pool.query("SELECT to_regclass('pgmigrations_pkey') AS name")).rows[0].name).toBe(
       'pgmigrations_pkey',
     );
-    await expect(migrate(url)).resolves.toHaveLength(23);
+    await expect(migrate(url)).resolves.toHaveLength(24);
     expect(
       (await pool.query('SELECT name FROM pgmigrations ORDER BY id')).rows.map(({ name }) => name),
     ).toEqual(activeNames);
@@ -367,14 +372,14 @@ test('también actualiza la base anterior de 17 migraciones conservando sus fila
     await rawRun(url, activeNames.slice(0, 17));
     await seedDevelop(pool);
     const before = await snapshot(pool);
-    await expect(migrate(url)).resolves.toHaveLength(6);
+    await expect(migrate(url)).resolves.toHaveLength(7);
     const after = await snapshot(pool);
     for (const [table, rows] of Object.entries(before.data)) {
       expect(after.data[table]).toEqual(
         table === 'pgmigrations' ? expect.arrayContaining(rows) : expectedUpgradedRows(table, rows),
       );
     }
-    expect(after.data.pgmigrations).toHaveLength(23);
+    expect(after.data.pgmigrations).toHaveLength(24);
     const categoryCheck = await pool.query(
       "SELECT pg_get_constraintdef(oid) AS definition FROM pg_constraint WHERE conname='bus_seats_category_check'",
     );
@@ -420,7 +425,7 @@ test('actualiza develop con Reservas existentes sin perder plazos ni ocupaciones
     }
     const before = await snapshot(pool);
     expect(before.data.pgmigrations).toHaveLength(19);
-    await expect(migrate(url)).resolves.toHaveLength(4);
+    await expect(migrate(url)).resolves.toHaveLength(5);
     const after = await snapshot(pool);
     for (const [table, rows] of Object.entries(before.data)) {
       if (table === 'bookings') {
@@ -440,7 +445,7 @@ test('actualiza develop con Reservas existentes sin perder plazos ni ocupaciones
         );
       }
     }
-    expect(after.data.pgmigrations).toHaveLength(23);
+    expect(after.data.pgmigrations).toHaveLength(24);
     expect(after.data.booking_proof_receipt_results).toEqual([]);
     expect(after.data.booking_seat_allocations).toHaveLength(3);
     await expect(migrate(url)).resolves.toEqual([]);
@@ -469,7 +474,7 @@ test('actualiza develop con comprobante/outbox, IDs opacos y procedencia sin per
     const before = await snapshot(pool);
     await expectBookingIdType(pool, 'uuid');
     expect(before.data.pgmigrations).toHaveLength(20);
-    await expect(migrate(url)).resolves.toHaveLength(3);
+    await expect(migrate(url)).resolves.toHaveLength(4);
     await expectBookingIdType(pool, 'text');
     const after = await snapshot(pool);
     for (const [table, rows] of Object.entries(before.data)) {
@@ -477,11 +482,14 @@ test('actualiza develop con comprobante/outbox, IDs opacos y procedencia sin per
         table === 'pgmigrations' ? expect.arrayContaining(rows) : expectedUpgradedRows(table, rows),
       );
     }
-    expect(after.data.pgmigrations).toHaveLength(23);
+    expect(after.data.pgmigrations).toHaveLength(24);
     await expect(migrate(url)).resolves.toEqual([]);
     expect(await snapshot(pool)).toEqual(after);
     await migrate(url, 'down');
-    await expectBookingIdType(pool, 'text');
+    expect(
+      (await pool.query("SELECT to_regclass('route_sheet_renewals') AS name")).rows[0].name,
+    ).toBeNull();
+    await migrate(url, 'down');
     expect(
       (
         await pool.query(
@@ -489,6 +497,7 @@ test('actualiza develop con comprobante/outbox, IDs opacos y procedencia sin per
         )
       ).rows,
     ).toEqual([]);
+    await expectBookingIdType(pool, 'text');
     await migrate(url, 'down');
     expect(
       (await pool.query("SELECT tgname FROM pg_trigger WHERE tgname='bus_seats_immutable'")).rows,
@@ -496,7 +505,7 @@ test('actualiza develop con comprobante/outbox, IDs opacos y procedencia sin per
     await migrate(url, 'down');
     await expectBookingIdType(pool, 'uuid');
     expect(await snapshot(pool)).toEqual(before);
-    await expect(migrate(url)).resolves.toHaveLength(3);
+    await expect(migrate(url)).resolves.toHaveLength(4);
     await expectBookingIdType(pool, 'text');
   });
 });
@@ -509,7 +518,7 @@ test('procedencia conserva cargas históricas y bloquea down cuando ya hay carga
       original_file_name='legacy.pdf', media_type='application/pdf', file_size_bytes=16,
       uploaded_at='2026-11-03T14:01:00Z'`);
     const legacy = (await pool.query('SELECT * FROM payment_proofs')).rows[0];
-    await expect(migrate(url)).resolves.toHaveLength(2);
+    await expect(migrate(url)).resolves.toHaveLength(3);
     const migrated = (await pool.query('SELECT * FROM payment_proofs')).rows[0];
     expect(migrated).toMatchObject({
       id: legacy.id,
@@ -520,6 +529,10 @@ test('procedencia conserva cargas históricas y bloquea down cuando ya hay carga
       upload_authorized_at: null,
     });
 
+    await migrate(url, 'down');
+    expect(
+      (await pool.query("SELECT to_regclass('route_sheet_renewals') AS name")).rows[0].name,
+    ).toBeNull();
     await pool.query(`UPDATE payment_proofs SET upload_authorized_by='qa-customer',
       upload_authorized_at='2026-11-03T14:02:00Z'`);
     const beforeDown = await snapshot(pool);
@@ -534,6 +547,7 @@ test.each(['reserva opaca/2026:á', 'ABCDEFAB-0000-4000-8000-000000000001'])(
     await database(async ({ pool, url }) => {
       await migrate(url);
       await seedProofOutbox(pool);
+      await migrate(url, 'down');
       await migrate(url, 'down');
       await migrate(url, 'down');
       await pool.query('UPDATE payment_proofs SET booking_id=$1', [id]);
@@ -572,13 +586,13 @@ test('fallo DDL en la segunda tabla revierte los dos tipos y el historial', asyn
     } finally {
       await pool.query('DROP EVENT TRIGGER qa_fail_opaque; DROP SCHEMA qa_opaque_failure CASCADE');
     }
-    await expect(migrate(url)).resolves.toHaveLength(3);
+    await expect(migrate(url)).resolves.toHaveLength(4);
     await expectBookingIdType(pool, 'text');
   });
 });
 
-// develop ya tiene identificadores opacos; Fleet y procedencia se agregan sin reescribir su historial.
-test('actualiza develop y conserva identidades opacas al revertir Fleet', async () => {
+// develop ya tiene IDs opacos; se agregan Fleet, procedencia y renovación sin reescribir historial.
+test('actualiza develop y conserva identidades opacas al revertir Fleet, procedencia y renovación', async () => {
   await database(async ({ pool, url }) => {
     await rawRun(url, activeNames.slice(0, 21));
     await seedProofOutbox(pool);
@@ -587,9 +601,10 @@ test('actualiza develop y conserva identidades opacas al revertir Fleet', async 
     await pool.query('UPDATE payment_proof_notification_outbox SET booking_id=$1', [opaque]);
     const before = await snapshot(pool);
     expect(before.data.pgmigrations).toHaveLength(21);
-    await expect(migrate(url)).resolves.toHaveLength(2);
+    await expectBookingIdType(pool, 'text');
+    await expect(migrate(url)).resolves.toHaveLength(3);
     const after = await snapshot(pool);
-    expect(after.data.pgmigrations).toHaveLength(23);
+    expect(after.data.pgmigrations).toHaveLength(24);
     for (const [table, rows] of Object.entries(before.data)) {
       expect(after.data[table]).toEqual(
         table === 'pgmigrations' ? expect.arrayContaining(rows) : expectedUpgradedRows(table, rows),
@@ -601,6 +616,10 @@ test('actualiza develop y conserva identidades opacas al revertir Fleet', async 
     });
     await migrate(url, 'down');
     expect(
+      (await pool.query("SELECT to_regclass('route_sheet_renewals') AS name")).rows[0].name,
+    ).toBeNull();
+    await migrate(url, 'down');
+    expect(
       (
         await pool.query(
           "SELECT column_name FROM information_schema.columns WHERE table_name='payment_proofs' AND column_name='upload_authorized_at'",
@@ -610,7 +629,34 @@ test('actualiza develop y conserva identidades opacas al revertir Fleet', async 
     await migrate(url, 'down');
     expect(await snapshot(pool)).toEqual(before);
     await expectBookingIdType(pool, 'text');
-    await expect(migrate(url)).resolves.toHaveLength(2);
+    await expect(migrate(url)).resolves.toHaveLength(3);
     await expect(pool.query('DELETE FROM bus_seats')).rejects.toMatchObject({ code: '23001' });
+  });
+});
+
+test('actualiza develop con 23 migraciones y revierte solo renovación sin perder datos ni protección de asientos', async () => {
+  await database(async ({ pool, url }) => {
+    await rawRun(url, activeNames.slice(0, 23));
+    await seedProofOutbox(pool);
+    const before = await snapshot(pool);
+    expect(before.data.pgmigrations).toHaveLength(23);
+    await expect(migrate(url)).resolves.toHaveLength(1);
+    const after = await snapshot(pool);
+    expect(after.data.pgmigrations).toHaveLength(24);
+    expect(after.data.route_sheet_renewals).toEqual([]);
+    for (const [table, rows] of Object.entries(before.data)) {
+      expect(after.data[table]).toEqual(
+        table === 'pgmigrations' ? expect.arrayContaining(rows) : rows,
+      );
+    }
+    expect(after.definitions).toEqual(expect.arrayContaining(before.definitions));
+    await expect(pool.query('UPDATE bus_seats SET offered=NOT offered')).rejects.toMatchObject({
+      code: '23001',
+    });
+    await migrate(url, 'down');
+    expect(await snapshot(pool)).toEqual(before);
+    await expectBookingIdType(pool, 'text');
+    await expect(pool.query('DELETE FROM bus_seats')).rejects.toMatchObject({ code: '23001' });
+    await expect(migrate(url)).resolves.toHaveLength(1);
   });
 });

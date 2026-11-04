@@ -60,7 +60,18 @@ function publishRouteSheetUseCase({
         toEntity,
         programmingSession,
         commercialSession,
+        renewalBinding,
       }) => {
+        const effectiveSeriesId = renewalBinding?.seriesId ?? requestedSeriesId;
+        if (
+          renewalBinding &&
+          requestedSeriesId !== undefined &&
+          requestedSeriesId !== effectiveSeriesId
+        )
+          throw new CommercialTripConflictError(
+            'COMMERCIAL_SERIES_CONFLICT',
+            'La renovación pertenece a otra serie.',
+          );
         if (sheet.status === 'PUBLISHED') {
           if (!sheet.tariff_frozen)
             throw new TariffConflictError(
@@ -75,7 +86,7 @@ function publishRouteSheetUseCase({
           }
           if (!commercialSession?.findPublished) throw new CommercialTripSourceError();
           const commercial = await commercialSession.findPublished();
-          if (requestedSeriesId !== undefined && requestedSeriesId !== commercial?.seriesId)
+          if (effectiveSeriesId !== undefined && effectiveSeriesId !== commercial?.seriesId)
             throw new CommercialTripConflictError(
               'COMMERCIAL_SERIES_CONFLICT',
               'La publicación no corresponde a la serie solicitada.',
@@ -94,6 +105,16 @@ function publishRouteSheetUseCase({
           frequencyQueryPort,
         });
         const session = await programmingSession?.();
+        if (
+          renewalBinding &&
+          (renewalBinding.busGroupId !== sheet.bus_group_id ||
+            renewalBinding.startAt !== session?.record?.programming?.startAt ||
+            renewalBinding.endExclusive !== session?.record?.programming?.endExclusive)
+        )
+          throw new CommercialTripConflictError(
+            'COMMERCIAL_SERIES_CONFLICT',
+            'La programación cambió el período de la renovación.',
+          );
         await validateProgrammingForPublication({
           programmingSession: async () => session,
           busQueryPort,
@@ -107,7 +128,7 @@ function publishRouteSheetUseCase({
           commercialSession,
           programmingRecord: session.record,
           seatQueryPort,
-          seriesId: requestedSeriesId,
+          seriesId: effectiveSeriesId,
           now: now(),
         });
         const commercial = await commercialSession.save(capture);

@@ -1,7 +1,7 @@
 # AUTH-BOOTSTRAP-01: Inicializar el administrador del sistema
 
 - **Responsable:** Pablo.
-- **Estado:** Implementada y verificada; pendiente de revisión humana. Alcance aprobado por Pablo.
+- **Estado:** Cerrada; revisión humana e integración comprobadas en la PR #52.
 - **Reglas:** RN-01, RN-02, RN-03 y ADR 0004.
 - **Base:** develop con autenticación y cooperativas integradas.
 
@@ -92,3 +92,19 @@ rebase. No se modificaron migraciones ni dependencias.
   `npm run format:check` sigue fallando en 17 archivos previos ajenos a bootstrap.
 - La base temporal se retiró. Pruebas ejecutadas con Node local 22; repetirlas
   bajo Node 24 sigue pendiente. La revisión humana e integración siguen pendientes.
+
+## Revisión, integración y cierre — 3 de noviembre de 2026
+
+Shirley aprobó la cabeza final `63fb65a` de la
+[PR #52](https://github.com/Pato77232/ProyectoBusesUTA/pull/52). La PR se integró
+en `develop` mediante `2df5949` a la 01:00 (America/Guayaquil). La conciliación
+previa de esa cabeza aprobó lint y 1315 pruebas unitarias más 385 de integración;
+el formato global conservó 17 archivos ajenos pendientes y no se ocultó ese límite.
+
+La regresión completa posterior registrada al integrar la PR #65 aprobó 1772
+pruebas unitarias y 564 de integración sobre la base que ya contiene bootstrap.
+No se ejecutó el comando contra una base operativa ni se guardaron credenciales.
+La repetición específica de la conciliación bajo Node 24 no quedó registrada;
+se conserva como límite histórico, no como autorización para debilitar la suite.
+Con revisión humana, integración y regresión posterior comprobadas,
+AUTH-BOOTSTRAP-01 queda Cerrada.

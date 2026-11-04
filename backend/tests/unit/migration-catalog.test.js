@@ -9,8 +9,8 @@ const { transactionClient } = require('../../scripts/migrate');
 const entry = (name) => ({ name, isFile: () => true });
 const files = () => activeNames.map((name) => entry(name + '.js'));
 
-test('catálogo explícito conserva develop, protección de asientos y procedencia de Pagos', () => {
-  expect(activeNames).toHaveLength(23);
+test('catálogo explícito conserva develop, protección, procedencia de Pagos y renovación', () => {
+  expect(activeNames).toHaveLength(24);
   expect(activeNames[16]).toBe('1793730000000-commercial-trips');
   expect(activeNames[17]).toBe('1793740000000-allow-vip-bus-seats');
   expect(activeNames[18]).toBe('1793820000000-install-bookings');
@@ -18,7 +18,8 @@ test('catálogo explícito conserva develop, protección de asientos y procedenc
   expect(activeNames[20]).toBe('1794000000000-payment-booking-identifiers');
   expect(activeNames[21]).toBe('1794080000000-protect-bus-seats');
   expect(activeNames[22]).toBe('1794086400000-payment-proof-upload-provenance');
-  expect(() => validateHistory(activeNames.slice(0, 22))).not.toThrow();
+  expect(activeNames[23]).toBe('1794160000000-route-sheet-renewals');
+  expect(() => validateHistory(activeNames.slice(0, 23))).not.toThrow();
   expect(new Set(activeNames).size).toBe(activeNames.length);
   expect([...activeNames].sort()).toEqual(activeNames);
   expect(() => validateCatalog(files())).not.toThrow();
