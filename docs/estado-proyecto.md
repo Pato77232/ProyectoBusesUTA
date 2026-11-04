@@ -1,5 +1,11 @@
 # Estado compartido del proyecto
 
+## DOCS-01 — documentación general, 4 de noviembre de 2026
+
+| Spec / responsable | Estado y evidencia | Próximo paso |
+|---|---|---|
+| [DOCS-01](specs/DOCS-01.md) / David | Actualización documental local sobre `64f39cd` en `feature/DOCS-01-actualiza-documentacion-general`, rama creada por David. README/CONTRIBUTING y guías frontend alineados con stack, servicios, scripts, estructura y alcance presentes; sin promesas de políticas/hooks/comité no confirmados. LICENSE intacto, declaración GPL-3.0-only coherente. Enlaces relativos y comandos contrastados estáticamente; diff revisado. No ejecutadas suites de producto ni arranques por ser cambio solo documental; no se leyó `.env`. | Revisión humana y comprobación del recorrido por otro integrante pendientes. No integrada/cerrada. Sin commit, push o merge. |
+
 ## Leslie — Reservas y cotización configurada, 4 de noviembre de 2026
 
 En la rama local `feature/BOOK-06-L04-T5-leslie` se conectó el arranque de
