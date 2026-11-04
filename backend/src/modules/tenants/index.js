@@ -5,4 +5,7 @@ function createTenantsModule({ pool, auth }) {
   const repository = new PgCooperativeRepository(pool);
   return { router: createRouter({ createCooperative: createCooperative({ repository }), auth }) };
 }
-module.exports = { createTenantsModule };
+module.exports = {
+  createTenantsModule,
+  createPublicCooperativeQueries: require('./infrastructure/public-cooperative-queries'),
+};

@@ -4,12 +4,16 @@ jest.mock('../../../src/app', () => jest.fn());
 jest.mock('../../../src/shared/logger', () => ({ info: jest.fn(), error: jest.fn() }));
 jest.mock('../../../src/shared/database', () => ({ createPool: jest.fn() }));
 jest.mock('../../../src/modules/auth', () => ({ createAuthModule: jest.fn() }));
-jest.mock('../../../src/modules/tenants', () => ({ createTenantsModule: jest.fn() }));
+jest.mock('../../../src/modules/tenants', () => ({
+  createTenantsModule: jest.fn(),
+  createPublicCooperativeQueries: jest.fn(),
+}));
 jest.mock('../../../src/modules/fleet', () => ({ createFleetModule: jest.fn() }));
 jest.mock('../../../src/modules/frequencies', () => ({ createFrequenciesModule: jest.fn() }));
 jest.mock('../../../src/modules/route-sheets', () => ({
   createRouteSheetsModule: jest.fn(),
   createFrequencyCommitmentQueries: jest.fn(),
+  createPublicTripSearch: jest.fn(),
 }));
 jest.mock('../../../src/modules/payments', () => ({
   createPaymentsModule: jest.fn(),
