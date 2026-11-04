@@ -1,5 +1,35 @@
 # Estado compartido del proyecto
 
+## Leslie — Reservas y cotización configurada, 4 de noviembre de 2026
+
+En la rama local `feature/BOOK-06-L04-T5-leslie` se conectó el arranque de
+Reservas con el catálogo comercial de Route Sheets y la tarifa publicada,
+incluyendo tramo, política y revisión tarifaria en el resumen. Se añadió el
+cálculo configurable en centavos para recargo VIP y el mayor descuento elegible,
+sin acumular categorías empatadas. Payments quedó conectado al puente real de
+recepción de comprobantes mediante el módulo de Reservas.
+
+La pantalla existente de Reservas se verificó con 37/37 pruebas unitarias,
+lint, prueba de contenedor y recorrido de navegador con API/PostgreSQL reales
+aprobados. El recorrido cubrió autenticación, CSRF, teclado/foco, aceptación,
+cambio de tarifa, respuesta perdida, recuperación, sesión revocada y 503 sin
+inventario ficticio. Backend terminó con 1776/1776 pruebas unitarias y 564/564
+integraciones PostgreSQL aprobadas en esta línea de trabajo.
+La evidencia está en
+[BOOK-05-L01](evidence/BOOK-05-L01/2026-11-04-cotizacion-configurada.md).
+
+Pendientes de implementación: historial/acceso invitado y mutaciones de
+rechazo/liberación de comprobantes,
+además de revisión humana e integración remota. No se hizo commit, push, merge
+ni PR.
+
+La decisión del equipo del 4 de noviembre autorizó cerrar esos contratos. Como
+primer incremento de `BOOK-09-L07` ya se añadió la migración de ciclo de venta,
+el adaptador transaccional real y su composición con Payments. La prueba de
+migración del catálogo pasó 19/19 y la prueba de venta PostgreSQL 2/2. El
+rechazo con justificación, historial y acceso de invitado siguen siendo los
+siguientes incrementos, no se declaran terminados por esta implementación.
+
 ## PAGOS-02 — prueba conjunta con Reservas real, actualizada el 3 de noviembre de 2026
 
 Las PR #54 y #55 están integradas; también las PR #60 y #62. La rama de trabajo es codex/PAGOS-02-pr56, con la cabeza de #56 15218ae conciliándose localmente con develop c95cc73. El proveedor de QA se obtuvo de c95cc732b7a895fc3f4d1b00f39aa1dd9fb2345e y se montó desde un snapshot temporal.
@@ -648,3 +678,7 @@ Shirley asume la conexión de carga/autorización en su trabajo propio. No se du
 
 
 Actualización previa a publicación: develop avanzó a 4bb6861 con FLEET-09 y catálogo 22; la rama del planificador se avanzó sin commits exclusivos y se recuperó desde respaldo 85bc73e. Se conserva rollbackBefore integrado para las pruebas de migración y no se modifica el catálogo como parte de T5. Commit/push y preparación de PR autorizados por Leslie; revalidación global completada con 2336 pruebas aprobadas. Los resultados anteriores de c95cc73 se mantienen como historia, sin atribuirlos a esta combinación nueva.
+
+## Leslie: cotización configurada y revisión tarifaria — 4 de noviembre de 2026
+
+`BOOK-05-L01` tiene un incremento local implementado: tarifa explícita, recargo VIP, mayor beneficio elegible, categorías empatadas y `tariffRevision` en el resumen. La evidencia está en [BOOK-05-L01](evidence/BOOK-05-L01/2026-11-04-cotizacion-configurada.md). La regresión completa comprobada sobre PostgreSQL temporal aprobó 1776 unitarias y 564 integraciones. La activación del catálogo comercial real y la revisión humana siguen pendientes; no se declara integración ni cierre.
