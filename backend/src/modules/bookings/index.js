@@ -20,6 +20,7 @@ const getBookingHistory = require('./application/get-booking-history.use-case');
 const findForPayment = require('./application/find-for-payment.use-case');
 const createRouter = require('./interfaces/booking-router');
 const BookingServiceUnavailableError = require('./domain/booking-service-unavailable-error');
+const PgBookingSaleConfirmer = require('./infrastructure/pg-booking-sale-confirmer');
 
 function createBookingsModule({
   pool,
@@ -71,6 +72,7 @@ function createBookingsModule({
     ...readBookingConfig(env),
   };
   const lifecycle = new PgBookingLifecycleRepository({ pool });
+  const saleConfirmer = new PgBookingSaleConfirmer({ pool, clock });
   const expirationConfig = readExpirationConfig(env);
   const expire = expireBooking({ repository: lifecycle, clock });
   const coordinator = (onFailure) =>
@@ -105,6 +107,7 @@ function createBookingsModule({
       },
     }),
     paymentQueries: Object.freeze({ findForPayment: findForPayment({ repository, clock }) }),
+    saleConfirmer,
     router: createRouter({
       auth,
       getSeatAvailability: getSeatAvailability({

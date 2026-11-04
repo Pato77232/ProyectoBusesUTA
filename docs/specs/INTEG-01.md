@@ -5,7 +5,7 @@
 - **Módulos:** catálogo de migraciones (`backend/scripts`), `bookings`, `payments` y composición del servidor
 - **Responsable:** Edwin, por acuerdo del equipo de que cualquier integrante puede resolver los bloqueos comunes
 - **Revisor propuesto:** pendiente; la revisión de IA no sustituye revisión humana
-- **Estado:** T1 en `feature/INTEG-01-catalogo-migraciones` (commits `cf285b3` y `183d95b`), pendiente de PR. T2 en `feature/INTEG-01-T2-historial-reservas` (`44cd95b`), creada sobre T1. T3 en `feature/INTEG-01-T3-rechazo-comprobantes`, creada sobre T2. T4–T6 sin empezar.
+- **Estado:** T1 en `feature/INTEG-01-catalogo-migraciones` (commits `cf285b3` y `183d95b`), pendiente de PR. T2 en `feature/INTEG-01-T2-historial-reservas` (`44cd95b`), creada sobre T1. T3 en `feature/INTEG-01-T3-rechazo-comprobantes` (`3d3261f`), creada sobre T2. T4 en `feature/INTEG-01-T4-confirmador-venta`, creada sobre T3. T5–T6 sin empezar.
 - **Base comprobada:** `origin/develop` en `64f39cd`, sin PR abiertas.
 
 ## 1. Objetivo
@@ -89,3 +89,34 @@ Cada tarea va en su propia rama `feature/INTEG-01-*` desde develop, con commit a
 La prueba sustituye el confirmador por un doble porque el confirmador simulado actual no implementa `rejectSale`. Con el confirmador por defecto, el rechazo termina en `BOOKING_SALE_UNCERTAIN`; conectar el confirmador real de Reservas corresponde a T4.
 
 **Resultados** (rama basada en T2, PostgreSQL aislado, sin leer `.env`): lint y formato aprobados; **1925/1925 unitarias**; integración **618/640**. Los 22 fallos son los ya conocidos.
+
+### T4: confirmador real de venta, 4 de noviembre de 2026
+
+**Causa:** `696e15d` (Leslie) creaba `PgBookingSaleConfirmer` en Reservas, lo exponía como `saleConfirmer` y el servidor lo pasaba a Pagos. El merge `fcf3ed9` perdió dos conexiones:
+
+- Reservas ya no creaba ni exponía `saleConfirmer`.
+- La rama productiva de `server.js` llamaba a `createPaymentsModule` sin `bookingSaleConfirmer`, así que Pagos usaba `SimulatedBookingSaleConfirmer`: aprobar no vendía la reserva y rechazar terminaba en `BOOKING_SALE_UNCERTAIN`, porque el simulado no implementa `rejectSale`.
+
+Además, desde `696e15d` Pagos devolvía el parámetro recibido en lugar del confirmador y notificador efectivos, y quedaba `undefined` cuando se usaban los predeterminados. Eso rompía las 12 pruebas de `payment-proof-review.http.test.js`.
+
+**Cambios:**
+
+- `bookings/index.js`: compone `PgBookingSaleConfirmer({ pool, clock })` y lo expone como `saleConfirmer`.
+- `server.js`: la rama productiva pasa `bookingSaleConfirmer: bookings.saleConfirmer`.
+- `payments/index.js`: devuelve el notificador y el confirmador efectivos, como antes de `696e15d`.
+- `tests/unit/payments/server-review-composition.test.js`: la composición del servidor exige además el confirmador de Reservas.
+
+**Pruebas nuevas** en `tests/integration/payments/real-sale-confirmation.http.test.js`, con sesión real, Reservas y Pagos compuestos y PostgreSQL:
+
+- Pagos no usa el confirmador simulado.
+- Aprobar por HTTP vende la reserva y su asiento (`SOLD`), y repetir no duplica efectos.
+- Rechazar por HTTP libera el asiento y guarda el actor y el motivo en Reservas y en Pagos.
+- Si Reservas aceptó otro comprobante, aprobar responde 409 `BOOKING_SALE_REJECTED`, sin vender ni aprobar.
+
+**Resultados** (rama basada en T3, PostgreSQL aislado, sin leer `.env`):
+
+- Lint aprobado; formato aprobado en los archivos del cambio, salvo `server.js`, cuyo aviso proviene de líneas ya mal formateadas en develop que no se tocaron.
+- **1925/1925 unitarias**; integración **634/644**. Vuelven a pasar las 12 de revisión de comprobantes.
+- Quedan 10 fallos: compra comercial (T6, 6) y carga autorizada 404 (4).
+
+**Hallazgo para revisión:** `server.js` decide la composición según `createBookingsModule?._isMockFunction` y `createPaymentsModule?._isMockFunction` (introducido en `fcf3ed9`). El código de producción depende de si una prueba lo simula. No se modificó en T4, para no mezclar cambios; conviene retirarlo en una tarea propia, ajustando `tests/unit/server.test.js`.

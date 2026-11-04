@@ -48,6 +48,7 @@ test('server conecta la lectura de pagos a la API pública de reservas', async (
   const paymentReceipt = { bookingPaymentProofNotifier: jest.fn() };
   const bookings = {
     paymentQueries: { findForPayment: jest.fn() },
+    saleConfirmer: { confirmSale: jest.fn(), rejectSale: jest.fn() },
     createPaymentProofReceiver: jest.fn(),
     maintenance: {
       startExpirationWorker: jest.fn(() => ({ stop: jest.fn().mockResolvedValue() })),
@@ -102,6 +103,7 @@ test('server conecta la lectura de pagos a la API pública de reservas', async (
     env,
     paymentQueries: bookings.paymentQueries,
     bookingPaymentProofNotifier: paymentReceipt.bookingPaymentProofNotifier,
+    bookingSaleConfirmer: bookings.saleConfirmer,
   });
   expect(createApp).toHaveBeenCalledWith(
     expect.objectContaining({ paymentReview, payments, bookings, auth, pool }),

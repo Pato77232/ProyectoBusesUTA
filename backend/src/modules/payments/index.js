@@ -62,8 +62,8 @@ function createPaymentsModule({
       rejectPaymentProof,
     }),
     bookingReader,
-    bookingPaymentProofNotifier,
-    bookingSaleConfirmer,
+    bookingPaymentProofNotifier: notifier,
+    bookingSaleConfirmer: saleConfirmer,
   };
 }
 
