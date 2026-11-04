@@ -57,6 +57,7 @@ function createApp({
   if (payments) app.use(`${API_PREFIX}/payment-proofs`, payments.router);
 
   if (bookings) app.use(`${API_PREFIX}/bookings`, bookings.router);
+  if (bookings?.guestRouter) app.use(`${API_PREFIX}/guest/bookings`, bookings.guestRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
