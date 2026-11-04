@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Buscar viajes | transViaje</title>
+    <link rel="icon" href="../assets/favicon.svg" />
+    <link rel="stylesheet" href="../assets/vendor/bootstrap-5.3.8/bootstrap.min.css" />
+    <link rel="stylesheet" href="../src/styles/app.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+    <header class="site-header">
+      <nav class="container">
+        <a class="brand" href="../index.html"
+          ><img src="../assets/brand/logo-transviaje.png" alt="transViaje" width="140" /></a
+        ><a href="login.html">Iniciar sesión</a>
+      </nav>
+    </header>
+    <main class="container py-5" id="contenido">
+      <h1>Buscar viajes</h1>
+      <p>
+        Busca por el lugar donde subirás y la fecha de tu embarque, aunque sea una parada
+        intermedia. Horarios de Ecuador continental (UTC−05:00).
+      </p>
+      <form id="search-form" class="form-card">
+        <label class="form-label" for="origin">Origen de tu tramo</label
+        ><input class="form-control mb-3" id="origin" name="origin" maxlength="100" required />
+        <label class="form-label" for="destination">Destino de tu tramo</label
+        ><input
+          class="form-control mb-3"
+          id="destination"
+          name="destination"
+          maxlength="100"
+          required
+        />
+        <label class="form-label" for="date">Fecha de embarque</label
+        ><input class="form-control mb-3" id="date" name="date" type="date" required />
+        <button class="btn btn-primary" type="submit">Buscar viajes</button>
+      </form>
+      <p id="search-status" role="status" aria-live="polite" tabindex="-1">
+        Introduce las ciudades y la fecha.
+      </p>
+      <p>
+        Los resultados no bloquean asientos. La disponibilidad y el importe final se confirman al
+        reservar.
+      </p>
+      <ul id="search-results" class="list-unstyled" aria-busy="false"></ul>
+    </main>
+    <script type="module" src="../src/search/search-page.js"></script>
+  </body>
+</html>

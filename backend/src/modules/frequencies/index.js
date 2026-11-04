@@ -1,0 +1,39 @@
+const PgFrequencyRepository = require('./infrastructure/pg-frequency.repository');
+const createFrequencyUseCase = require('./application/create-frequency.use-case');
+const getFrequencyUseCase = require('./application/get-frequency.use-case');
+const listFrequenciesUseCase = require('./application/list-frequencies.use-case');
+const changeFrequencyStatusUseCase = require('./application/change-frequency-status.use-case');
+const findActiveByRouteUseCase = require('./application/find-active-by-route.use-case');
+const createRouter = require('./interfaces/frequency-router');
+const createFrequencyQueries = require('./application/create-frequency-queries');
+
+function createFrequenciesModule({ pool, auth, commitmentQueries }) {
+  const repository = new PgFrequencyRepository(pool, { commitmentQueries });
+  const findActiveByRoute = findActiveByRouteUseCase({ repository });
+  const frequencyQueries = createFrequencyQueries({ repository });
+  return {
+    router: createRouter({
+      createFrequencyUseCase: createFrequencyUseCase({ repository }),
+      getFrequencyUseCase: getFrequencyUseCase({ repository }),
+      listFrequenciesUseCase: listFrequenciesUseCase({ repository }),
+      changeFrequencyStatusUseCase: changeFrequencyStatusUseCase({ repository }),
+      auth,
+    }),
+    findActiveByRoute,
+    frequencyQueries: Object.freeze({
+      ...frequencyQueries,
+      forTransaction(executor) {
+        const scopedRepository = new PgFrequencyRepository(executor);
+        const scopedQueries = createFrequencyQueries({ repository: scopedRepository });
+        return Object.freeze({
+          async findWithStops(id, cooperativeId) {
+            await scopedRepository.lockForRead(id, cooperativeId);
+            return scopedQueries.findWithStops(id, cooperativeId);
+          },
+        });
+      },
+    }),
+  };
+}
+
+module.exports = { createFrequenciesModule };

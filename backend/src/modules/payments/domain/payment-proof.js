@@ -1,0 +1,163 @@
+const {
+  PaymentProofValidationError,
+  PaymentProofUploadDeadlineExpiredError,
+  PaymentProofAlreadyUploadedError,
+  PaymentProofExpiredError,
+  PaymentProofRejectedError,
+  PaymentProofCannotExpireError,
+} = require('./payment-proof-error');
+const { validatePaymentProofStatus } = require('./payment-proof-status');
+
+const INITIAL_FILE_FIELDS = Object.freeze({
+  file_key: null,
+  original_file_name: null,
+  media_type: null,
+  file_size_bytes: null,
+  uploaded_at: null,
+  expired_at: null,
+  upload_authorized_by: null,
+  upload_authorized_at: null,
+});
+
+function paymentAuthorization(input) {
+  const userId = input.upload_authorized_by ?? null;
+  const authorizedAt = input.upload_authorized_at ?? null;
+  if ((userId === null) !== (authorizedAt === null)) throw new PaymentProofValidationError();
+  if (userId === null) return { upload_authorized_by: null, upload_authorized_at: null };
+  if (!(authorizedAt instanceof Date) || Number.isNaN(authorizedAt.getTime())) {
+    throw new PaymentProofValidationError();
+  }
+  return {
+    upload_authorized_by: requiredIdentifier(userId),
+    upload_authorized_at: new Date(authorizedAt.getTime()),
+  };
+}
+
+function requiredIdentifier(value) {
+  if (typeof value !== 'string' || !value.trim()) {
+    throw new PaymentProofValidationError();
+  }
+  return value.trim();
+}
+
+function validDate(value) {
+  const date = value instanceof Date ? new Date(value.getTime()) : new Date(value);
+  if (Number.isNaN(date.getTime())) throw new PaymentProofValidationError();
+  return date;
+}
+
+function createPaymentProof(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    throw new PaymentProofValidationError();
+  }
+
+  const allowedFields = [
+    'id',
+    'booking_id',
+    'cooperative_id',
+    'status',
+    'upload_authorized_by',
+    'upload_authorized_at',
+  ];
+  if (Object.keys(input).some((field) => !allowedFields.includes(field))) {
+    throw new PaymentProofValidationError();
+  }
+
+  const status = input.status === undefined ? 'AWAITING_UPLOAD' : input.status;
+  validatePaymentProofStatus(status);
+  if (status !== 'AWAITING_UPLOAD') throw new PaymentProofValidationError();
+
+  // booking_id es opaco: validar contenido sin normalizar la identidad de Reservas.
+  requiredIdentifier(input.booking_id);
+  return Object.freeze({
+    id: input.id === undefined ? null : requiredIdentifier(input.id),
+    booking_id: input.booking_id,
+    cooperative_id: requiredIdentifier(input.cooperative_id),
+    status,
+    ...INITIAL_FILE_FIELDS,
+    ...paymentAuthorization(input),
+  });
+}
+
+function uploadPaymentProof(
+  paymentProof,
+  file,
+  paymentDeadlineAt,
+  now = new Date(),
+  authorization,
+) {
+  if (!paymentProof || !file || typeof file !== 'object' || Array.isArray(file)) {
+    throw new PaymentProofValidationError();
+  }
+
+  if (paymentProof.status === 'EXPIRED') throw new PaymentProofExpiredError();
+  if (paymentProof.status === 'REJECTED') throw new PaymentProofRejectedError();
+  if (paymentProof.status === 'UPLOADED') throw new PaymentProofAlreadyUploadedError();
+  validatePaymentProofStatus(paymentProof.status);
+
+  const deadline = validDate(paymentDeadlineAt);
+  const uploadedAt = validDate(now);
+  if (uploadedAt.getTime() >= deadline.getTime()) {
+    throw new PaymentProofUploadDeadlineExpiredError();
+  }
+
+  const { file_key, original_file_name, media_type, file_size_bytes } = file;
+  if (
+    typeof file_key !== 'string' ||
+    !file_key.trim() ||
+    typeof original_file_name !== 'string' ||
+    !original_file_name.trim() ||
+    typeof media_type !== 'string' ||
+    !media_type.trim() ||
+    !Number.isSafeInteger(file_size_bytes) ||
+    file_size_bytes <= 0
+  ) {
+    throw new PaymentProofValidationError();
+  }
+
+  return Object.freeze({
+    ...paymentProof,
+    ...(authorization === undefined ? {} : paymentAuthorization(authorization)),
+    status: 'UPLOADED',
+    file_key: file_key.trim(),
+    original_file_name: original_file_name.trim(),
+    media_type: media_type.trim(),
+    file_size_bytes,
+    uploaded_at: uploadedAt,
+  });
+}
+
+function expirePaymentProof(paymentProof, now = new Date()) {
+  if (!paymentProof || typeof paymentProof !== 'object' || Array.isArray(paymentProof)) {
+    throw new PaymentProofValidationError();
+  }
+  validatePaymentProofStatus(paymentProof.status);
+  if (paymentProof.status === 'EXPIRED') return paymentProof;
+  if (paymentProof.status === 'UPLOADED') throw new PaymentProofCannotExpireError();
+
+  return Object.freeze({
+    ...paymentProof,
+    status: 'EXPIRED',
+    expired_at: validDate(now),
+  });
+}
+
+function rejectPaymentProof(paymentProof, { rejectedBy, justification, rejectedAt } = {}) {
+  if (!paymentProof || paymentProof.status !== 'UPLOADED') throw new PaymentProofValidationError();
+  if (
+    typeof rejectedBy !== 'string' ||
+    !rejectedBy.trim() ||
+    typeof justification !== 'string' ||
+    !justification.trim()
+  )
+    throw new PaymentProofValidationError();
+  return Object.freeze({
+    ...paymentProof,
+    status: 'REJECTED',
+    rejected_by: rejectedBy.trim(),
+    rejection_justification: justification.trim(),
+    rejected_at: validDate(rejectedAt),
+  });
+}
+
+module.exports = { createPaymentProof, uploadPaymentProof, expirePaymentProof, rejectPaymentProof };

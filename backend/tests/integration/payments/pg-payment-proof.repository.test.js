@@ -1,0 +1,565 @@
+const { randomUUID } = require('node:crypto');
+const { execFileSync } = require('node:child_process');
+const { copyFileSync, mkdtempSync, rmSync } = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const { assertTestDatabase } = require('../../../scripts/test-database');
+const { runMigration, testPool } = require('../../helpers/database');
+const PgPaymentProofRepository = require('../../../src/modules/payments/infrastructure/pg-payment-proof.repository');
+const {
+  createPaymentProof,
+  uploadPaymentProof,
+} = require('../../../src/modules/payments/domain/payment-proof');
+const {
+  PaymentProofAlreadyUploadedError,
+} = require('../../../src/modules/payments/domain/payment-proof-error');
+
+let pool;
+let repository;
+let cooperativeId;
+
+function anyRuc() {
+  return randomUUID().replace(/\D/g, '').slice(0, 13).padStart(13, '7');
+}
+
+async function createCooperative() {
+  const { rows } = await pool.query(
+    'INSERT INTO cooperatives(name, ruc) VALUES ($1, $2) RETURNING id',
+    ['Cooperativa de pagos', anyRuc()],
+  );
+  return rows[0].id;
+}
+
+function createAwaiting(bookingId = randomUUID()) {
+  return createPaymentProof({ booking_id: bookingId, cooperative_id: cooperativeId });
+}
+
+function createUploaded(
+  bookingId = randomUUID(),
+  fileKey = 'private/proof-1',
+  uploadedAt = new Date('2026-10-25T14:00:00.000Z'),
+) {
+  const awaiting = createAwaiting(bookingId);
+  return uploadPaymentProof(
+    awaiting,
+    {
+      file_key: fileKey,
+      original_file_name: 'transferencia.pdf',
+      media_type: 'application/pdf',
+      file_size_bytes: 1024,
+    },
+    new Date('2026-10-25T14:05:00.000Z'),
+    uploadedAt,
+  );
+}
+
+async function insertRawProof({
+  bookingId = randomUUID(),
+  status = 'AWAITING_UPLOAD',
+  fileKey = null,
+  originalFileName = null,
+  mediaType = null,
+  fileSizeBytes = null,
+  uploadedAt = null,
+  expiredAt = null,
+} = {}) {
+  return pool.query(
+    `INSERT INTO payment_proofs(
+      booking_id, cooperative_id, status, file_key, original_file_name,
+      media_type, file_size_bytes, uploaded_at, expired_at
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+    [
+      bookingId,
+      cooperativeId,
+      status,
+      fileKey,
+      originalFileName,
+      mediaType,
+      fileSizeBytes,
+      uploadedAt,
+      expiredAt,
+    ],
+  );
+}
+
+beforeAll(() => {
+  runMigration();
+  pool = testPool();
+  repository = new PgPaymentProofRepository(pool);
+});
+
+beforeEach(async () => {
+  assertTestDatabase();
+  await pool.query('TRUNCATE payment_proof_notification_outbox, payment_proofs');
+  cooperativeId = await createCooperative();
+});
+
+afterAll(async () => {
+  if (pool) await pool.end();
+});
+
+test('las migraciones crean payment_proofs sin duplicar plazo ni total', async () => {
+  // Arrange / Act
+  const { rows } = await pool.query(
+    `SELECT column_name FROM information_schema.columns
+     WHERE table_name = 'payment_proofs' ORDER BY ordinal_position`,
+  );
+
+  // Assert
+  expect(rows.map(({ column_name }) => column_name)).toEqual([
+    'id',
+    'booking_id',
+    'cooperative_id',
+    'status',
+    'file_key',
+    'original_file_name',
+    'media_type',
+    'file_size_bytes',
+    'uploaded_at',
+    'expired_at',
+    'created_at',
+    'updated_at',
+    'approved_at',
+    'approved_by',
+    'approval_requested_at',
+    'approval_requested_by',
+    'upload_authorized_by',
+    'upload_authorized_at',
+    'rejected_at',
+    'rejected_by',
+    'rejection_justification',
+  ]);
+  const { rows: indexRows } = await pool.query(
+    `SELECT indexdef FROM pg_indexes WHERE tablename = 'payment_proofs'
+     AND indexname = 'payment_proofs_status_booking_id_idx'`,
+  );
+  expect(indexRows[0].indexdef).toContain('(status, booking_id)');
+  const { rows: inboxIndexRows } = await pool.query(
+    `SELECT indexdef FROM pg_indexes WHERE tablename = 'payment_proofs'
+     AND indexname = 'payment_proofs_clerk_inbox_idx'`,
+  );
+  expect(inboxIndexRows[0].indexdef).toContain('(cooperative_id, uploaded_at, id)');
+  const { rows: bookingForeignKeys } = await pool.query(
+    `SELECT constraint_name FROM information_schema.key_column_usage
+     WHERE table_name = 'payment_proofs' AND column_name = 'booking_id'
+     AND position_in_unique_constraint IS NOT NULL`,
+  );
+  expect(bookingForeignKeys).toHaveLength(0);
+  const { rows: paymentProofForeignKeys } = await pool.query(
+    `SELECT constraint_name FROM information_schema.table_constraints
+     WHERE table_name = 'payment_proofs' AND constraint_type = 'FOREIGN KEY'`,
+  );
+  expect(paymentProofForeignKeys).toHaveLength(0);
+  const { rows: outboxForeignKeys } = await pool.query(
+    `SELECT constraint_name FROM information_schema.table_constraints
+     WHERE table_name = 'payment_proof_notification_outbox'
+     AND constraint_type = 'FOREIGN KEY'`,
+  );
+  expect(outboxForeignKeys).toHaveLength(0);
+});
+
+test('persiste el aviso en outbox junto al comprobante y permite completar el reintento', async () => {
+  // Arrange
+  const proof = createUploaded();
+
+  // Act
+  const saved = await repository.saveWithPendingNotification(proof);
+  await repository.markNotificationAttempted(proof.booking_id);
+  const { rows: pending } = await pool.query(
+    `SELECT payment_proof_id, booking_id, status, attempt_count, delivered_at
+     FROM payment_proof_notification_outbox WHERE booking_id = $1`,
+    [proof.booking_id],
+  );
+  await repository.markNotificationDelivered(proof.booking_id);
+  const { rows: delivered } = await pool.query(
+    'SELECT status, attempt_count, delivered_at FROM payment_proof_notification_outbox WHERE booking_id = $1',
+    [proof.booking_id],
+  );
+
+  // Assert
+  expect(saved.id).toEqual(pending[0].payment_proof_id);
+  expect(pending[0]).toMatchObject({
+    booking_id: proof.booking_id,
+    status: 'PENDING',
+    attempt_count: 1,
+    delivered_at: null,
+  });
+  expect(delivered[0]).toMatchObject({ status: 'DELIVERED', attempt_count: 1 });
+  expect(delivered[0].delivered_at).toBeInstanceOf(Date);
+
+  await repository.deleteByBookingId(proof.booking_id);
+  const { rows: removed } = await pool.query(
+    'SELECT count(*)::integer AS total FROM payment_proof_notification_outbox WHERE booking_id = $1',
+    [proof.booking_id],
+  );
+  expect(removed[0].total).toBe(0);
+});
+
+test('solo una carga concurrente crea el comprobante y el outbox de una reserva', async () => {
+  // Arrange
+  const bookingId = randomUUID();
+  const firstProof = createUploaded(bookingId, 'private/first-proof');
+  const secondProof = createUploaded(bookingId, 'private/second-proof');
+
+  // Act
+  const results = await Promise.allSettled([
+    repository.saveWithPendingNotification(firstProof),
+    repository.saveWithPendingNotification(secondProof),
+  ]);
+  const { rows: proofRows } = await pool.query(
+    'SELECT count(*)::integer AS total FROM payment_proofs WHERE booking_id = $1',
+    [bookingId],
+  );
+  const { rows: outboxRows } = await pool.query(
+    'SELECT count(*)::integer AS total FROM payment_proof_notification_outbox WHERE booking_id = $1',
+    [bookingId],
+  );
+
+  // Assert
+  expect(results.filter(({ status }) => status === 'fulfilled')).toHaveLength(1);
+  expect(results.find(({ status }) => status === 'rejected').reason).toBeInstanceOf(
+    PaymentProofAlreadyUploadedError,
+  );
+  expect(proofRows[0].total).toBe(1);
+  expect(outboxRows[0].total).toBe(1);
+});
+
+test('los CHECK rechazan estados con metadatos incoherentes', async () => {
+  // Arrange / Act / Assert
+  await expect(insertRawProof({ status: 'UPLOADED' })).rejects.toMatchObject({
+    code: '23514',
+    constraint: 'payment_proofs_status_fields_check',
+  });
+  await expect(
+    insertRawProof({ status: 'AWAITING_UPLOAD', fileKey: 'private/unexpected' }),
+  ).rejects.toMatchObject({ code: '23514', constraint: 'payment_proofs_status_fields_check' });
+  await expect(insertRawProof({ status: 'EXPIRED' })).rejects.toMatchObject({
+    code: '23514',
+    constraint: 'payment_proofs_status_fields_check',
+  });
+  await expect(insertRawProof({ status: 'UNKNOWN' })).rejects.toMatchObject({
+    code: '23514',
+    constraint: 'payment_proofs_status_check',
+  });
+});
+
+test('solo permite un comprobante por reserva', async () => {
+  // Arrange
+  const proof = createAwaiting();
+  await repository.save(proof);
+
+  // Act / Assert
+  await expect(insertRawProof({ bookingId: proof.booking_id })).rejects.toMatchObject({
+    code: '23505',
+    constraint: 'payment_proofs_booking_id_unique',
+  });
+});
+
+test.each([
+  ['AWAITING_UPLOAD', (bookingId) => createAwaiting(bookingId)],
+  ['UPLOADED', (bookingId) => createUploaded(bookingId)],
+])('guarda y recupera un comprobante %s', async (status, createProof) => {
+  // Arrange
+  const proof = createProof(randomUUID());
+
+  // Act
+  const saved = await repository.save(proof);
+  const found = await repository.findByBookingId(proof.booking_id);
+
+  // Assert
+  expect(saved).toMatchObject({
+    id: expect.any(String),
+    booking_id: proof.booking_id,
+    cooperative_id: cooperativeId,
+    status,
+  });
+  expect(saved.created_at).toBeInstanceOf(Date);
+  expect(saved.updated_at).toBeInstanceOf(Date);
+  if (status === 'UPLOADED') {
+    expect(saved.uploaded_at).toBeInstanceOf(Date);
+    expect(saved.expired_at).toBeNull();
+  } else {
+    expect(saved.uploaded_at).toBeNull();
+    expect(saved.expired_at).toBeNull();
+  }
+  expect(found).toEqual(saved);
+});
+
+test('save actualiza el comprobante existente de la misma reserva', async () => {
+  // Arrange
+  const awaiting = createAwaiting();
+  const initial = await repository.save(awaiting);
+  const uploaded = createUploaded(awaiting.booking_id, 'private/replaced-proof');
+
+  // Act
+  const updated = await repository.save(uploaded);
+
+  // Assert
+  expect(updated.id).toBe(initial.id);
+  expect(updated.status).toBe('UPLOADED');
+  expect(updated.file_key).toBe('private/replaced-proof');
+  await expect(repository.findByBookingId(awaiting.booking_id)).resolves.toEqual(updated);
+  const { rows } = await pool.query('SELECT count(*)::integer AS total FROM payment_proofs');
+  expect(rows[0].total).toBe(1);
+});
+
+test('lista comprobantes pendientes aislados por cooperativa y oculta file_key', async () => {
+  const older = await repository.save(
+    createUploaded(randomUUID(), 'private/older', new Date('2026-10-25T14:00:00.000Z')),
+  );
+  const newer = await repository.save(
+    createUploaded(randomUUID(), 'private/newer', new Date('2026-10-25T14:01:00.000Z')),
+  );
+  const otherCooperativeId = await createCooperative();
+  const otherProof = uploadPaymentProof(
+    createPaymentProof({ booking_id: randomUUID(), cooperative_id: otherCooperativeId }),
+    {
+      file_key: 'private/other',
+      original_file_name: 'otro.pdf',
+      media_type: 'application/pdf',
+      file_size_bytes: 12,
+    },
+    new Date('2026-10-25T14:06:00.000Z'),
+    new Date('2026-10-25T14:00:00.000Z'),
+  );
+  await repository.save(otherProof);
+
+  const firstPage = await repository.listPendingByCooperative({
+    cooperativeId,
+    limit: 1,
+    cursor: null,
+  });
+  const secondPage = await repository.listPendingByCooperative({
+    cooperativeId,
+    limit: 1,
+    cursor: firstPage.nextCursor,
+  });
+
+  expect(firstPage.items.map(({ id }) => id)).toEqual([newer.id]);
+  expect(firstPage.items[0]).not.toHaveProperty('file_key');
+  expect(firstPage.nextCursor).toEqual(expect.any(String));
+  expect(secondPage.items.map(({ id }) => id)).toEqual([older.id]);
+  expect(secondPage.nextCursor).toBeNull();
+});
+
+test('la aprobación condicional solo registra al primer oficinista y oculta el comprobante', async () => {
+  const proof = await repository.save(createUploaded());
+  const requestedAt = new Date('2026-10-26T11:55:00.000Z');
+  const requestedBy = randomUUID();
+  const approvedAt = new Date('2026-10-26T12:00:00.000Z');
+
+  const intent = await repository.markApprovalRequestedIfPending({
+    paymentProofId: proof.id,
+    cooperativeId,
+    requestedBy,
+    requestedAt,
+  });
+  const repeatedIntent = await repository.markApprovalRequestedIfPending({
+    paymentProofId: proof.id,
+    cooperativeId,
+    requestedBy: randomUUID(),
+    requestedAt: new Date('2026-10-26T11:59:00.000Z'),
+  });
+
+  const approved = await repository.markApprovedIfPending({
+    paymentProofId: proof.id,
+    cooperativeId,
+    approvedBy: requestedBy,
+    approvedAt,
+  });
+  const repeated = await repository.markApprovedIfPending({
+    paymentProofId: proof.id,
+    cooperativeId,
+    approvedBy: randomUUID(),
+    approvedAt,
+  });
+  const inbox = await repository.listPendingByCooperative({
+    cooperativeId,
+    limit: 50,
+    cursor: null,
+  });
+
+  expect(approved.approved_at).toEqual(approvedAt);
+  expect(intent.approval_requested_by).toBe(requestedBy);
+  expect(repeatedIntent.approval_requested_by).toBe(requestedBy);
+  expect(approved.approval_requested_at).toEqual(requestedAt);
+  expect(approved.approval_requested_by).toBe(requestedBy);
+  expect(approved.approved_by).toBe(requestedBy);
+  expect(repeated).toBeNull();
+  expect(inbox.items).toEqual([]);
+});
+
+test('dos solicitudes concurrentes conservan una sola intención y un actor original', async () => {
+  const proof = await repository.save(createUploaded());
+  const requestedAt = new Date('2026-10-26T11:55:00.000Z');
+  const requests = await Promise.all([
+    repository.markApprovalRequestedIfPending({
+      paymentProofId: proof.id,
+      cooperativeId,
+      requestedBy: '10000000-0000-4000-8000-000000000001',
+      requestedAt,
+    }),
+    repository.markApprovalRequestedIfPending({
+      paymentProofId: proof.id,
+      cooperativeId,
+      requestedBy: '10000000-0000-4000-8000-000000000002',
+      requestedAt: new Date('2026-10-26T11:56:00.000Z'),
+    }),
+  ]);
+  const persisted = await repository.findByIdAndCooperativeId(proof.id, cooperativeId);
+
+  expect(requests).toHaveLength(2);
+  expect(new Set(requests.map(({ approval_requested_by: actorId }) => actorId)).size).toBe(1);
+  expect(requests[0].approval_requested_by).toBe(requests[1].approval_requested_by);
+  expect(persisted.approval_requested_by).toBe(requests[0].approval_requested_by);
+  expect(persisted.approval_requested_at).toBeInstanceOf(Date);
+});
+
+test('rechaza cursores corruptos', async () => {
+  await expect(
+    repository.listPendingByCooperative({ cooperativeId, limit: 50, cursor: 'invalid' }),
+  ).rejects.toMatchObject({ code: 'PAYMENT_PROOF_VALIDATION_ERROR' });
+});
+
+test('la migración se revierte y puede aplicarse otra vez en su propio esquema', async () => {
+  const schema = `payment_test_${randomUUID().replace(/-/g, '')}`;
+  const migrationDirectory = mkdtempSync(path.join(os.tmpdir(), 'payment-migration-'));
+  const migrationNames = [
+    '1793123000000-payment-proofs-and-outbox.js',
+    '1793130000000-payment-proof-approvals.js',
+    '1793140000000-payment-proof-approval-intents.js',
+  ];
+  migrationNames.forEach((migrationName) =>
+    copyFileSync(
+      path.join(__dirname, '../../../migrations', migrationName),
+      path.join(migrationDirectory, migrationName),
+    ),
+  );
+  const runIsolatedMigration = (direction, count) =>
+    execFileSync(
+      process.execPath,
+      [
+        path.join(__dirname, 'run-isolated-payment-migration.js'),
+        direction,
+        schema,
+        migrationDirectory,
+        ...(count ? [String(count)] : []),
+      ],
+      { env: process.env, stdio: 'pipe' },
+    );
+
+  try {
+    assertTestDatabase();
+    await pool.query(`CREATE SCHEMA "${schema}"`);
+    runIsolatedMigration('up', 2);
+    const paymentProofId = randomUUID();
+    const approvedBy = randomUUID();
+    const approvedAt = new Date('2026-10-27T12:00:00.000Z');
+    await pool.query(
+      `INSERT INTO "${schema}".payment_proofs(
+        booking_id, cooperative_id, status, file_key, original_file_name,
+        media_type, file_size_bytes, uploaded_at, approved_at, approved_by
+      ) VALUES ($1, $2, 'UPLOADED', $3, $4, $5, $6, $7, $8, $9)`,
+      [
+        randomUUID(),
+        randomUUID(),
+        'private/approved-proof',
+        'transferencia.pdf',
+        'application/pdf',
+        128,
+        new Date('2026-10-27T11:59:00.000Z'),
+        approvedAt,
+        approvedBy,
+      ],
+    );
+    runIsolatedMigration('up', 1);
+    const { rows: createdTables } = await pool.query(
+      'SELECT to_regclass($1) AS payment_proofs, to_regclass($2) AS outbox',
+      [`${schema}.payment_proofs`, `${schema}.payment_proof_notification_outbox`],
+    );
+    expect(createdTables[0]).toEqual({
+      payment_proofs: `${schema}.payment_proofs`,
+      outbox: `${schema}.payment_proof_notification_outbox`,
+    });
+    const { rows: isolatedColumns } = await pool.query(
+      `SELECT column_name FROM information_schema.columns
+       WHERE table_schema = $1 AND table_name = 'payment_proofs'`,
+      [schema],
+    );
+    expect(isolatedColumns.map(({ column_name }) => column_name)).toContain('approved_at');
+    expect(isolatedColumns.map(({ column_name }) => column_name)).toContain(
+      'approval_requested_by',
+    );
+    const { rows: migratedApprovalRows } = await pool.query(
+      `SELECT approval_requested_at, approval_requested_by FROM "${schema}".payment_proofs
+       WHERE approved_at = $1 AND approved_by = $2`,
+      [approvedAt, approvedBy],
+    );
+    expect(migratedApprovalRows).toEqual([
+      { approval_requested_at: approvedAt, approval_requested_by: approvedBy },
+    ]);
+
+    runIsolatedMigration('down');
+    runIsolatedMigration('down');
+    runIsolatedMigration('down');
+    const { rows: removedTables } = await pool.query(
+      'SELECT to_regclass($1) AS payment_proofs, to_regclass($2) AS outbox',
+      [`${schema}.payment_proofs`, `${schema}.payment_proof_notification_outbox`],
+    );
+    expect(removedTables[0]).toEqual({ payment_proofs: null, outbox: null });
+
+    runIsolatedMigration('up');
+    runIsolatedMigration('up');
+    const { rows: restoredTables } = await pool.query(
+      'SELECT to_regclass($1) AS payment_proofs, to_regclass($2) AS outbox',
+      [`${schema}.payment_proofs`, `${schema}.payment_proof_notification_outbox`],
+    );
+    expect(restoredTables[0]).toEqual({
+      payment_proofs: `${schema}.payment_proofs`,
+      outbox: `${schema}.payment_proof_notification_outbox`,
+    });
+  } finally {
+    await pool.query(`DROP SCHEMA IF EXISTS "${schema}" CASCADE`);
+    rmSync(migrationDirectory, { recursive: true, force: true });
+  }
+});
+
+test('comprobante y outbox distinguen IDs opacos por espacios y mayúsculas sin cruzar avisos', async () => {
+  const ids = ["Reserva/á:01'", "  Reserva/á:01'  ", "reserva/á:01'"];
+  try {
+    const saved = [];
+    for (const id of ids) {
+      const proof = await repository.saveWithPendingNotification(createUploaded(id));
+      expect(proof.booking_id).toBe(id);
+      expect((await repository.findByBookingId(id)).id).toBe(proof.id);
+      saved.push(proof);
+    }
+    expect(new Set(saved.map((proof) => proof.id)).size).toBe(3);
+    for (const proof of saved) {
+      const { rows } = await pool.query(
+        'SELECT booking_id FROM payment_proof_notification_outbox WHERE payment_proof_id=$1',
+        [proof.id],
+      );
+      expect(rows).toEqual([{ booking_id: proof.booking_id }]);
+    }
+    await repository.markNotificationAttempted(ids[1]);
+    await repository.markNotificationDelivered(ids[1]);
+    const { rows } = await pool.query(
+      'SELECT booking_id,status,attempt_count FROM payment_proof_notification_outbox',
+    );
+    expect(rows).toHaveLength(3);
+    for (const id of ids) {
+      expect(rows.find((row) => row.booking_id === id)).toMatchObject({
+        status: id === ids[1] ? 'DELIVERED' : 'PENDING',
+        attempt_count: id === ids[1] ? 1 : 0,
+      });
+    }
+    await expect(
+      repository.saveWithPendingNotification(createUploaded(ids[1])),
+    ).rejects.toBeInstanceOf(PaymentProofAlreadyUploadedError);
+    expect((await pool.query('SELECT id FROM payment_proofs')).rowCount).toBe(3);
+    expect((await pool.query('SELECT id FROM payment_proof_notification_outbox')).rowCount).toBe(3);
+  } finally {
+    for (const id of ids) await repository.deleteByBookingId(id);
+  }
+});

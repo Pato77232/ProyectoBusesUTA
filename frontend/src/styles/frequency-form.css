@@ -1,0 +1,36 @@
+/* FREQUENCIES-WEB-01: extensión local de los tokens y formularios compartidos. */
+.frequency-stop-list {
+  padding: 0;
+  list-style: none;
+}
+.frequency-stop {
+  border-bottom: 1px solid var(--color-border);
+  padding-block: 16px;
+}
+.frequency-stop-actions,
+.frequency-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-block: 12px;
+}
+.frequency-price {
+  margin-block: 20px;
+}
+.frequency-price label {
+  overflow-wrap: anywhere;
+}
+#review-status {
+  margin-top: 24px;
+}
+
+#frequency-summary dd {
+  overflow-wrap: anywhere;
+}
+
+#frequency-form :is(.form-control, .form-select, .btn):focus-visible {
+  outline: 3px solid var(--color-brand);
+  outline-offset: 3px;
+  box-shadow: none;
+}

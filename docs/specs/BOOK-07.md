@@ -1,0 +1,72 @@
+# BOOK-07: Confirmar reserva desde pagos
+
+> Conciliación del 2 de noviembre de 2026: Leslie confirmó cerrar la edición al vencer los 15 minutos conservando revisión y asientos, sin rechazo ni liberación automáticos. Las notas anteriores que lo indican pendiente son históricas; implementación y demás contratos conservan sus pendientes en BOOK-06-L04 y BOOK-07-L05.
+
+> Replanificación del 1 de noviembre de 2026: [BOOK-07-L05](BOOK-07-L05.md) complementa esta spec con un borrador bajo los nuevos acuerdos. La evidencia inferior conserva su fecha/alcance histórico; no acredita adaptación a tarifas configurables congeladas ni proveedores reales. La política histórica incompatible no autoriza el nuevo comportamiento. Ningún incremento nuevo se considera aprobado por esta nota.
+
+> Actualización documental del 1 de noviembre de 2026: aplicar las [reglas vigentes](../business-rules.md) y los [acuerdos de primera entrega](../acuerdos-primera-entrega.md), bajo [ACUERDOS-01](ACUERDOS-01.md). Los contratos anteriores incompatibles son evidencia histórica, no autorización para implementar la regla reemplazada. Esta actualización no modifica código ni acredita adaptación funcional. Las propuestas técnicas y pendientes conservan ese estado.
+> Política vigente: edición 3 minutos desde primera carga salvo aprobación previa; solicitud de corrección permite 15 minutos con correo. Reemplaza archivo no reemplazable. Vencimiento de corrección pendiente; no equivale a rechazo definitivo.
+
+- **Responsable:** Leslie; coordinación de contrato con Shirley
+- **Revisor:** Edwin
+- **Módulo:** bookings
+- **Estado:** Borrador; contrato con payments acordado el 29 de octubre de 2026; T2/T3 e implementación pendientes.
+- **Dependencias:** BOOK-03/06 y módulo payments.
+
+## 1. Objetivo
+Convertir ocupaciones reservadas en vendidas al aprobar un pago válido.
+
+## 2. Reglas
+RN-02, RN-40, RN-52/53/54. Shirley gestiona comprobante, justificación y boleto; Leslie gestiona reserva y ocupación.
+
+## 3. Tareas
+T1 acordar puerto público y atomicidad con payments; T2 confirmar de forma transaccional e idempotente; T3 verificar carreras y errores. No importar infraestructura interna de payments.
+
+## 4. Flujo
+`payments` valida el permiso del oficinista y su cooperativa, revisa que el importe mostrado en el comprobante corresponda al total final de la reserva y solicita la confirmación al puerto público de `bookings`. `bookings` valida la relación aceptada entre comprobante, reserva y cooperativa, verifica el estado y confirma la venta. Una recepción aceptada dentro del plazo configurable de 3–5 minutos queda en revisión y no expira por el solo transcurso de ese plazo; puede aprobarse después. Recepción, expiración y confirmación deben coordinarse para que solo una transición incompatible prevalezca. La emisión del boleto es posterior y su recuperación se define por separado.
+
+## 5. Datos
+Contrato acordado por Leslie y Shirley: `markPaymentProofReceived({ bookingId, cooperativeId, paymentProofId })` registra idempotentemente el vínculo aceptado de recepción; `confirmSale({ bookingId, cooperativeId, paymentProofId })` conserva esta firma y valida los mismos vínculos. La identidad de venta incluye el `paymentProofId` y el `proofVersion` obtenido de la consulta pública de intención de Payments; una versión distinta no se trata como el mismo intento. `bookings` es autoridad del total final en centavos/USD; `payments` contrasta ese total con la evidencia revisada, porque `bookings` no puede verificar por sí solo el dinero transferido.
+
+En un reintento, `bookings` consulta primero si la venta ya fue confirmada con el mismo `paymentProofId`, `proofVersion` y vínculos. Si existe, devuelve el resultado persistido aunque haya pasado el plazo de carga. Timeout o pérdida de respuesta no constituyen rechazo definitivo. La bandera `paid` del navegador nunca acredita un pago.
+
+`payments` persiste la intención de aprobación y su actor en estado pendiente antes de invocar `confirmSale`; registra la aprobación final solo después de la confirmación. La respuesta incierta se recupera repitiendo con el mismo `paymentProofId` y `proofVersion`. El esquema local de pagos se documenta en PAGOS-02; `bookings` implementa su verificación idempotente en su propio límite.
+
+**Acuerdo adicional Leslie–Shirley, 4 de noviembre de 2026:** Payments persiste `proofVersion` entero (1 al crear, +1 por cada reemplazo completado correctamente). Al registrar la intención bloquea el comprobante y guarda versión, oficinista y fecha en la misma transacción; conserva el bloqueo si el resultado es incierto. Su API pública de consulta recibe los tres identificadores y devuelve vínculos, versión, oficinista y fecha, garantizando que la versión corresponda al contenido bloqueado. Bookings conserva esa versión con la venta. El adaptador de Payments devuelve `true` solo tras venta persistida; expresa rechazo definitivo con `BookingSaleRejectedError` e incertidumbre con `BookingSaleUncertainError`. El tratamiento de comprobantes preexistentes antes de asignar versiones sigue pendiente y no se presupone asignación automática.
+
+## 6. Endpoints
+No proponer endpoint público de aprobación en bookings. La entrada confiable será la API pública del módulo según contrato aprobado.
+
+## 7. Criterios de aceptación
+- [ ] Una aprobación válida vende exactamente los asientos de la reserva.
+- [ ] Repetir la aprobación no duplica ventas ni efectos.
+- [ ] Cooperativa o comprobante incorrectos no confirman la reserva.
+- [ ] Aprobación y expiración concurrentes no producen asiento vendido y disponible a la vez.
+- [ ] El rechazo sigue el acuerdo escrito sin liberar automáticamente por una regla inventada.
+- [ ] Una recepción aceptada a tiempo puede aprobarse después del plazo y no expira mientras está en revisión.
+- [ ] Un reintento con el mismo `paymentProofId`, `proofVersion` y vínculos devuelve la venta previamente confirmada, incluso después del plazo.
+- [ ] La intención de aprobación y su actor quedan persistidos como pendientes antes de invocar a `bookings`; la aprobación final se registra tras confirmación.
+
+## 8. Casos borde
+Reserva vencida, ya confirmada, pago duplicado, importe distinto y fallo de emisión del boleto.
+
+## 9. Pruebas
+Contrato entre módulos, integración PostgreSQL y carreras aprobación/expiración. Verificar el flujo con Shirley y conservar evidencia.
+
+## 10. Preguntas abiertas
+El tratamiento de comprobantes preexistentes antes de asignar versiones; la implementación y pruebas productivas de la consulta de intención y API de venta; y la entrega del boleto y su recuperación ante fallo. El diseño de intención/versionado y la traducción de resultados entre módulos quedaron acordados el 4 de noviembre de 2026. El rechazo y liberación quedan para PAGOS-03.
+
+## 11. Defecto inducido
+No aplica.
+
+## 12. Coordinación del contrato
+
+- **Respuesta recibida:** Leslie respondió a la consulta de Shirley el 29 de octubre de 2026; Shirley aceptó sus precisiones. El contrato queda acordado entre ambos módulos.
+- **Estado:** Acordada para T1; la implementación T2 y las pruebas T3 siguen pendientes.
+- **Cambio de pagos registrado:** la spec PAGOS-01 y el código de pagos de la rama PAGOS-02 usan `markPaymentProofReceived({ bookingId, cooperativeId, paymentProofId })`; validar la integración de esta rama antes de integrarla.
+- **Trabajo de Leslie:** implementar la API pública de `bookings` y las transiciones concurrentes de recepción, expiración y confirmación.
+- **Trabajo de Shirley:** enviar los tres identificadores con `markPaymentProofReceived`, mostrar el total autoritativo al revisar y persistir la intención/actor antes de `confirmSale`; probar idempotencia, respuesta incierta y recuperación.
+- **Acuerdo adicional recibido el 4 de noviembre de 2026:** Leslie confirmó el versionado `proofVersion`, la consulta pública de intención, el bloqueo transaccional con oficinista y fecha, la versión persistida con la venta y el mapeo de resultados `true`/`BookingSaleRejectedError`/`BookingSaleUncertainError`. La política para comprobantes existentes queda abierta; implementación e integración siguen pendientes.
+
+## Aclaración para revisión documental
+Las decisiones de producto de `docs/reservas-decisiones.md` fueron seleccionadas por autorización de Leslie y cierran las preguntas correspondientes de este borrador. El contrato con Shirley está acordado, pero BOOK-07 todavía no implementa su API pública, persistencia ni pruebas de integración; el código del módulo payments se mantiene en su rama de tarea. No se atribuye aprobación al revisor ni a otros integrantes.

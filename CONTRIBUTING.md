@@ -1,275 +1,103 @@
-# Guía de contribución
+# Contribuir a transViaje
 
-Gracias por colaborar. Este documento define **cómo trabajamos todos** para que el historial del repositorio sea ordenado, trazable y auditable. Es de lectura obligatoria para cada integrante antes de su primer commit.
+Esta guía describe el procedimiento vigente del equipo. Consultar [AGENTS.md](AGENTS.md), [convenciones](docs/conventions.md) y la spec de la tarea antes de cambiar código. Una propuesta o revisión de IA no equivale a aprobación humana.
 
-## 📑 Contenido
+## Preparación
 
-1. [Principios](#1-principios)
-2. [Herramientas y configuración inicial](#2-herramientas-y-configuración-inicial)
-3. [Flujo de ramas (Gitflow)](#3-flujo-de-ramas-gitflow)
-4. [Nombres de ramas](#4-nombres-de-ramas)
-5. [Conventional Commits](#5-conventional-commits)
-6. [Versionamiento semántico](#6-versionamiento-semántico)
-7. [Control de cambios (Jira + CCB)](#7-control-de-cambios-jira--ccb)
-8. [Ciclo completo de un cambio](#8-ciclo-completo-de-un-cambio)
-9. [Pull Requests y revisión de código](#9-pull-requests-y-revisión-de-código)
-10. [Hotfix (cambios de emergencia)](#10-hotfix-cambios-de-emergencia)
-11. [Proceso de release](#11-proceso-de-release)
-12. [Estilo de código y pruebas](#12-estilo-de-código-y-pruebas)
-13. [Uso de herramientas de IA](#13-uso-de-herramientas-de-ia)
-14. [Definición de "terminado"](#14-definición-de-terminado)
-15. [Reglas que nunca se rompen](#15-reglas-que-nunca-se-rompen)
+Requisitos y arranque: [README](README.md). Usar Node.js 24.x y Docker Compose v2. Desde la raíz del clon:
 
----
-
-## 1. Principios
-
-- **Todo cambio tiene un ticket** en Jira. Sin ticket, no hay rama, commit ni PR.
-- **Nadie hace push directo** a `main` ni a `develop`.
-- **Todo cambio pasa por revisión** de al menos otro integrante.
-- **Cada integrante trabaja en su propia copia local** y con su propia identidad de Git.
-- **Lo que no está en el repositorio, no existe**: la documentación vive junto al código.
-
-## 2. Herramientas y configuración inicial
-
-```bash
-# 1. Clonar
-git clone https://github.com/ORGANIZACION/NOMBRE-DEL-PROYECTO.git
-cd NOMBRE-DEL-PROYECTO
-
-# 2. Configurar tu identidad (debe coincidir con tu cuenta de GitHub)
-git config user.name  "Nombre Apellido"
-git config user.email "tu-correo@ejemplo.com"
-
-# 3. Instalar dependencias y hooks (husky + commitlint)
-npm install
-
-# 4. Entorno
-cp .env.example .env
-docker compose up --build
+```sh
+npm --prefix backend ci
 ```
 
-> Los hooks de `husky` rechazan automáticamente los commits que no cumplan la convención de la sección 5.
+Configurar la identidad Git propia antes de crear commits. No suplantar a otro integrante. No hay un `package.json` raíz ni hooks Husky/commitlint instalados: la convención se revisa con el diff y el PR; no se promete rechazo automático de commits.
 
-## 3. Flujo de ramas (Gitflow)
+Los recursos frontend están versionados localmente y sus pruebas usan herramientas del backend; no instalar dependencias nuevas sin avisar y justificarlo.
 
-| Rama | Propósito | Se crea desde | Se integra en |
-|---|---|---|---|
-| `main` | Código estable; cada commit es una versión publicada | — | — |
-| `develop` | Integración continua del trabajo del equipo | `main` | — |
-| `feature/*` | Una funcionalidad o cambio aprobado | `develop` | `develop` |
-| `release/*` | Preparación de una versión (ajustes finales, versión, changelog) | `develop` | `main` y `develop` |
-| `hotfix/*` | Corrección urgente en producción | `main` | `main` y `develop` |
+## Elegir y preparar un cambio
 
-```
-main     ●───────────────●──────────────●
-          \             / \            /
-release    \           ●   ●──────────●   (release/x.y.z)
-            \         /
-develop ●────●──●──●─●────●──●────────●
-              \    /       \      /
-feature        ●──●         ●────●
-```
+1. Consultar el [estado](docs/estado-proyecto.md), las ramas accesibles y las specs para evitar duplicar trabajo. Verificar fecha/commit de la evidencia.
+2. Elegir una tarea pequeña y crear o actualizar `docs/specs/<ID>.md` antes de implementar. Registrar objetivo, reglas RN, responsable, dependencias, aceptación y cómo probar.
+3. Resolver las decisiones de negocio con las personas afectadas según [equipo-y-acuerdos](docs/equipo-y-acuerdos.md); registrar solo respuestas reales. Los detalles reversibles dentro de un alcance autorizado no requieren inventar un comité.
+4. Trabajar en una rama propia y preparar cambios por unidad lógica.
 
-**Protecciones en GitHub** (configuradas por el comité): `main` y `develop` exigen PR, 1 aprobación mínima y que los checks pasen.
+Se mantienen IDs locales de specs hasta confirmar un gestor externo. La constitución del CCB está pendiente en el registro del equipo: esta guía no designa miembros, fija plazos de respuesta ni presupone un dashboard en funcionamiento.
 
-## 4. Nombres de ramas
+## Ramas y versiones
 
-Formato: `tipo/CLAVE-JIRA-descripcion-corta-en-kebab-case`
-
-```
-feature/MCS-12-busqueda-frecuencias
-feature/MCS-25-seleccion-asientos
-release/1.0.0
-hotfix/MCS-40-fix-validacion-comprobante
-```
-
-## 5. Conventional Commits
-
-Formato:
-
-```
-<tipo>(<alcance>): <descripción en imperativo> (CLAVE-JIRA)
-
-[cuerpo opcional: qué y por qué]
-
-[pie opcional: BREAKING CHANGE: ... / Refs: MCS-12]
-```
-
-### Tipos permitidos
-
-| Tipo | Uso | Efecto en versión |
+| Rama | Finalidad | Destino habitual |
 |---|---|---|
-| `feat` | Nueva funcionalidad | MINOR |
-| `fix` | Corrección de error | PATCH |
-| `docs` | Solo documentación | — |
-| `style` | Formato (sin cambio de lógica) | — |
-| `refactor` | Reestructura sin cambiar comportamiento | — |
-| `perf` | Mejora de rendimiento | PATCH |
-| `test` | Pruebas | — |
-| `build` | Docker, dependencias, scripts de build | — |
-| `ci` | Workflows de GitHub Actions | — |
-| `chore` | Tareas de mantenimiento | — |
-| `revert` | Revierte un commit | — |
+| `feature/<ID>-descripcion` | Cambio acotado sobre una base acordada de `develop` | PR a `develop` |
+| `hotfix/<ID>-descripcion` | Corrección urgente sobre versión acordada | Revisión humana del destino y posterior conciliación con `develop` |
+| `release/x.y.z` | Preparación humana de una entrega | `main` y conciliación con `develop` |
+| `develop` | Integración del equipo | Mediante PR |
+| `main` | Versiones de entrega | Mediante PR |
 
-### Alcances sugeridos
+Ejemplos de formato: `feature/DOCS-01-actualiza-documentacion-general`, `feature/FREQ-03-desactivacion-segura`. Un ejemplo no crea una asignación ni autorización nueva.
 
-`auth`, `cooperativas`, `buses`, `frecuencias`, `hojas-ruta`, `boletos`, `pagos`, `search`, `ui`, `db`, `docker`, `docs`.
+Las protecciones remotas y checks deben comprobarse en GitHub; esta guía no acredita que estén configurados. No hacer push directo a `main`/`develop` ni reescribir historia compartida. Las operaciones de merge, publicación y tags corresponden a las personas autorizadas. Codex solo trabaja en `feature/*` o `hotfix/*`, no ejecuta push/merge/rebase/tags ni cambia a `main`/`develop`.
 
-### Ejemplos
+Versiones exclusivamente `MAJOR.MINOR.PATCH`, tags `vMAJOR.MINOR.PATCH`, sin sufijos ni cuarto componente. Cambiar versión y preparar notas solo al acordar una entrega; no deducir una versión nueva de cada commit ni inventar una fecha de lanzamiento. Documentar una corrección urgente y su integración en las líneas afectadas.
 
-```
-feat(buses): agregar plantillas de asientos por carrocería (MCS-18)
-fix(pagos): rechazar comprobantes mayores a 5 MB (MCS-31)
-docs(readme): documentar variables de entorno (MCS-5)
-refactor(boletos): extraer cálculo de descuentos a servicio (MCS-27)
-feat(api)!: cambiar formato de respuesta de frecuencias (MCS-33)
+## Commits
 
-BREAKING CHANGE: el campo `hora` ahora es ISO 8601.
+Formato definido en [conventions.md](docs/conventions.md): tipo en inglés, alcance y descripción en español, verbo en imperativo, sin punto final, máximo 72 caracteres en el título. Un commit contiene un cambio lógico.
+
+```text
+docs(docs): actualiza las guías generales del proyecto
+
+Refs: docs/specs/DOCS-01.md
 ```
 
-### Reglas
+Tipos acordados: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`, `build`. Alcances: `autenticacion`, `cooperativas`, `flota`, `frecuencias`, `hojas-ruta`, `busqueda`, `reservas`, `pagos`, `boletos`, `infra`, `docs`. Usar `!` o `BREAKING CHANGE:` al describir una incompatibilidad real.
 
-- Una idea por commit; commits pequeños y frecuentes.
-- Descripción en **minúsculas**, imperativo, sin punto final, máximo 72 caracteres.
-- Siempre incluir la clave de Jira al final del asunto.
-- `!` o `BREAKING CHANGE:` solo para cambios incompatibles (suben la versión MAJOR).
+Revisar archivos y diff antes de confirmar. Codex no crea commits salvo petición humana explícita; puede proponer título y pie.
 
-## 6. Versionamiento semántico
+## Código, seguridad y pruebas
 
-Usamos [SemVer 2.0.0](https://semver.org/lang/es/): **`MAJOR.MINOR.PATCH`**
+- Respetar [arquitectura](docs/architecture.md): negocio fuera de controladores, dominio independiente de infraestructura, APIs públicas entre módulos y aislamiento por cooperativa autenticada.
+- Identificadores en inglés; mensajes, comentarios y documentos en español. Aplicar [calidad](docs/calidad.md) de forma proporcional y [DESIGN.md](frontend/DESIGN.md) si cambia una pantalla.
+- No modificar migraciones existentes ni borrar/debilitar pruebas para lograr resultados verdes. No corregir incidentalmente defectos académicos autorizados; aplicar su [protocolo](docs/errores-inducidos.md).
+- No guardar secretos, `.env`, contraseñas, tokens, comprobantes ni datos personales en Git, prompts o evidencias. Reportar hallazgos sensibles al responsable por un canal privado acordado; no publicar credenciales en un issue. Todavía no se declara una política formal `SECURITY.md`.
+- Mantener avisos de licencia/procedencia y documentar nuevas dependencias en el PR. Declaración del proyecto: `GPL-3.0-only`; avisos de terceros en sus recursos. No modificar LICENSE para incorporar nombres del equipo: el texto incluye ejemplos propios de la licencia.
 
-- **MAJOR**: cambios incompatibles.
-- **MINOR**: funcionalidad nueva compatible.
-- **PATCH**: correcciones compatibles.
+Desde la raíz, con dependencias instaladas:
 
-Las versiones se publican como **tags anotados** sobre `main`:
-
-```bash
-git tag -a v0.2.0 -m "Release 0.2.0: venta de boletos"
-git push origin v0.2.0
+```sh
+npm --prefix backend run lint
+npm --prefix backend run format:check
+npm --prefix frontend run lint
+npm --prefix frontend test
 ```
 
-Hasta la entrega final se usa `0.y.z` (desarrollo inicial); la entrega final es `1.0.0`. Cada release actualiza `CHANGELOG.md` (formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/)).
+Para backend, levantar PostgreSQL exclusivo y configurar el entorno según [testing-database.md](docs/testing-database.md). Desde `backend/`, ejecutar `npm test`. Nunca usar bases de desarrollo/producción: los tests limpian tablas. Si las unitarias detienen `npm test`, registrar el fallo y ejecutar `npm run test:integration` por separado sobre esa base aislada cuando corresponda. No presentar la combinación como suite verde.
 
-## 7. Control de cambios (Jira + CCB)
+`format:check` verifica sin modificar; usar el formateador solo sobre archivos del cambio cuando sea necesario. No reformatear módulos ajenos. Ejecutar pruebas proporcionales al cambio y los controles exigidos por AGENTS.md; para documentación pura contrastar enlaces, comandos y diff, sin atribuir resultados de código no ejecutados.
 
-### 7.1 Comité de control de cambios (CCB)
+Si cambia la composición del servidor, verificar el arranque real. Las pruebas de navegador y sus requisitos están en [frontend/README.md](frontend/README.md). Documentar entorno, resultados reales, limitaciones y limpieza de recursos propios.
 
-El CCB está formado por **2 integrantes** (ver README). Sus funciones: evaluar las peticiones de cambio, aprobarlas, rechazarlas o cancelarlas con justificación, priorizarlas y asignarlas.
+## Pull request y revisión
 
-### 7.2 Tipos de cambio
+Abrir PR desde la rama de trabajo hacia `develop` para cambios normales, con título de Conventional Commit. Incluir:
 
-| Tipo | Descripción | Aprobación |
-|---|---|---|
-| **Normal** | Cambio planificado (nueva funcionalidad, mejora) | CCB antes de desarrollar |
-| **Estándar** | Cambio repetitivo y de bajo riesgo (texto, estilo) | Preaprobado, se registra |
-| **Emergencia** | Falla crítica que impide operar | Aprobación rápida de un miembro del CCB; revisión posterior del CCB completo |
+- Problema y comportamiento final, alcance y reglas RN pertinentes.
+- Spec local, dependencias o decisiones pendientes.
+- Cómo probar, resultados reales y evidencia visual si corresponde.
+- Fallos conservados y límites conocidos, sin describir una ejecución fallida como aprobada.
+- Herramienta de IA utilizada y responsabilidad humana del autor.
 
-### 7.3 Estados del ticket
+Preferir PRs acotados y comprensibles; dividir por comportamiento cuando facilite revisión, sin fijar un límite arbitrario de líneas. Otro integrante revisa código, pruebas y documentación. Nadie aprueba su propio PR y la revisión de IA no sustituye esa aprobación.
 
-```
-Solicitado → En revisión (CCB) → Aprobado → En desarrollo → En revisión de código → Verificado → Cerrado
-                    ├──────────→ Rechazado
-                    └──────────→ Cancelado   (siempre con motivo de cancelación)
-```
+Resolver hallazgos y comprobar los controles antes de integrar. La excepción de primera entrega cubre solo defectos académicos específicos autorizados y aceptados con evidencia; un fallo histórico inesperado no obtiene esa excepción por antigüedad.
 
-### 7.4 Campos obligatorios de una petición de cambio
+## Terminado y seguimiento
 
-Título, descripción, justificación, **tipo de cambio**, prioridad, solicitante, asignado, módulo afectado, impacto y riesgo. Si se cancela o rechaza: **motivo documentado**.
+Una tarea no está cerrada solo porque existe código o un PR. Verificar:
 
-> Estos datos alimentan el dashboard de auditoría (cambios por integrante, por tipo, cancelados y de emergencia por mes).
+- Alcance y criterios de la spec cumplidos.
+- Pruebas/controles ejecutados y resultados reales registrados; fallos resueltos o excepción académica explícita aplicable.
+- Documentación y fila de [estado](docs/estado-proyecto.md) actualizadas con fecha/commit conocido.
+- Revisión y aprobación por otro integrante.
+- Integración y comprobación en `develop`, con evidencia antes de marcar Integrada/Cerrada.
 
-## 8. Ciclo completo de un cambio
-
-1. **Solicitud:** cualquier integrante crea el ticket en Jira (tipo *Change Request*).
-2. **Evaluación:** el CCB lo revisa y lo aprueba, rechaza o cancela (con motivo).
-3. **Asignación:** el CCB asigna responsable y prioridad.
-4. **Rama:** el responsable crea `feature/CLAVE-descripcion` desde `develop` y mueve el ticket a *En desarrollo*.
-   ```bash
-   git switch develop && git pull
-   git switch -c feature/MCS-12-busqueda-frecuencias
-   ```
-5. **Desarrollo:** commits pequeños siguiendo la sección 5; subir la rama con frecuencia.
-6. **Pull Request** hacia `develop` con la plantilla completa; el ticket pasa a *En revisión de código*.
-7. **Revisión:** otro integrante revisa (sección 9).
-8. **Merge:** *squash and merge* o *merge commit* (acordado por el equipo); se elimina la rama.
-9. **Verificación:** se comprueba en `develop`; el ticket pasa a *Verificado* y luego a *Cerrado*.
-
-## 9. Pull Requests y revisión de código
-
-**Quien abre el PR:**
-
-- Título con formato Conventional Commit: `feat(buses): plantillas de asientos (MCS-18)`.
-- Completar la plantilla: qué cambia, por qué, cómo probarlo, evidencia (capturas) y ticket relacionado.
-- PR pequeño y enfocado; si supera ~400 líneas, dividirlo.
-- Asegurar que `lint`, `test` y la ejecución con Docker funcionan.
-
-**Quien revisa:**
-
-- Responde en un máximo de 24 horas.
-- Revisa lógica, legibilidad, pruebas y que cumpla el ticket.
-- Comenta de forma constructiva; usa *Approve* o *Request changes*.
-- **Nadie aprueba su propio PR.**
-
-## 10. Hotfix (cambios de emergencia)
-
-1. Crear el ticket de tipo **Emergencia** y notificar al CCB.
-2. Un miembro del CCB aprueba rápido.
-3. Crear la rama desde `main`:
-   ```bash
-   git switch main && git pull
-   git switch -c hotfix/MCS-40-fix-validacion-comprobante
-   ```
-4. Corregir, abrir PR hacia `main` (revisión obligatoria, aunque sea rápida).
-5. Tras el merge: tag de PATCH (ej. `v1.0.1`) y **merge de `main` hacia `develop`** para no perder la corrección.
-6. El CCB revisa el cambio de emergencia y cierra el ticket.
-
-## 11. Proceso de release
-
-1. Crear `release/x.y.z` desde `develop`.
-2. Solo correcciones menores, actualización de versión en `package.json` y `CHANGELOG.md`.
-3. PR hacia `main`; tras el merge, crear el tag `vx.y.z`.
-4. Merge de `main` hacia `develop`.
-5. Publicar el *Release* en GitHub con las notas del changelog.
-
-## 12. Estilo de código y pruebas
-
-- ESLint y Prettier son obligatorios: `npm run lint` y `npm run format`.
-- Pruebas con Jest: `npm test`. Toda lógica de negocio (descuentos, disponibilidad de asientos, cálculo de tramos) debe tener pruebas.
-- Nombres de variables y funciones en español o inglés, pero **consistentes** en todo el proyecto.
-- Nunca subir credenciales, `.env`, ni archivos de `uploads/`.
-- Antes de agregar una dependencia, verificar que su licencia sea compatible con GPLv3 (MIT, BSD, Apache-2.0 y similares lo son); registrarlo en el PR.
-
-## 13. Uso de herramientas de IA
-
-La IA está permitida y recomendada, con estas reglas:
-
-- **Cada integrante usa su propia herramienta** y hace sus propios commits con su identidad; un agente no commitea en nombre de otros.
-- El contexto compartido (convenciones, estructura, stack) está en `AGENTS.md`, para que cualquier asistente trabaje con las mismas reglas.
-- **El código generado se revisa y se entiende antes de commitear.** Quien abre el PR responde por él.
-- No pegar credenciales ni datos reales de usuarios en la IA.
-
-## 14. Definición de "terminado"
-
-Un cambio está terminado cuando:
-
-- [ ] El código cumple lo descrito en el ticket.
-- [ ] Pasa `lint` y `test`.
-- [ ] Funciona con `docker compose up`.
-- [ ] La documentación afectada está actualizada.
-- [ ] El PR fue revisado y aprobado por otro integrante.
-- [ ] Está integrado en `develop` y el ticket de Jira está en *Cerrado*.
-
-## 15. Reglas que nunca se rompen
-
-1. ❌ Push directo a `main` o `develop`.
-2. ❌ Commits sin clave de Jira o sin formato convencional.
-3. ❌ Aprobar tu propio PR.
-4. ❌ Reescribir el historial compartido (`push --force` en ramas compartidas).
-5. ❌ Subir secretos al repositorio.
-6. ❌ Cancelar o rechazar un cambio sin dejar el motivo escrito.
-
----
-
-Si algo de esta guía no está claro, abre un issue con la etiqueta `question` o consulta al comité. Al contribuir aceptas cumplir el [Código de Conducta](CODE_OF_CONDUCT.md) y que tus aportes se distribuyan bajo la licencia [GNU GPL v3.0](LICENSE) del proyecto.
+Para uso de IA, seguir [AI-USAGE.md](docs/AI-USAGE.md) y [flujo-codex.md](docs/flujo-codex.md). Las contribuciones deben respetar los acuerdos del equipo; consultar al responsable ante ambigüedades sin inventar aprobaciones, compromisos o políticas aún no adoptadas.

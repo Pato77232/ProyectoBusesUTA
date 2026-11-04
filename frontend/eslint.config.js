@@ -1,0 +1,45 @@
+import { bookingRules } from './bookings-eslint.config.js';
+export default [
+  bookingRules,
+  {
+    files: [
+      'src/search/**/*.js',
+      'tests/search/**/*.js',
+      'src/route-sheets/**/*.js',
+      'tests/route-sheets/**/*.js',
+      'src/api/**/*.js',
+      'src/payments/**/*.js',
+      'tests/payments/**/*.js',
+      'src/fleet/**/*.js',
+      'tests/api/**/*.js',
+      'tests/fleet/**/*.js',
+      'src/auth/**/*.js',
+      'tests/auth/**/*.js',
+      'src/frequencies/**/*.js',
+      'tests/frequencies/**/*.js',
+    ],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: {
+        document: 'readonly',
+        Option: 'readonly',
+        fetch: 'readonly',
+        URL: 'readonly',
+        URLSearchParams: 'readonly',
+        Response: 'readonly',
+        Request: 'readonly',
+        FormData: 'readonly',
+        DOMException: 'readonly',
+        AbortSignal: 'readonly',
+        AbortController: 'readonly',
+      },
+    },
+    rules: {
+      'no-undef': 'error',
+      'no-console': 'error',
+      'no-unreachable': 'error',
+      eqeqeq: ['error', 'always'],
+    },
+  },
+];
