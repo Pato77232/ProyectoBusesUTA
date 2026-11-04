@@ -1,8 +1,9 @@
 # ROUTE-SHEETS-WEB-01 — Consulta y alta de borradores de hojas de ruta
 
 - Responsable: David, por solicitud directa del 3 de noviembre de 2026.
-- Rama existente: `feature/ROUTE-SHEETS-WEB-01-programacion-manual`, limpia sobre `9920792` (PR #68 integrada). Revisión humana pendiente; Leslie es revisora propuesta, sin aceptación inferida.
-- David solicita dividir en dos secciones e implementar la primera. Esta autorización incluye definir la spec y la consulta conectada; no commits, push ni implementación de sección 2.
+- Estado inicial registrado el 3 de noviembre: rama `feature/ROUTE-SHEETS-WEB-01-programacion-manual`, limpia sobre `9920792` (PR #68 integrada). Revisión humana pendiente; Leslie es revisora propuesta, sin aceptación inferida.
+- Autorización inicial del 3 de noviembre: David solicita dividir en dos secciones e implementar la primera. Incluye definir la spec y la consulta conectada; en ese momento no autoriza commits, push ni implementación de sección 2.
+- Autorización posterior del 3 de noviembre: David solicita completar sección 2 y preparar textos de PR; no autoriza crear el commit, abrir la PR, hacer push ni integrar. Base local reportada `0f36d71`; los cambios de sección 1 y el inicio de sección 2 ya estaban en el árbol de trabajo.
 - Fuentes: [reglas](../business-rules.md), [arquitectura](../architecture.md), [convenciones](../conventions.md), [calidad](../calidad.md), [defectos académicos](../errores-inducidos.md), [equipo](../equipo-y-acuerdos.md), [flujo](../flujo-codex.md), [estado](../estado-proyecto.md), [programación](ROUTE-SHEETS-06.md), [renovación](ROUTE-SHEETS-08.md) y [diseño](../../frontend/DESIGN.md).
 
 ## 1. Alcance y secciones
@@ -12,9 +13,9 @@ Esta pantalla es la entrada a la programación manual: consultar hojas y crear s
 | Sección | Resultado verificable | Estado |
 |---|---|---|
 | 1 | Página conectada de consulta, grupos reales, filtros, autorización, estados vacíos/errores, pruebas y empaquetado. | Implementada y verificada localmente; revisión humana e integración pendientes. |
-| 2 | Alta explícita de borrador con grupo y fecha, notas opcionales, CSRF, prevención de doble envío y confirmación de respuesta/resultado incierto. Actualiza el listado solo tras resultado verificable. | Planificada, no implementada ni autorizada todavía. |
+| 2 | Alta explícita de borrador con grupo y fecha, notas opcionales, CSRF, prevención de doble envío y confirmación de respuesta/resultado incierto. Actualiza el listado solo tras resultado verificable. | Implementada y verificada localmente; revisión humana e integración pendientes. |
 
-Sección 2 usa el POST existente con busGroupId/routeDate/notes, sin tenant elegido por el navegador. Crear la cabecera no programa, publica ni genera viajes. Sus detalles y pruebas se concretarán antes de implementarla.
+Sección 2 usa el POST existente con busGroupId/routeDate/notes, sin tenant elegido por el navegador. Crear la cabecera no programa, publica ni genera viajes. El contrato de implementación y sus pruebas están delimitados en §6.
 
 ## 2. Contratos de sección 1
 
@@ -65,3 +66,27 @@ Una ejecución auxiliar de frontend en Docker falló porque su copia temporal om
 Diff completo revisado y comprobado sin conflictos ni espacios finales. Proyectos de navegador y PostgreSQL exclusivos retirados al finalizar. Capturas de QA en el directorio temporal route-sheets-web-01-qa, fuera del repositorio; el texto hostil de las capturas es un fixture deliberado de prueba, no un dato real. Asistencia de Codex en planificación, implementación y pruebas. No hay commits, push, aprobación humana ni integración de esta tarea acreditados.
 
 Sección 2 continúa pendiente: crear un borrador explícito desde esta pantalla, sin introducir programación, publicación ni renovación en ese incremento. Mensaje sugerido para sección 1: feat(hojas-ruta): agrega la consulta web de hojas de ruta.
+
+## 6. Sección 2 — contrato de alta
+
+Alta explícita por COOPERATIVE_ADMIN de `POST /api/v1/route-sheets` mediante el cliente compartido/CSRF existente. Formulario de grupo obligatorio del catálogo actual, fecha civil obligatoria y notas opcionales. Sin fecha predeterminada, límites temporales nuevos, duración ni selección de cooperativa. Notas enviadas como texto, sin imponer un máximo funcional que el backend no define. Solo busGroupId/routeDate/notes; el body no elige autor, estado, tenant o datos comerciales.
+
+La consulta y el alta comparten exclusión de carga y contexto de sesión en el controlador. Alta deshabilitada hasta lectura autorizada con grupos, revalida sesión y grupos antes de POST y vuelve a comprobar identidad antes de mostrar datos recibidos. Durante el envío bloquea filtros, alta y consultas duplicadas. Conserva los campos al rechazar y al fallar; no resetea un envío incierto. Sin grupos muestra instrucción y mantiene alta bloqueada.
+
+Respuesta aceptada: `{ routeSheet }` con ID UUID, cooperativeId/createdBy iguales a la sesión, busGroupId/routeDate/notas iguales a la solicitud, status DRAFT y sin publicación/asignaciones/paradas. Solo entonces muestra ID, grupo, fecha, estado y notas como texto. Limpia filtros y recarga el listado completo para incluir el borrador. Si esa recarga falla, conserva la confirmación de alta y distingue el fallo de consulta; no repite POST. La creación no programa ni publica ni genera viajes.
+
+400/409/429 y CSRF rechazado permiten corregir y enviar conscientemente. Duplicado por grupo/fecha informa que existe una hoja; no dice que se haya creado otra. 401/403 o cambio de identidad limpian datos privados y bloquean acceso. Fallos antes de enviar se distinguen de fallo de red/5xx/respuesta inválida después de iniciar POST: estos últimos quedan como resultado incierto, sin reintento automático ni botón de crear otro. La persona consulta el listado y, tras comprobar existencia, puede recargar la página; no hay recuperación durable por clave en este POST. La unicidad del backend no se presenta como idempotencia de transporte.
+
+Tras éxito, «Crear otro borrador» es explícito: revalida identidad/grupos, limpia valores y vuelve a habilitar. Una consulta, un cambio de filtro o una sesión revalidada no desbloquean un alta incierta ni convierten un duplicado en éxito. Se conserva DESIGN.md y se amplía solo el CSS local. Etiquetas, estados anunciados, aviso enfocable, notas seguras y presentación de escritorio/móvil; JavaScript ausente mantiene alta deshabilitada.
+
+Pruebas: contratos de solicitud/respuesta, éxito, duplicado, doble envío, bloqueo con consulta activa, sesión/tenant/grupo cambiados, CSRF, error antes de POST, respuesta perdida tras escritura real y éxito seguido de recarga fallida. Mantener la suite de sección 1 y ampliar el recorrido con Chrome/API real; preparar datos solo en proyectos aislados. No cambiar backend, dependencias, migraciones ni cliente compartido.
+
+## 7. Evidencia de sección 2
+
+Implementación local en la página existente. El formulario envía solo `busGroupId`, `routeDate` y `notes` mediante el cliente compartido, que agrega CSRF; la identidad y el tenant se verifican antes y después de la operación. La respuesta se valida contra el grupo, fecha, autor, cooperativa, estado DRAFT y ausencia de programación antes de presentar la confirmación. Un duplicado se muestra como rechazo; red, servidor o respuesta inválida después de iniciar el POST se consideran inciertos y nunca se reenvían automáticamente. Los valores se limpian al cambiar de sesión o rol.
+
+Pruebas del frontend con Node 22.19.0: **263/263 aprobadas**, incluidas 13 pruebas nuevas de contratos, sesión, doble envío, duplicados, resultado incierto y recuperación. `npm run lint` y Prettier sobre los archivos modificados aprobados. `npm run test:route-sheets` construyó la imagen Nginx y levantó backend/PostgreSQL aislados; Chrome verificó el POST real, confirmación segura de texto, duplicado y pérdida simulada de la respuesta después de que el servidor confirmó la escritura. En ese caso el registro estaba en el listado/API, la pantalla informó resultado incierto y no volvió a enviar. También se recorrieron roles, cambio de sesión, filtros, error de red y reflujo a 360/1280 px. No hubo cambios de backend, migraciones ni dependencias.
+
+La primera invocación del smoke no encontró `google-chrome` en PATH; se repitió indicando el ejecutable Chrome instalado y pasó. El proyecto QA efímero se retiró al terminar. No se generaron capturas nuevas fuera del directorio temporal configurado por el smoke.
+
+La sección queda implementada localmente, no revisada ni integrada. No se creó commit ni PR, no hubo push y no se introdujeron defectos académicos. Asistencia de Codex en implementación y validación.

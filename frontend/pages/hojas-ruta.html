@@ -30,7 +30,97 @@
     <main id="contenido" class="container sheets-page" tabindex="-1">
       <p class="eyebrow">OPERACIÓN DE COOPERATIVA</p>
       <h1>Hojas de ruta</h1>
-      <p>Consulta las hojas de tu cooperativa por grupo, fecha y estado.</p>
+      <p>
+        Consulta las hojas de tu cooperativa o crea un borrador para empezar una
+        nueva programación.
+      </p>
+      <section
+        id="draft-panel"
+        class="sheets-card"
+        aria-labelledby="draft-title"
+        aria-busy="false"
+        data-mode="checking"
+      >
+        <h2 id="draft-title">Crear borrador</h2>
+        <p>
+          Elige el grupo y la fecha de la hoja. Crear un borrador todavía no
+          asigna servicios, publica viajes ni habilita ventas.
+        </p>
+        <p id="draft-status" role="status" aria-live="polite" tabindex="-1">
+          Comprobando sesión y grupos…
+        </p>
+        <form id="draft-form">
+          <fieldset id="draft-fields" disabled>
+            <legend class="visually-hidden">Datos del nuevo borrador</legend>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label" for="draft-group"
+                  >Grupo de buses (obligatorio)</label
+                ><select
+                  id="draft-group"
+                  name="busGroupId"
+                  class="form-select"
+                  required
+                >
+                  <option value="">Selecciona un grupo</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="draft-route-date"
+                  >Fecha de la hoja (obligatoria)</label
+                ><input
+                  id="draft-route-date"
+                  name="routeDate"
+                  type="date"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="draft-notes-input"
+                  >Notas (opcional)</label
+                ><textarea
+                  id="draft-notes-input"
+                  name="notes"
+                  class="form-control"
+                  rows="3"
+                ></textarea>
+              </div>
+            </div>
+            <p class="sheets-hint">
+              Solo puede existir una hoja por grupo y fecha en tu cooperativa.
+            </p>
+            <button type="submit" class="btn btn-primary">
+              Crear borrador
+            </button>
+          </fieldset>
+        </form>
+        <dl id="draft-result" class="draft-result" hidden>
+          <dt>Identificador de hoja</dt>
+          <dd id="draft-id"></dd>
+          <dt>Grupo</dt>
+          <dd id="draft-group-name"></dd>
+          <dt>Fecha</dt>
+          <dd id="draft-date"></dd>
+          <dt>Estado</dt>
+          <dd id="draft-state"></dd>
+          <dt>Notas</dt>
+          <dd id="draft-notes"></dd>
+        </dl>
+        <button
+          id="another-draft"
+          type="button"
+          class="btn btn-outline-secondary"
+          hidden
+        >
+          Crear otro borrador
+        </button>
+        <noscript
+          ><p>
+            Activa JavaScript para comprobar la sesión y crear un borrador.
+          </p></noscript
+        >
+      </section>
       <section class="sheets-card" aria-labelledby="filters-title">
         <h2 id="filters-title">Buscar hojas</h2>
         <form id="sheet-filters">

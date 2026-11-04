@@ -1,12 +1,12 @@
 # Estado compartido del proyecto
 
-## ROUTE-SHEETS-WEB-01 — consulta de hojas, sección 1, 3 de noviembre de 2026
+## ROUTE-SHEETS-WEB-01 — consulta y alta de borradores, 3 de noviembre de 2026
 
-David autorizó dividir la pantalla en dos secciones e implementar la primera. Rama feature/ROUTE-SHEETS-WEB-01-programacion-manual, limpia sobre 9920792 (renovación integrada en PR #68).
+David autorizó inicialmente la sección 1 y luego la sección 2. Rama feature/ROUTE-SHEETS-WEB-01-programacion-manual, base local reportada 0f36d71 (renovación integrada en PR #68).
 
 | Spec / responsable | Estado y evidencia | Próximo paso |
 |---|---|---|
-| [ROUTE-SHEETS-WEB-01](specs/ROUTE-SHEETS-WEB-01.md) / David | Sección 1 implementada localmente: consulta real, grupos, filtros y control de sesión; DESIGN.md aplicado, imagen Nginx y navegador real con API/PostgreSQL comprobados. Frontend 250/250 (23 nuevas); backend 1815 unitarias y 577 integraciones aprobadas con Node 24. Lint y formato propio aprobados; formato backend global conserva 39 archivos previos. Evidencia y límites en §5. | Revisión humana y commit/publicación pendientes. Sección 2 planificada: alta de borrador; aún sin implementar. Editor de programación, tarifas, publicación y renovación web quedan en incrementos posteriores. |
+| [ROUTE-SHEETS-WEB-01](specs/ROUTE-SHEETS-WEB-01.md) / David | Secciones 1 y 2 implementadas localmente: consulta, filtros, control de sesión y alta explícita de borradores. Frontend 263/263; lint y formato aprobados. Nginx, Chrome, API y PostgreSQL aislados verificaron alta, confirmación, duplicado y respuesta perdida después de escritura. Sin cambios de backend, migraciones o dependencias. Evidencia y límites en §§5 y 7. | Revisión humana, commit y publicación pendientes; no afirmar integración. Editor de programación, tarifas, publicación y renovación web quedan en incrementos posteriores. |
 
 ## D-05 — renovación, sección 0 documental, 3 de noviembre de 2026
 

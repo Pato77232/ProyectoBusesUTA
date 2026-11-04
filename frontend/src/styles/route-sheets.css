@@ -53,10 +53,27 @@
 .sheets-card caption {
   color: var(--color-muted);
 }
-[data-mode='error'] #status,
-[data-mode='invalid'] #status,
-[data-mode='forbidden'] #status,
-[data-mode='session-changed'] #status {
+.draft-result {
+  margin-top: 20px;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--color-surface);
+  overflow-wrap: anywhere;
+}
+.draft-result dd {
+  margin-bottom: 12px;
+  white-space: pre-wrap;
+}
+#draft-panel[data-mode="invalid"] #draft-status,
+#draft-panel[data-mode="rejected"] #draft-status,
+#draft-panel[data-mode="uncertain"] #draft-status,
+#draft-panel[data-mode="check-error"] #draft-status {
+  color: var(--color-error);
+}
+[data-mode="error"] #status,
+[data-mode="invalid"] #status,
+[data-mode="forbidden"] #status,
+[data-mode="session-changed"] #status {
   color: var(--color-error);
 }
 .sheets-card :focus-visible {
