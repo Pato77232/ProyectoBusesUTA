@@ -29,3 +29,8 @@ CMD ["nginx", "-g", "daemon off;"]
 COPY pages/reservas.html /usr/share/nginx/html/pages/reservas.html
 COPY src/bookings /usr/share/nginx/html/src/bookings
 COPY src/api/json-transport.js src/api/api-error.js /usr/share/nginx/html/src/api/
+
+# ROUTE-SHEETS-WEB-01: consulta de hojas y creación explícita de borradores.
+COPY pages/hojas-ruta.html /usr/share/nginx/html/pages/hojas-ruta.html
+COPY src/route-sheets /usr/share/nginx/html/src/route-sheets
+COPY src/styles/route-sheets.css /usr/share/nginx/html/src/styles/route-sheets.css

@@ -40,3 +40,8 @@
 !src/api/json-transport.js
 !src/api/api-error.js
 !src/bookings/access.js
+
+!pages/hojas-ruta.html
+!src/route-sheets/
+!src/route-sheets/*.js
+!src/styles/route-sheets.css

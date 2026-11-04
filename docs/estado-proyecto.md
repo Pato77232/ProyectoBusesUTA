@@ -1,5 +1,12 @@
 # Estado compartido del proyecto
 
+## ROUTE-SHEETS-WEB-01 — consulta y alta de borradores, 3 de noviembre de 2026
+
+David autorizó inicialmente la sección 1 y luego la sección 2. Rama feature/ROUTE-SHEETS-WEB-01-programacion-manual, base local reportada 0f36d71 (renovación integrada en PR #68).
+
+| Spec / responsable | Estado y evidencia | Próximo paso |
+|---|---|---|
+| [ROUTE-SHEETS-WEB-01](specs/ROUTE-SHEETS-WEB-01.md) / David | Secciones 1 y 2 implementadas localmente: consulta, filtros, control de sesión y alta explícita de borradores. Frontend 263/263; lint y formato aprobados. Nginx, Chrome, API y PostgreSQL aislados verificaron alta, confirmación, duplicado y respuesta perdida después de escritura. Sin cambios de backend, migraciones o dependencias. Evidencia y límites en §§5 y 7. | Revisión humana, commit y publicación pendientes; no afirmar integración. Editor de programación, tarifas, publicación y renovación web quedan en incrementos posteriores. |
 ## Shirley — PAGOS-01 carga autorizada y PAGOS-02 lectura productiva, 3 de noviembre de 2026
 
 Rama `feature/PAGOS-02-develop-actualizado`, publicada en la PR #66 con HEAD

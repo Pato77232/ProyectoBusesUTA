@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hojas de ruta · transViaje</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+    <link
+      rel="stylesheet"
+      href="/assets/vendor/bootstrap-5.3.8/bootstrap.min.css"
+    />
+    <link rel="stylesheet" href="/src/styles/app.css" />
+    <link rel="stylesheet" href="/src/styles/route-sheets.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+    <header class="site-header">
+      <div class="container">
+        <a class="brand" href="/" aria-label="transViaje, inicio"
+          ><span class="brand-logo-frame" aria-hidden="true"
+            ><img
+              class="brand-logo"
+              src="/assets/brand/logo-transviaje.png"
+              alt=""
+              width="1600"
+              height="1446" /></span
+        ></a>
+      </div>
+    </header>
+    <main id="contenido" class="container sheets-page" tabindex="-1">
+      <p class="eyebrow">OPERACIÓN DE COOPERATIVA</p>
+      <h1>Hojas de ruta</h1>
+      <p>
+        Consulta las hojas de tu cooperativa o crea un borrador para empezar una
+        nueva programación.
+      </p>
+      <section
+        id="draft-panel"
+        class="sheets-card"
+        aria-labelledby="draft-title"
+        aria-busy="false"
+        data-mode="checking"
+      >
+        <h2 id="draft-title">Crear borrador</h2>
+        <p>
+          Elige el grupo y la fecha de la hoja. Crear un borrador todavía no
+          asigna servicios, publica viajes ni habilita ventas.
+        </p>
+        <p id="draft-status" role="status" aria-live="polite" tabindex="-1">
+          Comprobando sesión y grupos…
+        </p>
+        <form id="draft-form">
+          <fieldset id="draft-fields" disabled>
+            <legend class="visually-hidden">Datos del nuevo borrador</legend>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label" for="draft-group"
+                  >Grupo de buses (obligatorio)</label
+                ><select
+                  id="draft-group"
+                  name="busGroupId"
+                  class="form-select"
+                  required
+                >
+                  <option value="">Selecciona un grupo</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="draft-route-date"
+                  >Fecha de la hoja (obligatoria)</label
+                ><input
+                  id="draft-route-date"
+                  name="routeDate"
+                  type="date"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="draft-notes-input"
+                  >Notas (opcional)</label
+                ><textarea
+                  id="draft-notes-input"
+                  name="notes"
+                  class="form-control"
+                  rows="3"
+                ></textarea>
+              </div>
+            </div>
+            <p class="sheets-hint">
+              Solo puede existir una hoja por grupo y fecha en tu cooperativa.
+            </p>
+            <button type="submit" class="btn btn-primary">
+              Crear borrador
+            </button>
+          </fieldset>
+        </form>
+        <dl id="draft-result" class="draft-result" hidden>
+          <dt>Identificador de hoja</dt>
+          <dd id="draft-id"></dd>
+          <dt>Grupo</dt>
+          <dd id="draft-group-name"></dd>
+          <dt>Fecha</dt>
+          <dd id="draft-date"></dd>
+          <dt>Estado</dt>
+          <dd id="draft-state"></dd>
+          <dt>Notas</dt>
+          <dd id="draft-notes"></dd>
+        </dl>
+        <button
+          id="another-draft"
+          type="button"
+          class="btn btn-outline-secondary"
+          hidden
+        >
+          Crear otro borrador
+        </button>
+        <noscript
+          ><p>
+            Activa JavaScript para comprobar la sesión y crear un borrador.
+          </p></noscript
+        >
+      </section>
+      <section class="sheets-card" aria-labelledby="filters-title">
+        <h2 id="filters-title">Buscar hojas</h2>
+        <form id="sheet-filters">
+          <fieldset id="filters-fields" disabled>
+            <legend class="visually-hidden">Filtros de hojas de ruta</legend>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label" for="bus-group">Grupo de buses</label
+                ><select id="bus-group" name="busGroupId" class="form-select">
+                  <option value="">Todos los grupos</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="sheet-state">Estado</label
+                ><select id="sheet-state" name="status" class="form-select">
+                  <option value="">Todos los estados</option>
+                  <option value="DRAFT">Borrador</option>
+                  <option value="PUBLISHED">Publicada</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="from-date">Fecha desde</label
+                ><input
+                  id="from-date"
+                  name="fromDate"
+                  type="date"
+                  class="form-control"
+                />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="to-date">Fecha hasta</label
+                ><input
+                  id="to-date"
+                  name="toDate"
+                  type="date"
+                  class="form-control"
+                />
+              </div>
+            </div>
+            <p class="sheets-hint">
+              Los filtros son opcionales. Las fechas corresponden al día
+              indicado en cada hoja.
+            </p>
+            <div class="sheets-actions">
+              <button class="btn btn-primary" type="submit">
+                Consultar hojas</button
+              ><button class="btn btn-outline-secondary" type="reset">
+                Limpiar filtros
+              </button>
+            </div>
+          </fieldset>
+        </form>
+      </section>
+      <section
+        id="results"
+        class="sheets-card"
+        aria-labelledby="results-title"
+        aria-busy="true"
+      >
+        <h2 id="results-title">Resultados</h2>
+        <div id="status-panel" data-mode="loading">
+          <p id="status" role="status" aria-live="polite" tabindex="-1">
+            Comprobando sesión…
+          </p>
+          <button
+            id="retry"
+            type="button"
+            class="btn btn-outline-secondary"
+            hidden
+          >
+            Volver a consultar</button
+          ><a id="login-link" href="/pages/login.html" hidden>Iniciar sesión</a>
+        </div>
+        <noscript
+          ><p>
+            Activa JavaScript para comprobar tu sesión y consultar las hojas.
+            Los filtros permanecen deshabilitados.
+          </p></noscript
+        >
+        <p id="table-help" class="sheets-hint" hidden>
+          En pantallas pequeñas puedes desplazar la tabla horizontalmente. Una
+          hoja publicada no confirma por sí sola que un viaje esté disponible
+          para comprar.
+        </p>
+        <div
+          class="sheets-table-scroll"
+          role="region"
+          aria-label="Tabla de hojas de ruta"
+          tabindex="0"
+        >
+          <table id="sheets-table" class="table" hidden>
+            <caption class="visually-hidden">
+              Hojas de ruta encontradas
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Fecha</th>
+                <th scope="col">Grupo</th>
+                <th scope="col">Estado</th>
+                <th scope="col">Identificador de hoja</th>
+              </tr>
+            </thead>
+            <tbody id="sheet-rows"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="container"><p>transViaje · Proyecto académico</p></div>
+    </footer>
+    <script type="module" src="/src/route-sheets/list-page.js"></script>
+  </body>
+</html>
