@@ -3,6 +3,7 @@ const {
   PaymentProofUploadDeadlineExpiredError,
   PaymentProofAlreadyUploadedError,
   PaymentProofExpiredError,
+  PaymentProofRejectedError,
   PaymentProofCannotExpireError,
 } = require('./payment-proof-error');
 const { validatePaymentProofStatus } = require('./payment-proof-status');
@@ -60,6 +61,7 @@ function uploadPaymentProof(paymentProof, file, paymentDeadlineAt, now = new Dat
   }
 
   if (paymentProof.status === 'EXPIRED') throw new PaymentProofExpiredError();
+  if (paymentProof.status === 'REJECTED') throw new PaymentProofRejectedError();
   if (paymentProof.status === 'UPLOADED') throw new PaymentProofAlreadyUploadedError();
   validatePaymentProofStatus(paymentProof.status);
 
@@ -109,4 +111,22 @@ function expirePaymentProof(paymentProof, now = new Date()) {
   });
 }
 
-module.exports = { createPaymentProof, uploadPaymentProof, expirePaymentProof };
+function rejectPaymentProof(paymentProof, { rejectedBy, justification, rejectedAt } = {}) {
+  if (!paymentProof || paymentProof.status !== 'UPLOADED') throw new PaymentProofValidationError();
+  if (
+    typeof rejectedBy !== 'string' ||
+    !rejectedBy.trim() ||
+    typeof justification !== 'string' ||
+    !justification.trim()
+  )
+    throw new PaymentProofValidationError();
+  return Object.freeze({
+    ...paymentProof,
+    status: 'REJECTED',
+    rejected_by: rejectedBy.trim(),
+    rejection_justification: justification.trim(),
+    rejected_at: validDate(rejectedAt),
+  });
+}
+
+module.exports = { createPaymentProof, uploadPaymentProof, expirePaymentProof, rejectPaymentProof };

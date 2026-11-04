@@ -25,6 +25,10 @@ class PaymentProofRepository {
     throw new Error('PaymentProofRepository.markApprovedIfPending debe implementarse.');
   }
 
+  async markRejectedIfPending() {
+    throw new Error('PaymentProofRepository.markRejectedIfPending debe implementarse.');
+  }
+
   /** save(paymentProof) persiste el comprobante y devuelve la entidad guardada. */
   async save() {
     throw new Error('PaymentProofRepository.save debe implementarse.');

@@ -1,6 +1,11 @@
 const { PaymentProofValidationError } = require('./payment-proof-error');
 
-const PAYMENT_PROOF_STATUSES = Object.freeze(['AWAITING_UPLOAD', 'UPLOADED', 'EXPIRED']);
+const PAYMENT_PROOF_STATUSES = Object.freeze([
+  'AWAITING_UPLOAD',
+  'UPLOADED',
+  'EXPIRED',
+  'REJECTED',
+]);
 
 function validatePaymentProofStatus(status) {
   if (!PAYMENT_PROOF_STATUSES.includes(status)) {

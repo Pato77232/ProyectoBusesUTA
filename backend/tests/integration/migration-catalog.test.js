@@ -151,6 +151,7 @@ test('base vacía instala esquema real, omite ocultos/originales y no duplica al
     expect(await snapshot(pool)).toEqual(before);
     await migrate(url, 'down'); // Retira el ciclo de venta nuevo.
     await migrate(url, 'down'); // Retira Fleet.
+    await migrate(url, 'down'); // Retira la protección de asientos.
     expect(
       (await pool.query("SELECT tgname FROM pg_trigger WHERE tgname='bus_seats_immutable'")).rows,
     ).toHaveLength(0);
@@ -190,21 +191,13 @@ test('copia de develop con datos conserva cada fila/definición y añade solamen
     await migrate(url);
     const after = await snapshot(pool);
     for (const [table, rows] of Object.entries(before.data)) {
-      expect(after.data[table]).toEqual(
-        table === 'pgmigrations' ? expect.arrayContaining(rows) : rows,
+      expect(comparableRows(table, after.data[table])).toEqual(
+        table === 'pgmigrations' ? expect.arrayContaining(rows) : comparableRows(table, rows),
       );
     }
     expect(after.data.pgmigrations).toHaveLength(activeNames.length);
     expect(after.definitions).toEqual(
-      expect.arrayContaining(
-        before.definitions.map((entry) =>
-          entry.kind === 'column' &&
-          ['payment_proofs', 'payment_proof_notification_outbox'].includes(entry.object) &&
-          entry.detail.startsWith('booking_id:uuid:')
-            ? { ...entry, detail: entry.detail.replace('booking_id:uuid:', 'booking_id:text:') }
-            : entry,
-        ),
-      ),
+      expect.arrayContaining(comparableDefinitions(before.definitions)),
     );
     expect(
       Object.keys(after.data)
@@ -347,8 +340,8 @@ test('también actualiza la base anterior de 17 migraciones conservando sus fila
     await expect(migrate(url)).resolves.toHaveLength(activeNames.length - 17);
     const after = await snapshot(pool);
     for (const [table, rows] of Object.entries(before.data)) {
-      expect(after.data[table]).toEqual(
-        table === 'pgmigrations' ? expect.arrayContaining(rows) : rows,
+      expect(comparableRows(table, after.data[table])).toEqual(
+        table === 'pgmigrations' ? expect.arrayContaining(rows) : comparableRows(table, rows),
       );
     }
     expect(after.data.pgmigrations).toHaveLength(activeNames.length);
@@ -421,8 +414,8 @@ test('actualiza develop con Reservas existentes sin perder plazos ni ocupaciones
         });
         expect(updatedRows).toEqual(oldRows);
       } else {
-        expect(after.data[table]).toEqual(
-          table === 'pgmigrations' ? expect.arrayContaining(rows) : rows,
+        expect(comparableRows(table, after.data[table])).toEqual(
+          table === 'pgmigrations' ? expect.arrayContaining(rows) : comparableRows(table, rows),
         );
       }
     }
@@ -448,6 +441,35 @@ async function expectBookingIdType(pool, expected) {
   expect(rows).toHaveLength(2);
   expect(rows.every((row) => row.data_type === expected)).toBe(true);
 }
+function comparableRows(table, rows) {
+  if (table !== 'payment_proofs') return rows;
+  return rows.map(({ row }) => {
+    const value = JSON.parse(row);
+    delete value.rejected_at;
+    delete value.rejected_by;
+    delete value.rejection_justification;
+    return { row: JSON.stringify(value) };
+  });
+}
+function comparableDefinitions(entries) {
+  return entries
+    .filter(
+      (entry) =>
+        !(
+          (entry.kind === 'column' &&
+            entry.object === 'payment_proofs' &&
+            entry.detail.startsWith('rejected_')) ||
+          (entry.kind === 'constraint' && ['bookings', 'payment_proofs'].includes(entry.object))
+        ),
+    )
+    .map((entry) =>
+      entry.kind === 'column' &&
+      ['payment_proofs', 'payment_proof_notification_outbox'].includes(entry.object) &&
+      entry.detail.startsWith('booking_id:uuid:')
+        ? { ...entry, detail: entry.detail.replace('booking_id:uuid:', 'booking_id:text:') }
+        : entry,
+    );
+}
 test('actualiza las 20 migraciones de develop con comprobante/outbox y revierte UUID sin perder filas', async () => {
   await database(async ({ pool, url }) => {
     await rawRun(url, activeNames.slice(0, 20));
@@ -459,8 +481,8 @@ test('actualiza las 20 migraciones de develop con comprobante/outbox y revierte 
     await expectBookingIdType(pool, 'text');
     const after = await snapshot(pool);
     for (const [table, rows] of Object.entries(before.data)) {
-      expect(after.data[table]).toEqual(
-        table === 'pgmigrations' ? expect.arrayContaining(rows) : rows,
+      expect(comparableRows(table, after.data[table])).toEqual(
+        table === 'pgmigrations' ? expect.arrayContaining(rows) : comparableRows(table, rows),
       );
     }
     expect(after.data.pgmigrations).toHaveLength(activeNames.length);
@@ -471,6 +493,7 @@ test('actualiza las 20 migraciones de develop con comprobante/outbox y revierte 
       (await pool.query("SELECT tgname FROM pg_trigger WHERE tgname='bus_seats_immutable'")).rows,
     ).toHaveLength(1);
     await expectBookingIdType(pool, 'text');
+    await migrate(url, 'down');
     await migrate(url, 'down');
     await migrate(url, 'down');
     await expectBookingIdType(pool, 'uuid');
@@ -486,6 +509,7 @@ test.each(['reserva opaca/2026:á', 'ABCDEFAB-0000-4000-8000-000000000001'])(
       await migrate(url);
       await migrate(url, 'down'); // Retira el ciclo de venta nuevo.
       await migrate(url, 'down'); // Retira Fleet; la reversión que se prueba es la de Pagos.
+      await migrate(url, 'down'); // Retira la protección de asientos.
       await seedProofOutbox(pool);
       await pool.query('UPDATE payment_proofs SET booking_id=$1', [id]);
       await pool.query('UPDATE payment_proof_notification_outbox SET booking_id=$1', [id]);
@@ -543,20 +567,17 @@ test('actualiza las 21 migraciones actuales de develop y conserva identidades op
     const after = await snapshot(pool);
     expect(after.data.pgmigrations).toHaveLength(activeNames.length);
     for (const [table, rows] of Object.entries(before.data)) {
-      expect(after.data[table]).toEqual(
-        table === 'pgmigrations' ? expect.arrayContaining(rows) : rows,
+      expect(comparableRows(table, after.data[table])).toEqual(
+        table === 'pgmigrations' ? expect.arrayContaining(rows) : comparableRows(table, rows),
       );
     }
     expect(after.definitions).toEqual(
-      expect.arrayContaining(
-        before.definitions.filter(
-          (entry) => !(entry.kind === 'constraint' && entry.object === 'bookings'),
-        ),
-      ),
+      expect.arrayContaining(comparableDefinitions(before.definitions)),
     );
     await expect(pool.query('UPDATE bus_seats SET offered=NOT offered')).rejects.toMatchObject({
       code: '23001',
     });
+    await migrate(url, 'down');
     await migrate(url, 'down');
     await migrate(url, 'down');
     expect(await snapshot(pool)).toEqual(before);

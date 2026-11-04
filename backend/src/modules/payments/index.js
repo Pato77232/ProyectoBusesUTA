@@ -5,6 +5,7 @@ const UploadPaymentProof = require('./application/upload-payment-proof.use-case'
 const ListPendingPaymentProofs = require('./application/list-pending-payment-proofs.use-case');
 const ReadPaymentProofFile = require('./application/read-payment-proof-file.use-case');
 const ApprovePaymentProof = require('./application/approve-payment-proof.use-case');
+const RejectPaymentProof = require('./application/reject-payment-proof.use-case');
 const PgPaymentProofRepository = require('./infrastructure/pg-payment-proof.repository');
 const LocalPrivateFileStorage = require('./infrastructure/local-private-file-storage');
 const SimulatedBookingReader = require('./infrastructure/simulated-booking-reader');
@@ -46,6 +47,10 @@ function createPaymentsModule({
     paymentProofRepository,
     bookingSaleConfirmer: saleConfirmer,
   });
+  const rejectPaymentProof = new RejectPaymentProof({
+    paymentProofRepository,
+    bookingSaleConfirmer: saleConfirmer,
+  });
 
   return {
     router: createPaymentProofRouter({
@@ -54,6 +59,7 @@ function createPaymentsModule({
       listPendingPaymentProofs,
       readPaymentProofFile,
       approvePaymentProof,
+      rejectPaymentProof,
     }),
     bookingReader,
     bookingPaymentProofNotifier,

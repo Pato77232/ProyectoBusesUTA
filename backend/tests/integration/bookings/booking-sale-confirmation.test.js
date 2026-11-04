@@ -76,3 +76,26 @@ test('rechaza un comprobante distinto sin cambiar la reserva', async () => {
   ).rejects.toMatchObject({ code: 'BOOKING_SALE_REJECTED' });
   expect((await pool.query('SELECT status FROM bookings')).rows[0].status).toBe('PENDING_PAYMENT');
 });
+
+test('rechaza con motivo, conserva actor y libera el asiento', async () => {
+  const confirmer = new PgBookingSaleConfirmer({ pool, clock: () => now });
+  await expect(
+    confirmer.rejectSale({
+      bookingId: 'booking-sale',
+      cooperativeId: 'coop-sale',
+      paymentProofId: 'proof-sale',
+      rejectedBy: 'clerk-sale',
+      justification: 'El comprobante no corresponde al titular.',
+    }),
+  ).resolves.toBe(true);
+  expect(
+    (await pool.query('SELECT status,rejected_by,rejection_justification FROM bookings')).rows[0],
+  ).toMatchObject({
+    status: 'REJECTED',
+    rejected_by: 'clerk-sale',
+    rejection_justification: 'El comprobante no corresponde al titular.',
+  });
+  expect((await pool.query('SELECT active FROM booking_seat_allocations')).rows[0].active).toBe(
+    false,
+  );
+});
