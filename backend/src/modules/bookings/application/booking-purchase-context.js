@@ -109,7 +109,8 @@ async function readTrip(tripCatalog, request, tariffQueries) {
 }
 
 async function readPurchaseTrip(dependencies, request) {
-  if (!dependencies.purchaseCatalog) return readTrip(dependencies.tripCatalog, request);
+  if (!dependencies.purchaseCatalog)
+    return readTrip(dependencies.tripCatalog, request, dependencies.tariffQueries);
   const trip = await dependencies.purchaseCatalog.findPurchaseContext({
     tripId: request.tripId,
     fromPosition: request.fromPosition,
