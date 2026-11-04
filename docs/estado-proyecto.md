@@ -37,6 +37,12 @@ Bookings de `65957a9`. Falta revisión humana y CI. La rama se basa en el últim
 `origin/develop` observado y los solapamientos actuales quedaron conciliados;
 futuros cambios de `develop` aún pueden requerir otra revisión.
 
+## PAGOS-02 / BOOK-07 — contrato versionado de aprobación, 4 de noviembre de 2026
+
+Leslie confirmó a Shirley `proofVersion` entero (1 para comprobante nuevo, incremento por reemplazo completado), persistencia transaccional junto con oficinista/fecha al bloquear el contenido, bloqueo mantenido ante resultado incierto, consulta pública de intención por `bookingId`, `cooperativeId` y `paymentProofId`, y conservación de la versión en la venta de Bookings. La misma identidad y versión recuperan el resultado; una versión distinta no es el mismo intento. El adaptador devuelve `true` solo ante venta persistida, `BookingSaleRejectedError` ante rechazo definitivo y `BookingSaleUncertainError` ante incertidumbre.
+
+Este acuerdo se registró en [PAGOS-02](specs/PAGOS-02.md) y [BOOK-07](specs/BOOK-07.md)/[BOOK-07-L05](specs/BOOK-07-L05.md). Falta definir el tratamiento de comprobantes preexistentes antes de asignar versiones. Las APIs, migración y transacciones siguen sin implementar; este registro es documental y no marca tareas integradas ni cerradas.
+
 ## D-05 — renovación, sección 0 documental, 3 de noviembre de 2026
 
 David autorizó preparar [ROUTE-SHEETS-08](specs/ROUTE-SHEETS-08.md) y aportó la respuesta humana de Leslie. Rama existente `feature/ROUTE-SHEETS-08-renovacion-ciclos`, base `072f845`, inicialmente limpia; fetch comprobó `origin/develop` en `4bb6861`. Se reutiliza la rama sin merge/rebase; el avance remoto se distingue de la base de esta documentación.
@@ -747,3 +753,32 @@ Checkpoint de disponibilidad: ejecución completa sobre 9920792 aprobada con arr
 | BOOK-02-L02 / PR #70 | Conflictos en server.js y su prueba resueltos localmente frente a develop 9f7ac91 | [Spec](specs/BOOK-02-L02.md), [evidencia](evidence/BOOK-02-L02/2026-11-04-conciliacion-pr70.md). Disponibilidad, carga/recepción y lectura de Pagos compuestas juntas. 29 unitarias dirigidas y suite completa aprobadas: 1842 unitarias + 588 integraciones (2430 pruebas, 143 suites), incluido arranque real. Lint y formato propio aprobados; formato global mantiene 17 archivos ajenos. Corrección preparada para publicar; revisión humana pendiente. |
 
 Se conserva el catálogo 24 de develop y sus contratos. Compatibilidad verificada en copia efímera: el catálogo previo de 23 con renovación pero sin procedencia se rechaza con MIGRATION_HISTORY_UNEXPECTED sin cambios de filas/columnas/historial. Bases persistentes con esa historia requieren un plan aparte con Pablo/Shirley; no se inspeccionaron ni convirtieron bases del equipo y no se afirma que existan en ese estado.
+
+## Leslie: siguiente incremento de venta para PAGOS-02 — 4 de noviembre de 2026
+
+| Área | Estado comprobado | Evidencia y dependencia |
+| --- | --- | --- |
+| BOOK-05-L01 cálculo puro | Conservado publicado en feature/BOOK-05-cotizacion-configurable, 32afe9d | No incorporado a la rama de venta; conexión comercial sigue pendiente. |
+| BOOK-07 T2/T3 | Preparación documental en feature/BOOK-07-confirmacion-venta, base ae88e0c | [Spec §13](specs/BOOK-07.md), [evidencia](evidence/BOOK-07/2026-11-04-preparacion-venta.md). confirmSale todavía no implementada; Pagos usa simulación. |
+
+Prioridad propuesta para desbloquear a Shirley: conciliar verificación de intención/actor/versión/importe y adaptación de resultado/errores; después persistencia atómica e idempotencia con pruebas de carreras. La firma básica y reglas de reintento/recepción ya acordadas no se reabren. No se atribuye aprobación a nuevos puertos ni a un esquema de versión. Sin commit/push ni pruebas funcionales nuevas en esta preparación.
+
+### Leslie: diseño y matriz de venta, pendiente de Shirley — 4 de noviembre de 2026
+
+BOOK-07 §14 y [matriz propuesta](contratos/confirmacion-venta-reservas-pruebas-propuesta.md): 32 escenarios preparados, sin ejecución funcional. Orden de bloqueos, venta atómica, rollback/reintentos y protección de ventas ante expiración. Respuesta de Shirley confirma traducción true/errores; proofVersion y fuente autorizada de intención siguen por conciliar. CHECK de reserva/ciclo de vida requieren adaptación futura; no se modificaron migraciones ni código. Base comprobada ae88e0c; rama feature/BOOK-07-confirmacion-venta conserva la preparación local. Sin commit/push ni cierre de BOOK-07.
+
+### Leslie: intención versionada y regla de históricos — 4 de noviembre de 2026
+
+BOOK-07 §15 registra acuerdo proofVersion comunicado por Shirley y confirmación explícita de Leslie de preservar comprobantes antiguos sin versión/venta automática, manteniendo bloqueo con intención pendiente/incierta. Reemplaza los pendientes históricos incompatibles de esas reglas; no verifica código local de Shirley.
+
+Primer incremento independiente implementado en feature/BOOK-07-confirmacion-venta: validación pura de intención y recuperación de resultado persistido con versión/vínculos/actor/fecha. [Evidencia](evidence/BOOK-07/2026-11-04-intencion-versionada.md). 60 unitarias nuevas aprobadas, lint/formato propio aprobados; formato global conserva 17 archivos ajenos. npm test completo en ejecución con PostgreSQL aislado. No escribe ventas ni asientos, no expone confirmSale ni conecta Payments. Fuente productiva y contratos restantes siguen pendientes; no commit/push.
+
+Resultado final del incremento interno BOOK-07 §15: 60 unitarias nuevas aprobadas; npm test global ejecutado con 1902 unitarias aprobadas y 587/588 integraciones aprobadas. Salida 1 por timeout original de fotografías de Fleet (bus-photo-storage.test.js:23), sin cambios ni repetición buscando verde. Lint/formato propio aprobados; formato global mantiene 17 archivos ajenos. Entorno PostgreSQL exclusivo eliminado. Sin commit/push, persistencia de venta o API confirmSale disponible; evidencia separa este resultado de la futura integración completa.
+
+### Leslie: persistencia atómica de venta en curso — 4 de noviembre de 2026
+
+BOOK-07 §16, feature/BOOK-07-confirmacion-venta. Shirley confirmó históricos conservados sin versión/venta automática y conciliación aparte. [Evidencia](evidence/BOOK-07/2026-11-04-venta-atomica.md). Nueva migración final (catálogo 25), columnas nullable, CONFIRMED con asientos SOLD activos, reintento durable y rollback completo. Ciclo de vida/lectura mantienen protección y prohíben nueva carga; sin proveedor simulado de venta conectado.
+
+Base de código ae88e0c; se contrastó develop da9c678 y conciliaron sus cambios documentales de versionado. Pruebas dirigidas de venta y recepción aprobadas en segunda ejecución; una comparación JSON de actualización corregida para valores completos. Lint aprobado, suite global en ejecución. Sin commit/push, API pública confirmSale o integración productiva con Payments; fuente de intención/caso de uso siguen pendientes.
+
+Resultado final BOOK-07 §16: persistencia interna verificada con 1904 unitarias + 608 integraciones aprobadas, total 2512 pruebas en 145 suites, npm test salida 0. Lint/formato propio aprobados; formato global conserva 17 archivos ajenos. Fotografías pasó con timeout original. Corregidos dos casos de compatibilidad de pruebas/lectura histórica, conservando sus aserciones; evidencia mantiene primera global fallida. Migración nueva 25 y actualización desde 24 comprobadas sin versionar históricos; entorno temporal eliminado. No commit/push o integración; confirmSale pública/caso de uso y proveedor real de Payments siguen pendientes.

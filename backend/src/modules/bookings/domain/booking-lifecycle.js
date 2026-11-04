@@ -54,7 +54,7 @@ function inspect(booking, allocations) {
     !id(booking.bookingId) ||
     !id(booking.cooperativeId) ||
     !id(booking.tripId) ||
-    !['PENDING_PAYMENT', 'EXPIRED'].includes(booking.status) ||
+    !['PENDING_PAYMENT', 'EXPIRED', 'CONFIRMED'].includes(booking.status) ||
     !['NOT_RECEIVED', 'RECEIVED'].includes(booking.proofReceptionState) ||
     !Number.isSafeInteger(booking.fromPosition) ||
     !Number.isSafeInteger(booking.toPosition) ||
@@ -72,6 +72,14 @@ function inspect(booking, allocations) {
     const received = timestamp(booking.proofReceivedAt);
     if (!id(booking.acceptedProofId) || received < start || received >= deadline) fail();
   } else if (booking.acceptedProofId !== null || booking.proofReceivedAt !== null) fail();
+  const confirmed = booking.status === 'CONFIRMED';
+  if (
+    confirmed &&
+    (booking.proofReceptionState !== 'RECEIVED' ||
+      timestamp(booking.confirmedAt) < timestamp(booking.proofReceivedAt))
+  )
+    fail();
+  if (!confirmed && booking.confirmedAt !== null && booking.confirmedAt !== undefined) fail();
   const expired = booking.status === 'EXPIRED';
   if (expired) {
     if (booking.proofReceptionState !== 'NOT_RECEIVED' || timestamp(booking.expiredAt) < deadline)
@@ -84,7 +92,7 @@ function inspect(booking, allocations) {
     allocations.length !== booking.passengerCount ||
     allocations.some(
       (seat) =>
-        seat.status !== 'RESERVED' ||
+        seat.status !== (confirmed ? 'SOLD' : 'RESERVED') ||
         seat.active !== !expired ||
         seat.fromPosition !== booking.fromPosition ||
         seat.toPosition !== booking.toPosition,
@@ -129,4 +137,11 @@ function receiveDecision(booking, allocations, target, now) {
     target,
   );
 }
-module.exports = { request, verifiedSource, receiptResult, expireDecision, receiveDecision };
+module.exports = {
+  request,
+  verifiedSource,
+  receiptResult,
+  expireDecision,
+  receiveDecision,
+  inspect,
+};

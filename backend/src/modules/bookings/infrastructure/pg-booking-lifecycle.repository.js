@@ -1,4 +1,7 @@
 const BookingLifecycleError = require('../domain/booking-lifecycle-error');
+const BookingSaleError = require('../domain/booking-sale-error');
+const { verifySaleIntent } = require('../domain/booking-sale-attempt');
+const { persistSale } = require('./pg-booking-sale');
 const { receiptResult, expireDecision, receiveDecision } = require('../domain/booking-lifecycle');
 const fail = (code) => {
   throw new BookingLifecycleError(code);
@@ -9,6 +12,8 @@ function snapshot(row) {
     cooperativeId: row.cooperative_id,
     tripId: row.trip_id,
     status: row.status,
+    confirmedAt: row.confirmed_at ?? null,
+    row,
     fromPosition: Number(row.from_position),
     toPosition: Number(row.to_position),
     proofWindowStartedAt: row.proof_window_started_at,
@@ -45,22 +50,27 @@ async function lockedBooking(client, bookingId) {
     rows: [scope],
   } = await client.query('SELECT cooperative_id,trip_id FROM bookings WHERE id=$1', [bookingId]);
   if (!scope) fail('BOOKING_NOT_FOUND');
-  await client.query(
+  const tripLock = await client.query(
     'SELECT trip_id FROM booking_trip_locks WHERE cooperative_id=$1 AND trip_id=$2 FOR UPDATE',
     [scope.cooperative_id, scope.trip_id],
   );
+  if (tripLock.rows.length !== 1) fail('BOOKING_DATA_INTEGRITY_ERROR');
   const {
     rows: [row],
   } = await client.query('SELECT * FROM bookings WHERE id=$1 FOR UPDATE', [bookingId]);
   if (!row || row.cooperative_id !== scope.cooperative_id || row.trip_id !== scope.trip_id)
     fail('BOOKING_DATA_INTEGRITY_ERROR');
   const { rows } = await client.query(
-    'SELECT status,active,from_position,to_position FROM booking_seat_allocations WHERE booking_id=$1 ORDER BY seat_id FOR UPDATE',
+    'SELECT seat_id,booking_id,cooperative_id,trip_id,status,active,from_position,to_position FROM booking_seat_allocations WHERE booking_id=$1 ORDER BY seat_id FOR UPDATE',
     [bookingId],
   );
   return {
     booking: snapshot(row),
     allocations: rows.map((seat) => ({
+      seatId: seat.seat_id,
+      bookingId: seat.booking_id,
+      cooperativeId: seat.cooperative_id,
+      tripId: seat.trip_id,
       status: seat.status,
       active: seat.active,
       fromPosition: Number(seat.from_position),
@@ -80,7 +90,7 @@ async function expire(client, booking, at) {
   ]);
 }
 function safe(error) {
-  if (error instanceof BookingLifecycleError) return error;
+  if (error instanceof BookingLifecycleError || error instanceof BookingSaleError) return error;
   return new BookingLifecycleError(
     ['23503', '23505', '23514'].includes(error.code)
       ? 'BOOKING_DATA_INTEGRITY_ERROR'
@@ -110,6 +120,25 @@ class PgBookingLifecycleRepository {
     } finally {
       if (client) client.release(connectionFailure);
     }
+  }
+  async confirmSale(input, clock) {
+    const target = Object.fromEntries(
+      ['bookingId', 'cooperativeId', 'paymentProofId'].map((key) => [key, input?.[key]]),
+    );
+    const attempt = verifySaleIntent(target, input);
+    return this.transaction(async (client) => {
+      await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))', [
+        JSON.stringify(['booking-proof-receipt', attempt.paymentProofId]),
+      ]);
+      const linked = await client.query(
+        "SELECT id FROM bookings WHERE accepted_proof_id=$1 AND status='CONFIRMED'",
+        [attempt.paymentProofId],
+      );
+      if (linked.rows.some((row) => row.id !== attempt.bookingId))
+        throw new BookingSaleError('BOOKING_SALE_LINK_MISMATCH');
+      const { booking, allocations } = await lockedBooking(client, attempt.bookingId);
+      return persistSale(client, attempt, booking, allocations, clock);
+    });
   }
   async listExpiredCandidates({ cutoff, after, limit }) {
     const validTime = (value) =>

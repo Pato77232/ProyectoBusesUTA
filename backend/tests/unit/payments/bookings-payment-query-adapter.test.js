@@ -315,3 +315,16 @@ test('acepta reserva EXPIRED únicamente con carga deshabilitada', async () => {
     code: 'BOOKING_DATA_INTEGRITY_ERROR',
   });
 });
+
+test('acepta CONFIRMED para revisión conservando total y sin habilitar carga', async () => {
+  const { adapter } = harness({ ...BOOKING, status: 'CONFIRMED', canUploadProof: false });
+  const result = await adapter.findForPayment(REVIEW, CLERK);
+  expect(result).toMatchObject({ status: 'CONFIRMED', total: 875, acceptsPaymentProof: false });
+  expect(result).not.toHaveProperty('ownerId');
+});
+test('rechaza CONFIRMED que afirme permitir otra carga', async () => {
+  const { adapter } = harness({ ...BOOKING, status: 'CONFIRMED', canUploadProof: true });
+  await expect(adapter.findForPayment(QUERY, CUSTOMER)).rejects.toMatchObject({
+    code: 'BOOKING_DATA_INTEGRITY_ERROR',
+  });
+});

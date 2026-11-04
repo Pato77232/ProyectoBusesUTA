@@ -5,7 +5,7 @@ const REVIEW_PAYMENT = 'REVIEW_PAYMENT';
 const MIN_WINDOW_SECONDS = 180;
 const MAX_WINDOW_SECONDS = 300;
 const MILLISECONDS_PER_SECOND = 1000;
-const SUPPORTED_STATUSES = Object.freeze(['PENDING_PAYMENT', 'EXPIRED']);
+const SUPPORTED_STATUSES = Object.freeze(['PENDING_PAYMENT', 'EXPIRED', 'CONFIRMED']);
 
 function isIdentifier(value) {
   return typeof value === 'string' && value.trim().length > 0;
@@ -71,7 +71,7 @@ function mapBooking(booking, query, context) {
     totalPriceCents < 0 ||
     currency !== 'USD' ||
     !SUPPORTED_STATUSES.includes(status) ||
-    (status === 'EXPIRED' && canUploadProof !== false) ||
+    (status !== 'PENDING_PAYMENT' && canUploadProof !== false) ||
     typeof canUploadProof !== 'boolean' ||
     !Number.isInteger(proofWindowSeconds) ||
     proofWindowSeconds < MIN_WINDOW_SECONDS ||

@@ -1,3 +1,4 @@
+const { rollbackBefore } = require('../../helpers/migration-target');
 const http = require('node:http');
 const { randomUUID } = require('node:crypto');
 const { start } = require('../../../src/server');
@@ -375,8 +376,13 @@ test('la procedencia no se edita, borra ni destruye con down', async () => {
   await expect(
     pool.query('DELETE FROM route_sheet_renewals WHERE target_route_sheet_id=$1', [target]),
   ).rejects.toMatchObject({ code: '23514' });
-  expect(() => runMigration('down')).toThrow();
-  expect(await count('route_sheet_renewals')).toBe(1);
+  await rollbackBefore(pool, '1794160000000-route-sheet-renewals');
+  try {
+    expect(() => runMigration('down')).toThrow();
+    expect(await count('route_sheet_renewals')).toBe(1);
+  } finally {
+    runMigration();
+  }
 });
 
 test('un commit con respuesta perdida se recupera por clave desde otra instancia y otro reloj', async () => {

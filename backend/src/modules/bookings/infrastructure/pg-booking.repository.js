@@ -210,7 +210,8 @@ class PgBookingRepository {
         `SELECT id, owner_id, cooperative_id, status, total_price_cents,
           summary->>'currency' AS currency, summary#>>'{totals,totalPriceCents}' AS summary_total,
           created_at, expires_at, proof_window_started_at, proof_window_seconds,
-          proof_reception_state, accepted_proof_id, proof_received_at
+          proof_reception_state, accepted_proof_id, proof_received_at,
+          (to_jsonb(bookings)->>'confirmed_at')::timestamptz AS confirmed_at
          FROM bookings WHERE id = $1 AND ${filter} = $2`,
         [request.bookingId, principal],
       );

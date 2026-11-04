@@ -76,7 +76,7 @@ function paymentBooking(row, request, now) {
   if (
     row.currency !== 'USD' ||
     cents(row.summary_total) !== total ||
-    !['PENDING_PAYMENT', 'EXPIRED'].includes(row.status)
+    !['PENDING_PAYMENT', 'EXPIRED', 'CONFIRMED'].includes(row.status)
   )
     integrity();
   const created = timestamp(row.created_at);
@@ -99,6 +99,11 @@ function paymentBooking(row, request, now) {
     if (accepted < start || accepted >= deadline) integrity();
   } else integrity();
   if (row.status === 'EXPIRED' && !absent) integrity();
+  if (
+    row.status === 'CONFIRMED' &&
+    (!received || timestamp(row.confirmed_at) < timestamp(row.proof_received_at))
+  )
+    integrity();
   if (!(now instanceof Date) || !Number.isFinite(now.getTime()))
     throw new BookingPaymentQueryError();
   return Object.freeze({
