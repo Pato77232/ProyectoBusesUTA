@@ -1,8 +1,8 @@
 # PAGOS-02: conexión productiva de lectura
 
-**Fecha:** 3 de noviembre de 2026  
-**Responsable:** Shirley  
-**Rama final aislada:** `feature/PAGOS-02-develop-actualizado`  
+**Fecha:** 3 de noviembre de 2026<br>
+**Responsable:** Shirley<br>
+**Rama final aislada:** `feature/PAGOS-02-develop-actualizado`<br>
 **Base inicial:** `origin/develop` en `2f194b7`; revalidada sobre `65957a9`
 
 ## Alcance

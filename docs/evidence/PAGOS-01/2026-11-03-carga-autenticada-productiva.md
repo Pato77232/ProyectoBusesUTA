@@ -1,8 +1,8 @@
 # PAGOS-01 — carga autenticada y recepción productiva
 
-**Fecha:** 3 de noviembre de 2026  
-**Rama final:** `feature/PAGOS-02-develop-actualizado`  
-**Base inicial:** `origin/develop` en `2f194b7`; revalidada y conciliada sobre `65957a9`  
+**Fecha:** 3 de noviembre de 2026<br>
+**Rama final:** `feature/PAGOS-02-develop-actualizado`<br>
+**Base inicial:** `origin/develop` en `2f194b7`; revalidada y conciliada sobre `65957a9`<br>
 **Alcance:** sección 17 de [PAGOS-01](../../specs/PAGOS-01.md#17-carga-autenticada-y-recepción-productiva--3-de-noviembre-de-2026)
 
 ## Cambios
