@@ -469,15 +469,25 @@ test('UNKNOWN no inventa ausencia ni permite liberar', async () => {
 test('down protege evidencia y estados persistidos sin alterar historial', async () => {
   const { input } = await setup();
   await receiver().markPaymentProofReceived(input);
-  const previous = (await pool.query('SELECT * FROM pgmigrations ORDER BY id')).rows;
-  expect(previous.at(-1).name).toBe('1793910000000-booking-proof-receipts');
-  const snapshot = await state();
-  expect(() => runMigration('down')).toThrow();
-  expect((await pool.query('SELECT * FROM pgmigrations ORDER BY id')).rows).toEqual(previous);
-  expect(await state()).toEqual(snapshot);
-  await expect(
-    pool.query(
-      "UPDATE booking_proof_receipt_results SET decided_at=decided_at+interval '1 second'",
-    ),
-  ).rejects.toMatchObject({ code: '23514' });
+  const targetMigration = '1793910000000-booking-proof-receipts';
+  const applied = (await pool.query('SELECT name FROM pgmigrations ORDER BY id DESC')).rows;
+  try {
+    for (const { name } of applied) {
+      if (name === targetMigration) break;
+      runMigration('down');
+    }
+    const previous = (await pool.query('SELECT * FROM pgmigrations ORDER BY id')).rows;
+    expect(previous.at(-1).name).toBe(targetMigration);
+    const snapshot = await state();
+    expect(() => runMigration('down')).toThrow();
+    expect((await pool.query('SELECT * FROM pgmigrations ORDER BY id')).rows).toEqual(previous);
+    expect(await state()).toEqual(snapshot);
+    await expect(
+      pool.query(
+        "UPDATE booking_proof_receipt_results SET decided_at=decided_at+interval '1 second'",
+      ),
+    ).rejects.toMatchObject({ code: '23514' });
+  } finally {
+    runMigration();
+  }
 });

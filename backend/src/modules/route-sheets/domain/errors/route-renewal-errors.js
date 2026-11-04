@@ -21,6 +21,28 @@ class RenewalSourceError extends DomainError {
   }
 }
 
+class RenewalForbiddenError extends DomainError {
+  constructor() {
+    super(
+      'La renovación requiere administración de la cooperativa.',
+      'ROUTE_RENEWAL_FORBIDDEN',
+      403,
+    );
+    this.name = 'RenewalForbiddenError';
+  }
+}
+
+class RenewalUncertainError extends DomainError {
+  constructor() {
+    super(
+      'No se pudo confirmar el resultado. Reintenta con la misma clave de solicitud.',
+      'ROUTE_RENEWAL_RESULT_UNCERTAIN',
+      503,
+    );
+    this.name = 'RenewalUncertainError';
+  }
+}
+
 class RenewalNotFoundError extends DomainError {
   constructor() {
     super('Hoja de origen no encontrada.', 'ROUTE_RENEWAL_NOT_FOUND', 404);
@@ -33,4 +55,6 @@ module.exports = {
   RenewalConflictError,
   RenewalSourceError,
   RenewalNotFoundError,
+  RenewalForbiddenError,
+  RenewalUncertainError,
 };

@@ -153,6 +153,10 @@ test('base vacía instala esquema real, omite ocultos/originales y no duplica al
     expect(await snapshot(pool)).toEqual(before);
     await migrate(url, 'down');
     expect(
+      (await pool.query("SELECT to_regclass('route_sheet_renewals') AS name")).rows[0].name,
+    ).toBeNull();
+    await migrate(url, 'down');
+    expect(
       (await pool.query("SELECT to_regclass('booking_proof_receipt_results') AS name")).rows[0]
         .name,
     ).toBeNull();
@@ -183,7 +187,7 @@ test('copia de develop con datos conserva cada fila/definición y añade solamen
         table === 'pgmigrations' ? expect.arrayContaining(rows) : rows,
       );
     }
-    expect(after.data.pgmigrations).toHaveLength(20);
+    expect(after.data.pgmigrations).toHaveLength(21);
     expect(after.definitions).toEqual(expect.arrayContaining(before.definitions));
     expect(
       Object.keys(after.data)
@@ -194,6 +198,7 @@ test('copia de develop con datos conserva cada fila/definición y añade solamen
       'booking_seat_allocations',
       'booking_trip_locks',
       'bookings',
+      'route_sheet_renewals',
     ]);
     expect(after.data.bookings).toEqual([]);
   });
@@ -279,7 +284,7 @@ test.each([false, true])(
       expect(await snapshot(pool)).toEqual(before);
       expect((await pool.query("SELECT to_regclass('bookings') AS name")).rows[0].name).toBeNull();
       await pool.query('DROP EVENT TRIGGER qa_fail_bookings; DROP SCHEMA qa_failure CASCADE');
-      await expect(migrate(url)).resolves.toHaveLength(withDevelop ? 2 : 20);
+      await expect(migrate(url)).resolves.toHaveLength(withDevelop ? 3 : 21);
     });
   },
 );
@@ -297,7 +302,7 @@ test('el bloqueo compartido impide validar mientras otro migrador tiene autorida
       await holder.query('SELECT pg_advisory_unlock($1)', [lockId]);
       holder.release();
     }
-    await expect(migrate(url)).resolves.toHaveLength(20);
+    await expect(migrate(url)).resolves.toHaveLength(21);
   });
 });
 
@@ -309,7 +314,7 @@ test('historial legítimo vacío tras down conserva su índice interno y permite
     expect((await pool.query("SELECT to_regclass('pgmigrations_pkey') AS name")).rows[0].name).toBe(
       'pgmigrations_pkey',
     );
-    await expect(migrate(url)).resolves.toHaveLength(20);
+    await expect(migrate(url)).resolves.toHaveLength(21);
     expect(
       (await pool.query('SELECT name FROM pgmigrations ORDER BY id')).rows.map(({ name }) => name),
     ).toEqual(activeNames);
@@ -321,14 +326,14 @@ test('también actualiza la base anterior de 17 migraciones conservando sus fila
     await rawRun(url, activeNames.slice(0, 17));
     await seedDevelop(pool);
     const before = await snapshot(pool);
-    await expect(migrate(url)).resolves.toHaveLength(3);
+    await expect(migrate(url)).resolves.toHaveLength(4);
     const after = await snapshot(pool);
     for (const [table, rows] of Object.entries(before.data)) {
       expect(after.data[table]).toEqual(
         table === 'pgmigrations' ? expect.arrayContaining(rows) : rows,
       );
     }
-    expect(after.data.pgmigrations).toHaveLength(20);
+    expect(after.data.pgmigrations).toHaveLength(21);
     const categoryCheck = await pool.query(
       "SELECT pg_get_constraintdef(oid) AS definition FROM pg_constraint WHERE conname='bus_seats_category_check'",
     );
@@ -374,7 +379,7 @@ test('actualiza develop con Reservas existentes sin perder plazos ni ocupaciones
     }
     const before = await snapshot(pool);
     expect(before.data.pgmigrations).toHaveLength(19);
-    await expect(migrate(url)).resolves.toHaveLength(1);
+    await expect(migrate(url)).resolves.toHaveLength(2);
     const after = await snapshot(pool);
     for (const [table, rows] of Object.entries(before.data)) {
       if (table === 'bookings') {
@@ -392,7 +397,7 @@ test('actualiza develop con Reservas existentes sin perder plazos ni ocupaciones
         );
       }
     }
-    expect(after.data.pgmigrations).toHaveLength(20);
+    expect(after.data.pgmigrations).toHaveLength(21);
     expect(after.data.booking_proof_receipt_results).toEqual([]);
     expect(after.data.booking_seat_allocations).toHaveLength(3);
     await expect(migrate(url)).resolves.toEqual([]);

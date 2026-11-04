@@ -4,11 +4,12 @@
 - **Referencia de planificación:** D-05, primera tarea: renovación. Paradas operativas y sustitución tendrán specs separadas; no se les asigna un ID definitivo aquí.
 - **Módulo / responsable:** `route-sheets` / David, por solicitud expresa en esta sesión.
 - **Revisora propuesta:** Leslie. Su respuesta permite continuar la preparación de renovación; no confirma aceptación de revisar código ni aprobación de esta spec completa.
-- **Estado:** Sección 0 guardada por David en `80c2211`; sección 1 implementada y probada localmente. Sección 2, revisión humana e integración pendientes; ejecución global fallida por timeout conocido de fotos de Fleet.
+- **Estado:** Sección 0 en `80c2211`, sección 1 en `4ff9723`; sección 2 implementada localmente, con verificación registrada en §16. Revisión humana e integración pendientes.
 - **Fecha:** 3 de noviembre de 2026, America/Guayaquil.
 - **Rama / base comprobada:** `feature/ROUTE-SHEETS-08-renovacion-ciclos`, ya existente en `072f845`, inicialmente limpia. Se reutiliza sin merge/rebase. Fetch comprobó `origin/develop` en `4bb6861`, que incorpora FLEET-09 T1. La base de implementación deberá contrastarse con ese avance; esta sección no acredita la combinación ni modifica la historia Git.
 - **Autorización:** David pidió realizar únicamente la sección 0 y aportó la respuesta de Leslie. Autoriza planificación, registro del acuerdo y seguimiento; no código, migraciones, commits, publicación ni cambios en Bookings/Fleet.
 - **Autorización posterior de sección 1:** David solicitó implementarla y respondió expresamente «Confirmo las cuatro recomendaciones» a Q1–Q4 en esta sesión del 3 de noviembre. Autoriza dominio, contrato de puertos y pruebas de esta sección; no sección 2, commits, publicación ni cambios de módulos ajenos.
+- **Autorización posterior de sección 2:** David pidió expresamente implementar sección 2 y preparar los textos de PR y posterior aprobación. Incluye persistencia, endpoint, composición, migración nueva/catálogo y adaptación de fixtures al nuevo esquema. No autoriza commits, push, integración ni envío de mensajes.
 
 ## 1. Objetivo y fuentes
 
@@ -62,7 +63,9 @@ No hay endpoint nuevo implementado. Propuesta: `POST /api/v1/route-sheets/:id/re
 
 Resultados previstos: 201 al preparar, 200 al recuperar el mismo resultado; 400 entrada inválida; 401/403 sesión/rol; 404 origen ausente o ajeno sin revelar otro tenant; 409 revisión, origen no elegible, agenda, continuidad, cupo o solicitud incompatibles; 503 proveedor necesario ausente/fallido. Códigos concretos y traducción deben respetar los errores existentes y definirse con el caso de uso. Un fallo técnico nunca equivale a hoja libre ni a renovación realizada.
 
-## 7. Criterios de aceptación pendientes
+## 7. Criterios de aceptación y revisión
+
+Casillas pendientes de aceptación humana. Las comprobaciones automatizadas locales y sus límites se registran en §15–16; no equivalen a aprobar la PR ni a integrar la rama.
 
 - [ ] Dada una hoja publicada válida y una solicitud autorizada, preparar produce un único borrador contiguo con L igual, IDs nuevos y procedencia verificable; origen e historia quedan idénticos.
 - [ ] Dado un borrador renovado, editar su tarifa no cambia precios/porcentajes de hojas publicadas ni altera reservas previas.
@@ -139,7 +142,7 @@ Sin interfaz de usuario en esta spec: no se adopta ni modifica un diseño fronte
 |---|---|---|
 | 0 | Esta spec, respuesta humana trazada y fila de estado; referencias desde specs afectadas. | Autorizada por David; solo Markdown. |
 | 1 | Transformación y contrato de renovación, puertos/errores e idempotencia definidos, pruebas de dominio. | Autorizada por David con Q1–Q4 confirmadas; implementación local, evidencia en §15. |
-| 2 | Caso de uso de preparación persistida y endpoint, vínculo con publicación y pruebas reales de concurrencia/rollback/arranque. | Pendiente; revisar si requiere dividir el incremento antes de autorizarlo. Coordinar composición, migraciones/catálogo, pruebas y registro. |
+| 2 | Caso de uso de preparación persistida y endpoint, vínculo con publicación y pruebas reales de concurrencia/rollback/arranque. | Autorizada expresamente por David el 3 de noviembre; implementación local y evidencia en §16. |
 
 Una sección funcional reúne código, pruebas y evidencia en un cambio lógico; commits solo por petición humana. Esta planificación no concede autorización para las secciones siguientes.
 
@@ -147,7 +150,7 @@ Evidencia de sección 0: rama inicialmente limpia en `072f845`, `origin/develop`
 
 ## 14. Revisión y siguiente paso
 
-Q1–Q4 confirmadas y sección 1 autorizada por David; revisión humana y aceptación de la revisora propuesta pendientes. El desarrollo local conserva base `80c2211` sin incorporar el avance de `develop`; no se acredita combinación final. Sección 2 exige autorización separada. Las respuestas de Leslie no autorizan cambios de su módulo ni sustitución. No hay PR nueva, integración ni cierre de tarea acreditados.
+Q1–Q4 y secciones 1–2 autorizadas por David; revisión humana y aceptación de la revisora propuesta pendientes. Sección 2 parte de `4ff9723` sin incorporar el avance de `develop`; no se acredita combinación final. Las respuestas de Leslie no autorizan cambios de su módulo ni sustitución. No hay PR nueva, integración ni cierre de tarea acreditados.
 
 ## 15. Sección 1 — plan puro y contrato transaccional
 
@@ -157,7 +160,7 @@ Base `80c2211`, rama `feature/ROUTE-SHEETS-08-renovacion-ciclos`, inicialmente l
 
 `renewal-programming.js` usa la solicitud canónica de programación y los recorridos de la tarifa congelada para validar cobertura, vínculos, todos los puntos, continuidad, preparación y repetibilidad. Desplaza disponibilidad, servicios/traslados, puntos y REST/MAINTENANCE en L días y renueva sus IDs. El cálculo no depende de zona horaria del equipo ni del reloj global. La tarifa se restaura en una copia separada, preservando precios explícitos no aditivos y todos los porcentajes, incluidos cero. El objeto de intercambio es inmutable; editable se refiere al estado del nuevo borrador, no a mutar objetos del dominio.
 
-`renewal-request.js` define entrada estricta de cuatro campos: sourceRouteSheetId, expectedProgrammingRevision, expectedTariffRevision y requestKey. IDs/clave UUID canónicos, revisiones positivas hasta 2147483646. `assertSameRenewalRequest` compara la solicitud canónica con el registro previo y rechaza clave/origen/revisiones distintos. [Puerto de renovación](../../backend/src/modules/route-sheets/domain/ports/renewal-ports.md): sesión de Route Sheets bajo ADR 0006, recuperación antes de revalidar reloj/cupo, unicidad tenant/clave y tenant/serie/inicio, misma transacción para todos los registros y vínculo obligatorio en publicación. Otra clave para un destino ya preparado produce conflicto. **La idempotencia durable y la exclusión concurrente están especificadas, no implementadas**; corresponden a sección 2.
+`renewal-request.js` define entrada estricta de cuatro campos: sourceRouteSheetId, expectedProgrammingRevision, expectedTariffRevision y requestKey. IDs/clave UUID canónicos, revisiones positivas hasta 2147483646. `assertSameRenewalRequest` compara la solicitud canónica con el registro previo y rechaza clave/origen/revisiones distintos. [Puerto de renovación](../../backend/src/modules/route-sheets/domain/ports/renewal-ports.md): sesión de Route Sheets bajo ADR 0006, recuperación antes de revalidar reloj/cupo, unicidad tenant/clave y tenant/serie/inicio, misma transacción para todos los registros y vínculo obligatorio en publicación. Otra clave para un destino ya preparado produce conflicto. Al cerrar sección 1, la idempotencia durable y la exclusión concurrente eran contratos; su implementación posterior se registra en §16.
 
 Errores propios: petición inválida 400; origen ausente/ajeno 404; origen no publicado/no último, revisiones incompatibles, solicitud distinta e intervalo completamente pasado 409; fuente ilegible/no disponible o generador defectuoso 503. Los errores existentes de agenda/ciclo conservan sus códigos. No se convierte falta de proveedor en lista vacía. El generador UUID y reloj son suministrados por composición; no se importa Express/pg/adaptadores desde dominio.
 
@@ -166,3 +169,37 @@ Verificación final del código con Node 24.21.0/Linux y PostgreSQL 16.13 aislad
 Lint, Prettier de los cinco JS nuevos, diff revisado y `git diff --check` aprobados; `format:check` global mantiene 39 archivos previos sin cambios. La validación inicial corrigió solo una referencia nueva de prueba a `globalThis.structuredClone` señalada por ESLint; los 32 casos finales también aprobaron en Windows. La primera ejecución de `npm test` aprobó 1772 unitarias (con los 30 casos iniciales), pero la integración se lanzó sin URL aislada y sus guards la rechazaron; ese intento no acredita integración y tampoco se oculta. Docker estaba apagado y se inició Docker Desktop desde su instalación local antes de repetir con la URL explícita de la base aislada.
 
 La repetición final instaló dependencias del lock con `npm ci` solo en un contenedor efímero; se verificó lock idéntico al de la imagen para reutilizar sus binarios nativos de Sharp. No se actualizaron dependencias ni archivos del proyecto, no se leyó `.env` y los recursos propios de PostgreSQL se retiran al terminar. Asistencia de Codex en implementación/pruebas/documentación; sin commits, publicación ni integración. Mensaje sugerido para este cambio lógico: `feat(hojas-ruta): prepara el dominio de renovación de ciclos`.
+
+## 16. Sección 2 — preparación persistida y publicación vinculada
+
+Implementación local sobre `4ff9723`, en `feature/ROUTE-SHEETS-08-renovacion-ciclos`, inicialmente limpia. Se aplica la guía del proyecto; no se cambia código de negocio de Fleet, Frecuencias, Pagos o Reservas ni dependencias. Revisión humana e integración pendientes.
+
+### Contrato HTTP implementado
+
+`POST /api/v1/route-sheets/:id/renewals`, JSON con `expectedProgrammingRevision`, `expectedTariffRevision` y `requestKey` UUID. Solo COOPERATIVE_ADMIN autenticado de la cooperativa, con CSRF válido. Se rechazan campos adicionales; tenant y autor proceden de sesión. Responde `201 { renewal, replayed: false }` al preparar y `200 { renewal, replayed: true }` al recuperar. La respuesta tiene `Cache-Control: no-store`.
+
+`renewal` contiene routeSheetId del destino, sourceRouteSheetId, seriesId, status DRAFT, startAt/endExclusive UTC, cycleLengthDays, programmingRevision/tariffRevision iniciales 1, createdBy/createdAt. Es el recibo original de preparación: un replay conserva DRAFT y las revisiones iniciales aunque después se haya editado/publicado el destino; para su estado actual se usan las consultas existentes. No se presenta ese recibo como estado actual de la hoja.
+
+400 para petición inválida; 401/403 para autenticación/autorización/CSRF; 404 para origen ausente/ajeno; 409 para origen no publicado/no último, revisiones, cupo/agenda/período o clave incompatible; errores de fuente/proveedores conservan 503 cuando corresponda. Un fallo al confirmar COMMIT devuelve `ROUTE_RENEWAL_RESULT_UNCERTAIN`/503 con instrucción de reintentar usando la misma clave, sin generar otra automáticamente.
+
+### Persistencia y límites
+
+Migración nueva `1794160000000-route-sheet-renewals`, añadida al catálogo. Unicidad tenant/clave y tenant/serie/inicio, referencias propias a origen/destino/serie, procedencia inmutable y down bloqueado si contiene renovaciones. Un trigger contrasta serie, tenant e intervalo al insertar el ciclo comercial del destino. No se editan migraciones anteriores.
+
+El repositorio usa el advisory lock de ADR 0006 antes de filas. Lee replay antes de reloj/fuentes; valida origen/serie/tarifa congelada y compromisos completos, incluido el propio origen. Aplicación contrasta buses y frecuencias vigentes mediante puertos públicos; comprueba que los puntos coincidan con la tarifa copiada. Cabecera, tarifa, programación con IDs nuevos, procedencia/recibo y auditoría RENEWAL_PREPARE se escriben en una sola transacción. Un fallo revierte todas esas escrituras.
+
+Preparar no crea viajes ni inventarios, ni amplía el horizonte confirmado. Publicar sigue siendo una petición humana separada: deriva la serie guardada y rechaza otra serie o un período/grupo incompatible; repite las validaciones actuales de publicación. Tarifa y programación del borrador siguen siendo editables con control de revisión. La copia comercial anterior permanece intacta. No hay escrituras ni reasignaciones en Bookings.
+
+El repositorio de tarifa reconoce la ausencia de la tabla solo durante una reversión legítima sin renovaciones: el down nuevo impide ese estado cuando hay procedencia. Las demás lecturas fallidas no se convierten en ausencia. Las pruebas antiguas de publicación siguen verificando su migración anterior durante la reversión.
+
+### Verificación y alcance de las adaptaciones de pruebas
+
+Se añaden pruebas de aplicación y de integración con arranque real mediante `start`: copia/preparación/publicación, IDs distintos, tarifa editable, período vinculado, revisiones, aislamiento, CSRF, concurrencia, límite de dos, rollback después de escrituras, procedencia inmutable y recuperación desde otra instancia tras perder respuesta de COMMIT. Los dobles de fallo solo existen en pruebas. No se añaden banderas de fallo al producto.
+
+El catálogo ahora contiene 21 migraciones: se actualizan sus expectativas exactas y se comprueba down/reaplicación de la tabla nueva conservando datos anteriores. Cuatro fixtures que enumeraban todas las tablas en TRUNCATE incluyen route_sheet_renewals. La prueba de reversión de recibos selecciona su propia migración, baja primero las posteriores y las reaplica en finally; conserva las comprobaciones de rechazo, historial/estado intactos e inmutabilidad. Estas adaptaciones reflejan el nuevo esquema; no eliminan casos ni relajan reglas.
+
+Repetición final del código con Node 24.21.0/Linux: **1785/1785 unitarias (93 suites), incluidas 11 nuevas de sección 2, y 12/12 integraciones de renovación con arranque real**, en una segunda base aislada para no interferir con la regresión global. Incluye validación íntegra del recibo durable: datos corruptos fallan con 503. Lint y Prettier de todos los JS modificados/nuevos aprobados. `format:check` global conserva los mismos 39 archivos previos sin formato, sin cambios en ellos. El diff completo fue revisado; `git diff --check` y búsqueda de conflictos aprobados. El intento inicial de unitarias en Windows aprobó 1764/1778; 14 fallaron por EACCES de conexiones HTTP locales. La repetición con Node 24/Linux aprobó 1778/1778 unitarias. La primera integración completa terminó con 497/548 aprobadas y 51 fallos: expectativas/fixtures incompatibles con la tabla nueva y el timeout de fotos de Fleet; se corrigieron las adaptaciones del esquema descritas arriba y se repitió. Se mantiene trazabilidad de los intentos fallidos.
+
+La repetición de `npm test` con las adaptaciones de catálogo/fixtures aprobó 1778/1778 unitarias y **549/550 integraciones (43 suites)**. Único fallo: timeout de 20 segundos en `fleet/bus-photo-storage.test.js`, «prepara y promueve todos los bytes sin conservar nombres ni rutas del cliente», también documentado en sección 1. Las suites de migraciones, programación, tarifa, viajes, Reservas, Frecuencias y renovación aprobaron. Tras endurecer la validación del recibo, se repitieron todas las unitarias (1785) y las doce integraciones de renovación con el código final, como se indica arriba. No se declara verde la suite global ni se amplían timeouts. Antes de solicitar integración deben resolverse el resultado global y la comprobación contra develop.
+
+No hay interfaz frontend, sustitución, gestión nueva de paradas ni cierre completo de D-05. No se acredita combinación con origin/develop: la evidencia final corresponde a esta rama/base. Asistencia de Codex en implementación, pruebas y documentación. No se han creado commits, enviado mensajes ni publicado/integrado la rama. PostgreSQL y las dos bases aisladas se retiran al terminar; no se leyó .env. Las dependencias del lock solo se instalaron en contenedores efímeros, con lock verificado antes de reutilizar binarios de Sharp; no se actualizaron dependencias del repositorio. Mensaje de commit sugerido: `feat(hojas-ruta): persiste la preparación de renovaciones`.

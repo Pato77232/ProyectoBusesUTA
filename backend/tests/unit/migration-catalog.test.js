@@ -10,7 +10,8 @@ const entry = (name) => ({ name, isFile: () => true });
 const files = () => activeNames.map((name) => entry(name + '.js'));
 
 test('catálogo explícito conserva las 18 de develop, instalación y recepción posteriores', () => {
-  expect(activeNames).toHaveLength(20);
+  expect(activeNames).toHaveLength(21);
+  expect(activeNames[20]).toBe('1794160000000-route-sheet-renewals');
   expect(activeNames[16]).toBe('1793730000000-commercial-trips');
   expect(activeNames[17]).toBe('1793740000000-allow-vip-bus-seats');
   expect(activeNames[18]).toBe('1793820000000-install-bookings');

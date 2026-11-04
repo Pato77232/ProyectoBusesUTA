@@ -3,7 +3,7 @@ const iso = (value) => new Date(value).toISOString();
 
 async function listCommercialSeries(client, { cooperativeId, busGroupId }) {
   const { rows } = await client.query(
-    `SELECT s.id,s.base_start_at,s.cycle_length_days,c.cycle_number,c.start_at,c.end_exclusive,r.status
+    `SELECT s.id,s.base_start_at,s.cycle_length_days,c.route_sheet_id,c.cycle_number,c.start_at,c.end_exclusive,r.status
     FROM route_sheet_commercial_series s LEFT JOIN route_sheet_commercial_cycles c ON c.series_id=s.id AND c.cooperative_id=s.cooperative_id
     LEFT JOIN route_sheets r ON r.id=c.route_sheet_id AND r.cooperative_id=c.cooperative_id
     WHERE s.cooperative_id=$1 AND s.bus_group_id=$2 ORDER BY s.base_start_at,s.id,c.cycle_number`,
@@ -14,6 +14,8 @@ async function listCommercialSeries(client, { cooperativeId, busGroupId }) {
     if (!result.has(row.id))
       result.set(row.id, {
         id: row.id,
+        cooperativeId,
+        busGroupId,
         baseStartAt: iso(row.base_start_at),
         cycleLengthDays: row.cycle_length_days,
         cycles: [],
@@ -21,6 +23,7 @@ async function listCommercialSeries(client, { cooperativeId, busGroupId }) {
     if (row.cycle_number !== null)
       result.get(row.id).cycles.push({
         cycleNumber: row.cycle_number,
+        routeSheetId: row.route_sheet_id,
         startAt: iso(row.start_at),
         endExclusive: iso(row.end_exclusive),
         status: row.status,
