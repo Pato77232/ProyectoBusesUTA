@@ -5,7 +5,7 @@
 - **Módulos:** catálogo de migraciones (`backend/scripts`), `bookings`, `payments` y composición del servidor
 - **Responsable:** Edwin, por acuerdo del equipo de que cualquier integrante puede resolver los bloqueos comunes
 - **Revisor propuesto:** pendiente; la revisión de IA no sustituye revisión humana
-- **Estado:** T1 en `feature/INTEG-01-catalogo-migraciones` (commits `cf285b3` y `183d95b`), pendiente de PR. T2 en `feature/INTEG-01-T2-historial-reservas` (`44cd95b`), creada sobre T1. T3 en `feature/INTEG-01-T3-rechazo-comprobantes` (`3d3261f`), creada sobre T2. T4 en `feature/INTEG-01-T4-confirmador-venta` (`3e6f4ef`), creada sobre T3. T5 en `feature/INTEG-01-T5-acceso-invitado`, creada sobre T4. T6 sin empezar.
+- **Estado:** T1 en `feature/INTEG-01-catalogo-migraciones` (commits `cf285b3` y `183d95b`), pendiente de PR. T2 en `feature/INTEG-01-T2-historial-reservas` (`44cd95b`), creada sobre T1. T3 en `feature/INTEG-01-T3-rechazo-comprobantes` (`3d3261f`), creada sobre T2. T4 en `feature/INTEG-01-T4-confirmador-venta` (`3e6f4ef`), creada sobre T3. T5 en `feature/INTEG-01-T5-acceso-invitado` (`70fcbd2`, `a0387dd`), creada sobre T4. T6a (creación comercial) en `feature/INTEG-01-T6-compra-comercial`, creada sobre T5; T6b (acreditador real) requiere decisión del equipo.
 - **Base comprobada:** `origin/develop` en `64f39cd`, sin PR abiertas.
 
 ## 1. Objetivo
@@ -140,3 +140,23 @@ La emisión del enlace sigue sin endpoint: el servicio `issue` recibe un puerto 
 - No se emite un enlace para una reserva de otro propietario.
 
 **Resultados** (rama basada en T4, PostgreSQL aislado, sin leer `.env`): lint y formato aprobados; **1925/1925 unitarias**; integración **637/647**. Siguen los 10 fallos conocidos: compra comercial (T6) y carga autorizada 404.
+
+### T6a: creación de reservas con el catálogo comercial, 4 de noviembre de 2026
+
+**Causa:** en la PR #73, David hizo que la creación de reservas leyera el viaje con `readPurchaseTrip`, que usa el catálogo comercial de Hojas de Ruta cuando existe. Al resolver conflictos, `fcf3ed9` dejó en `create-booking.use-case.js` la versión de Leslie, que llama directamente a `readTrip` con el `tripCatalog` heredado. En producción ese catálogo es el adaptador que siempre responde 503. Resultado: aunque hubiera un acreditador, la cotización funcionaba y la creación fallaba con `BOOKING_TRIP_SERVICE_UNAVAILABLE`. Esa es la causa de los 6 fallos de `commercial-purchase.test.js`.
+
+**Cambios:**
+
+- `create-booking.use-case.js` vuelve a usar `readPurchaseTrip`, igual que la cotización, para localizar y para preparar la reserva bajo bloqueo.
+- `booking-purchase-context.js`: cuando no hay catálogo comercial, `readPurchaseTrip` pasa además `tariffQueries` a `readTrip`. Así se conserva el camino de tarifa congelada que añadió Leslie.
+
+**Resultados** (rama basada en T5, PostgreSQL aislado, sin leer `.env`):
+
+- Lint y formato aprobados; **1925/1925 unitarias**.
+- Integración **643/647**; Reservas completo 152/152.
+- Vuelven a pasar las 6 de compra comercial. Entre ellas, la de producción, que mantiene la compra bloqueada con 503 `BOOKING_BENEFIT_SERVICE_UNAVAILABLE` y sin escrituras mientras no exista un acreditador real.
+- Quedan los 4 fallos de carga autorizada (404).
+
+### T6b: acreditador real de beneficios, pendiente de decisión
+
+No existe un acreditador real en el código. `createBookingsModule` usa por defecto un `passengerVerifier` que siempre responde 503, por diseño. BOOK-03-L03-T1 §1 y §3 registran que la secretaria (CLERK) revisa la fecha de nacimiento y la discapacidad, y que David decidió «Solo prepara la integración; dejemos ese flujo pendiente». Implementarlo es funcionalidad nueva, no una reconexión: requiere spec propia y acuerdo del equipo antes de escribir código.
