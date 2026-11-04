@@ -4,10 +4,10 @@
 - **Módulo:** `route-sheets` (backend). No modifica otros módulos.
 - **Responsable:** David, por solicitud directa del 4 de noviembre de 2026.
 - **Revisor propuesto / confirmado:** Leslie / sin confirmación registrada.
-- **Estado:** **Borrador.** Solo sección 0 documental; sin implementación, pruebas de producto ni commit.
-- **Prioridad y dependencias:** interna al módulo. Conserva el contrato de [ROUTE-SHEETS-01](ROUTE-SHEETS-01.md) y convive con la programación persistida de [ROUTE-SHEETS-06](ROUTE-SHEETS-06.md). El registro de logs no depende de Fleet, Frecuencias ni Bookings; la comprobación de pasajeros sigue dependiendo de `bookingQueries`, que hoy no existe en la API pública de Bookings.
-- **Rama / base comprobada:** `feature/ROUTE-SHEETS-09-auditoria-modificaciones`, creada por David el 4 de noviembre de 2026 sobre `7f378fc` (`develop`), árbol limpio.
-- **Autorización de alcance:** David pidió revisar los módulos pendientes y autorizó redactar la sección 0 en esa rama. No autoriza la sección 1, commits, push ni integración.
+- **Estado:** Sección 1 implementada localmente, con pruebas unitarias y HTTP aprobadas. Pendiente revisión humana, commit y publicación; no se afirma integración.
+- **Prioridad y dependencias:** interna al módulo. Conserva el contrato de [ROUTE-SHEETS-01](ROUTE-SHEETS-01.md) y convive con la programación persistida de [ROUTE-SHEETS-06](ROUTE-SHEETS-06.md). El registro de logs no depende de Fleet, Frecuencias ni Bookings; la comprobación de pasajeros sigue dependiendo de `bookingQueries`, que hoy no se inyecta en `server.js`.
+- **Rama / base comprobada:** `feature/ROUTE-SHEETS-09-auditoria-modificaciones`, creada por David el 4 de noviembre de 2026 sobre `7f378fc` (`develop`); la sección 0 se registró en `73f1b58`.
+- **Autorización de alcance:** David pidió revisar los módulos pendientes, autorizó redactar la sección 0 y, el 4 de noviembre de 2026, confirmó las recomendaciones Q1–Q4 y autorizó la sección 1 en esa rama. Siguen sin autorizar commits, push, merge, tag ni integración.
 - **Fuentes:** [reglas](../business-rules.md), [arquitectura](../architecture.md), [convenciones](../conventions.md), [calidad](../calidad.md), [defectos académicos](../errores-inducidos.md), [equipo](../equipo-y-acuerdos.md), [flujo](../flujo-codex.md) y [estado](../estado-proyecto.md).
 
 ## 1. Objetivo
@@ -36,7 +36,7 @@ Esta spec no agrega reglas nuevas. Conserva:
 
 **Incluye:**
 
-- Cablear en `composition.js` el caso de uso `ModifyRouteSheetWithAudit` o, si se prefiere, invocar el repositorio de logs desde los cuatro casos de uso legacy (`AddAssignmentToRouteSheet`, `RemoveAssignmentFromRouteSheet`, `AddRestDayToRouteSheet`, `RemoveRestDayFromRouteSheet`).
+- Registrar el cambio desde los cuatro casos de uso legacy (`AddAssignmentToRouteSheet`, `RemoveAssignmentFromRouteSheet`, `AddRestDayToRouteSheet`, `RemoveRestDayFromRouteSheet`), apoyados en un servicio de aplicación pequeño que construye el log y lo guarda con el repositorio existente.
 - Escribir exactamente un log por cambio registrable, con actor y cooperativa tomados de la sesión verificada.
 - Devolver esos logs en el endpoint de consulta ya existente.
 - Pruebas unitarias del registro y pruebas HTTP de integración con PostgreSQL aislado, incluido el aislamiento por cooperativa.
@@ -90,22 +90,25 @@ No se proponen rutas nuevas. Se documenta el contrato ya existente:
 | DELETE | `/api/v1/route-sheets/:id/rest-days/:restDayId` | `COOPERATIVE_ADMIN` + CSRF | 200, 400, 403, 404, 409 |
 | GET | `/api/v1/route-sheets/:id/modification-logs` | `COOPERATIVE_ADMIN` | 200, 403, 404 |
 
-Nota de contrato: los `DELETE` ya leen el cuerpo para el motivo. Es inusual en REST, pero se conserva para no romper clientes; no se cambia por query string en esta tarea.
+Nota de contrato: los `DELETE` ya leen el cuerpo para el motivo. Es inusual en REST, pero se conserva para no romper clientes; no se cambia por query string en esta tarea. `DELETE /rest-days` acepta `reasonForChange` (nombre documentado en ROUTE-SHEETS-01) y, como alias, `reason`; `DELETE /assignments` usa `reason`.
 
 ## 7. Criterios de aceptación
 
-- [ ] Dada una asignación creada con `reason`, cuando la operación termina, entonces existe exactamente un log con actor, cooperativa, entidad y motivo correctos.
-- [ ] Dada una asignación o día de parada eliminado con `reason`, cuando la operación termina, entonces existe el log correspondiente con `action = DELETE`.
-- [ ] Dada una operación sin `reason`, cuando termina, entonces el cambio se aplica igual que hoy y no se escribe log.
-- [ ] Dado un administrador de otra cooperativa, cuando consulta los logs, entonces no ve registros ajenos y la hoja ajena responde 404.
-- [ ] Dado un fallo del proveedor de pasajeros, cuando la operación lo requiere, entonces se conserva el 503 actual y no se escribe un log de un cambio no aplicado.
-- [ ] Las pruebas y expectativas existentes se conservan sin modificar.
-- [ ] Lint, formato y pruebas se ejecutan desde `backend/` y sus resultados reales se registran en §13.
+- [x] Dada una asignación creada con `reason`, cuando la operación termina, entonces existe exactamente un log con actor, cooperativa, entidad y motivo correctos.
+- [x] Dada una asignación o día de parada eliminado con `reason`, cuando la operación termina, entonces existe el log correspondiente con `action = DELETE`.
+- [x] Dada una operación sin `reason`, cuando termina, entonces el cambio se aplica igual que hoy y no se escribe log.
+- [x] Dado un administrador de otra cooperativa, cuando consulta los logs, entonces no ve registros ajenos y la hoja ajena responde 404.
+- [x] Dado un fallo del proveedor de pasajeros, cuando la operación lo requiere, entonces se conserva el 503 actual y no se escribe un log de un cambio no aplicado.
+- [x] Las pruebas y expectativas existentes se conservan sin modificar.
+- [x] Lint, formato y pruebas se ejecutan desde `backend/` y sus resultados reales se registran en §13.
+
+Verificación: unitarias y HTTP aprobadas en §13. La baja de asignaciones y de días de parada solo alcanza a escribir el log cuando hay proveedor de pasajeros; hoy `server.js` no inyecta `bookingQueries` y esos `DELETE` siguen respondiendo 503 antes de escribir (ver §8).
 
 ## 8. Casos borde y errores
 
 - `reason` vacío o solo espacios: se trata como ausente; no se inventa un motivo ni se escribe un log.
 - Fallo al insertar el log después de aplicar el cambio: el cambio queda sin auditoría; ver Q2.
+- **Límite vigente de composición:** `server.js` no inyecta `bookingQueries`. Por eso los dos `DELETE` (asignación y día de parada) responden 503 antes de aplicar el cambio y no escriben log; las altas sí registran auditoría. Verificado en §13 con una prueba que sustituye el proveedor. Conectar ese puerto corresponde a la tarea de integración con Bookings, no a esta spec.
 - Hoja `PUBLISHED`: sigue respondiendo `ROUTE_SHEET_NOT_EDITABLE`; no se escribe log.
 - Hoja con programación persistida: sigue respondiendo `409 ROUTE_PROGRAMMING_LEGACY_OPERATION` antes de llegar al caso de uso.
 - Asignación o día de parada inexistente: no se escribe log de una entidad que no existe.
@@ -117,12 +120,17 @@ Nota de contrato: los `DELETE` ya leen el cuerpo para el motivo. Es inusual en R
 - **Integración HTTP con PostgreSQL aislado:** POST y DELETE con `reason` seguidos de `GET /:id/modification-logs`; aislamiento entre cooperativas; hoja publicada y hoja programada conservan sus errores actuales.
 - **No se modifica ninguna prueba existente** para hacerla pasar.
 
-## 10. Preguntas abiertas
+## 10. Decisiones y preguntas
 
-- **Q1 — ¿`reason` obligatorio?** Recomendación: no en esta sección; registrar cuando venga informado. Hacerlo obligatorio cambia el contrato y afecta clientes/pruebas actuales que no lo envían, y requeriría autorización expresa.
-- **Q2 — ¿Atomicidad?** El camino legacy no abre transacción: el cambio y el log podrían separarse ante un fallo. Recomendación: aceptar el límite, documentarlo y probarlo en esta sección; mover cambio y log a una transacción sería una tarea posterior.
-- **Q3 — ¿Qué guardar en `old_value`/`new_value`?** Recomendación: instantánea mínima (`busId`, `frequencyId` en asignación; `busId` en día de parada), sin datos personales.
-- **Q4 — ¿Auditar el `PUT /:id/programming`?** Hoy solo acepta `expectedRevision` y `programming`; no hay motivo ni entidad con UUID que registrar. Recomendación: spec separada que agregue `reason` al contrato.
+Decisiones confirmadas por David el 4 de noviembre de 2026 al autorizar la sección 1 (respuesta humana registrada por el solicitante; no acredita aprobación de otros integrantes):
+
+- **Q1 — `reason` obligatorio:** no. Se registra auditoría solo cuando el motivo llega informado y no vacío; el cambio se aplica igual que antes cuando falta.
+- **Q2 — Atomicidad:** se acepta el límite. El cambio y el log no comparten transacción; un fallo del repositorio de logs se propaga y el cambio ya aplicado queda sin auditoría. Hay una prueba unitaria que fija ese comportamiento.
+- **Q3 — Contenido de `old_value`/`new_value`:** instantánea mínima (`busId` y `frequencyId` en asignación; `busId` en día de parada), sin datos personales.
+- **Q4 — Auditar `PUT /:id/programming`:** no en esta spec. Requiere agregar `reason` al contrato en una tarea separada.
+
+Sigue abierta:
+
 - **Q5 — ¿Quién revisa?** Leslie está propuesta; no hay aceptación registrada. Para acuerdos, seguir `docs/equipo-y-acuerdos.md` y registrar solo respuestas humanas reales.
 
 ## 11. Defecto inducido
@@ -134,21 +142,50 @@ No aplica. Esta spec no introduce ni corrige defectos académicos y no debilita 
 - El puerto `RouteSheetModificationLogRepository` ya existe en `domain` y su implementación PostgreSQL en `infrastructure`; se conserva la inversión de dependencias.
 - El registro pertenece a `application`; el controlador sigue sin lógica de negocio.
 - No hay interfaz de usuario en este alcance, por lo que no se declara usabilidad verificada. La pantalla que consuma estos logs se especificará aparte.
-- No se crean abstracciones nuevas: se reutiliza el caso de uso y el repositorio existentes.
+- Se reutilizan la entidad `RouteSheetModificationLog` y su repositorio. La construcción del log se extrae a `application/services/record-route-sheet-modification.js` porque los cuatro casos de uso la necesitan y duplicarla habría dispersado el mismo formato; no se crea un puerto nuevo ni se mueve lógica de dominio.
+- `modify-route-sheet-with-audit.use-case.js` sigue sin cablear: valida y registra en lote, pero no aplica cambios ni es necesario para estos cuatro caminos. Se deja intacto para una tarea de auditoría masiva posterior; no se elimina en esta sección.
 
 ## 13. Plan y evidencias
 
-Plan propuesto, un paso pequeño por vez:
+Plan ejecutado, un paso pequeño por vez:
 
 1. Confirmar Q1–Q4 y la revisora (sección 0 cerrada).
-2. Cablear el registro en los cuatro casos de uso legacy, con pruebas unitarias.
+2. Registrar el cambio en los cuatro casos de uso legacy, con pruebas unitarias.
 3. Probar el recorrido HTTP con PostgreSQL aislado y el aislamiento por cooperativa.
 4. Registrar evidencia real y actualizar la fila de `docs/estado-proyecto.md`.
 
-Evidencia de esta sección 0 (4 de noviembre de 2026): solo documentación. Se inspeccionaron `composition.js`, los cuatro casos de uso, `modify-route-sheet-with-audit.use-case.js`, el repositorio, la entidad, la migración `1792480000000-create-route-sheets.js`, el controlador y las rutas. No se ejecutaron lint, formato, pruebas ni arranque porque no cambió código ni configuración ejecutable; no se acredita ningún resultado funcional nuevo.
+### Sección 0 (4 de noviembre de 2026)
+
+Solo documentación. Se inspeccionaron `composition.js`, los cuatro casos de uso, `modify-route-sheet-with-audit.use-case.js`, el repositorio, la entidad, la migración `1792480000000-create-route-sheets.js`, el controlador y las rutas. No se ejecutaron lint, formato, pruebas ni arranque porque no cambió código ni configuración ejecutable; no se acredita ningún resultado funcional nuevo.
+
+### Sección 1 (4 de noviembre de 2026)
+
+Cambios realizados:
+
+- `application/services/record-route-sheet-modification.js` (nuevo): construye el log y lo guarda solo cuando llega un motivo no vacío y el repositorio está inyectado.
+- Los cuatro casos de uso legacy reciben `routeSheetModificationLogRepository` y registran un log `CREATE`/`DELETE` con la instantánea mínima de Q3. La baja usa el `hasPassengersWarning` que ya calculaba la validación de pasajeros.
+- `composition.js` inyecta el repositorio PostgreSQL existente en los cuatro casos de uso.
+- El controlador de `DELETE /rest-days` acepta `reason` como alias de `reasonForChange`, para que el motivo documentado en §4 no se pierda.
+- Pruebas nuevas: `tests/unit/route-sheets/application/modification-audit.test.js` (7 casos) y `tests/integration/route-sheets/route-sheet-modification-logs.http.test.js` (10 casos HTTP, incluidos hoja con programación persistida, hoja publicada, cuerpo que intenta falsear cooperativa/actor y alias de motivo).
+- No se modificó ninguna prueba existente, no se agregaron dependencias y no hay migración nueva.
+
+Resultados reales, ejecutados desde `backend/` (Node 22.19.0 local; `engines` declara Node 24):
+
+- `npx jest tests/unit/route-sheets`: 23 suites y 488 pruebas aprobadas.
+- `DATABASE_URL=…busesuta_test NODE_ENV=test npx jest tests/integration/route-sheets --runInBand`: 9 suites y 133 pruebas aprobadas, incluidas las 10 nuevas; PostgreSQL aislado de `docker-compose.test.yml`.
+- `npm test` completo: fase unitaria con 96 suites y 1826 pruebas aprobadas; fase de integración con 46 de 47 suites y 590 de 591 pruebas aprobadas.
+- Único fallo de la corrida completa: `tests/integration/fleet/bus-photo-storage.test.js` agota el tiempo de espera de 20 s al escribir 5 MiB en un directorio temporal. Se reprodujo aislado y solo importa almacenamiento de Fleet; no toca `route-sheets` ni este cambio.
+- `npm run lint`: sin errores ni advertencias.
+- `npm run format:check`: falla por 37 archivos previos ajenos a este cambio. Los siete archivos tocados pasan `prettier --check` por separado.
+
+Límites comprobados:
+
+- Las pruebas HTTP levantan `createApp` con `createRouteSheetsModule` y proveedores sustitutos; no arrancan `server.js`.
+- Contra `server.js`, las altas ya escriben auditoría, pero las bajas siguen respondiendo 503 por la ausencia de `bookingQueries` (§8). No se corrigió esa composición aquí.
+- No se ejecutó arranque real con Docker del backend ni verificación manual en navegador: esta sección no tiene interfaz.
 
 ## 14. Revisión y cierre
 
 - Revisora propuesta: Leslie, sin respuesta registrada.
-- Sin commit, push, PR ni integración. La rama se creó sobre `7f378fc`.
-- Próxima acción: confirmar Q1–Q4 y autorizar la sección 1.
+- Sin commit, push, PR ni integración. Rama creada sobre `7f378fc`; sección 0 en `73f1b58`.
+- Próxima acción: revisión humana de la sección 1. Si se aprueba, commit sugerido `feat(hojas-ruta): registra la auditoría de modificaciones`, con pie `Refs: docs/specs/ROUTE-SHEETS-09.md`. Después, conectar `bookingQueries` desde la API pública de Bookings para habilitar la auditoría de las bajas.

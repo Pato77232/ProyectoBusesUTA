@@ -1,6 +1,7 @@
 const RouteSheetRestDay = require('../../domain/entities/route-sheet-rest-day');
 const RouteSheetDTO = require('../dtos/route-sheet.dto');
 const RouteSheetValidationService = require('../services/route-sheet-validation.service');
+const recordRouteSheetModification = require('../services/record-route-sheet-modification');
 const {
   RouteSheetNotFoundError,
   BusNotFromCooperativeError,
@@ -11,6 +12,7 @@ function addRestDayToRouteSheetUseCase({
   routeSheetRepository,
   routeSheetRestDayRepository,
   routeSheetAssignmentRepository,
+  routeSheetModificationLogRepository,
   busQueryPort,
   bookingQueryPort,
 }) {
@@ -76,6 +78,18 @@ function addRestDayToRouteSheetUseCase({
     const savedRestDay = routeSheetRestDayRepository.save
       ? await routeSheetRestDayRepository.save(restDay)
       : restDay;
+    await recordRouteSheetModification({
+      repository: routeSheetModificationLogRepository,
+      routeSheetId,
+      cooperativeId,
+      busGroupId: routeSheet.busGroupId,
+      modifiedBy,
+      reason: changeReason,
+      action: 'CREATE',
+      affectedEntity: 'REST_DAY',
+      entityId: savedRestDay.id,
+      newValue: { busId },
+    });
     const updatedRestDays = [...restDays, savedRestDay];
     return RouteSheetDTO.fromEntity(routeSheet, assignments, updatedRestDays);
   };

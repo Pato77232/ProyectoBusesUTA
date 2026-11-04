@@ -1,12 +1,12 @@
 # Estado compartido del proyecto
 
-## ROUTE-SHEETS-09 — auditoría de modificaciones, sección 0 documental, 4 de noviembre de 2026
+## ROUTE-SHEETS-09 — auditoría de modificaciones, secciones 0 y 1 locales, 4 de noviembre de 2026
 
-David solicitó revisar los módulos pendientes y autorizó redactar la sección 0 en `feature/ROUTE-SHEETS-09-auditoria-modificaciones`, rama creada por él sobre `7f378fc` (`develop`), inicialmente limpia.
+David solicitó revisar los módulos pendientes, autorizó la sección 0 y luego confirmó las recomendaciones Q1–Q4 y autorizó la sección 1 en `feature/ROUTE-SHEETS-09-auditoria-modificaciones`, rama creada por él sobre `7f378fc` (`develop`); la sección 0 quedó en `73f1b58`.
 
 | Spec / responsable | Estado y evidencia | Próximo paso |
 |---|---|---|
-| [ROUTE-SHEETS-09](specs/ROUTE-SHEETS-09.md) / David | Borrador; solo documentación. Comprobado en código: la tabla `route_sheet_modification_logs` y su repositorio existen, pero ningún camino de producción escribe logs, `modify-route-sheet-with-audit` no está cableado en `composition.js` y `GET /:id/modification-logs` no recibe registros de ningún camino de producción. | Confirmar Q1–Q4 antes de la sección 1; revisión humana y commit pendientes. Sin pruebas, lint ni arranque ejecutados por ser cambio solo Markdown. |
+| [ROUTE-SHEETS-09](specs/ROUTE-SHEETS-09.md) / David | Sección 1 implementada localmente, sin commit. Los cuatro casos de uso legacy de asignaciones y días de parada escriben un log cuando reciben motivo, mediante `record-route-sheet-modification` y el repositorio ya existente; `composition.js` lo inyecta y `DELETE /rest-days` acepta `reason` como alias de `reasonForChange`. Pruebas nuevas: 7 unitarias y 10 HTTP. Verificación real: `npx jest tests/unit/route-sheets` 23 suites/488 pruebas; `npx jest tests/integration/route-sheets --runInBand` 9 suites/133 pruebas con PostgreSQL aislado; `npm test` 96 suites/1826 unitarias aprobadas y 46/47 suites de integración (590/591 pruebas), con el único fallo en `fleet/bus-photo-storage` por tiempo de espera al escribir 5 MiB, reproducido aislado y ajeno a este cambio; `npm run lint` limpio; los siete archivos tocados pasan Prettier (el `format:check` global sigue fallando por 37 archivos previos). Límite: `server.js` no inyecta `bookingQueries`, así que las bajas siguen respondiendo 503 y solo las altas registran auditoría en producción. | Revisión humana (Leslie propuesta, sin respuesta). Si se aprueba, commit `feat(hojas-ruta): registra la auditoría de modificaciones`. Después, conectar `bookingQueries` desde Bookings para habilitar la auditoría de las bajas; auditar `PUT /:id/programming` queda fuera por Q4 y requiere spec aparte. No afirmar integración. |
 
 ## ROUTE-SHEETS-WEB-01 — consulta y alta de borradores, 3 de noviembre de 2026
 

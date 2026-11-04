@@ -1,6 +1,7 @@
 const RouteSheetAssignment = require('../../domain/entities/route-sheet-assignment');
 const RouteSheetDTO = require('../dtos/route-sheet.dto');
 const RouteSheetValidationService = require('../services/route-sheet-validation.service');
+const recordRouteSheetModification = require('../services/record-route-sheet-modification');
 const {
   RouteSheetNotFoundError,
   FrequencyNotFromCooperativeError,
@@ -11,6 +12,7 @@ const {
 function addAssignmentToRouteSheetUseCase({
   routeSheetRepository,
   routeSheetAssignmentRepository,
+  routeSheetModificationLogRepository,
   frequencyQueryPort,
   busQueryPort,
   bookingQueryPort,
@@ -79,6 +81,18 @@ function addAssignmentToRouteSheetUseCase({
     const savedAssignment = (await routeSheetAssignmentRepository.save)
       ? await routeSheetAssignmentRepository.save(assignment)
       : assignment;
+    await recordRouteSheetModification({
+      repository: routeSheetModificationLogRepository,
+      routeSheetId,
+      cooperativeId,
+      busGroupId: routeSheet.busGroupId,
+      modifiedBy,
+      reason,
+      action: 'CREATE',
+      affectedEntity: 'ASSIGNMENT',
+      entityId: savedAssignment.id,
+      newValue: { busId, frequencyId },
+    });
     const updatedAssignments = [...assignments, savedAssignment];
     const restDays = [];
 

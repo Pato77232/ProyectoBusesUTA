@@ -93,6 +93,7 @@ function createRouteSheetsModule({
   const addAssignmentToRouteSheetUseCase = addAssignmentToRouteSheetUseCaseFactory({
     routeSheetRepository,
     routeSheetAssignmentRepository,
+    routeSheetModificationLogRepository,
     frequencyQueryPort,
     busQueryPort,
     bookingQueryPort,
@@ -100,12 +101,14 @@ function createRouteSheetsModule({
   const removeAssignmentFromRouteSheetUseCase = removeAssignmentFromRouteSheetUseCaseFactory({
     routeSheetRepository,
     routeSheetAssignmentRepository,
+    routeSheetModificationLogRepository,
     bookingQueryPort,
   });
   const addRestDayToRouteSheetUseCase = addRestDayToRouteSheetUseCaseFactory({
     routeSheetRepository,
     routeSheetRestDayRepository,
     routeSheetAssignmentRepository,
+    routeSheetModificationLogRepository,
     busQueryPort,
     bookingQueryPort,
   });
@@ -113,6 +116,7 @@ function createRouteSheetsModule({
     routeSheetRepository,
     routeSheetRestDayRepository,
     routeSheetAssignmentRepository,
+    routeSheetModificationLogRepository,
     bookingQueryPort,
   });
   const publishRouteSheetUseCase = publishRouteSheetUseCaseFactory({
