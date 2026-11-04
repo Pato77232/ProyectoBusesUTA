@@ -9,6 +9,18 @@
 
 ## Objetivo y alcance aceptado
 
+### Continuación SMTP autorizada, 4 de noviembre de 2026
+
+Edwin solicita completar la entrega y confirma Gmail para la demostración; todavía no hay cuenta SMTP configurada ni envío real comprobado. Se añade primero un adaptador SMTP compartido, transportable entre proveedores, y un comando de comprobación que ejecutará el operador con variables locales. Nodemailer 10.3.1, MIT-0 y Node >=20 (compatible con Node 24), versión fijada; se informa y justifica la dependencia antes de instalarla. TLS obligatorio (465 implícito o STARTTLS), sin desactivar verificación de certificados. No se leen secretos ni .env por el asistente.
+
+Contrato interno pequeño: enviar un único destinatario autorizado con asunto/texto, remitente de configuración y notificationId UUID. Resultado ACCEPTED significa aceptación SMTP, nunca entrega ni lectura. Configuración ausente falla cerrado, sin simulación de éxito; errores sanitizados sin credenciales ni contenido. Sin cola, webhooks ni efectos sobre pagos en este primer incremento. Los consumidores de recuperación/boletos/correcciones requieren sus propios eventos y pruebas de idempotencia antes de afirmar integración completa. El CLI permite verificar configuración y enviar solo si el operador indica explícitamente destinatario propio; jamás enviar correos de clientes desde las pruebas.
+
+Criterios: rechazo de configuración parcial, puertos/TLS inseguros, inyección de cabeceras, remitente/destinatario inválidos; verificar aceptación explícita y rechazo/transporte incierto sin fuga de secretos. QA con transporte controlado no acredita entrega real de Gmail. La prueba real queda pendiente de configuración humana y confirmación del buzón. Esta autorización no configura ni contrata servicios a nombre del equipo.
+
+### Evidencia del adaptador, 4 de noviembre
+
+Nodemailer 10.3.1 instalado con versión exacta y lock actualizado, licencia MIT-0 y Node >=20 comprobados en metadatos npm; instalación con ignore-scripts. Lint aprobado y 9/9 unitarias del adaptador/CLI aprobadas. La comprobación sin credenciales devolvió deliberadamente MAIL_NOT_CONFIGURED con exit 1: no es un envío aprobado. No se enviaron mensajes ni se leyeron .env. SMTP opcional propagado por Compose; pendientes comprobación de configuración del operador y confirmación de recepción real. [Guía](../smtp-demostracion.md). Asistencia de Codex; no revisión humana ni integración de consumidores acreditadas.
+
 Distinguir registro del aviso, aceptación del proveedor, entrega confirmada y
 fallos temporales/definitivos; identificar avisos y evitar duplicados. Un fallo
 de correo no repite cobros, no deshace ventas ni libera asientos vendidos.

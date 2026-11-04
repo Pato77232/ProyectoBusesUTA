@@ -26,6 +26,11 @@ services:
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-30m}
       PORT: 3000
       BUS_PHOTO_STORAGE_DIR: /home/node/fleet-photos
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
     volumes:
       - fleet_photos:/home/node/fleet-photos
     ports:
