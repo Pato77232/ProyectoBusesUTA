@@ -45,13 +45,13 @@ Validar contrato/contexto confiable → resolver reserva/asignación/cooperativa
 
 Esas consultas son booleanas, no autorización para entregar listas/cédulas de pasajeros. Necesitan relación persistida de L-03. El adaptador de David ya existe: no reimplementarlo en route-sheets.
 
-**Por cerrar con Shirley:**
+**Contratos para lectura, recepción y venta acordados con Shirley el 4 de noviembre de 2026; implementación pendiente:**
 
 | Operación propuesta | Entrada por precisar | Resultado y autoridad |
 | --- | --- | --- |
 | findForPayment | bookingId y contexto autorizado de propietario/tenant | Reserva, total esperado en centavos, estado/plazo y vínculo de comprobante mínimo; no consulta pública por UUID |
 | markPaymentProofReceived | bookingId, cooperativeId, paymentProofId/versionado y contexto confiable | Recepción durable idempotente; aceptada, rechazo definitivo o incierto/reintentable |
-| confirmSale | bookingId, cooperativeId, paymentProofId y contexto autorizado | Confirmada o ya confirmada por misma clave; rechazo definitivo o resultado incierto |
+| confirmSale | bookingId, cooperativeId, paymentProofId y contexto autorizado | Confirmada o recuperada por la misma identidad y versión; rechazo definitivo o resultado incierto |
 | releaseBooking | Identidades, motivo/justificación y contexto autorizado | Liberación idempotente elegible; nunca venta confirmada |
 
 Las firmas de Payments que hoy reciben solo bookingId no se amplían silenciosamente. Acordar compatibilidad con Shirley. Un cooperativeId sin contexto verificable no acredita permiso. No exponer clientes pg, repositorios ni operaciones SQL a consumidores.
@@ -65,10 +65,10 @@ API interna de módulos por index.js, sin endpoint público de aprobación en Bo
 - [ ] Consultas de David responden booleano real y aíslan cooperativas, hoja/bus/asignación.
 - [ ] Fallos técnicos se propagan; nunca false de sustitución.
 - [ ] Lectura para pago impide acceso de otro comprador/cooperativa.
-- [ ] Confirmar dos veces con la misma identidad de comprobante devuelve venta previa sin duplicar efectos.
+- [ ] Confirmar dos veces con el mismo `paymentProofId`, `proofVersion` y vínculos devuelve la venta previa sin duplicar efectos.
 - [ ] Reutilizar comprobante en otra reserva/cooperativa o vender con otro comprobante da rechazo.
 - [ ] Venta y expiración se coordinan; venta confirmada no se libera.
-- [ ] Timeout permite reintento con misma clave, sin marcar comprobante aprobado ni borrar evidencia como si fuese rechazo definitivo.
+- [ ] Timeout permite reintento con el mismo `paymentProofId` y `proofVersion`, sin marcar comprobante aprobado ni borrar evidencia como si fuese rechazo definitivo.
 
 ## 8. Casos borde
 
@@ -80,7 +80,7 @@ Contrato real con consumidor de David; PostgreSQL para RESERVED/SOLD/revisión y
 
 ## 10. Decisiones necesarias
 
-Leslie/Shirley: firmas/contexto, vínculo reserva-comprobante/versiones, códigos de resultado, autorización previa y registro durable del aprobador, monto efectivamente validado y emisión reintentable. Propuestas del chat anterior no equivalen a confirmación de Shirley. La recepción aceptada en plazo permite aprobar después; confirmSale no debe rechazar solo por expiresAt pasado en revisión. Recuperar venta idempotente previa antes de validar estado transitorio de nuevo.
+Leslie y Shirley acordaron el 4 de noviembre de 2026 las firmas de los tres identificadores, la consulta pública de intención con vínculos, versión, oficinista y fecha, el bloqueo transaccional durante intención pendiente o incierta, y los resultados tipados de confirmación. Sigue pendiente definir cómo tratar comprobantes preexistentes antes de asignarles versiones. También quedan por implementar y probar las APIs y transacciones reales, la autorización previa, el registro durable del aprobador, el importe efectivamente validado y la emisión reintentable. La recepción aceptada en plazo permite aprobar después; confirmSale no debe rechazar solo por expiresAt pasado en revisión. Recuperar venta idempotente previa antes de validar estado transitorio de nuevo.
 
 Leslie/David: referencias reales de L-03 para consultas; mantener las firmas ya documentadas. Acordar protección concurrente de modificaciones de hoja ante nuevas reservas: una lectura booleana aislada no cierra esa carrera por sí sola.
 
@@ -134,3 +134,16 @@ Brecha reconocida: sin vínculo persistido no se puede comprobar ausencia de rec
 ## Implementación local del lector A–C — 2 de noviembre de 2026
 
 [BOOK-07-L05-T1](BOOK-07-L05-T1.md) autorizado por Leslie e implementado localmente. Persistencia contractual nueva y paymentQueries.findForPayment con lectura PostgreSQL real, identidad/tenant, DTO de PR #46, códigos seguros e historia UNKNOWN. 1045 pruebas backend finales aprobadas (839 unitarias/206 integración), incluido arranque; nueve comprobaciones contra consumidor real PR #47. Formato propio aprobado, global fallido en 24 archivos ajenos. [Uso/límites/evidencia](../reservas-lector-pagos.md). Sin commit/PR/integración ni rutas de Payments conectadas; recepción/venta/liberación siguen fuera de este incremento y revisión humana pendiente. Las secciones de propuesta anteriores son históricas respecto a este resultado.
+
+## Acuerdo de versionado e intención de aprobación — 4 de noviembre de 2026
+
+Leslie confirmó la propuesta de Shirley para implementar BOOK-07 `confirmSale` sin cambiar su firma `({ bookingId, cooperativeId, paymentProofId })`:
+
+- Payments mantiene `proofVersion` entero: inicia en 1 para comprobantes nuevos y aumenta al completarse cada reemplazo.
+- Al registrar la intención, Payments bloquea el comprobante y persiste versión, oficinista y fecha en una transacción. El bloqueo permanece mientras la confirmación sea incierta.
+- Payments expone una consulta pública de intención con los tres identificadores; responde vínculos, `proofVersion`, oficinista y fecha. La versión debe identificar el contenido bloqueado. Su nombre concreto se define al implementar la API/composición; Bookings no consulta tablas directamente.
+- Bookings guarda la versión con la venta. Reintentos con la misma identidad y versión recuperan el resultado persistido; una versión distinta no es el mismo intento.
+- El adaptador traduce venta persistida a `true`, rechazo definitivo a `BookingSaleRejectedError` e incertidumbre a `BookingSaleUncertainError`; `false` no expresa rechazo definitivo.
+- El tratamiento de comprobantes existentes antes de asignarles versiones no está decidido; no se les asignarán versiones automáticamente hasta documentarlo.
+
+Este acuerdo define el contrato, no acredita implementación. La consulta y confirmación públicas, persistencia versionada, bloqueo concurrente y pruebas entre módulos siguen pendientes.

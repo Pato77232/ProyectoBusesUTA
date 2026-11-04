@@ -37,6 +37,12 @@ Bookings de `65957a9`. Falta revisión humana y CI. La rama se basa en el últim
 `origin/develop` observado y los solapamientos actuales quedaron conciliados;
 futuros cambios de `develop` aún pueden requerir otra revisión.
 
+## PAGOS-02 / BOOK-07 — contrato versionado de aprobación, 4 de noviembre de 2026
+
+Leslie confirmó a Shirley `proofVersion` entero (1 para comprobante nuevo, incremento por reemplazo completado), persistencia transaccional junto con oficinista/fecha al bloquear el contenido, bloqueo mantenido ante resultado incierto, consulta pública de intención por `bookingId`, `cooperativeId` y `paymentProofId`, y conservación de la versión en la venta de Bookings. La misma identidad y versión recuperan el resultado; una versión distinta no es el mismo intento. El adaptador devuelve `true` solo ante venta persistida, `BookingSaleRejectedError` ante rechazo definitivo y `BookingSaleUncertainError` ante incertidumbre.
+
+Este acuerdo se registró en [PAGOS-02](specs/PAGOS-02.md) y [BOOK-07](specs/BOOK-07.md)/[BOOK-07-L05](specs/BOOK-07-L05.md). Falta definir el tratamiento de comprobantes preexistentes antes de asignar versiones. Las APIs, migración y transacciones siguen sin implementar; este registro es documental y no marca tareas integradas ni cerradas.
+
 ## D-05 — renovación, sección 0 documental, 3 de noviembre de 2026
 
 David autorizó preparar [ROUTE-SHEETS-08](specs/ROUTE-SHEETS-08.md) y aportó la respuesta humana de Leslie. Rama existente `feature/ROUTE-SHEETS-08-renovacion-ciclos`, base `072f845`, inicialmente limpia; fetch comprobó `origin/develop` en `4bb6861`. Se reutiliza la rama sin merge/rebase; el avance remoto se distingue de la base de esta documentación.
