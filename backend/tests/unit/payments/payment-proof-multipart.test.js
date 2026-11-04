@@ -37,6 +37,15 @@ test('extrae bookingId y archivo sin alterar los bytes', () => {
   expect(result.file).toEqual({ buffer: PNG_CONTENT, originalFileName: 'comprobante.png' });
 });
 
+test('conserva IDs opacos con espacios significativos', () => {
+  const bookingId = ' booking:ref-7 ';
+  const body = form([
+    part('Content-Disposition: form-data; name="bookingId"', bookingId),
+    part('Content-Disposition: form-data; name="file"; filename="proof.png"', PNG_CONTENT),
+  ]);
+  expect(parseMultipartBody(body, BOUNDARY).bookingId).toBe(bookingId);
+});
+
 test.each([
   [
     'campo duplicado',
@@ -55,9 +64,9 @@ test.each([
     ]),
   ],
   [
-    'bookingId que no es UUID',
+    'bookingId vacío',
     form([
-      part('Content-Disposition: form-data; name="bookingId"', 'booking-no-valido'),
+      part('Content-Disposition: form-data; name="bookingId"', '   '),
       part('Content-Disposition: form-data; name="file"; filename="proof.png"', PNG_CONTENT),
     ]),
   ],

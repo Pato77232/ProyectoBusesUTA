@@ -14,6 +14,7 @@ function createApp({
   fleet,
   frequencies,
   routeSheets,
+  paymentReview,
   payments,
   bookings,
   pool,
@@ -53,6 +54,8 @@ function createApp({
   if (frequencies) app.use(`${API_PREFIX}/frequencies`, frequencies.router);
 
   if (routeSheets) app.use(`${API_PREFIX}/route-sheets`, routeSheets.router);
+
+  if (paymentReview) app.use(`${API_PREFIX}/payment-proofs`, paymentReview.router);
 
   if (payments) app.use(`${API_PREFIX}/payment-proofs`, payments.router);
 

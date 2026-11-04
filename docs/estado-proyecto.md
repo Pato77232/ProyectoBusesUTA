@@ -7,6 +7,35 @@ David autorizó inicialmente la sección 1 y luego la sección 2. Rama feature/R
 | Spec / responsable | Estado y evidencia | Próximo paso |
 |---|---|---|
 | [ROUTE-SHEETS-WEB-01](specs/ROUTE-SHEETS-WEB-01.md) / David | Secciones 1 y 2 implementadas localmente: consulta, filtros, control de sesión y alta explícita de borradores. Frontend 263/263; lint y formato aprobados. Nginx, Chrome, API y PostgreSQL aislados verificaron alta, confirmación, duplicado y respuesta perdida después de escritura. Sin cambios de backend, migraciones o dependencias. Evidencia y límites en §§5 y 7. | Revisión humana, commit y publicación pendientes; no afirmar integración. Editor de programación, tarifas, publicación y renovación web quedan en incrementos posteriores. |
+## Shirley — PAGOS-01 carga autorizada y PAGOS-02 lectura productiva, 3 de noviembre de 2026
+
+Rama `feature/PAGOS-02-develop-actualizado`, publicada en la PR #66 con HEAD
+remoto `b9c7d73`, basada en `develop` `65957a9`. Durante esta corrección,
+`develop` avanzó a `9920792`; la resolución local conserva ambas migraciones y
+sus pruebas. Falta crear y publicar el merge de actualización. Se conectó la
+lectura autenticada de bandeja/archivo privado con `bookings.paymentQueries` y la carga multipart con
+Auth, la consulta `UPLOAD_PROOF` y la recepción real de Bookings. La migración
+nueva registra la procedencia del actor autorizado y conserva la historia sin
+atribuirle autorizaciones. La rama se trasladó manualmente desde la base anterior
+para conservar también la migración de protección de asientos y el trabajador
+de expiración de Reservas; los solapamientos en servidor, catálogo y pruebas se
+conciliaron y verificaron. El checkout original con cambios locales sigue intacto.
+
+Verificación final sobre la base actualizada: `npm test` aprobó 92 suites/1776
+pruebas unitarias y 45 suites/571 integraciones; lint, Prettier de archivos modificados, arranque real
+(salud 200; lectura y carga sin sesión 401) y `git diff --check` aprobados.
+`format:check` global mantiene 17 archivos previos ajenos a este cambio. La
+prueba HTTP de carga se aisló por reserva después de detectar que la base
+compartida conserva registros de otras suites. No se modificaron esas suites ni
+los archivos con formato previo pendiente. [PAGOS-01 §17](specs/PAGOS-01.md#17-carga-autenticada-y-recepción-productiva--3-de-noviembre-de-2026),
+[PAGOS-02 §20](specs/PAGOS-02.md#20-activación-productiva-de-la-lectura-de-comprobantes-3-de-noviembre-de-2026),
+[evidencia de carga](evidence/PAGOS-01/2026-11-03-carga-autenticada-productiva.md)
+y [evidencia de lectura](evidence/PAGOS-02/2026-11-03-conexion-lectura-productiva.md).
+Siguiente dependencia: aprobación/venta productiva (`confirmSale`) requiere que
+Bookings publique su capacidad; no existe `confirmSale` en la API pública de
+Bookings de `65957a9`. Falta revisión humana y CI. La rama se basa en el último
+`origin/develop` observado y los solapamientos actuales quedaron conciliados;
+futuros cambios de `develop` aún pueden requerir otra revisión.
 
 ## D-05 — renovación, sección 0 documental, 3 de noviembre de 2026
 
@@ -45,6 +74,7 @@ sesión y quedan sustituidos por esta sección únicamente para las tareas lista
 `git diff --check` aprobó y se comprobaron 137 referencias locales de los siete
 documentos afectados sin destinos faltantes. No se ejecutaron lint/Jest porque
 no cambió código, configuración ejecutable ni composición.
+
 
 ## PAGOS-02 — prueba conjunta con Reservas real, actualizada el 3 de noviembre de 2026
 
