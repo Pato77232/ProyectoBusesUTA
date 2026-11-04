@@ -9,6 +9,7 @@ const RejectPaymentProof = require('./application/reject-payment-proof.use-case'
 const PgPaymentProofRepository = require('./infrastructure/pg-payment-proof.repository');
 const LocalPrivateFileStorage = require('./infrastructure/local-private-file-storage');
 const SimulatedBookingReader = require('./infrastructure/simulated-booking-reader');
+const BookingsPaymentQueryAdapter = require('./infrastructure/bookings-payment-query-adapter');
 const SimulatedBookingPaymentProofNotifier = require('./infrastructure/simulated-booking-payment-proof-notifier');
 const SimulatedBookingSaleConfirmer = require('./infrastructure/simulated-booking-sale-confirmer');
 const createPaymentProofRouter = require('./interfaces/http/payment-proof.routes');
@@ -19,6 +20,8 @@ function createPaymentsModule({
   env = process.env,
   bookingPaymentProofNotifier,
   bookingSaleConfirmer,
+  paymentQueries,
+  clock = () => new Date(),
 } = {}) {
   const paymentProofRepository = new PgPaymentProofRepository(pool);
   const fileStorage = new LocalPrivateFileStorage({
@@ -27,10 +30,13 @@ function createPaymentsModule({
       path.resolve(__dirname, '../../../private-storage/payment-proofs'),
   });
   const bookingReader = new SimulatedBookingReader();
+  const uploadReader = paymentQueries
+    ? new BookingsPaymentQueryAdapter({ paymentQueries })
+    : bookingReader;
   const notifier = bookingPaymentProofNotifier || new SimulatedBookingPaymentProofNotifier();
   const saleConfirmer = bookingSaleConfirmer || new SimulatedBookingSaleConfirmer();
   const uploadPaymentProof = new UploadPaymentProof({
-    bookingReader,
+    bookingReader: uploadReader,
     fileStorage,
     paymentProofRepository,
     bookingPaymentProofNotifier: notifier,
@@ -60,6 +66,7 @@ function createPaymentsModule({
       readPaymentProofFile,
       approvePaymentProof,
       rejectPaymentProof,
+      clock,
     }),
     bookingReader,
     bookingPaymentProofNotifier: notifier,
