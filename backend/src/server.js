@@ -90,6 +90,7 @@ async function start(env = process.env) {
             env,
             paymentQueries: bookings.paymentQueries,
             bookingPaymentProofNotifier: paymentReceipt.bookingPaymentProofNotifier,
+            bookingSaleConfirmer: bookings.saleConfirmer,
           },
     );
     const paymentReview =
