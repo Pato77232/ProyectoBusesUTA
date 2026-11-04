@@ -4,9 +4,9 @@
 - **Spec existente:** [BOOK-05](BOOK-05.md).
 - **Responsable:** Leslie Coello.
 - **Revisor propuesto:** Pablo, conforme a la preferencia previa de Leslie; aceptación de este incremento pendiente. Coordinar contratos con los responsables indicados.
-- **Estado:** Borrador; implementación de los nuevos incrementos no autorizada.
-- **Base:** rama `feature/BOOK-03-resumen-creacion-dominio`, `c7ceed9`; remoto `origin/develop b60201e`, consultado el 1 de noviembre de 2026, sin integrar.
-- **Autorización:** el usuario pidió preparar specs antes de implementar; no se infiere aprobación de este borrador.
+- **Estado:** cálculo puro configurable implementado y verificado localmente (§16); revisión humana pendiente. Conexión comercial y acreditación productiva pendientes.
+- **Base histórica:** rama `feature/BOOK-03-resumen-creacion-dominio`, `c7ceed9`; remoto `origin/develop b60201e`, consultado el 1 de noviembre de 2026. Base vigente del siguiente incremento: §15.
+- **Autorización:** preparación inicial documental; continuación y decisiones de Leslie permiten únicamente el cálculo puro de §16. No autoriza conectar compra ni acredita revisión humana del resultado.
 - **Referencias:** [plan y evidencia](../reservas-plan-primera-entrega.md), [acuerdos vigentes](https://github.com/Pato77232/ProyectoBusesUTA/blob/b60201e/docs/acuerdos-primera-entrega.md), arquitectura y calidad del proyecto.
 
 ## 1. Objetivo
@@ -124,3 +124,68 @@ Respuesta humana en este chat: «Sí, verificar antes del total aceptado». Se a
 Verificación aritmética de esta sesión: 24 resultados exactos/redondeados contrastados con enteros racionales y, de forma independiente, decimal de .NET; 23 totales además comparados con expectativas escritas antes del cálculo. Se verificaron seis edades y la suma de redondeos por pasajero. No es ejecución de código ni pruebas funcionales del módulo. Las pruebas históricas permanecen intactas.
 
 Propuesta pendiente de desglose: conservar componentes exactos y ajuste explícito de redondeo junto al total entero, o acordar reparto del residuo si los componentes deben ser enteros. Resultado cero y techo de total requieren precisar el flujo comercial; no cambiar matemática para exigir comprobantes ficticios. Siguen pendientes acreditador/evidencia y fecha de edad ante medianoche. La tabla no habilita inventario VIP ni implementación de L-01.
+
+## 15. Preparación después de PR #70 — 4 de noviembre de 2026
+
+Leslie solicita continuar con el siguiente paso recomendado: completar esta propuesta antes de implementar la nueva cotización. PR #70 integrada en develop ae88e0c694bedcfa384386548d2ba40cd193669a, comprobado con GitHub y fetch. Rama nueva feature/BOOK-05-cotizacion-configurable desde ese commit; árbol inicial limpio. Consulta de PR abiertas sin resultados; no acredita acceso a trabajo local de otros integrantes.
+
+La preparación documental no autoriza acreditaciones ficticias, cambios de negocio ni conexión de compra. Se conserva passenger-quote.js y sus pruebas históricas de 50 %, sin tratar ese porcentaje como autoridad de la política nueva. No migraciones ni dependencias nuevas; sin frontend en este incremento (DESIGN.md no aplica hasta la tarea de pantalla).
+
+### Datos disponibles y brecha confirmada
+
+findBookableForSegment ya entrega amountCents, currency, policy, boardingAt, relaciones/revisiones y seatIds del inventario congelado. El DTO de evaluate-commercial-trip.js no entrega las categorías de esos asientos. El snapshot interno conserva categorías, pero Bookings no puede leerlo importando internals ni consultar Fleet actual como sustituto histórico.
+
+Propuesta a David, todavía no confirmada: ampliar aditivamente la consulta pública con seats, lista de {seatId, category} correspondiente exactamente al mismo snapshot/oferta de seatIds. Mantener inventorySnapshotId e inventoryRevision; definir validación de correspondencia única y categoría desconocida. No inferir NORMAL de un ID ni aceptar VIP del navegador. Este cambio pertenece al contrato y spec de Route Sheets; no se implementa aquí ni se le atribuye aceptación a David.
+
+### Propuesta de desglose exacto
+
+Conservar basePriceCents y totalPriceCents como enteros. Para los componentes exactos y ajuste, proponer racionales {numerator: texto entero, denominator: texto entero positivo}, sin BigInt en JSON ni decimales binarios. El ajuste puede ser negativo. Unidades: centavos; identidad: base + recargo - descuento + ajuste = total entero. No redondear cada componente ni repartir residuos sin acuerdo.
+
+Ejemplos y representación candidatos: [tabla y propuesta de conciliación](../reservas-cotizacion-ejemplos.md). La representación es decisión técnica propuesta; aceptar esta documentación no significa aceptar el flujo comercial de total cero ni los límites de compra.
+
+### Edad y acreditación: decisiones pendientes
+
+Propuesta para confirmar con Leslie y coordinar con David: calcular edad en la fecha local del embarque elegido, obtenida del instante confiable y zona comercial explícita; no usar UTC por recorte, reloj del navegador ni salida del origen si el pasajero sube después. Mantener la convención histórica del 1 de marzo para nacidos el 29 de febrero en años no bisiestos solo si se confirma su aplicación nueva. No deducir una zona comercial de un offset de serialización UTC.
+
+El acuerdo de primera entrega ya menciona revisión de documentos por oficinista antes de aprobar. Falta precisar cómo se produce y consulta esa acreditación antes del total aceptado/pago, sin usar una futura aprobación del comprobante como prueba previa circular. No se reabre el acuerdo de verificar antes de aceptar el total; concretar con Shirley/Pablo evidencias, autoridad verificada, registro/revisión, acceso, vigencia y revocación. El body o una cédula válida no acreditan beneficios.
+
+Consultas de confirmación enviadas a Leslie mediante este chat: desglose, fecha/convención de edad y procedimiento de acreditación. Respuesta aún pendiente al preparar esta versión; no se registra aceptación por silencio.
+
+### Incrementos siguientes y comprobación
+
+1. Cerrar desglose/edad/acreditación y contrato público de categorías, con ejemplos y fuentes de decisión. Resultado actual: propuesta y brechas explícitas.
+2. Después de cerrar los requisitos del cálculo y autorizar ese alcance: servicio puro nuevo con porcentajes configurados, exactitud/rangos, máximo/empates y pruebas propias; mantener evidencia y pruebas históricas. No conectarlo a compra mientras falten acreditación o categorías confiables.
+3. Conectar resumen al viaje/tarifa/inventario/acreditación reales y después revalidación de creación en BOOK-03, con rechazo de cambios que requieran nueva aceptación. Cada conexión tendrá su alcance autorizado.
+
+Verificación de esta preparación: 24 ejemplos monetarios contrastados con Fraction de Python, incluidos componentes exactos, mitad hacia arriba y conciliación con ajuste. No equivale a pruebas del producto. Sin cambios funcionales no se ejecutan de nuevo npm test, PostgreSQL, lint o arranque; los 2430 tests anteriores pertenecen exclusivamente a la conciliación de PR #70. [Evidencia actual](../evidence/BOOK-05-L01/2026-11-04-preparacion-cotizacion.md). Sin commit/push en esta preparación; revisión humana pendiente.
+
+## 16. Decisiones confirmadas y alcance del cálculo puro — 4 de noviembre de 2026
+
+Fuente: respuestas de Leslie en este chat. Confirma ambas reglas consultadas: desglose exacto con ajuste explícito; edad en fecha local del embarque elegido y 1 de marzo para nacidos el 29 de febrero en años no bisiestos. Leslie declara que decide el procedimiento y confirma después la propuesta concreta: oficinista de la cooperativa verifica documento de identidad/nacimiento para edad y documento acreditativo para discapacidad antes del total aceptado; registro de resultado, beneficio, referencia privada de evidencia, actor, fecha y versión. El comprador solo consulta resultados de sus pasajeros. Revisión del comprobante posterior e independiente. No se atribuye revisión individual de código a Shirley/Pablo.
+
+La petición de continuar con lo pendiente, seguida de estas decisiones, permite ejecutar el incremento 2 de §15: solo cálculo puro con pruebas, sin habilitar resumen/compra ni implementar almacenamiento o pantallas de acreditación. La integración de acreditación requiere después su contrato técnico, acceso, vigencia/revocación y tratamiento de correcciones. Catálogo público de categorías y zona comercial siguen pendientes; no se simulan como disponibles.
+
+### Contrato interno seleccionado
+
+Archivo nuevo domain/configured-passenger-quote.js. Entrada cerrada {basePriceCents, seatCategory, policy, passenger, boardingDate}. Tarifa explícita única 1..9999999999 centavos, no lista de tramos. seatCategory NORMAL/VIP obtenida del snapshot confiable en la futura integración. policy contiene exactamente vipSurchargeBps, minorDiscountBps, seniorDiscountBps, disabilityDiscountBps (enteros 0..10000) y discountStrategy MAX_ELIGIBLE. passenger contiene birthDate acreditada y disabilityVerified booleano explícito. boardingDate es fecha calendario local de embarque resuelta por el servidor, no instante UTC ni fecha enviada como autoridad por navegador.
+
+La función es matemática, no acredita identidades, no otorga permisos ni guarda reservas. Sin exportación por la API pública HTTP. Reutiliza únicamente ageOnDate del dominio histórico (no su fórmula de precio). Registra todas las categorías elegibles y las empatadas en el mayor bps; si el máximo explícito es cero conserva elegibles/empates con discountBps cero, sin presentar ahorro inexistente.
+
+Salida USD: basePriceCents, vipSurchargeBps aplicable (cero para NORMAL), discountBps, eligibleCategories, appliedBenefitCategories, vipSurchargeExactCents, discountExactCents, totalExactCents, roundingAdjustmentCents y totalPriceCents. Componentes racionales reducidos con numerador/denominador de texto; total entero. Entrada y salida inmutables desde el consumidor: no mutar entrada, congelar salida/arrays/racionales. Validación falla con BookingValidationError; ausencia de porcentaje o acreditación no equivale a cero/false.
+
+Usar BigInt para productos y redondear una sola vez al final por pasajero. El total matemático cero es válido en este cálculo; no habilita venta gratis ni exige comprobante ficticio. El techo matemático derivado (19999999998) cabe en entero seguro, no representa un límite comercial de compra aprobado. Política/hoja/revisiones serán responsabilidad del adaptador futuro; el cálculo no inventa referencias. Mantener passenger-quote.js, sus pruebas y evidencia intactos.
+
+### Criterios y comprobación del incremento
+
+- C01–C24: valores exactos y redondeados escritos previamente; mitad/adyacentes, VIP antes del beneficio, máximo/empates, ceros y productos mayores que MAX_SAFE_INTEGER.
+- Edades antes/en/después de 18/65, cambio de fecha de embarque y 29 de febrero. Datos incompletos/imposibles, categorías desconocidas y política inválida se rechazan.
+- Dos políticas distintas no se mezclan ni mutan; serialización JSON conserva exactitud. Sumar solo totales redondeados por pasajero en ejemplo R01, sin añadir creación de compra.
+- Ejecutar desde backend lint, format:check, npm test con PostgreSQL aislado y formato de archivos propios. Sin cambios de composición no se exige un arranque nuevo separado; las integraciones conservan sus pruebas de arranque real.
+
+Sin dependencias nuevas, migraciones, frontend o cambios en módulos ajenos. SOLID: cálculo puro de responsabilidad única; aplicación futura inyectará fuentes confiables y usará solo APIs públicas. Ningún cambio a precios de reservas persistidas. Sin commit/push hasta petición específica de Leslie. Revisión humana e integración pendientes.
+
+### Resultado del cálculo puro
+
+100 pruebas dirigidas aprobadas (68 nuevas + 32 históricas). npm test completo: 1910 unitarias y 588 integraciones aprobadas, 2498 pruebas en 144 suites, salida 0. Incluye arranque real existente; no se modificó composición. Lint y formato propio aprobados; format:check global conserva 17 archivos ajenos. Fotografías pasó sin alterar timeout; PostgreSQL temporal eliminado. Diff revisado, sin cambios en passenger-quote.js o pruebas históricas. Revisar evidencia enlazada; no se declara L-01 comercial cerrada ni integración de este incremento. Sin commit/push.
+
+Guardado autorizado por Leslie el 4 de noviembre: commit atómico del cálculo puro, sus pruebas y documentación. Publicación no solicitada en esta confirmación; revisión humana y conexión comercial pendientes. Los resultados anteriores se conservan, sin cambios funcionales posteriores a la suite.

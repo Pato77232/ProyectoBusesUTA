@@ -747,3 +747,20 @@ Checkpoint de disponibilidad: ejecución completa sobre 9920792 aprobada con arr
 | BOOK-02-L02 / PR #70 | Conflictos en server.js y su prueba resueltos localmente frente a develop 9f7ac91 | [Spec](specs/BOOK-02-L02.md), [evidencia](evidence/BOOK-02-L02/2026-11-04-conciliacion-pr70.md). Disponibilidad, carga/recepción y lectura de Pagos compuestas juntas. 29 unitarias dirigidas y suite completa aprobadas: 1842 unitarias + 588 integraciones (2430 pruebas, 143 suites), incluido arranque real. Lint y formato propio aprobados; formato global mantiene 17 archivos ajenos. Corrección preparada para publicar; revisión humana pendiente. |
 
 Se conserva el catálogo 24 de develop y sus contratos. Compatibilidad verificada en copia efímera: el catálogo previo de 23 con renovación pero sin procedencia se rechaza con MIGRATION_HISTORY_UNEXPECTED sin cambios de filas/columnas/historial. Bases persistentes con esa historia requieren un plan aparte con Pablo/Shirley; no se inspeccionaron ni convirtieron bases del equipo y no se afirma que existan en ese estado.
+
+## Leslie: disponibilidad integrada y preparación de cotización — 4 de noviembre de 2026
+
+| Área | Estado comprobado | Evidencia y siguiente paso |
+| --- | --- | --- |
+| BOOK-02-L02 / PR #70 | Integrada en develop ae88e0c, confirmado en GitHub y fetch | Integración 2026-11-04T05:25:24Z; reemplaza el estado histórico de publicación/revisión pendiente. No equivale a compra comercial completa. |
+| BOOK-05-L01 §15 | Preparación documental autorizada, rama feature/BOOK-05-cotizacion-configurable desde ae88e0c; sin cambios de producto | [Spec](specs/BOOK-05-L01.md), [evidencia](evidence/BOOK-05-L01/2026-11-04-preparacion-cotizacion.md). 24 ejemplos comprobados con racionales; desglose/fecha/acreditación consultados, sin respuestas nuevas registradas. |
+
+Tarifa y política por tramo disponibles; categoría de asiento congelada no expuesta por el DTO actual de viajes. Propuesta a coordinar con David, sin aceptación atribuida. Antes de implementar la cotización final, cerrar acreditación y sus entradas confiables; no reemplazarla por datos del navegador. Sin nuevas pruebas funcionales, commits ni publicación de esta preparación. Compatibilidad del catálogo de migraciones sigue separada y documentada; ninguna base persistente inspeccionada.
+
+### Leslie: confirmaciones y cálculo aislado L-01 — 4 de noviembre de 2026
+
+Leslie confirmó desglose exacto/ajuste, edad a la fecha local del embarque y convención del 1 de marzo; confirmó después acreditación por oficinista antes del total aceptado, documentos y registro privado con actor/fecha/versión. No se atribuye a terceros revisión del código. BOOK-05-L01 §16 reemplaza los pendientes anteriores en estas decisiones.
+
+Implementación aislada en feature/BOOK-05-cotizacion-configurable: servicio puro con tarifa explícita, porcentajes congelados aportados como entrada confiable y cálculos exactos; no se compone con HTTP/resumen ni acredita documentos. 100 pruebas dirigidas aprobadas; lint/formato propio aprobados; formato global mantiene 17 archivos ajenos. Suite completa en ejecución en PostgreSQL aislado. Categorías del snapshot vía API pública, acreditación productiva, zona y conexión de resumen/creación siguen pendientes. Sin commit/push o nueva PR.
+
+Resultado final L-01 puro: 1910 unitarias + 588 integraciones aprobadas, 2498 pruebas en 144 suites, incluido arranque real existente. Lint/formato propio aprobados; formato global mantiene 17 archivos ajenos. Fotografías pasó con timeout original; contenedor exclusivo eliminado. [Evidencia completa](evidence/BOOK-05-L01/2026-11-04-preparacion-cotizacion.md). Implementación local lista para revisión/commit solicitado, sin publicar. L-01 comercial continúa pendiente de proveedores y adaptación del resumen; no se inventan aprobaciones ni API de acreditación disponible.

@@ -143,3 +143,27 @@ Propuesta para revisar: conservar importes racionales exactos para auditoría y 
 - No se ejecuta ni cambia passenger-quote.js: mantiene 50 % fijo como implementación histórica y no cumple todavía la política configurada. No se alteran tests históricos para que pasen con otros resultados.
 - No frontend ni cambios de composición; no dependencias, migraciones, commits, push, merge, rebase o tags. No se ejecutan lint/Jest/PostgreSQL/arranque para este alcance documental.
 - Pendientes de aprobación: esta tabla, representación/conciliación del desglose, proveedor de acreditación, fecha ambigua de edad, manejo de total cero y límites de total. Autorizar después un incremento puro de cálculo con sus pruebas reales, distinto de la integración comercial.
+
+## Propuesta concreta para revisión — 4 de noviembre de 2026
+
+Estado: propuesta pendiente de respuesta; no cambia las reglas vigentes ni implementa una API. Base técnica ae88e0c, después de PR #70. Numerador/denominador son textos de enteros exactos, en centavos; denominador positivo. La interfaz futura podrá formatearlos sin reinterpretar los textos como precios autorizados del cliente.
+
+| Caso | Base entera | Recargo exacto | Descuento exacto | Ajuste exacto | Total entero |
+| --- | ---: | --- | --- | --- | ---: |
+| C03 | 450 | 225/2 | 0/1 | 1/2 | 563 |
+| C04 | 450 | 225/2 | 1125/4 | -1/4 | 281 |
+| C14 | 10000 | 125/1 | 49977/40 | 17/40 | 8876 |
+
+Propuesta de un componente JSON: {"numerator":"-1","denominator":"4"} para el ajuste C04. No es un importe entero negativo cobrado al comprador; es el residuo exacto de redondear el total. Se conserva el total entero autorizado y la identidad base + recargo - descuento + ajuste = total. El caso C14 se deriva de 8875,575 y ajuste 0,425.
+
+Caso adicional propuesto para edad: nacimiento 2008-11-02, salida del origen 2026-11-01 a las 23:00, embarque elegido 2026-11-02 a las 00:30 en la zona comercial confirmada. Si se acepta usar el embarque, tiene 18 y no obtiene MINOR. Nacimiento 1961-11-02 en el mismo embarque: tiene 65 y cumple SENIOR. Falta confirmar esta regla y el dato de zona; no extraer la fecha por recorte de una fecha UTC.
+
+Recomprobación documental ejecutada con Fraction: 24/24 filas C01–C24 concilian componentes, total exacto y total redondeado. La primera ejecución del verificador tuvo un índice de columna incorrecto y no produjo un resultado; se corrigió el verificador, sin cambiar cifras de la tabla, y la segunda ejecución terminó correctamente. No se ejecutó el cálculo del producto ni se modificaron tests.
+
+## Confirmaciones posteriores de Leslie — 4 de noviembre de 2026
+
+Leslie confirma desglose exacto con ajuste explícito y fecha local de embarque para edad, conservando 1 de marzo en año no bisiesto para nacidos el 29 de febrero. Reemplaza los pendientes documentales incompatibles anteriores; no borra la evidencia histórica.
+
+También confirma oficinista de la cooperativa, documentos de identidad/nacimiento y discapacidad, resultado/referencia privada/actor/fecha/versión, antes del total aceptado; el comprador solo ve resultados propios y la revisión del comprobante es posterior e independiente. No implica que exista ya el proveedor de acreditación.
+
+Los casos C01–C24 se incorporan como expectativas de la nueva suite configured-passenger-quote.test.js. Hay pruebas adicionales de límites de edad, máximo/empates, cero explícito, aislamiento entre políticas y errores. El código puro recibe boardingDate previamente resuelta y datos acreditados: no convierte zona ni verifica documentos. No se cambia la cotización histórica ni se habilita el resumen de compra con datos simulados.
