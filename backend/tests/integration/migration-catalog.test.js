@@ -48,6 +48,13 @@ async function worker(url, action, input = {}) {
   return response.result;
 }
 const migrate = (url, direction = 'up') => worker(url, 'migrate', { direction });
+// Revierte por nombre hasta dejar `name` como última migración aplicada.
+async function downTo(pool, url, name) {
+  const last = async () =>
+    (await pool.query('SELECT name FROM pgmigrations ORDER BY id DESC LIMIT 1')).rows[0]?.name;
+  expect(activeNames).toContain(name);
+  while ((await last()) !== name) await migrate(url, 'down');
+}
 const rawRun = (url, names) => worker(url, 'raw', { names });
 async function snapshot(pool) {
   const tables = (
@@ -149,10 +156,7 @@ test('base vacía instala esquema real, omite ocultos/originales y no duplica al
     const before = await snapshot(pool);
     await expect(migrate(url)).resolves.toEqual([]);
     expect(await snapshot(pool)).toEqual(before);
-    await migrate(url, 'down'); // Retira acceso de invitado.
-    await migrate(url, 'down'); // Retira el ciclo de venta nuevo.
-    await migrate(url, 'down'); // Retira Fleet.
-    await migrate(url, 'down'); // Retira la protección de asientos.
+    await downTo(pool, url, '1794000000000-payment-booking-identifiers');
     expect(
       (await pool.query("SELECT tgname FROM pg_trigger WHERE tgname='bus_seats_immutable'")).rows,
     ).toHaveLength(0);
@@ -210,8 +214,10 @@ test('copia de develop con datos conserva cada fila/definición y añade solamen
       'booking_seat_allocations',
       'booking_trip_locks',
       'bookings',
+      'route_sheet_renewals',
     ]);
     expect(after.data.bookings).toEqual([]);
+    expect(after.data.route_sheet_renewals).toEqual([]);
   });
 });
 
@@ -407,7 +413,10 @@ test('actualiza develop con Reservas existentes sin perder plazos ni ocupaciones
         const updatedRows = after.data.bookings.map(({ row }) => {
           const booking = JSON.parse(row);
           expect(booking.expired_at).toBeNull();
+          expect(booking).toMatchObject({ vip_surcharge_cents: 0, rounding_adjustment_cents: 0 });
           delete booking.expired_at;
+          delete booking.vip_surcharge_cents;
+          delete booking.rounding_adjustment_cents;
           delete booking.sold_at;
           delete booking.rejected_at;
           delete booking.rejection_justification;
@@ -450,6 +459,8 @@ function comparableRows(table, rows) {
     delete value.rejected_at;
     delete value.rejected_by;
     delete value.rejection_justification;
+    delete value.upload_authorized_by;
+    delete value.upload_authorized_at;
     return { row: JSON.stringify(value) };
   });
 }
@@ -495,10 +506,7 @@ test('actualiza las 20 migraciones de develop con comprobante/outbox y revierte 
       (await pool.query("SELECT tgname FROM pg_trigger WHERE tgname='bus_seats_immutable'")).rows,
     ).toHaveLength(1);
     await expectBookingIdType(pool, 'text');
-    await migrate(url, 'down');
-    await migrate(url, 'down');
-    await migrate(url, 'down');
-    await migrate(url, 'down');
+    await downTo(pool, url, activeNames[19]);
     await expectBookingIdType(pool, 'uuid');
     expect(await snapshot(pool)).toEqual(before);
     await expect(migrate(url)).resolves.toHaveLength(activeNames.length - 20);
@@ -510,10 +518,8 @@ test.each(['reserva opaca/2026:á', 'ABCDEFAB-0000-4000-8000-000000000001'])(
   async (id) => {
     await database(async ({ pool, url }) => {
       await migrate(url);
-      await migrate(url, 'down'); // Retira acceso de invitado.
-      await migrate(url, 'down'); // Retira el ciclo de venta nuevo.
-      await migrate(url, 'down'); // Retira Fleet; la reversión que se prueba es la de Pagos.
-      await migrate(url, 'down'); // Retira la protección de asientos.
+      // La reversión que se prueba es la de identificadores de Pagos.
+      await downTo(pool, url, '1794000000000-payment-booking-identifiers');
       await seedProofOutbox(pool);
       await pool.query('UPDATE payment_proofs SET booking_id=$1', [id]);
       await pool.query('UPDATE payment_proof_notification_outbox SET booking_id=$1', [id]);
@@ -581,10 +587,7 @@ test('actualiza las 21 migraciones actuales de develop y conserva identidades op
     await expect(pool.query('UPDATE bus_seats SET offered=NOT offered')).rejects.toMatchObject({
       code: '23001',
     });
-    await migrate(url, 'down');
-    await migrate(url, 'down');
-    await migrate(url, 'down');
-    await migrate(url, 'down');
+    await downTo(pool, url, activeNames[20]);
     expect(await snapshot(pool)).toEqual(before);
     await expectBookingIdType(pool, 'text');
     await expect(migrate(url)).resolves.toHaveLength(activeNames.length - 21);
