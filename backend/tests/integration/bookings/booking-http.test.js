@@ -492,3 +492,54 @@ test('consulta de intento rechaza clave inválida, sesión ausente y contexto po
   ).toBe(400);
   expect(await counts()).toEqual({ bookings: 0, allocations: 0 });
 });
+
+async function otherCustomer() {
+  const otherUser = randomUUID();
+  const otherSession = randomUUID();
+  await pool.query(
+    `INSERT INTO users (id,email,password_hash,role)
+    VALUES ($1,'historial-ajeno@example.ec','hash-de-prueba','CUSTOMER')`,
+    [otherUser],
+  );
+  await pool.query(
+    `INSERT INTO auth_sessions (id,user_id,expires_at)
+    VALUES ($1,$2,CURRENT_TIMESTAMP + interval '1 hour')`,
+    [otherSession, otherUser],
+  );
+  return new Browser(url, accessToken(otherUser, otherSession));
+}
+
+test('historial propio lista y abre la reserva sin caché ni datos de otro comprador', async () => {
+  const browser = await customer();
+  const created = await (
+    await browser.request('/api/v1/bookings', 'POST', await accepted(browser), createHeaders)
+  ).json();
+  const { bookingId } = created.booking;
+  const list = await browser.request('/api/v1/bookings');
+  expect(list.status).toBe(200);
+  expect(list.headers.get('cache-control')).toBe('no-store');
+  const history = (await list.json()).bookings;
+  expect(history.items.map((item) => item.bookingId)).toEqual([bookingId]);
+  expect(JSON.stringify(history)).not.toContain(userId);
+  const detail = await browser.request('/api/v1/bookings/' + bookingId);
+  expect(detail.status).toBe(200);
+  expect((await detail.json()).booking).toMatchObject({ bookingId, status: 'PENDING_PAYMENT' });
+  const other = await otherCustomer();
+  expect((await (await other.request('/api/v1/bookings')).json()).bookings.items).toEqual([]);
+  const foreign = await other.request('/api/v1/bookings/' + bookingId);
+  const absent = await other.request('/api/v1/bookings/' + randomUUID());
+  expect(foreign.status).toBe(404);
+  expect(absent.status).toBe(404);
+  expect(await foreign.json()).toEqual(await absent.json());
+});
+
+test('historial rechaza sesión ausente y filtros o contexto por query', async () => {
+  expect((await new Browser().request('/api/v1/bookings')).status).toBe(401);
+  const browser = await customer();
+  expect((await browser.request('/api/v1/bookings?ownerId=ajeno')).status).toBe(400);
+  expect((await browser.request('/api/v1/bookings?limit=0')).status).toBe(400);
+  expect((await browser.request('/api/v1/bookings/' + randomUUID() + '?ownerId=x')).status).toBe(
+    400,
+  );
+  expect(await counts()).toEqual({ bookings: 0, allocations: 0 });
+});

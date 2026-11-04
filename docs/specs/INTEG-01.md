@@ -5,7 +5,7 @@
 - **Módulos:** catálogo de migraciones (`backend/scripts`), `bookings`, `payments` y composición del servidor
 - **Responsable:** Edwin, por acuerdo del equipo de que cualquier integrante puede resolver los bloqueos comunes
 - **Revisor propuesto:** pendiente; la revisión de IA no sustituye revisión humana
-- **Estado:** T1 implementada en `feature/INTEG-01-catalogo-migraciones`, pendiente de commit y PR. T2–T6 sin empezar.
+- **Estado:** T1 en `feature/INTEG-01-catalogo-migraciones` (commits `cf285b3` y `183d95b`), pendiente de PR. T2 en `feature/INTEG-01-T2-historial-reservas`, creada sobre T1. T3–T6 sin empezar.
 - **Base comprobada:** `origin/develop` en `64f39cd`, sin PR abiertas.
 
 ## 1. Objetivo
@@ -60,3 +60,16 @@ Cada tarea va en su propia rama `feature/INTEG-01-*` desde develop, con commit a
   - 12 en `payment-proof-review.http.test.js`: esperan `payments.bookingSaleConfirmer`, que ya no se expone; corresponde a T4.
   - 6 en `commercial-purchase.test.js`: la integración preparada con verificador responde 503 `BOOKING_TRIP_SERVICE_UNAVAILABLE` al crear la reserva; la creación no usa el catálogo comercial. Corresponde a la compra comercial (T6).
   - 4 en `authorized-payment-upload.http.test.js`: la carga autorizada responde 404 `BOOKING_NOT_FOUND`. Nueva conexión pendiente entre Pagos y Reservas, no listada en la tabla de la sección 2.
+
+### T2: historial de reservas, 4 de noviembre de 2026
+
+**Causa:** `createBookingsModule` no pasaba `getBookingHistory` a `createBookingRouter`; `GET /api/v1/bookings` y `GET /api/v1/bookings/:bookingId` fallaban con 500 al llamar `getBookingHistory.list` o `.get` sobre `undefined`. El caso de uso, el repositorio y la ruta ya existían (`0a8223e`).
+
+**Cambio:** `src/modules/bookings/index.js` compone `getBookingHistory({ repository })` y lo entrega al router. Sin cambios de dominio, repositorio ni rutas.
+
+**Pruebas nuevas** en `tests/integration/bookings/booking-http.test.js`, con servidor y PostgreSQL reales; antes del cambio fallaban con 500:
+
+- El comprador lista su reserva y abre su detalle con `no-store`, sin su identificador de usuario en la respuesta. Otro comprador ve un historial vacío, y su consulta del detalle ajeno es indistinguible de una reserva inexistente (404).
+- Sin sesión responde 401; `ownerId` o `limit` inválidos por query responden 400, sin escribir reservas.
+
+**Resultados** (rama basada en T1, PostgreSQL aislado, sin leer `.env`): lint y formato de los archivos tocados aprobados; **1925/1925 unitarias**; integración **615/637**. Los 22 fallos son los mismos conocidos de T1 (T4, T6 y carga autorizada).
