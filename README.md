@@ -135,14 +135,11 @@ Cada módulo backend organiza `domain`, `application`, `infrastructure` e `inter
 
 | Documento | Para qué consultarlo |
 |---|---|
-| [CONTRIBUTING.md](CONTRIBUTING.md) | Preparación, ramas, commits y revisión |
-| [Reglas de negocio](docs/business-rules.md) | Fuente de verdad funcional |
-| [Convenciones](docs/conventions.md) y [calidad](docs/calidad.md) | Código, pruebas y usabilidad |
-| [Equipo y acuerdos](docs/equipo-y-acuerdos.md) | Coordinación y decisiones confirmadas/propuestas |
-| [Estado](docs/estado-proyecto.md) | Evidencia fechada y siguientes pasos |
-| [Uso de IA](docs/AI-USAGE.md) y [flujo de Codex](docs/flujo-codex.md) | Asistencia con responsabilidad y revisión humana |
-| [Diseño](frontend/DESIGN.md) | Identidad transViaje y criterios visuales |
-| [Errores inducidos](docs/errores-inducidos.md) | Protocolo académico, sin autorización para inventar defectos |
+| [README.md](README.md) | Presentación, alcance, inicio en desarrollo y estructura del proyecto |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Preparación, ramas, commits, versiones, revisión y release |
+| [LICENSE](LICENSE) | Texto completo de la licencia GPL-3.0 |
+| [AGENTS.md](AGENTS.md) | Reglas para el trabajo asistido por IA en el repositorio |
+| [docs/](docs) | Reglas de negocio, arquitectura, convenciones, calidad, acuerdos, estado, specs, ADR y evidencias |
 
 Se usan specs locales como referencia hasta que el equipo confirme la adopción de un gestor externo. La fecha prevista de revisión no demuestra que ese cambio de proceso ya haya ocurrido. No se anuncian políticas, archivos de cita, changelog, workflows o protecciones remotas que no estén disponibles y comprobados.
 
