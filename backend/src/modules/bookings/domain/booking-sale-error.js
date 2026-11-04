@@ -1,4 +1,5 @@
 const messages = Object.freeze({
+  BOOKING_SALE_UNAVAILABLE: 'No se pudo confirmar la venta. Reintente con la misma identidad.',
   BOOKING_SALE_NOT_CONFIRMABLE: 'La reserva no admite confirmación de venta.',
   BOOKING_SALE_LINK_MISMATCH: 'La intención no corresponde a esta venta.',
   BOOKING_SALE_VERSION_MISMATCH: 'La versión no corresponde a la venta registrada.',

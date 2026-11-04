@@ -6,6 +6,7 @@ const expirationFailure = require('./domain/expiration-failure');
 const PgBookingLifecycleRepository = require('./infrastructure/pg-booking-lifecycle.repository');
 const receivePaymentProof = require('./application/receive-payment-proof.use-case');
 const expireBooking = require('./application/expire-booking.use-case');
+const confirmSale = require('./application/confirm-sale.use-case');
 const { randomUUID } = require('node:crypto');
 const PgBookingRepository = require('./infrastructure/pg-booking.repository');
 const createVerifiedCustomerIdentity = require('./infrastructure/verified-customer-identity');
@@ -76,6 +77,11 @@ function createBookingsModule({
       onFailure,
     });
   return {
+    createPaymentSaleConfirmer({ approvalSource } = {}) {
+      return Object.freeze({
+        confirmSale: confirmSale({ repository: lifecycle, approvalSource, clock }),
+      });
+    },
     createPaymentProofReceiver({ receiptSource } = {}) {
       return Object.freeze({
         markPaymentProofReceived: receivePaymentProof({

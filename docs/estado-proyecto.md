@@ -786,3 +786,11 @@ Resultado final BOOK-07 §16: persistencia interna verificada con 1904 unitarias
 ### Leslie: conciliación documental de rama de venta — 4 de noviembre de 2026
 
 Conflicto de BOOK-07-L05 con develop da9c678 resuelto conservando acuerdo de Shirley y confirmación posterior sobre históricos. Código backend idéntico al checkpoint cfd206d (2512 pruebas aprobadas previamente, no repetidas para documentos). [Evidencia](evidence/BOOK-07/2026-11-04-conciliacion-develop.md). Actualización de rama feature, sin abrir/integrar PR. API pública y conexión real de venta siguen pendientes; completar funcionalidad antes de presentar la PR, independientemente del número de commits.
+
+## Leslie: API pública de venta con fuente obligatoria — 4 de noviembre de 2026
+
+BOOK-07 §18, feature/BOOK-07-confirmacion-venta, base df3370b/develop da9c678. Implementada localmente createPaymentSaleConfirmer({approvalSource}).confirmSale con firma de tres IDs, fuente versionada obligatoria, resultado persistido validado y errores seguros. [Contrato de uso](contratos/confirmacion-venta-bookings-api.md), [evidencia](evidence/BOOK-07/2026-11-04-api-publica.md). 40 unitarias nuevas y 11 integraciones públicas nuevas aprobadas; global en ejecución.
+
+No se encuentra publicada la consulta real de intención/versionado de Payments; Leslie confirma que solo recibió mensajes, no rama/commit. No se duplica su trabajo ni se conecta el simulador como si fuera real. La fuente de integración QA es explícita; API local no equivale a conexión productiva de aprobación. Pendiente ese proveedor y su adaptación antes de presentar PR como funcionalidad completa. Sin commit/push/PR.
+
+Resultado final BOOK-07 §18: API pública de Bookings verificada localmente, 1944 unitarias + 619 integraciones aprobadas (2563 pruebas, 147 suites), salida 0. Lint/formato propio aprobados; formato global mantiene 17 archivos ajenos. Fotografías pasó sin modificar timeout y entorno temporal eliminado. Sin commit/push o PR del incremento. Fuente pública versionada de Payments no publicada/compartida según inspección y respuesta de Leslie; sigue siendo la dependencia para conexión productiva, no una nueva decisión de negocio pendiente. No confundir pruebas con fuente QA y aprobación real integrada.

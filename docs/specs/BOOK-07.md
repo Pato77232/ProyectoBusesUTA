@@ -10,7 +10,7 @@
 - **Responsable:** Leslie; coordinación de contrato con Shirley
 - **Revisor:** Edwin
 - **Módulo:** bookings
-- **Estado:** validación versionada y persistencia interna de venta verificadas localmente (§§15–16); caso de uso/API pública y conexión real a Payments pendientes. Revisión humana e integración pendientes.
+- **Estado:** validación, persistencia y API pública de venta verificadas localmente (§§15–18). Conexión productiva pendiente del proveedor de intención versionada de Payments. Revisión humana/publicación/integración de la API pendientes.
 - **Dependencias:** BOOK-03/06 y módulo payments.
 
 ## 1. Objetivo
@@ -62,7 +62,7 @@ No aplica.
 ## 12. Coordinación del contrato
 
 - **Respuesta recibida:** Leslie respondió a la consulta de Shirley el 29 de octubre de 2026; Shirley aceptó sus precisiones. El contrato queda acordado entre ambos módulos.
-- **Estado:** validación versionada y persistencia interna de venta verificadas localmente (§§15–16); caso de uso/API pública y conexión real a Payments pendientes. Revisión humana e integración pendientes.
+- **Estado:** validación, persistencia y API pública de venta verificadas localmente (§§15–18). Conexión productiva pendiente del proveedor de intención versionada de Payments. Revisión humana/publicación/integración de la API pendientes.
 - **Cambio de pagos registrado:** la spec PAGOS-01 y el código de pagos de la rama PAGOS-02 usan `markPaymentProofReceived({ bookingId, cooperativeId, paymentProofId })`; validar la integración de esta rama antes de integrarla.
 - **Trabajo de Leslie:** implementar la API pública de `bookings` y las transiciones concurrentes de recepción, expiración y confirmación.
 - **Trabajo de Shirley:** enviar los tres identificadores con `markPaymentProofReceived`, mostrar el total autoritativo al revisar y persistir la intención/actor antes de `confirmSale`; probar idempotencia, respuesta incierta y recuperación.
@@ -179,3 +179,27 @@ Guardado autorizado por Leslie el 4 de noviembre de 2026: commit del incremento 
 Leslie solicita corregir el conflicto de comparación de su rama publicada. Base de rama cfd206d; develop da9c678 solo agrega el acuerdo documental de versionado. Merge en feature/BOOK-07-confirmacion-venta sin cambiar a main/develop ni integrar la funcionalidad. Único conflicto: párrafo adicional al final de BOOK-07-L05; se conserva tanto el acuerdo publicado de Shirley como la confirmación posterior del tratamiento conservador de históricos.
 
 No cambios de backend: se comprueba igualdad del árbol backend con el commit cfd206d que pasó 2512 pruebas. No repetir suites por esta conciliación exclusivamente documental ni presentar esas pruebas como ejecución nueva. Diff/enlaces/marcadores revisados. Corrección en commit separado para publicar la rama sin conflictos; no apertura/merge de PR. Leslie reafirma completar API pública y conexión productiva antes de abrir PR; el número de commits no sustituye ese resultado.
+
+## 18. API pública de confirmación con fuente obligatoria — 4 de noviembre de 2026
+
+Leslie solicita completar API y conexión para presentar PR funcional. Revisión inicial limpia en df3370b, develop da9c678 sin cambios nuevos. PR abierta accesible #72 corresponde a auditoría de Route Sheets, no venta. Ramas PAGOS publicadas aún no incluyen consulta versionada: PAGOS-02-aprobar-comprobante c1d638f y PAGOS-02-develop-actualizado 2f30fc8 documental. Leslie confirma que Shirley solo compartió los mensajes, sin rama/commit de implementación. No duplicar su trabajo local ni inventar proveedor disponible.
+
+Incremento autorizado e independiente: caso de uso application/confirm-sale.use-case.js y fábrica pública createPaymentSaleConfirmer({approvalSource}) en createBookingsModule. Devuelve {confirmSale({bookingId, cooperativeId, paymentProofId})}. approvalSource es función interna obligatoria, inyectada por composición confiable, no parámetro del navegador; no default simulado, repositorio ni SQL de Payments accesibles desde Bookings. Callback recibe los tres IDs exactos congelados y produce la representación canónica de intención de §15. El adaptador de composición traducirá nombres del DTO público de Shirley si difieren; no se cambia su API unilateralmente.
+
+Validar/copiar request antes de await; rechazar campos extra, incluso proofVersion, actor, precio o rol enviados en esa operación. Leer y verificar intención durable en cada llamada, incluidos reintentos, antes de entrar al repositorio de venta. Evitar recuperación de datos a partir de tres identificadores sin comprobar la fuente autorizada. En una respuesta perdida con fuente temporalmente inaccesible, conservar incertidumbre hasta recuperar la consulta; no liberar ni declarar rechazo. Una intención válida conserva original actor/fecha y versión; nunca generar una versión 1 por ausencia.
+
+Fuente null o error técnico → BOOKING_SALE_UNAVAILABLE, sin llamar al repositorio. Fuente malformada/versiones ausentes → integridad, sin vender. Vínculos distintos → error de vínculo. Repositorio devuelve solo resultado confirmado validado por recoverSaleResult; null/true/objeto incoherente no son éxito. BookingSaleError conocido se conserva; reserva ausente se clasifica como no confirmable, errores inesperados se sanitizan como indisponibilidad y nunca exponen SQL/paths. Errores de integridad/indisponibilidad son inciertos para el adaptador de Payments; no tratarlos como rechazo definitivo ni liberar.
+
+El resultado de Bookings sigue siendo el DTO persistido; true pertenece al adaptador de Payments únicamente después de validar ese resultado. Este incremento no duplica el adaptador/versionado/bloqueo de Shirley ni activa el confirmador simulado de producción como prueba. No cambia server.js mientras no exista proveedor público real: solo se añade la fábrica a la API de módulo y sus pruebas, sin endpoint HTTP nuevo.
+
+Comprobar unitarias de entrada, copia/inmutabilidad, fuente ausente/temporal/histórica, reintentos, resultados inesperados y clasificación segura de errores; integración PostgreSQL por la API pública con proveedor QA explícito, venta real, concurrencia, COMMIT perdido/recuperación y expiración/lectura. Ese proveedor QA es fixture, no consulta productiva de Payments. Ejecutar lint, format:check y npm test con PostgreSQL aislado; sin nuevas migraciones/dependencias/frontend. Arranque real existente se conserva en integración; no hay cambios de composición.
+
+Entregable de esta parte: API de Bookings verificable y contrato de conexión listo. Para terminar la conexión entre módulos y abrir PR como funcionalidad completa falta que Shirley publique persistencia/versionado/consulta de intención/bloqueo y el adaptador de aprobación o autorice su coordinación concreta. No afirmar que pasar pruebas con fuente QA cumple esa integración. No commit/push/PR en esta petición.
+
+### Resultado de la API pública
+
+Implementada y verificada localmente createPaymentSaleConfirmer({approvalSource}).confirmSale. Fuente obligatoria y sin simulación predeterminada, input de tres IDs, reintentos autorizados por fuente y resultado persistido validado. [Contrato de uso](../contratos/confirmacion-venta-bookings-api.md), [evidencia](../evidence/BOOK-07/2026-11-04-api-publica.md).
+
+npm test salida 0: 1944 unitarias y 619 integraciones aprobadas, 2563 pruebas en 147 suites. Lint y formato propio (cinco JS) aprobados; formato global mantiene 17 archivos ajenos. Fotografías pasó con timeout original; PostgreSQL temporal eliminado. Sin commit/push ni PR. La fuente QA no acredita la consulta productiva de Payments. Leslie confirmó que Shirley no compartió implementación/rama/commit; esa dependencia y adaptación de aprobación faltan para completar conexión y presentar PR del flujo completo.
+
+Leslie autoriza guardar y publicar este incremento el 4 de noviembre de 2026 para compartir la API/contrato con Shirley. Sin cambios funcionales posteriores a las 2563 pruebas aprobadas; no se abre ni integra PR y la conexión productiva sigue pendiente de su proveedor real.
