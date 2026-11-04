@@ -1,5 +1,11 @@
 # Estado compartido del proyecto
 
+## ROUTE-SHEETS-10 — consulta productiva de ocupaciones, 4 de noviembre de 2026
+
+| Spec / responsable | Estado y evidencia | Próximo paso |
+|---|---|---|
+| [ROUTE-SHEETS-10](specs/ROUTE-SHEETS-10.md) / David | Implementación local en `feature/ROUTE-SHEETS-10-consulta-ocupaciones`, sobre `7fb89e6`. David comunica autorización de Leslie para concretar e implementar este contrato con Codex. API pública de Reservas por viajes, resolución propia de Hojas de Ruta e inyección real en servidor, sin SQL entre módulos. 17 unitarias nuevas y 8 integraciones nuevas aprobadas con arranque real; lint y formato propio aprobados. Global: 1860 unitarias aprobadas/6 fallidas por dobles antiguos; 611 integraciones aprobadas/3 fallidas (dos expectativas antiguas de 503 y timeout de fotos). Formato global conserva 37 archivos previos. David pide conservar las pruebas y reportar los fallos. Evidencia en §3 de la spec. | No integrada ni cerrada: revisión humana y conciliación explícita de pruebas históricas pendientes. No modifica desactivación, sustitución ni la no atomicidad de consulta/baja/auditoría. Sin commit ni publicación. |
+
 ## ROUTE-SHEETS-09 — auditoría de modificaciones, secciones 0 y 1 locales, 4 de noviembre de 2026
 
 David solicitó revisar los módulos pendientes, autorizó la sección 0 y luego confirmó las recomendaciones Q1–Q4 y autorizó la sección 1 en `feature/ROUTE-SHEETS-09-auditoria-modificaciones`, rama creada por él sobre `7f378fc` (`develop`); la sección 0 quedó en `73f1b58`.

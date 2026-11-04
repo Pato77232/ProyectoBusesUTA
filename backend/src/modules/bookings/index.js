@@ -112,4 +112,6 @@ function createBookingsModule({
     }),
   };
 }
-module.exports = { createBookingsModule };
+const createBookingOccupancyQueries = require('./infrastructure/create-booking-occupancy-queries');
+
+module.exports = { createBookingsModule, createBookingOccupancyQueries };

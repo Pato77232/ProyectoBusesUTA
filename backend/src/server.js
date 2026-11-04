@@ -11,7 +11,7 @@ const {
   createPaymentReceiptModule,
   createPaymentReviewModule,
 } = require('./modules/payments');
-const { createBookingsModule } = require('./modules/bookings');
+const { createBookingsModule, createBookingOccupancyQueries } = require('./modules/bookings');
 function closeServer(server) {
   return new Promise((resolve, reject) =>
     server.close((error) => (error ? reject(error) : resolve())),
@@ -47,6 +47,7 @@ async function start(env = process.env) {
       busGroupQueries: fleet.busGroupQueries,
       busQueries: fleet.busQueries,
       seatQueries: fleet.seatQueries,
+      occupancyQueries: createBookingOccupancyQueries({ pool }),
     });
     if (typeof routeSheets.tripQueries?.findBookableForSegment !== 'function')
       throw new Error('No se pudo conectar el catálogo de viajes por tramo.');
