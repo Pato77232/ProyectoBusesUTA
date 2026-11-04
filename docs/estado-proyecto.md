@@ -1,5 +1,13 @@
 # Estado compartido del proyecto
 
+## ROUTE-SHEETS-09 — auditoría de modificaciones, sección 0 documental, 4 de noviembre de 2026
+
+David solicitó revisar los módulos pendientes y autorizó redactar la sección 0 en `feature/ROUTE-SHEETS-09-auditoria-modificaciones`, rama creada por él sobre `7f378fc` (`develop`), inicialmente limpia.
+
+| Spec / responsable | Estado y evidencia | Próximo paso |
+|---|---|---|
+| [ROUTE-SHEETS-09](specs/ROUTE-SHEETS-09.md) / David | Borrador; solo documentación. Comprobado en código: la tabla `route_sheet_modification_logs` y su repositorio existen, pero ningún camino de producción escribe logs, `modify-route-sheet-with-audit` no está cableado en `composition.js` y `GET /:id/modification-logs` no recibe registros de ningún camino de producción. | Confirmar Q1–Q4 antes de la sección 1; revisión humana y commit pendientes. Sin pruebas, lint ni arranque ejecutados por ser cambio solo Markdown. |
+
 ## ROUTE-SHEETS-WEB-01 — consulta y alta de borradores, 3 de noviembre de 2026
 
 David autorizó inicialmente la sección 1 y luego la sección 2. Rama feature/ROUTE-SHEETS-WEB-01-programacion-manual, base local reportada 0f36d71 (renovación integrada en PR #68).
