@@ -149,6 +149,7 @@ test('base vacía instala esquema real, omite ocultos/originales y no duplica al
     const before = await snapshot(pool);
     await expect(migrate(url)).resolves.toEqual([]);
     expect(await snapshot(pool)).toEqual(before);
+    await migrate(url, 'down'); // Retira acceso de invitado.
     await migrate(url, 'down'); // Retira el ciclo de venta nuevo.
     await migrate(url, 'down'); // Retira Fleet.
     await migrate(url, 'down'); // Retira la protección de asientos.
@@ -204,6 +205,7 @@ test('copia de develop con datos conserva cada fila/definición y añade solamen
         .filter((table) => !Object.hasOwn(before.data, table))
         .sort(),
     ).toEqual([
+      'booking_guest_access_tokens',
       'booking_proof_receipt_results',
       'booking_seat_allocations',
       'booking_trip_locks',
@@ -496,6 +498,7 @@ test('actualiza las 20 migraciones de develop con comprobante/outbox y revierte 
     await migrate(url, 'down');
     await migrate(url, 'down');
     await migrate(url, 'down');
+    await migrate(url, 'down');
     await expectBookingIdType(pool, 'uuid');
     expect(await snapshot(pool)).toEqual(before);
     await expect(migrate(url)).resolves.toHaveLength(activeNames.length - 20);
@@ -507,6 +510,7 @@ test.each(['reserva opaca/2026:á', 'ABCDEFAB-0000-4000-8000-000000000001'])(
   async (id) => {
     await database(async ({ pool, url }) => {
       await migrate(url);
+      await migrate(url, 'down'); // Retira acceso de invitado.
       await migrate(url, 'down'); // Retira el ciclo de venta nuevo.
       await migrate(url, 'down'); // Retira Fleet; la reversión que se prueba es la de Pagos.
       await migrate(url, 'down'); // Retira la protección de asientos.
@@ -577,6 +581,7 @@ test('actualiza las 21 migraciones actuales de develop y conserva identidades op
     await expect(pool.query('UPDATE bus_seats SET offered=NOT offered')).rejects.toMatchObject({
       code: '23001',
     });
+    await migrate(url, 'down');
     await migrate(url, 'down');
     await migrate(url, 'down');
     await migrate(url, 'down');
