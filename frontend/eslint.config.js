@@ -3,6 +3,8 @@ export default [
   bookingRules,
   {
     files: [
+      'src/route-sheets/**/*.js',
+      'tests/route-sheets/**/*.js',
       'src/api/**/*.js',
       'src/payments/**/*.js',
       'tests/payments/**/*.js',
@@ -22,6 +24,7 @@ export default [
         Option: 'readonly',
         fetch: 'readonly',
         URL: 'readonly',
+        URLSearchParams: 'readonly',
         Response: 'readonly',
         Request: 'readonly',
         FormData: 'readonly',
