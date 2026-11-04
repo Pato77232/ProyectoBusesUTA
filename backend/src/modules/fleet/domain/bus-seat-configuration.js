@@ -23,7 +23,11 @@ function createBusSeatConfiguration(input, serverLayout) {
   const validKeys = new Set(positions.map((position) => position.key));
   const disabled = new Set(data.disabledSeatKeys);
   const vip = new Set(data.vipSeatKeys ?? []);
-  if ([...disabled, ...vip].some((key) => !validKeys.has(key))) {
+  const accessible = new Set(data.accessibleSeatKeys ?? []);
+  if (
+    [...disabled, ...vip, ...accessible].some((key) => !validKeys.has(key)) ||
+    [...accessible].some((key) => vip.has(key))
+  ) {
     throw new BusRegistrationValidationError();
   }
   const seats = positions.map((position) =>
@@ -33,8 +37,12 @@ function createBusSeatConfiguration(input, serverLayout) {
       deck: position.deck,
       row: position.row,
       column: position.column,
-      category: vip.has(position.key) ? VIP_CATEGORY : position.category,
-      offered: !disabled.has(position.key),
+      category: accessible.has(position.key)
+        ? 'ACCESSIBLE'
+        : vip.has(position.key)
+          ? VIP_CATEGORY
+          : position.category,
+      offered: !accessible.has(position.key) && !disabled.has(position.key),
     }),
   );
   const capacity = seats.filter((seat) => seat.offered).length;

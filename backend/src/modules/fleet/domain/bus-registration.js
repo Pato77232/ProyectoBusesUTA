@@ -14,6 +14,7 @@ const FIELDS = [
   'seatLayoutVersion',
   'disabledSeatKeys',
   'vipSeatKeys',
+  'accessibleSeatKeys',
 ];
 const PLATE_PATTERN = /^[A-Z]{3}-?[0-9]{4}$/;
 const DECIMAL_PATTERN = /^[0-9]+$/;
@@ -75,6 +76,9 @@ function createBusRegistrationData(input) {
     disabledSeatKeys: seatKeys(input.disabledSeatKeys),
     // Campo opcional: un alta sin marcas conserva exactamente su forma anterior.
     ...(input.vipSeatKeys !== undefined && { vipSeatKeys: seatKeys(input.vipSeatKeys) }),
+    ...(input.accessibleSeatKeys !== undefined && {
+      accessibleSeatKeys: seatKeys(input.accessibleSeatKeys),
+    }),
   });
 }
 

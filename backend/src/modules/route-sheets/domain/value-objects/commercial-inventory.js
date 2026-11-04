@@ -39,7 +39,8 @@ function commercialInventory(source, busId) {
       seat.row < 0 ||
       !Number.isSafeInteger(seat.column) ||
       seat.column < 0 ||
-      !['NORMAL', 'VIP'].includes(seat.category) ||
+      !['NORMAL', 'VIP', 'ACCESSIBLE'].includes(seat.category) ||
+      (seat.category === 'ACCESSIBLE' && seat.offered !== false) ||
       typeof seat.offered !== 'boolean'
     )
       sourceInvalid();

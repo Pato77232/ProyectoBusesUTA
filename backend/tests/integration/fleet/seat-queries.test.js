@@ -50,6 +50,50 @@ test('la API pública solo ofrece la lectura de asientos', () => {
   expect(Object.keys(seatQueries)).toEqual(['listByBus']);
 });
 
+test('entrega ACCESSIBLE no ofrecido, sin confundirlo con NORMAL o VIP y aislado por cooperativa', async () => {
+  const key = seatKeys(singleDeck)[0];
+  const bus = await registerBus(fixtures.first, { data: { accessibleSeatKeys: [key] } });
+  const result = await seatQueries.listByBus({
+    busId: bus.id,
+    cooperativeId: fixtures.first.cooperativeId,
+  });
+  expect(result.seats.find((s) => s.layoutSeatKey === key)).toMatchObject({
+    category: 'ACCESSIBLE',
+    offered: false,
+  });
+  expect(result.seats.filter((s) => s.offered)).toHaveLength(singleDeck.capacity - 1);
+  for (const [category, offered] of [
+    ['ACCESSIBLE', true],
+    ['UNKNOWN', false],
+  ]) {
+    await expect(
+      pool.query(
+        `INSERT INTO bus_seats(id,bus_id,cooperative_id,layout_seat_key,label,deck,row_index,column_index,category,offered)
+      VALUES($1,$2,$3,'invalid-space',500,1,500,0,$4,$5)`,
+        [randomUUID(), bus.id, fixtures.first.cooperativeId, category, offered],
+      ),
+    ).rejects.toMatchObject({ code: '23514' });
+  }
+  expect(
+    await seatQueries.listByBus({ busId: bus.id, cooperativeId: fixtures.second.cooperativeId }),
+  ).toBeNull();
+  await require('../../helpers/migration-target').rollbackBefore(
+    pool,
+    '1794270000000-identify-accessible-bus-spaces',
+  );
+  const before = (await pool.query('SELECT name FROM pgmigrations ORDER BY id')).rows;
+  expect(() => runMigration('down')).toThrow();
+  expect((await pool.query('SELECT name FROM pgmigrations ORDER BY id')).rows).toEqual(before);
+  expect(
+    (
+      await pool.query(
+        'SELECT category,offered FROM bus_seats WHERE bus_id=$1 AND layout_seat_key=$2',
+        [bus.id, key],
+      )
+    ).rows[0],
+  ).toEqual({ category: 'ACCESSIBLE', offered: false });
+});
+
 test('entrega todos los asientos e indica los no ofrecidos con su identidad real', async () => {
   const keys = seatKeys(singleDeck);
   const bus = await registerBus(fixtures.first, { data: { disabledSeatKeys: [keys[0]] } });

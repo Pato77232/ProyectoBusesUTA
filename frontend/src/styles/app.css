@@ -412,14 +412,16 @@ p {
   margin-top: 24px;
 }
 .seat-deck,
-.vip-deck {
+.vip-deck,
+.accessible-deck {
   margin-top: 16px;
 }
 .seat-subtitle {
   margin-top: 24px;
 }
 .seat-deck legend,
-.vip-deck legend {
+.vip-deck legend,
+.accessible-deck legend {
   font-size: 1rem;
   font-weight: 650;
 }

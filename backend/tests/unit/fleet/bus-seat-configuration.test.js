@@ -24,6 +24,25 @@ const metadata = {
   seatLayoutVersion: base.version,
 };
 
+test('identifica espacios accesibles sin venderlos ni contarlos en capacidad', () => {
+  const key = base.decks[0].elements.find((e) => e.kind === 'SEAT').key;
+  const result = createBusSeatConfiguration({ ...metadata, accessibleSeatKeys: [key] }, base);
+  expect(result.seats.find((s) => s.layoutSeatKey === key)).toMatchObject({
+    category: 'ACCESSIBLE',
+    offered: false,
+  });
+  expect(result.capacity).toBe(base.capacity - 1);
+  expect(() =>
+    createBusSeatConfiguration(
+      { ...metadata, accessibleSeatKeys: [key], vipSeatKeys: [key] },
+      base,
+    ),
+  ).toThrow(BusRegistrationValidationError);
+  expect(() =>
+    createBusSeatConfiguration({ ...metadata, accessibleSeatKeys: ['inexistente'] }, base),
+  ).toThrow(BusRegistrationValidationError);
+});
+
 test('sin desactivaciones conserva todos los asientos y calcula capacidad', () => {
   const result = createBusSeatConfiguration(metadata, base);
   expect(result.capacity).toBe(42);

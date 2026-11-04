@@ -19,6 +19,7 @@ const FIELD_NAMES = [
 const PHOTOS_FIELD = 'photos';
 const DISABLED_SEATS = { name: 'disabledSeatKeys', deckClass: 'seat-deck' };
 const VIP_SEATS = { name: 'vipSeatKeys', deckClass: 'vip-deck' };
+const ACCESSIBLE_SPACES = { name: 'accessibleSeatKeys', deckClass: 'accessible-deck' };
 
 function addOptions(select, items, describe) {
   for (const item of items) select.add(new Option(describe(item), item.id));
@@ -87,6 +88,7 @@ export function mountBusForm(form, { busGroups, seatLayouts, onValid }) {
   const seatSection = form.querySelector('#seat-section');
   const seatDecks = form.querySelector('#seat-decks');
   const vipDecks = form.querySelector('#vip-decks');
+  const accessibleDecks = form.querySelector('#accessible-decks');
   const seatNotice = form.querySelector('#seat-notice');
   const photoList = form.querySelector('#photo-list');
   const findLayout = (id) => seatLayouts.find((layout) => layout.id === id);
@@ -110,11 +112,14 @@ export function mountBusForm(form, { busGroups, seatLayouts, onValid }) {
 
   form.elements.seatLayoutId.addEventListener('change', (event) => {
     const hadSelection =
-      selectedSeats(form, DISABLED_SEATS.name).length + selectedSeats(form, VIP_SEATS.name).length >
+      selectedSeats(form, DISABLED_SEATS.name).length +
+        selectedSeats(form, VIP_SEATS.name).length +
+        selectedSeats(form, ACCESSIBLE_SPACES.name).length >
       0;
     const layout = findLayout(event.target.value);
     renderSeats(seatDecks, layout, DISABLED_SEATS);
     renderSeats(vipDecks, layout, VIP_SEATS);
+    renderSeats(accessibleDecks, layout, ACCESSIBLE_SPACES);
     seatSection.hidden = !layout;
     seatNotice.hidden = !hadSelection;
   });
@@ -141,12 +146,19 @@ export function mountBusForm(form, { busGroups, seatLayouts, onValid }) {
     }
     status.hidden = true;
     const layout = findLayout(values.seatLayoutId);
+    const accessible = selectedSeats(form, ACCESSIBLE_SPACES.name);
+    if (selectedSeats(form, VIP_SEATS.name).some((key) => accessible.includes(key))) {
+      showStatus(status, 'Una posición accesible no puede ser VIP. Revisa las marcas.', 'error');
+      status.focus();
+      return;
+    }
     onValid(
       buildBusData(
         values,
         layout,
         selectedSeats(form, DISABLED_SEATS.name),
         selectedSeats(form, VIP_SEATS.name),
+        accessible,
       ),
       files,
     );

@@ -78,7 +78,13 @@ export function seatsByDeck(layout) {
   }));
 }
 
-export function buildBusData(values, layout, disabledSeatKeys, vipSeatKeys = []) {
+export function buildBusData(
+  values,
+  layout,
+  disabledSeatKeys,
+  vipSeatKeys = [],
+  accessibleSeatKeys = [],
+) {
   return {
     plate: values.plate.trim(),
     vin: values.vin.trim(),
@@ -91,5 +97,6 @@ export function buildBusData(values, layout, disabledSeatKeys, vipSeatKeys = [])
     disabledSeatKeys: [...disabledSeatKeys],
     // FLEET-07: el campo es opcional; sin asientos VIP el alta conserva su forma anterior.
     ...(vipSeatKeys.length > 0 && { vipSeatKeys: [...vipSeatKeys] }),
+    ...(accessibleSeatKeys.length > 0 && { accessibleSeatKeys: [...accessibleSeatKeys] }),
   };
 }

@@ -477,11 +477,18 @@ function comparableDefinitions(entries) {
         ),
     )
     .map((entry) =>
-      entry.kind === 'column' &&
-      ['payment_proofs', 'payment_proof_notification_outbox'].includes(entry.object) &&
-      entry.detail.startsWith('booking_id:uuid:')
-        ? { ...entry, detail: entry.detail.replace('booking_id:uuid:', 'booking_id:text:') }
-        : entry,
+      entry.kind === 'constraint' &&
+      entry.object === 'bus_seats' &&
+      entry.detail.includes('category')
+        ? {
+            ...entry,
+            detail: entry.detail.replace("'VIP'::text]", "'VIP'::text, 'ACCESSIBLE'::text]"),
+          }
+        : entry.kind === 'column' &&
+            ['payment_proofs', 'payment_proof_notification_outbox'].includes(entry.object) &&
+            entry.detail.startsWith('booking_id:uuid:')
+          ? { ...entry, detail: entry.detail.replace('booking_id:uuid:', 'booking_id:text:') }
+          : entry,
     );
 }
 test('actualiza las 20 migraciones de develop con comprobante/outbox y revierte UUID sin perder filas', async () => {

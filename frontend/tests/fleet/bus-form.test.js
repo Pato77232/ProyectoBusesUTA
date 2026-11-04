@@ -36,6 +36,13 @@ const LAYOUT = {
   ],
 };
 
+test('transporta espacios accesibles explícitos sin inferirlos por piso ni marcarlos VIP', () => {
+  const data = buildBusData(VALID, LAYOUT, [], [], ['d1-s45']);
+  assert.deepEqual(data.accessibleSeatKeys, ['d1-s45']);
+  assert.equal(data.vipSeatKeys, undefined);
+  assert.equal(buildBusData(VALID, LAYOUT, []).accessibleSeatKeys, undefined);
+});
+
 test('acepta datos completos sin importar mayúsculas de la placa', () => {
   assert.deepEqual(validateBusFields(VALID), {});
   assert.deepEqual(validateBusFields({ ...VALID, plate: 'TBM2213' }), {});
