@@ -1,5 +1,15 @@
 # Estado compartido del proyecto
 
+## D-05 — renovación, sección 0 documental, 3 de noviembre de 2026
+
+David autorizó preparar [ROUTE-SHEETS-08](specs/ROUTE-SHEETS-08.md) y aportó la respuesta humana de Leslie. Rama existente `feature/ROUTE-SHEETS-08-renovacion-ciclos`, base `072f845`, inicialmente limpia; fetch comprobó `origin/develop` en `4bb6861`. Se reutiliza la rama sin merge/rebase; el avance remoto se distingue de la base de esta documentación.
+
+| Spec / responsable | Estado y evidencia | Próximo paso |
+|---|---|---|
+| [ROUTE-SHEETS-08](specs/ROUTE-SHEETS-08.md) / David | Borrador, sección 0 preparada; solo planificación y respuesta de Leslie registrada. Nuevo borrador y publicación explícita, historia intacta, máximo de dos ciclos y serialización existente. Sin código ni pruebas de producto nuevas. | Resolver Q1–Q4 (cupo de borradores, origen/copia, idempotencia/vínculo de serie y serie terminada), confirmar revisora y autorizar sección 1. No declarar integrada/cerrada. |
+
+Leslie acepta la firma de consulta por tramo condicionada a concretar DTO/errores/revalidación; no acredita su consumidor conectado. Detalle de ocupaciones es propuesta sin API pública/commit disponible; protocolo concurrente, versión de Fleet y procedimiento humano de reubicación/comunicación pendientes. Se referencian en ambas specs consumidoras, sin modificar Bookings/Fleet ni habilitar sustitución. Paradas operativas y sustitución se prepararán en specs separadas. Asistencia de Codex en planificación documental; validación de enlaces/diff se registra en la spec.
+
 ## PAGOS-02 — resolución local de conflictos de PR #55, 3 de noviembre de 2026
 
 PR #55 publicada en `7448e1a`, con aprobación de Pablo registrada sobre esa

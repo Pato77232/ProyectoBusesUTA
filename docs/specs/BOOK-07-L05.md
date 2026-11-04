@@ -1,5 +1,13 @@
 # BOOK-07 / L-05: APIs públicas para pagos y hojas
 
+## Coordinación con David para D-05 — 3 de noviembre de 2026
+
+Fuente: respuesta de Leslie aportada por David al autorizar la sección 0 de [ROUTE-SHEETS-08](ROUTE-SHEETS-08.md). Leslie confirma que todavía no expone una API pública con detalle de ocupaciones para sustitución y que los booleanos históricos de §5 no bastan para identificar afectados. Propone consulta autorizada por viaje con bookingId, seatId, estado y posiciones inicio/fin, incluyendo RESERVED/SOLD efectivos y reservas con comprobante en revisión, sin datos personales innecesarios. Nombre/firma definitiva, permisos y revisión de lectura pendientes; no hay commit disponible de esta API según su mensaje.
+
+Leslie señala que su bloqueo interno por cooperativa/viaje no coordina por sí solo la sustitución entre módulos. Debe acordarse protocolo común, orden de bloqueos, revalidación y rollback; no compartir repositorios ni permitir escrituras directas entre módulos. Se conservan motivo, autor, buses anterior/nuevo y correspondencia explícita entre seatId; versión de inventario/compatibilidad por cerrar con Edwin. Sin correspondencia válida para todos los compromisos, se bloquea la sustitución automática.
+
+Autorización de reubicación manual, comunicación al pasajero y registro siguen pendientes de acuerdo operativo. Cualquier cambio de importe se revisará con Shirley; no se recalculan automáticamente compras anteriores. Leslie permite continuar preparando renovación preservando viajes/reservas, con sustitución en spec e incremento separados. Este registro no implementa ni autoriza código de Bookings, no sustituye sus contratos vigentes de Pagos y no atribuye respuestas nuevas a Edwin/Shirley.
+
 > Contrato de destino actualizado el 2 de noviembre: aplicar el diseño publicado en PR #46, contrastado con el adaptador integrado de PR #47. Ver [conciliación actual](../reservas-pagos-conciliacion-20261102.md). Firma/contexto/errores ya seleccionados según delegación reportada; falta especificar e implementar persistencia y proveedor con pruebas. El lector reducido anterior queda superado.
 
 - **Planificación:** L-05; no es una spec aprobada ni un ID externo.
