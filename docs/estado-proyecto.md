@@ -1,5 +1,13 @@
 # Estado compartido del proyecto
 
+## ROUTE-SHEETS-09 — auditoría de modificaciones, secciones 0 y 1 locales, 4 de noviembre de 2026
+
+David solicitó revisar los módulos pendientes, autorizó la sección 0 y luego confirmó las recomendaciones Q1–Q4 y autorizó la sección 1 en `feature/ROUTE-SHEETS-09-auditoria-modificaciones`, rama creada por él sobre `7f378fc` (`develop`); la sección 0 quedó en `73f1b58`.
+
+| Spec / responsable | Estado y evidencia | Próximo paso |
+|---|---|---|
+| [ROUTE-SHEETS-09](specs/ROUTE-SHEETS-09.md) / David | Sección 0 en 73f1b58 y sección 1 en 268160f, guardadas por David. Sección 2 autorizada: cierre de verificación con Node 24 y arranque real, manteniendo 503 ante proveedor de pasajeros ausente. Ocho pruebas nuevas del servidor productivo aprobadas, sin dobles de Fleet/Frecuencias/Bookings; no se modifica producto. Node 24/PostgreSQL aislado: 1826/1826 unitarias y 602/602 integraciones aprobadas; lint y formato propio aprobados, formato global conserva 37 archivos previos. Arranque real y cierres comprobados, base exclusiva retirada. Evidencia final en §15. | Revisión humana (Leslie propuesta), commit/publicación e integración pendientes. Conectar bookingQueries requiere API pública de Bookings y tarea coordinada aparte; Q1–Q4 conservan sus límites, incluida no atomicidad. |
+
 ## ROUTE-SHEETS-WEB-01 — consulta y alta de borradores, 3 de noviembre de 2026
 
 David autorizó inicialmente la sección 1 y luego la sección 2. Rama feature/ROUTE-SHEETS-WEB-01-programacion-manual, base local reportada 0f36d71 (renovación integrada en PR #68).

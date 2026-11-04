@@ -1,23 +1,49 @@
 const RouteSheetDTO = require('../dtos/route-sheet.dto');
 const RouteSheetValidationService = require('../services/route-sheet-validation.service');
+const recordRouteSheetModification = require('../services/record-route-sheet-modification');
 const { RouteSheetNotFoundError } = require('../../domain/errors/route-sheet-errors');
 
-function removeRestDayFromRouteSheetUseCase({ routeSheetRepository, routeSheetRestDayRepository, routeSheetAssignmentRepository, bookingQueryPort }) {
+function removeRestDayFromRouteSheetUseCase({
+  routeSheetRepository,
+  routeSheetRestDayRepository,
+  routeSheetAssignmentRepository,
+  routeSheetModificationLogRepository,
+  bookingQueryPort,
+}) {
   const validationService = new RouteSheetValidationService();
 
-  return async ({ routeSheetId, cooperativeId, restDayId, modifiedBy, reasonForChange, forceWithPassengersWarning }) => {
+  return async ({
+    routeSheetId,
+    cooperativeId,
+    restDayId,
+    modifiedBy,
+    reasonForChange,
+    forceWithPassengersWarning,
+  }) => {
     const routeSheet = await routeSheetRepository.findById(routeSheetId, cooperativeId);
     if (!routeSheet) {
       throw new RouteSheetNotFoundError();
     }
     routeSheet.assertEditable();
 
-    const restDays = await routeSheetRestDayRepository.findByRouteSheetId(routeSheetId, cooperativeId);
+    const restDays = await routeSheetRestDayRepository.findByRouteSheetId(
+      routeSheetId,
+      cooperativeId,
+    );
     const restDay = restDays.find((r) => r.id === restDayId);
 
+    let hasPassengers = false;
     if (bookingQueryPort && restDay) {
-      const hasPassengers = await bookingQueryPort.hasPassengersForBusOnRouteSheet(routeSheetId, restDay.busId, cooperativeId);
-      validationService.validatePassengersConflict(hasPassengers, forceWithPassengersWarning, reasonForChange);
+      hasPassengers = await bookingQueryPort.hasPassengersForBusOnRouteSheet(
+        routeSheetId,
+        restDay.busId,
+        cooperativeId,
+      );
+      validationService.validatePassengersConflict(
+        hasPassengers,
+        forceWithPassengersWarning,
+        reasonForChange,
+      );
     }
 
     if (routeSheetRestDayRepository.removeById) {
@@ -26,7 +52,26 @@ function removeRestDayFromRouteSheetUseCase({ routeSheetRepository, routeSheetRe
       await routeSheetRestDayRepository.deleteById(restDayId, cooperativeId);
     }
 
-    const assignments = await routeSheetAssignmentRepository.findByRouteSheetId(routeSheetId, cooperativeId);
+    if (restDay) {
+      await recordRouteSheetModification({
+        repository: routeSheetModificationLogRepository,
+        routeSheetId,
+        cooperativeId,
+        busGroupId: routeSheet.busGroupId,
+        modifiedBy,
+        reason: reasonForChange,
+        action: 'DELETE',
+        affectedEntity: 'REST_DAY',
+        entityId: restDay.id,
+        oldValue: { busId: restDay.busId },
+        hasPassengersWarning: hasPassengers,
+      });
+    }
+
+    const assignments = await routeSheetAssignmentRepository.findByRouteSheetId(
+      routeSheetId,
+      cooperativeId,
+    );
     const updatedRestDays = restDays.filter((r) => r.id !== restDayId);
     return RouteSheetDTO.fromEntity(routeSheet, assignments, updatedRestDays);
   };
