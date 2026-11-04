@@ -13,6 +13,7 @@
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "jest tests/unit",
     "test:integration": "cross-env NODE_ENV=test jest tests/integration --runInBand",
+    "test:contract:bookings": "cross-env NODE_ENV=test node tests/contracts/real-bookings-payment-review.cjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "migrate": "node scripts/migrate.js up",

@@ -340,3 +340,16 @@ La aprobación de Pablo registrada sobre `7448e1a` acredita esa cabeza, no se
 traslada automáticamente al commit de conciliación. La PR queda preparada para
 que Pablo inspeccione la nueva cabeza y ejecute el merge desde GitHub. #56 se
 mantiene separada y en borrador.
+## 19. Prueba conjunta con el proveedor integrado — 3 de noviembre de 2026
+
+Las PR #54 (pantalla) y #55 (consumidor) están integradas. La base actual de conciliación es develop c95cc732b7a895fc3f4d1b00f39aa1dd9fb2345e, que incluye los cambios integrados de recepción/expiración y el puente de Pagos. La rama de trabajo codex/PAGOS-02-pr56 conserva el incremento de contrato de la cabeza 15218ae.
+
+El ensayo ejecuta createPaymentReviewModule con createBookingsModule(...).paymentQueries del snapshot público de develop, junto con Auth, PostgreSQL aislado y archivos privados reales. No incorpora el snapshot al producto. BOOKINGS_QA_ROOT debe apuntar a una copia absoluta de backend; la base debe terminar en _test. El snapshot temporal requiere npm ci con su package-lock para que los imports ESM de node-pg-migrate y sus dependencias resuelvan localmente. No se editan migraciones ni se modifica el esquema a mano.
+
+Los 12 grupos cubren DTO y total, contexto autenticado, roles y aislamiento entre cooperativas, límites temporales, ausencia de mutaciones sobre reservas/asientos, privacidad de listado y archivo, recepción sembrada solo como fixture e integridad ante total incoherente. Sembrar la recepción no acredita una API real de aceptación, y la prueba no acredita expiración productiva, venta ni liberación.
+
+### Resultado de ejecución contra develop c95cc73
+
+La ejecución del contrato terminó con salida 0: 12 grupos aprobados. En el candidato conciliado, npm test aprobó 1747 unitarias y 545 integraciones (2292 en total, 132 suites); lint y Prettier de package.json y del script CJS aprobaron. format:check global falló en 17 archivos previos de Route Sheets, conservados sin modificación. El primer intento del contrato falló porque los imports ESM no usan NODE_PATH; instalar las dependencias bloqueadas en el snapshot temporal permitió repetirlo correctamente.
+
+No hay cambios de producto, migraciones, dependencias o pruebas anteriores atribuibles a #56. La composición productiva no se activa. GitHub todavía debe recibir la rama conciliada; la revisión de Pablo y los checks de CI están pendientes. La PR permanece en borrador hasta inspeccionar esos resultados.

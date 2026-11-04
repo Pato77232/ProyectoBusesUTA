@@ -1,5 +1,13 @@
 # Estado compartido del proyecto
 
+## PAGOS-02 — prueba conjunta con Reservas real, actualizada el 3 de noviembre de 2026
+
+Las PR #54 y #55 están integradas; también las PR #60 y #62. La rama de trabajo es codex/PAGOS-02-pr56, con la cabeza de #56 15218ae conciliándose localmente con develop c95cc73. El proveedor de QA se obtuvo de c95cc732b7a895fc3f4d1b00f39aa1dd9fb2345e y se montó desde un snapshot temporal.
+
+La prueba conjunta con Auth, PostgreSQL aislado y archivos privados reales aprobó sus 12 grupos. La regresión del candidato aprobó 1747 pruebas unitarias y 545 integraciones; lint y Prettier de package.json y del script CJS aprobaron. format:check global continúa fallando en 17 archivos previos de Route Sheets. Para resolver la carga ESM del snapshot se instalaron allí sus dependencias bloqueadas con npm ci; no se actualizaron versiones ni archivos del producto.
+
+La prueba no acredita mutaciones productivas, aceptación real de comprobantes ni venta. #56 continúa en borrador; falta completar y registrar el merge local, publicar la rama y obtener revisión de Pablo y resultado de CI. [Spec §19](specs/PAGOS-02.md#19-prueba-conjunta-con-el-proveedor-integrado-3-de-noviembre-de-2026), [evidencia](evidence/PAGOS-02/2026-11-03-contrato-real.md) y [descripción](evidence/PAGOS-02/descripcion-pr-prueba-real.md).
+
 ## PAGOS-02 — resolución local de conflictos de PR #55, 3 de noviembre de 2026
 
 PR #55 publicada en `7448e1a`, con aprobación de Pablo registrada sobre esa
