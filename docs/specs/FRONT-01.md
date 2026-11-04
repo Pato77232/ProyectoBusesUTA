@@ -2,10 +2,10 @@
 
 - **ID local:** FRONT-01
 - **Responsable:** Pablo
-- **Revisión:** T3c aprobada por Pato77232 y Shirley, integrada en PR #30. T3d pendiente de revisión humana.
-- **Estado:** T1/T2/T3a–T3c integradas; T3d implementada localmente; T4 pendiente.
-- **Fecha / base comprobada:** 1 de noviembre de 2026; origin/develop 2b8a543, integración de T3c.
-- **Rama actual:** feature/FRONT-01-T3d-integracion, desde 2b8a543.
+- **Revisión:** T3c aprobada por Pato77232 y Shirley; T3d aprobada por David; T4 comprobada con AUTH-WEB-01 aprobada por Shirley.
+- **Estado:** Cerrada; T1–T4 integradas y con evidencia de navegador.
+- **Fecha / base comprobada:** 3 de noviembre de 2026; `origin/develop` `65957a9`.
+- **Ramas de procedencia:** feature/FRONT-01-T3d-integracion y feature/AUTH-WEB-01-pantalla-login.
 - **Prioridad propuesta:** Alta, para desbloquear las pantallas de los cinco integrantes.
 - **Dependencias:** ADR 0003/0004, INFRA-01 y contratos de autenticación existentes. El enfoque de [frontend-acuerdos.md](../frontend-acuerdos.md) está confirmado por reporte humano; completar los detalles técnicos de cada paso antes de ejecutarlo, sin volver a pedir el mismo acuerdo general.
 
@@ -644,3 +644,23 @@ de 2026. El commit que contiene esta constancia guarda empaquetado, prueba y
 guía como un único cambio lógico. Fetch confirmó develop 2b8a543 sin avances
 posteriores. Sin cambios de producto desde la verificación; no se repitió la
 batería para el guardado. Confirmar push/PR en GitHub; sin integración inferida.
+
+## 32. T4 — comprobación y documentación de la integración
+
+T4 no añade otra pantalla ni un segundo cliente HTTP. Su resultado comprobable
+queda cubierto por tres evidencias ya integradas:
+
+- `frontend/GUIA-INTEGRACION.md` explica a los integrantes cómo ejecutar la base,
+  añadir una pantalla y comprobar sus estados sin duplicar transporte o CSRF.
+- La [PR #32](https://github.com/Pato77232/ProyectoBusesUTA/pull/32), aprobada por
+  David e integrada como `d0a5f8d`, verificó módulos, MIME, cookies, CSRF,
+  login/logout y recuperación con Chrome, backend y PostgreSQL reales.
+- La [PR #45](https://github.com/Pato77232/ProyectoBusesUTA/pull/45), aprobada por
+  Shirley e integrada como `3d053a4`, aplicó la guía a la primera pantalla real y
+  comprobó estados, teclado, 360/1280 px y ampliación CSS al 200 %.
+
+La regresión global posterior registrada con PR #65 aprobó 1772 pruebas unitarias
+y 564 de integración sobre `develop` `65957a9`. T4 queda cumplida sin acreditar
+TLS real, lector de pantalla, zoom nativo ni todas las pantallas de negocio.
+FRONT-01 queda Cerrada; cada pantalla posterior conserva su propia spec, revisión
+y criterios de usabilidad.
