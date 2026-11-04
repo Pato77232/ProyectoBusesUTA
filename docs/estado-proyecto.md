@@ -1,5 +1,11 @@
 # Estado compartido del proyecto
 
+## FREQUENCIES-WEB-02 — listado, detalle y estado, 4 de noviembre de 2026
+
+| Spec / responsable | Estado y evidencia | Próximo paso |
+|---|---|---|
+| [FREQUENCIES-WEB-02](specs/FREQUENCIES-WEB-02.md) / David | 2.1 implementada localmente sobre `95579e2`, misma rama `feature/ROUTE-SHEETS-10-consulta-ocupaciones` por petición expresa. Página frecuencias.html con filtros, detalle inmutable y cambio de estado confirmado; FREQ-03 impide bajas con compromisos. Resultado incierto exige consulta, sin reenvío automático; aislamiento y sesión revalidados. Frontend 281 aprobadas (18 nuevas), lint/formato propio aprobados; QA Chrome/imagen/API/PostgreSQL, capturas 360/640/1280 y contraste aprobados. Backend sin cambios: lint aprobado, 36 pendientes previos de formato; 1897 unitarias aprobadas/9 fallidas y 609 integraciones aprobadas/21 fallidas, contratos históricos documentados. [Evidencia](evidence/FREQUENCIES-WEB-02/README.md). | Revisión humana, zoom nativo y lector de pantalla pendientes; no integrada/cerrada. 2.2/2.3 siguen separadas. Sin commit ni publicación. |
+
 ## BOOK-03-L03-T1 — integración comercial preparada, 4 de noviembre de 2026
 
 | Spec / responsable | Estado y evidencia | Próximo paso |

@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Frecuencias · transViaje</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+    <link
+      rel="stylesheet"
+      href="/assets/vendor/bootstrap-5.3.8/bootstrap.min.css"
+    />
+    <link rel="stylesheet" href="/src/styles/app.css" />
+    <link rel="stylesheet" href="/src/styles/frequency-list.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+    <header class="site-header">
+      <div class="container">
+        <a class="brand" href="/" aria-label="transViaje, inicio"
+          ><span class="brand-logo-frame" aria-hidden="true"
+            ><img
+              class="brand-logo"
+              src="/assets/brand/logo-transviaje.png"
+              alt=""
+              width="1600"
+              height="1446" /></span
+        ></a>
+      </div>
+    </header>
+    <main id="contenido" class="container frequency-list" tabindex="-1">
+      <p class="eyebrow">OPERACIÓN DE COOPERATIVA</p>
+      <h1>Frecuencias</h1>
+      <p>
+        Consulta el recorrido registrado y administra el estado de las
+        frecuencias de tu cooperativa.
+      </p>
+      <nav class="frequency-actions" aria-label="Acciones de frecuencias">
+        <a class="btn btn-dark" href="/pages/crear-frecuencia.html"
+          >Crear frecuencia</a
+        ><a class="btn btn-outline-dark" href="/pages/hojas-ruta.html"
+          >Hojas de ruta</a
+        >
+      </nav>
+      <section class="frequency-card" aria-labelledby="filters-title">
+        <h2 id="filters-title">Buscar frecuencias</h2>
+        <p class="frequency-note">
+          Los lugares se comparan completos, sin distinguir mayúsculas ni
+          espacios exteriores.
+        </p>
+        <form id="frequency-filters">
+          <fieldset id="filters-fields" disabled>
+            <legend class="visually-hidden">Filtros de consulta</legend>
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label" for="filter-origin">Origen</label
+                ><input
+                  id="filter-origin"
+                  name="origin"
+                  class="form-control"
+                  autocomplete="off"
+                />
+              </div>
+              <div class="col-md-4">
+                <label class="form-label" for="filter-destination"
+                  >Destino</label
+                ><input
+                  id="filter-destination"
+                  name="destination"
+                  class="form-control"
+                  autocomplete="off"
+                />
+              </div>
+              <div class="col-md-4">
+                <label class="form-label" for="filter-status">Estado</label
+                ><select id="filter-status" name="status" class="form-select">
+                  <option value="">Todos los estados</option>
+                  <option value="ACTIVE">Activa</option>
+                  <option value="INACTIVE">Inactiva</option>
+                </select>
+              </div>
+            </div>
+            <div class="frequency-actions mt-3">
+              <button class="btn btn-dark" type="submit">Consultar</button
+              ><button class="btn btn-outline-dark" type="reset">
+                Limpiar filtros
+              </button>
+            </div>
+          </fieldset>
+        </form>
+      </section>
+      <section
+        id="results"
+        class="frequency-card"
+        aria-labelledby="results-title"
+        aria-busy="true"
+      >
+        <h2 id="results-title">Resultados</h2>
+        <div id="status-panel" data-mode="loading">
+          <p id="status" role="status" aria-live="polite" tabindex="-1">
+            Comprobando sesión…
+          </p>
+        </div>
+        <div class="frequency-actions">
+          <button id="retry" class="btn btn-outline-dark" type="button" hidden>
+            Volver a consultar</button
+          ><a id="login-link" href="/pages/login.html" hidden>Iniciar sesión</a
+          ><a id="reload-link" href="/pages/frecuencias.html" hidden
+            >Recargar página</a
+          >
+        </div>
+        <p class="frequency-note">
+          En pantallas pequeñas, desplaza la tabla horizontalmente para ver el
+          estado y las acciones.
+        </p>
+        <div
+          class="frequency-table-scroll"
+          role="region"
+          aria-label="Tabla de frecuencias"
+          tabindex="0"
+        >
+          <table id="frequency-table" class="table" hidden>
+            <caption>
+              Frecuencias de tu cooperativa. Desplaza la tabla horizontalmente
+              en pantallas pequeñas.
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Origen</th>
+                <th scope="col">Destino</th>
+                <th scope="col">Salida</th>
+                <th scope="col">Estado</th>
+                <th scope="col">Acción</th>
+              </tr>
+            </thead>
+            <tbody id="frequency-rows"></tbody>
+          </table>
+        </div>
+      </section>
+      <section
+        id="detail-panel"
+        class="frequency-card"
+        aria-labelledby="detail-title"
+        hidden
+      >
+        <h2 id="detail-title" tabindex="-1">Detalle de la frecuencia</h2>
+        <p>El origen, destino y hora de salida son inmutables.</p>
+        <div id="frequency-detail"></div>
+        <button id="change-state" class="btn btn-dark" type="button">
+          Cambiar estado
+        </button>
+        <section
+          id="confirmation"
+          class="frequency-confirmation"
+          aria-labelledby="confirmation-title"
+          hidden
+        >
+          <h3 id="confirmation-title" tabindex="-1">
+            Confirmar cambio de estado
+          </h3>
+          <p id="confirmation-text"></p>
+          <p id="confirmation-warning"></p>
+          <div class="frequency-actions">
+            <button id="confirm-change" class="btn btn-dark" type="button">
+              Confirmar cambio</button
+            ><button
+              id="cancel-change"
+              class="btn btn-outline-dark"
+              type="button"
+            >
+              Cancelar
+            </button>
+          </div>
+        </section>
+      </section>
+      <noscript
+        ><p>
+          Necesitas JavaScript para consultar frecuencias y comprobar tu sesión.
+        </p></noscript
+      >
+    </main>
+    <script type="module" src="/src/frequencies/list-page.js"></script>
+  </body>
+</html>

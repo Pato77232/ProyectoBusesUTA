@@ -10,6 +10,8 @@
 !pages/login.html
 !pages/comprobantes.html
 !pages/crear-frecuencia.html
+!pages/frecuencias.html
+!src/styles/frequency-list.css
 !src/
 !src/styles/
 !src/styles/app.css
