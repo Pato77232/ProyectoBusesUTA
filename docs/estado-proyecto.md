@@ -1,5 +1,34 @@
 # Estado compartido del proyecto
 
+## Conciliación de tareas de Pablo — 3 de noviembre de 2026
+
+Fetch comprobado: `origin/develop` `65957a9` a las 20:58
+(America/Guayaquil). La rama de preparación
+`feature/PABLO-01-cierre-y-ci` parte de esa referencia. GitHub no muestra pull
+requests abiertas al realizar esta conciliación.
+
+- AUTH-WEB-01 queda Cerrada: PR #45 aprobada por Shirley e integrada en
+  `3d053a4`; la evidencia de pantalla real y sus límites se conservan en la spec.
+- AUTH-06 queda Cerrada: PR #53 aprobada por Shirley e integrada en `f5b9bde`.
+- AUTH-BOOTSTRAP-01 queda Cerrada: PR #52 aprobada por Shirley e integrada en
+  `2df5949`; no se ejecutó el aprovisionamiento contra una base operativa.
+- INFRA-04 queda Cerrada: PR #14 aprobada por David y Leslie e integrada en
+  `c89b1b9`.
+- FRONT-01 queda Cerrada: T3d fue aprobada por David e integrada en `d0a5f8d`;
+  T4 se comprueba con la guía compartida y AUTH-WEB-01 como primera pantalla real.
+- [CI-01](specs/CI-01.md) queda en Borrador. Antes de implementar deben resolverse
+  su revisora, el disparador posterior y la política de los 17 avisos globales de
+  formato. No existe workflow versionado ni autorización para ocultar esos fallos.
+
+La regresión más reciente registrada al integrar la PR #65 aprobó 1772 pruebas
+unitarias y 564 de integración sobre la base que contiene estos cambios. Esta
+conciliación solo modifica documentación y no reutiliza esos conteos como una
+ejecución nueva. Los estados históricos inferiores conservan la fecha de cada
+sesión y quedan sustituidos por esta sección únicamente para las tareas listadas.
+`git diff --check` aprobó y se comprobaron 137 referencias locales de los siete
+documentos afectados sin destinos faltantes. No se ejecutaron lint/Jest porque
+no cambió código, configuración ejecutable ni composición.
+
 ## PAGOS-02 — prueba conjunta con Reservas real, actualizada el 3 de noviembre de 2026
 
 Las PR #54 y #55 están integradas; también las PR #60 y #62. La rama de trabajo es codex/PAGOS-02-pr56, con la cabeza de #56 15218ae conciliándose localmente con develop c95cc73. El proveedor de QA se obtuvo de c95cc732b7a895fc3f4d1b00f39aa1dd9fb2345e y se montó desde un snapshot temporal.
@@ -226,8 +255,8 @@ Antes de orientar a alguien:
 | [INFRA-01](specs/INFRA-01.md) | Pablo | Código integrado | Backend, migraciones, Compose, lint y Jest; verificar entorno de cada integrante |
 | [AUTH-01](specs/AUTH-01.md), [AUTH-02](specs/AUTH-02.md), [AUTH-03](specs/AUTH-03.md), [AUTH-04](specs/AUTH-04.md) | Pablo | Código integrado | Login, autorización, logout y registro; algunas specs todavía indican revisión/integración pendientes; confirmar cierre humano |
 | [TENANTS-01](specs/TENANTS-01.md), [AUTH-FK-01](specs/AUTH-FK-01.md), [AUTH-05](specs/AUTH-05.md) | Pablo | Código integrado | Cooperativas, integridad y administrador principal; no implica pantallas ni provisión del primer SYSTEM_ADMIN |
-| AUTH-BOOTSTRAP-01 | Pablo | [PR #52](https://github.com/Pato77232/ProyectoBusesUTA/pull/52) publicada contra `develop`; Shirley solicitada para revisión | Rama `feature/AUTH-BOOTSTRAP-01-base-actual` sobre base `1dcbd6d` conserva la corrección `9b65e9f`; lint aprobado, 1249 unitarias + 352 integraciones PostgreSQL aprobadas. Formato global falla en 17 archivos preexistentes. Pruebas tras combinar con `develop`, revisión humana e integración pendientes. |
-| [AUTH-06](specs/AUTH-06.md) | Pablo | [PR #53](https://github.com/Pato77232/ProyectoBusesUTA/pull/53) publicada contra `develop`; Shirley solicitada para revisión | Rama `feature/AUTH-06-crear-oficinista` sobre base `1dcbd6d`: lint y formato propio aprobados; 1235 unitarias + 355 integraciones PostgreSQL aprobadas; arranque real health 200 y alta anónima 401. Formato global falla en 17 archivos preexistentes. Pruebas tras combinar con `develop`, revisión humana e integración pendientes. |
+| [AUTH-BOOTSTRAP-01](specs/AUTH-BOOTSTRAP-01.md) | Pablo | Cerrada; PR #52 aprobada por Shirley e integrada en `2df5949` | Conciliación previa: lint, 1315 unitarias y 385 integraciones aprobadas; 17 avisos globales ajenos. Regresión posterior de la base integrada registrada con PR #65. No se aprovisionó una base operativa. |
+| [AUTH-06](specs/AUTH-06.md) | Pablo | Cerrada; PR #53 aprobada por Shirley e integrada en `f5b9bde` | Revisión independiente de rol, CSRF, tenant, concurrencia y login posterior; regresión posterior de la base integrada registrada con PR #65. |
 | [FLEET-01](specs/FLEET-01.md) | Edwin | Código integrado, PR #10 | Crear/listar grupos; catálogo y alta disponibles mediante FLEET-03/FLEET-02 |
 | [FLEET-02](specs/FLEET-02.md) | Edwin | Alta integrada por PR #27 en 4f34748; corrección de fotos integrada por PR #28 en b1e6720 | PR #27 aprobada por David. Develop comprobado el 1 de noviembre en b1e6720; suite real con FLEET-04: 786 unitarias y 239 integraciones aprobadas (1025), sin montaje correctivo |
 | [FLEET-03](specs/FLEET-03.md) | Edwin | Código integrado, PR #26 | Tres plantillas con asientos normales; VIP y silla de ruedas de RN-12 requieren otra tarea. Las claves del catálogo no sustituyen UUID de asientos por bus |
@@ -238,9 +267,9 @@ Antes de orientar a alguien:
 | [FLEET-04](specs/FLEET-04.md) | Edwin | En revisión, PR #29 | T1 3ddfc26 y T2 782c4b0 publicados sobre b1e6720. Lint y 786 unitarias + 239 integraciones aprobadas (1025), formato propio correcto; 20 archivos previos pendientes. Contrato confirmado por David según Edwin; revisión humana de código e integración pendientes |
 | [ROUTE-SHEETS-02](specs/ROUTE-SHEETS-02.md) | David | Integrada en PR #33/0b4041e; proveedor productivo de reservas pendiente | Se conserva el historial de pruebas de su spec. Al verificar AUTH-WEB-01 sobre esta base: lint y 801 unitarias + 239 integraciones aprobados, arranque real con PostgreSQL y login aprobados. Esto no certifica todos los recorridos de hojas de ruta; BOOK-03 sigue pendiente. |
 | [INFRA-02](specs/INFRA-02.md), [INFRA-03](specs/INFRA-03.md) | Shirley; revisor indicado Pablo | Cambios presentes; cierre documental pendiente | cross-env y .gitattributes presentes, lock actualizado en historial; no implica aprobación humana ni validación Windows actual |
-| [INFRA-04](specs/INFRA-04.md) | Pablo; revisora propuesta Shirley | Integrada: su código documental está contenido en c89b1b9 | La presencia en develop está comprobada; no se inventa evidencia de revisión humana/cierre |
-| [FRONT-01](specs/FRONT-01.md) | Pablo | T3c/T3d integradas; T4 pendiente | PR #32 aprobada por David22x e integrada en d0a5f8d. Login funcional se verifica aparte mediante AUTH-WEB-01; no implica cierre de toda la base frontend. |
-| [AUTH-WEB-01](specs/AUTH-WEB-01.md) | Pablo; Shirley aprobó controlador/lint, pantalla por revisar | Controlador integrado en PR #42/8fdf7e4; pantalla verificada localmente, guardado atómico solicitado; sin PR | 2 de noviembre: rama feature/AUTH-WEB-01-pantalla-login, base 8fdf7e4. Lint/formato propio y 115 pruebas frontend aprobados; test:login con API/Docker real aprobado. Backend: lint y npm test completo aprobados (1068 unitarias + 275 integraciones); formato previo falla en 17 archivos. Spec sección 19; revisión humana de pantalla pendiente. |
+| [INFRA-04](specs/INFRA-04.md) | Pablo | Cerrada; PR #14 aprobada por David y Leslie e integrada en `c89b1b9` | Lint, 346 pruebas, skill y enlaces verificados en la PR. La adopción en instalaciones de terceros no se infiere. |
+| [FRONT-01](specs/FRONT-01.md) | Pablo | Cerrada; T1–T4 integradas | PR #32 aprobada por David e integrada en `d0a5f8d`; T4 se acredita con la guía y la pantalla real de AUTH-WEB-01, sin extenderse a las pantallas de negocio. |
+| [AUTH-WEB-01](specs/AUTH-WEB-01.md) | Pablo | Cerrada; PR #45 aprobada por Shirley e integrada en `3d053a4` | 115 pruebas frontend y `test:login` con API/Docker real reproducidos por la revisora. Zoom nativo y lector de pantalla no certificados. |
 | [FLEET-05](specs/FLEET-05.md) | Edwin | T1/T2 integradas; T3 en [PR #63](https://github.com/Pato77232/ProyectoBusesUTA/pull/63) para revisión, implementación ffc0798 y corrección 53df664 | Repetición de corrección: 227 pruebas frontend, lint y formato de los dos JS aprobados. Respuesta de alta no verificable se trata como incierta sin reintentos. Evidencia anterior: 9 comprobaciones Chrome y 3 de API real; no repetidas en esta actualización. CSS y smoke de portada con pendientes previos documentados. Falta revisión humana; listado/detalle fuera del alcance. |
 | [FLEET-06](specs/FLEET-06.md) | Edwin | T1 en [PR #41](https://github.com/Pato77232/ProyectoBusesUTA/pull/41) en borrador; implementación 7d6353a sobre 1fb0ade | listByBus entrega todos los asientos con identidad propia, layoutSeatKey y offered; confirmación de Leslie pendiente. 21 pruebas específicas aprobadas. Global: 1066 unitarias aprobadas/2 fallidas; integración 274 aprobadas/1 timeout en user-cooperative-integrity. Versión por hoja, VIP y accesibilidad pendientes; detalles en la spec. |
 | [FLEET-07](specs/FLEET-07.md) | Edwin | T1 preparada para revisión en [PR #44](https://github.com/Pato77232/ProyectoBusesUTA/pull/44); sin integración | 3 de noviembre: VIP no ofrecido confirmado por Edwin; migración VIP renumerada con autorización y SQL intacto; reversión independiente de la última migración. Integración Linux/PostgreSQL aislado 280/280, prueba con migración posterior 5/5 y upgrade desde develop aprobados. Unitarias globales 1074 aprobadas/2 fallidas de hojas de ruta; base conservada sin merge por decisión de Edwin. Leslie y revisión humana pendientes; T2 aparte. |
@@ -252,7 +281,7 @@ Antes de orientar a alguien:
 | PAGOS-03, planificación S-03 | Shirley; Pablo aceptó revisar el incremento | Borrador existente en la referencia local `origin/feature/PAGOS-01-subir-comprobante`, commit `72887bd`; no está en la rama actual PAGOS-02 ni consta aprobación técnica | Rechazo justificado y liberación coordinada; falta concretar `releaseBooking` y recuperación entre módulos. No se crea una segunda spec con el mismo ID. |
 | PAGOS-CORR-01, planificación S-03 | Shirley; Pablo aceptó revisar el incremento | Borrador local conciliado el 2 de noviembre, separado de la publicación PAGOS-02; no aprobado para implementar | PR #35 ya confirma 3/15 minutos; eventos técnicos, rondas, versionado/correo y efecto del vencimiento siguen pendientes. Leslie no aprobó cerrar edición/mantener revisión al vencer. Depende de S-02, L-05, PAGOS-01/02 y P-03. |
 | PAGOS-CAJA-01, relacionada con S-04 | Shirley; Pablo aceptó revisar el incremento | Borrador local conciliado el 2 de noviembre, separado de la publicación PAGOS-02; no aprobado para implementar | PR #35 confirma efectivo mediante reserva y sin archivo de depósito. Plazo de caja, titularidad, abandono/cancelación, resultados e idempotencia siguen pendientes. Depende de P-02, L-03 y L-05. |
-| CI | Pablo | Sin workflow versionado en la base | Proponer una spec propia; no afirmar protecciones remotas sin consultarlas |
+| [CI-01](specs/CI-01.md) | Pablo; Shirley propuesta como revisora | Borrador; sin workflow versionado | Resolver los 17 avisos globales de formato, confirmar revisora y disparadores; después autorizar un workflow pequeño con Node 24 y PostgreSQL 16. |
 
 ## Actualización parcial de reservas — 27 de octubre de 2026
 
@@ -300,11 +329,9 @@ Orden recomendado para discutir con el equipo. Cada fila es **Propuesta sin spec
 
 | Integrante | Orden y tarea pequeña propuesta | Dependencia / primer paso |
 |---|---|---|
-| Pablo | 1. Registrar la revisión/cierre de INFRA-04 cuando exista evidencia humana | Su contenido ya está en develop; no repetir implementación ni autoaprobar |
-| Pablo | 2. Atender revisión de AUTH-BOOTSTRAP-01 | [PR #52](https://github.com/Pato77232/ProyectoBusesUTA/pull/52) lista y Shirley solicitada; comprobar la combinación y repetir pruebas antes de integrar. |
-| Pablo | 3. Completar AUTH-WEB-01 y su revisión por incrementos | T3d integrada. Conexión de login local; cerrar evidencia y preparar entregas pequeñas. Navegación pendiente; coordinación Fleet en f5a6fbe, sin aceptación inferida de multipart/proxy. |
-| Pablo | 4. Atender revisión de AUTH-06 | [PR #53](https://github.com/Pato77232/ProyectoBusesUTA/pull/53) lista y Shirley solicitada; comprobar la combinación y repetir pruebas antes de integrar. No inferir aprobación por la ejecución local. |
-| Pablo | 5. Preparar CI y luego pantallas de acceso/cooperativas, una por tarea | Specs separadas; CI depende del entorno de integración, pantallas de la base frontend |
+| Pablo | 1. Obtener revisión de esta conciliación documental | Verificar únicamente los cierres y CI-01; no reabrir implementaciones integradas ni mezclar PAGOS-WEB-01. |
+| Pablo | 2. Resolver las preguntas de [CI-01](specs/CI-01.md) | Confirmar revisora, disparadores y tratamiento explícito de los 17 avisos de formato. La spec sigue Borrador. |
+| Pablo | 3. Implementar CI-01 solo después de su aprobación | Un workflow pequeño para backend con Node 24/PostgreSQL 16; sin despliegue, auto-merge ni secretos reales. |
 | Edwin | 1. Registrar un bus con los datos RN-10 | Spec y acuerdo de fotografías/almacenamiento; grupo de buses existente |
 | Edwin | 2. Consultar buses de la cooperativa | Contrato público requerido por hojas de ruta; coordinar con David |
 | Edwin | 3. Definir y consultar plantilla de asientos, en tareas separadas | Acordar identificadores, pisos y tipos con Leslie; RN-12 |
