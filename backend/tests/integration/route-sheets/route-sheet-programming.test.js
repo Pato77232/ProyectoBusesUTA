@@ -1,5 +1,6 @@
 const { randomUUID } = require('node:crypto');
 const { runMigration, testPool } = require('../../helpers/database');
+const { rollbackBefore } = require('../../helpers/migration-target');
 const { assertTestDatabase } = require('../../../scripts/test-database');
 const { createFrequenciesModule } = require('../../../src/modules/frequencies');
 const { createFleetModule } = require('../../../src/modules/fleet');

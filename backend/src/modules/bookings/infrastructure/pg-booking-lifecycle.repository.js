@@ -111,6 +111,48 @@ class PgBookingLifecycleRepository {
       if (client) client.release(connectionFailure);
     }
   }
+  async listExpiredCandidates({ cutoff, after, limit }) {
+    const validTime = (value) =>
+      typeof value === 'string' &&
+      Number.isFinite(Date.parse(value)) &&
+      new Date(value).toISOString() === value;
+    if (
+      !validTime(cutoff) ||
+      !Number.isInteger(limit) ||
+      limit < 1 ||
+      limit > 500 ||
+      (after !== null &&
+        (!validTime(after?.expiresAt) ||
+          typeof after?.bookingId !== 'string' ||
+          !after.bookingId.trim()))
+    )
+      fail('BOOKING_DATA_INTEGRITY_ERROR');
+    try {
+      const values = [cutoff, limit];
+      const cursor = after === null ? '' : 'AND (expires_at,id)>($3::timestamptz,$4::text)';
+      if (after !== null) values.push(after.expiresAt, after.bookingId);
+      const { rows } = await this.pool.query(
+        `SELECT id,expires_at FROM bookings WHERE status='PENDING_PAYMENT'
+          AND proof_reception_state='NOT_RECEIVED' AND expires_at<=$1::timestamptz
+          ${cursor} ORDER BY expires_at,id LIMIT $2`,
+        values,
+      );
+      return Object.freeze(
+        rows.map((row) => {
+          if (
+            typeof row.id !== 'string' ||
+            !row.id.trim() ||
+            !(row.expires_at instanceof Date) ||
+            !Number.isFinite(row.expires_at.getTime())
+          )
+            fail('BOOKING_DATA_INTEGRITY_ERROR');
+          return Object.freeze({ bookingId: row.id, expiresAt: row.expires_at.toISOString() });
+        }),
+      );
+    } catch (error) {
+      throw safe(error);
+    }
+  }
   async findReceipt(target) {
     try {
       return await prior(this.pool, target);

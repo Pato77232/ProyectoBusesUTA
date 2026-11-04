@@ -6,9 +6,17 @@ David autorizó preparar [ROUTE-SHEETS-08](specs/ROUTE-SHEETS-08.md) y aportó l
 
 | Spec / responsable | Estado y evidencia | Próximo paso |
 |---|---|---|
-| [ROUTE-SHEETS-08](specs/ROUTE-SHEETS-08.md) / David | Sección 0 en 80c2211 y sección 1 en 4ff9723. David autorizó sección 2: endpoint de preparación, transacción íntegra, clave durable, procedencia y publicación vinculada. Implementación local: 1785/1785 unitarias y 12/12 integraciones propias finales; regresión global 549/550, único timeout previo de fotos de Fleet. Lint/formato propio aprobados; global conserva 39 archivos previos. Evidencia en §16. | Revisión humana y contraste con develop pendientes. Sin commit nuevo, push ni integración. La renovación no cierra gestión de paradas ni sustitución de D-05. |
+| [ROUTE-SHEETS-08](specs/ROUTE-SHEETS-08.md) / David | Secciones 0/1 en 80c2211 y 4ff9723; sección 2 guardada por David en ba30b4a. Combinación local con develop 65957a9 iniciada por David y cinco conflictos resueltos, catálogo de 23 migraciones y registro del equipo preservados. Node 24: 1815/1815 unitarias y 575/577 integraciones; dos timeouts. Administradores aprobó 1/1 al repetir aislado; fotos de Fleet conserva su timeout previo. Lint/formato propio aprobados; global conserva 39 archivos previos. Evidencia en §17. | Revisión humana, commit de combinación y actualización remota pendientes. Sin commit/push del asistente ni integración de la PR. La renovación no cierra paradas ni sustitución de D-05. |
 
 Leslie acepta la firma de consulta por tramo condicionada a concretar DTO/errores/revalidación; no acredita su consumidor conectado. Detalle de ocupaciones es propuesta sin API pública/commit disponible; protocolo concurrente, versión de Fleet y procedimiento humano de reubicación/comunicación pendientes. Se referencian en ambas specs consumidoras, sin modificar Bookings/Fleet ni habilitar sustitución. Paradas operativas y sustitución se prepararán en specs separadas. Asistencia de Codex en planificación documental; validación de enlaces/diff se registra en la spec.
+
+## PAGOS-02 — prueba conjunta con Reservas real, actualizada el 3 de noviembre de 2026
+
+Las PR #54 y #55 están integradas; también las PR #60 y #62. La rama de trabajo es codex/PAGOS-02-pr56, con la cabeza de #56 15218ae conciliándose localmente con develop c95cc73. El proveedor de QA se obtuvo de c95cc732b7a895fc3f4d1b00f39aa1dd9fb2345e y se montó desde un snapshot temporal.
+
+La prueba conjunta con Auth, PostgreSQL aislado y archivos privados reales aprobó sus 12 grupos. La regresión del candidato aprobó 1747 pruebas unitarias y 545 integraciones; lint y Prettier de package.json y del script CJS aprobaron. format:check global continúa fallando en 17 archivos previos de Route Sheets. Para resolver la carga ESM del snapshot se instalaron allí sus dependencias bloqueadas con npm ci; no se actualizaron versiones ni archivos del producto.
+
+La prueba no acredita mutaciones productivas, aceptación real de comprobantes ni venta. #56 continúa en borrador; falta completar y registrar el merge local, publicar la rama y obtener revisión de Pablo y resultado de CI. [Spec §19](specs/PAGOS-02.md#19-prueba-conjunta-con-el-proveedor-integrado-3-de-noviembre-de-2026), [evidencia](evidence/PAGOS-02/2026-11-03-contrato-real.md) y [descripción](evidence/PAGOS-02/descripcion-pr-prueba-real.md).
 
 ## PAGOS-02 — resolución local de conflictos de PR #55, 3 de noviembre de 2026
 
@@ -246,7 +254,7 @@ Antes de orientar a alguien:
 | [FLEET-05](specs/FLEET-05.md) | Edwin | T1/T2 integradas; T3 en [PR #63](https://github.com/Pato77232/ProyectoBusesUTA/pull/63) para revisión, implementación ffc0798 y corrección 53df664 | Repetición de corrección: 227 pruebas frontend, lint y formato de los dos JS aprobados. Respuesta de alta no verificable se trata como incierta sin reintentos. Evidencia anterior: 9 comprobaciones Chrome y 3 de API real; no repetidas en esta actualización. CSS y smoke de portada con pendientes previos documentados. Falta revisión humana; listado/detalle fuera del alcance. |
 | [FLEET-06](specs/FLEET-06.md) | Edwin | T1 en [PR #41](https://github.com/Pato77232/ProyectoBusesUTA/pull/41) en borrador; implementación 7d6353a sobre 1fb0ade | listByBus entrega todos los asientos con identidad propia, layoutSeatKey y offered; confirmación de Leslie pendiente. 21 pruebas específicas aprobadas. Global: 1066 unitarias aprobadas/2 fallidas; integración 274 aprobadas/1 timeout en user-cooperative-integrity. Versión por hoja, VIP y accesibilidad pendientes; detalles en la spec. |
 | [FLEET-07](specs/FLEET-07.md) | Edwin | T1 preparada para revisión en [PR #44](https://github.com/Pato77232/ProyectoBusesUTA/pull/44); sin integración | 3 de noviembre: VIP no ofrecido confirmado por Edwin; migración VIP renumerada con autorización y SQL intacto; reversión independiente de la última migración. Integración Linux/PostgreSQL aislado 280/280, prueba con migración posterior 5/5 y upgrade desde develop aprobados. Unitarias globales 1074 aprobadas/2 fallidas de hojas de ruta; base conservada sin merge por decisión de Edwin. Leslie y revisión humana pendientes; T2 aparte. |
-| [FLEET-09](specs/FLEET-09.md) | Edwin | Plan documental en [PR #58](https://github.com/Pato77232/ProyectoBusesUTA/pull/58), sin implementación; decisiones acordadas con David el 3 de noviembre | Inmutabilidad en BD propuesta con pruebas adaptadas conservando cobertura; versiones como modelo futuro y sustitución en D-05 de Route Sheets. David aceptó revisar según mensaje reportado por Edwin; falta autorización de T1 y contrato con Leslie para D-05. Diff documental comprobado, sin pruebas de producto. |
+| [FLEET-09](specs/FLEET-09.md) | Edwin; David revisa | T1 en [PR #59](https://github.com/Pato77232/ProyectoBusesUTA/pull/59); conflictos con develop c95cc73 conciliados | Catálogo de 22 migraciones, Fleet renombrada a 1794080000000 sin cambiar SQL; conservadas comprobaciones de Pagos y actualización desde 21 migraciones. Node 24/PostgreSQL aislado: 1747 unitarias y 555 integraciones aprobadas; lint/formato propio aprobados, 17 avisos globales sin diferencias frente a develop. Revisión humana pendiente; timeouts históricos Windows no se declaran resueltos. No integrada ni aceptada. |
 | search, bookings, payments y tickets | Según propuesta inferior | Sin implementación en la base examinada | Confirmar ramas de los responsables antes de crear tareas |
 | [PAGOS-01](specs/PAGOS-01.md) | Shirley | Código integrado en `origin/develop` en `f26415d`; revisión/cierre humano no se infieren | El merge commit `f26415d` incorpora PAGOS-01 (`518c46b` como segundo padre). La evidencia de pruebas registrada corresponde a la rama de origen, no a una repetición posterior al merge. `bookings` sigue simulado conforme al alcance T4. |
 | [PAGOS-02](specs/PAGOS-02.md) | Shirley; Pablo (@PabloToapanta) revisor aceptado; Leslie complementaria propuesta | En desarrollo; adaptador no conectado y pruebas verificadas, descripción detallada de PR sin publicación | Rama `feature/PAGOS-02-aprobar-comprobante`, base común `518c46b`; rutas con Reservas simulado. Nuevo adaptador de contrato con 74 casos; suite global 668 unitarias + 134 integraciones aprobadas (802). Lint/formato propio aprobados; formato global fallido en 48 ajenos. Conexión real, versiones/importe observado y combinación con develop pendientes. [Evidencia](evidence/PAGOS-02/2026-11-02-adaptador-lector.md). |
@@ -607,3 +615,46 @@ Develop ya incorpora la fuente persistida/createPaymentReceiptModule de Shirley 
 Pruebas propias dirigidas: 66 unitarias y 14 integraciones aprobadas. Global: 1724 unitarias aprobadas y 529/530 integraciones; fallo de Fleet por timeout original de 20000 ms en fotografías. Repetición aislada: 17/18, mismo fallo. No declarar suite global aprobada. Lint/formato propio aprobados; global mantiene 17 ajenos. Arranque real aprobado; contenedor/red temporales retirados.
 
 La fuente persistida está preparada, pero la autorización HTTP de carga, procedencia histórica, activación productiva y planificador conservan sus pendientes. Revisión del commit de conciliación y evaluación del fallo de Fleet necesarias antes de integrar.
+
+## Leslie: prerrequisito de carga autorizada, IDs opacos — 3 de noviembre de 2026
+
+| Spec / área | Estado comprobado | Evidencia y límite |
+| --- | --- | --- |
+| BOOK-06-L04-T3 / PR #62 | Integrada en develop feb7f75 a las 20:25:30Z, comprobado por GitHub | Timeout de Fleet pendiente; integrar PR no lo resuelve. |
+| BOOK-06-L04-T4, I | Compatibilidad de identificadores implementada y probada localmente en feature/BOOK-06-carga-autorizada desde feb7f75; checkpoint c3e9450 local, sin push/PR | [Spec](specs/BOOK-06-L04-T4.md), [evidencia](evidence/BOOK-06-L04-T4/2026-11-03-identificadores-opacos.md). Migración nueva, 21 entradas activas, comprobante/outbox aceptan el ID de texto de Bookings sin alterar los UUID existentes. |
+
+Leslie confirma conservar comprobantes antiguos con archivo sin procesarlos/borrarlos automáticamente y exigir procedencia registrada al flujo nuevo. Se registra como respuesta de Leslie, no aprobación individual de Shirley/Pablo. En la comprobación histórica anterior, quién implementaba la carga seguía consultado y PR #55/#56 estaban abiertas en 7448e1a/15218ae; el estado actual se precisa en la actualización siguiente.
+
+66 pruebas dirigidas aprobadas, con cinco casos nuevos: copia de develop con filas preservadas, down/up canónico, rechazo de down opaco/mayúsculas sin cambios, rollback de segunda tabla y puente real con ID de texto. Global: 1724 unitarias y 534/535 integraciones; fallo de timeout de fotografías de Fleet, no suite global aprobada. Lint/formato propio aprobados; global conserva 17 ajenos. Arranque real aprobado; recursos PostgreSQL/red exclusivos retirados.
+
+La migración no acredita procedencia Auth ni procesa comprobantes antiguos. Consumidor autenticado y activación siguen pendientes; su contrato está en borrador y debe preservar el ID exacto, sin normalización implícita. No se alteran servidor, casos de uso, dependencias, frontend o migraciones existentes. Revisión humana pendiente; sin cierre/integración del incremento local.
+
+
+### Actualización del reparto y compatibilidad — 3 de noviembre
+
+Shirley comunica feature/PAGOS-WEB-01-bandeja, c1d638f y cambios posteriores sin commit; asume conexión UPLOAD_PROOF/Auth/receptor y procedencia de cada carga. Leslie acepta continuar con migración de IDs y outbox, conservando comprobantes antiguos sin procesarlos ni borrarlos. El código privado de Shirley no se considera publicado o revisado.
+
+Revisión actual: origin/develop c08ce6c; PR #55 integrada en 75ee7a0, #56 todavía en borrador. Las observaciones previas de ambas abiertas se conservan como historia. Los archivos de las 20 migraciones y catálogo base son idénticos a feb7f75. Esta rama no integra los nuevos commits de develop; el registro documental conserva sus filas vigentes sin mezclar cambios productivos.
+
+Prerrequisito adicional de compatibilidad: conservar booking_id sin trim al reconstruir comprobantes evita insertar un ID diferente en el outbox. Modelo, escritura/lectura, separación por espacios/case y replay del receptor cuentan con pruebas nuevas. No se modifica la carga legada ni se activa su composición. Validación global nueva: 1729/1729 unitarias y 537/537 integraciones aprobadas (2266), incluido arranque real. Lint/formato propio aprobados; formato global mantiene 17 archivos ajenos. Fotografías pasó sin cambios de código/timeout; se conserva el antecedente intermitente. Estos resultados tienen alcance de esta rama, no de una combinación de aplicación con develop no incorporada.
+
+Planificador T5 preservado aparte en stash 38fd1d8 de feature/BOOK-06-planificador-expiracion, sin pérdida de sus archivos y sin incorporarlo a esta entrega. Revisión humana/commit de ajustes/publicación pendientes.
+
+
+Leslie autoriza guardar y publicar únicamente el incremento de identificadores en feature/BOOK-06-carga-autorizada tras las 2266 pruebas aprobadas. Revisión humana e integración siguen pendientes; planificador excluido de esta publicación.
+
+## Leslie: planificador automático de expiración — 3 de noviembre de 2026
+
+| Spec / área | Estado comprobado | Evidencia y límite |
+| --- | --- | --- |
+| BOOK-06-L04-T4 / PR #64 | Integrada en develop c95cc73 el 3 de noviembre, 23:35:53Z | Comprobado por Git y GitHub; no significa conexión Auth de carga ni aprobación del planificador. |
+| BOOK-06-L04-T5 / planificador | Recuperado y adaptado localmente en feature/BOOK-06-planificador-expiracion, base actual 4bb6861; commit/publicación autorizados, revisión humana pendiente | [Spec](specs/BOOK-06-L04-T5.md), [evidencia](evidence/BOOK-06-L04-T5/2026-11-03-planificador.md). Lotes periódicos, recuperación tras reinicio y cierre con drenaje; conserva recepción aceptada e históricos desconocidos. |
+
+Verificaciones anteriores sobre feb7f75/c95cc73 conservadas en la evidencia, incluidos los timeouts históricos de fotografías. Validación final sobre 4bb6861 y catálogo 22: 1772/1772 unitarias y 564/564 integraciones, 2336 pruebas en 135 suites aprobadas, incluido arranque real. Lint y formato propio aprobados; formato global conserva 17 archivos ajenos. Fotografías pasó sin cambiar código/timeout, sin declarar resuelto su antecedente intermitente. Commit/push y preparación de PR autorizados; revisión humana/integración pendientes.
+
+Se preservó el registro completo de develop y la sección propia al resolver el único conflicto del stash, estado-proyecto.md. Código aplicado sin conflictos; no hay cambios al catálogo, migraciones o dependencias. Stash 38fd1d8 conservado como respaldo, con sus 14 archivos originales. Rama avanzada de forma fast-forward sin commits exclusivos anteriores, sin merge/rebase ni cambios a main/develop.
+
+Shirley asume la conexión de carga/autorización en su trabajo propio. No se duplica ese consumidor ni se implementan ventas/rechazos, acreditación, consecuencias nuevas del plazo de corrección o pantallas. El planificador conserva todas sus tareas en este incremento independiente.
+
+
+Actualización previa a publicación: develop avanzó a 4bb6861 con FLEET-09 y catálogo 22; la rama del planificador se avanzó sin commits exclusivos y se recuperó desde respaldo 85bc73e. Se conserva rollbackBefore integrado para las pruebas de migración y no se modifica el catálogo como parte de T5. Commit/push y preparación de PR autorizados por Leslie; revalidación global completada con 2336 pruebas aprobadas. Los resultados anteriores de c95cc73 se mantienen como historia, sin atribuirlos a esta combinación nueva.

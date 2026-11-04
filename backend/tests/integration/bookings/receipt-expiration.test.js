@@ -1,6 +1,7 @@
 const { randomUUID } = require('node:crypto');
 const { setTimeout: delay } = require('node:timers/promises');
 const { runMigration, testPool } = require('../../helpers/database');
+const { rollbackBefore } = require('../../helpers/migration-target');
 const { assertTestDatabase } = require('../../../scripts/test-database');
 const { createBookingsModule } = require('../../../src/modules/bookings');
 const PgBookingRepository = require('../../../src/modules/bookings/infrastructure/pg-booking.repository');
@@ -469,15 +470,14 @@ test('UNKNOWN no inventa ausencia ni permite liberar', async () => {
 test('down protege evidencia y estados persistidos sin alterar historial', async () => {
   const { input } = await setup();
   await receiver().markPaymentProofReceived(input);
-  const targetMigration = '1793910000000-booking-proof-receipts';
-  const applied = (await pool.query('SELECT name FROM pgmigrations ORDER BY id DESC')).rows;
+  await rollbackBefore(pool, '1794000000000-payment-booking-identifiers');
+  expect(
+    (await pool.query('SELECT name FROM pgmigrations ORDER BY id DESC LIMIT 1')).rows[0].name,
+  ).toBe('1794000000000-payment-booking-identifiers');
+  runMigration('down');
   try {
-    for (const { name } of applied) {
-      if (name === targetMigration) break;
-      runMigration('down');
-    }
     const previous = (await pool.query('SELECT * FROM pgmigrations ORDER BY id')).rows;
-    expect(previous.at(-1).name).toBe(targetMigration);
+    expect(previous.at(-1).name).toBe('1793910000000-booking-proof-receipts');
     const snapshot = await state();
     expect(() => runMigration('down')).toThrow();
     expect((await pool.query('SELECT * FROM pgmigrations ORDER BY id')).rows).toEqual(previous);
