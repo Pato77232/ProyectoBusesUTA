@@ -125,6 +125,40 @@ const request = (fromPosition, toPosition) => customer.request(endpoint(fromPosi
 
 let sheetId;
 const editorPath = () => `/api/v1/route-sheets/${sheetId}/editor`;
+
+test('búsqueda pública consulta el embarque intermedio y precio explícito sin sesión ni PII', async () => {
+  const response = await new Browser(baseUrl).request(
+    '/api/v1/trips?origin=Salcedo&destination=Latacunga&date=2030-01-01',
+  );
+  expect(response.status).toBe(200);
+  const result = await response.json();
+  expect(result.truncated).toBe(false);
+  expect(result.trips).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        tripId,
+        fromPosition: 1,
+        toPosition: 2,
+        amountCents: 250,
+        currency: 'USD',
+      }),
+    ]),
+  );
+  expect(result.trips[0].cooperativeName).toBeTruthy();
+  expect(JSON.stringify(result)).not.toContain('availability-customer');
+  expect(result.trips[0]).not.toHaveProperty('seatIds');
+  expect(
+    (
+      await new Browser(baseUrl).request(
+        '/api/v1/trips?origin=Salcedo&destination=Latacunga&date=2030-02-30',
+      )
+    ).status,
+  ).toBe(400);
+  const empty = await new Browser(baseUrl).request(
+    '/api/v1/trips?origin=Salcedo&destination=Latacunga&date=2030-01-02',
+  );
+  expect(await empty.json()).toEqual({ trips: [], truncated: false });
+});
 beforeEach(async () => {
   sheetId = (await pool.query('SELECT route_sheet_id FROM route_sheet_trips WHERE id=$1', [tripId]))
     .rows[0].route_sheet_id;

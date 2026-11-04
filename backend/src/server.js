@@ -2,12 +2,14 @@ const createApp = require('./app');
 const logger = require('./shared/logger');
 const { createPool } = require('./shared/database');
 const { createAuthModule } = require('./modules/auth');
-const { createTenantsModule } = require('./modules/tenants');
+const { createTenantsModule, createPublicCooperativeQueries } = require('./modules/tenants');
+const { createSearchModule } = require('./modules/search');
 const { createFleetModule } = require('./modules/fleet');
 const { createFrequenciesModule } = require('./modules/frequencies');
 const {
   createRouteSheetsModule,
   createFrequencyCommitmentQueries,
+  createPublicTripSearch,
 } = require('./modules/route-sheets');
 const {
   createPaymentsModule,
@@ -65,6 +67,10 @@ async function start(env = process.env) {
       env,
       availabilityQueries: routeSheets.tripQueries,
     });
+    const search = createSearchModule({
+      tripSearch: createPublicTripSearch({ pool, tripQueries: routeSheets.tripQueries }),
+      cooperativeQueries: createPublicCooperativeQueries({ pool }),
+    });
     const paymentReceipt = createPaymentReceiptModule({
       pool,
       createPaymentProofReceiver: bookings.createPaymentProofReceiver,
@@ -92,6 +98,7 @@ async function start(env = process.env) {
       paymentReview,
       payments,
       bookings,
+      search,
       pool,
       trustProxy: env.TRUST_PROXY === 'loopback',
     });
