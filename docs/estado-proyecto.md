@@ -7,6 +7,11 @@ Edwin solicita completar las conexiones pendientes y confirma acreditación manu
 Validación propia final: **npm test aprobado, 1929/1929 unitarias y 649/649 integraciones** (168 suites), Windows Node 24 y PostgreSQL 16.13 efímero aislado. Incluye cuatro cargas autorizadas originales, arranque real, revisión humana mediante API y compra sin dobles de acreditación, aislamiento/CSRF, decisiones negativas y reversiones protegidas. Lint, formato de todos los JS tocados/nuevos y diff aprobados. `format:check` global sigue fallando en 15 archivos sin cambios en esta continuación; cero avisos corresponden a los archivos modificados. No se amplían timeouts, no se editan migraciones existentes ni se leen `.env`.
 
 Sin commits/push/merge/PR nuevos, sin integración ni cierre humano. FLEET-08 se conserva intacto y fuera del alcance. No se implementan pantallas nuevas, emisión sin pago ni acreditación por servicio externo. La evidencia anterior se conserva como historia, no como estado de estos cambios.
+## DOCS-01 — documentación general, 4 de noviembre de 2026
+
+| Spec / responsable | Estado y evidencia | Próximo paso |
+|---|---|---|
+| [DOCS-01](specs/DOCS-01.md) / David | Actualización documental local sobre `64f39cd` en `feature/DOCS-01-actualiza-documentacion-general`, rama creada por David. README/CONTRIBUTING y guías frontend alineados con stack, servicios, scripts, estructura y alcance presentes; sin promesas de políticas/hooks/comité no confirmados. LICENSE intacto, declaración GPL-3.0-only coherente. Enlaces relativos y comandos contrastados estáticamente; diff revisado. No ejecutadas suites de producto ni arranques por ser cambio solo documental; no se leyó `.env`. | Revisión humana y comprobación del recorrido por otro integrante pendientes. No integrada/cerrada. Sin commit, push o merge. |
 
 ## Leslie — Reservas y cotización configurada, 4 de noviembre de 2026
 

@@ -1,216 +1,167 @@
-# 🚌 NOMBRE-DEL-PROYECTO — Venta de pasajes interprovinciales
+# transViaje — gestión y venta de pasajes interprovinciales
 
-Aplicación web para la **gestión y venta de boletos de transporte interprovincial en Ecuador**. Permite a las cooperativas administrar sus buses, frecuencias y hojas de ruta, a los oficinistas vender y validar pagos, y a los usuarios finales buscar viajes, elegir asientos y comprar boletos con código QR.
+Proyecto académico de Manejo y Configuración de Software, carrera de Software de la Universidad Técnica de Ambato (FISEI). Plataforma web multi-tenant para cooperativas de transporte de Ecuador.
 
-Para trabajar con Codex, empieza por la [guía del equipo](docs/flujo-codex.md) y el [estado por integrante](docs/estado-proyecto.md). Puedes pedir: «Soy Edwin, revisa qué me corresponde ahora y explícame cómo empezar». Las tareas propuestas requieren spec y acuerdo antes de implementarse.
+La versión declarada en [backend/package.json](backend/package.json) es `0.1.0`. El nombre del repositorio técnico es ProyectoBusesUTA; la marca pública es **transViaje**.
 
-> Proyecto del segundo parcial de **Manejo y Configuración de Software**  
-> Carrera de Software — Facultad de Ingeniería en Sistemas, Electrónica e Industrial (FISEI)  
-> Universidad Técnica de Ambato
+## Alcance actual
 
-![version](https://img.shields.io/badge/version-0.1.0-blue)
-![license](https://img.shields.io/badge/license-GPLv3-blue)
-![node](https://img.shields.io/badge/node-20.x-339933)
-![postgres](https://img.shields.io/badge/postgresql-16-336791)
+Fotografía del código local `64f39cd`, 4 de noviembre de 2026; no certifica despliegue ni aprobación de todos los recorridos.
 
----
-
-## 📑 Tabla de contenidos
-
-1. [Características](#-características)
-2. [Roles del sistema](#-roles-del-sistema)
-3. [Stack tecnológico](#-stack-tecnológico)
-4. [Requisitos previos](#-requisitos-previos)
-5. [Instalación y ejecución con Docker](#-instalación-y-ejecución-con-docker)
-6. [Variables de entorno](#-variables-de-entorno)
-7. [Estructura del repositorio](#-estructura-del-repositorio)
-8. [Flujo de trabajo y gestión de cambios](#-flujo-de-trabajo-y-gestión-de-cambios)
-9. [Documentación del repositorio](#-documentación-del-repositorio)
-10. [Equipo](#-equipo)
-11. [Cómo citar este repositorio](#-cómo-citar-este-repositorio)
-12. [Licencia](#-licencia)
-
----
-
-## ✨ Características
-
-- CRUD de cooperativas, buses, frecuencias y hojas de ruta.
-- Buses con configuraciones de asientos (normal, VIP, discapacitados, dos pisos) basadas en plantillas.
-- Frecuencias respaldadas por una resolución de la ANT, con paradas intermedias.
-- Búsqueda de viajes por origen, destino y fecha, con filtros por cooperativa, tipo de asiento, marca de chasis/carrocería y tipo de viaje (directo o con paradas).
-- Compra de boletos entre paradas intermedias (ej.: Latacunga – Cuenca en la ruta Quito – Loja).
-- Selección de asientos y registro de pasajeros por cédula, con descuentos para menor de edad, tercera edad y discapacidad.
-- Pago por depósito o transferencia con carga de comprobante y validación manual del oficinista.
-- Boleto descargable con **código QR**, disponible en cualquier momento desde el historial.
-- Notificaciones por correo y dentro de la aplicación en cada paso relevante.
-- Configuración de la aplicación (logo, colores, redes sociales, soporte).
-
-> **Fuera del alcance de esta entrega:** módulo del bus (chofer/controlador): lectura de boletos, inicio y fin de viaje, cobro en ruta.
-
-## 👥 Roles del sistema
-
-| Rol | Responsabilidad |
+| Área | Implementación y límites |
 |---|---|
-| **Administrador** | Crea cooperativas, designa a su responsable, da soporte y configura la aplicación. |
-| **Cooperativa** | Gestiona sus buses, frecuencias y hojas de ruta. |
-| **Oficinista** | Vende boletos en ventanilla y aprueba o rechaza los pagos en línea. |
-| **Usuario final** | Busca viajes, compra boletos y consulta su historial. |
-| **Chofer / controlador** | Valida boletos y administra el viaje (*módulo pendiente*). |
+| Acceso y cooperativas | Autenticación con sesiones revocables, roles y aislamiento por cooperativa; inicialización del administrador mediante comando. |
+| Flota | Registro de buses, configuración de asientos y fotografías. Las capacidades concretas dependen de las plantillas y contratos vigentes. |
+| Frecuencias y hojas de ruta | Frecuencias con resolución ANT, consulta y estado; editor de programación/tarifas, publicación y renovación explícita de ciclos. |
+| Reservas y pagos | Existen APIs y pantallas de reservas/comprobantes, cotización, recepción/revisión y contratos de ciclo de venta e historial/acceso invitado. La presencia de estos componentes no acredita compra completa habilitada: la acreditación comercial y el envío real de correo requieren sus integraciones. Ver specs y evidencia actuales. |
+| Pendientes de primera entrega | No presentar boleto QR, notificaciones generales, todos los filtros comerciales o configuración visual administrativa como recorridos completos sin su evidencia específica. |
+| Fuera de esta fase | Funcionalidad de Chofer/Controlador. |
 
-## 🧰 Stack tecnológico
+Las [reglas de negocio](docs/business-rules.md) definen el comportamiento esperado; las [specs](docs/specs/) registran implementación y límites; el [estado del proyecto](docs/estado-proyecto.md) reúne fotografías fechadas por integrante. Sus resultados históricos no sustituyen una comprobación del checkout actual.
 
-| Capa | Tecnología |
+## Tecnologías
+
+| Componente | Implementación |
 |---|---|
-| Frontend | HTML + EJS (plantillas del servidor) + **Bootstrap 5** |
-| Backend | **Node.js 20** + Express (monolito) |
-| Base de datos | **PostgreSQL 16** |
-| ORM y migraciones | Prisma |
-| Autenticación | Sesiones (`express-session`) + `bcrypt` |
-| Correo / QR | Nodemailer / `qrcode` |
-| Pruebas y calidad | Jest, ESLint, Prettier |
-| Convenciones de commit | commitlint + husky |
-| Contenedores | Docker y Docker Compose |
-| Gestión de cambios | Git; gestor Jira o GitHub Issues pendiente después del 4 de noviembre de 2026 |
+| Backend | Node.js **24.x**, Express 5; monolito modular con arquitectura limpia |
+| Persistencia | PostgreSQL 16, consultas con `pg`, migraciones con `node-pg-migrate` |
+| Autenticación | JWT en cookie HttpOnly, sesiones revocables en base de datos, CSRF y Argon2id |
+| Frontend | HTML, módulos JavaScript, Bootstrap 5 y recursos locales; Nginx sirve estáticos y reenvía `/api/v1` |
+| Calidad | Jest en backend; `node:test` en frontend; ESLint y Prettier |
+| Entornos | Docker y Docker Compose v2 |
 
-## ✅ Requisitos previos
+No se utilizan Prisma ni plantillas EJS. Los scripts y versiones concretas están en los manifiestos y Dockerfiles; no hay hooks Husky/commitlint instalados en este checkout.
 
-- [Git](https://git-scm.com/) 2.40 o superior
-- [Docker](https://www.docker.com/) y Docker Compose v2
-- (Opcional, para desarrollo sin contenedor) Node.js 20 y npm 10
+## Empezar en desarrollo
 
-## 🚀 Instalación y ejecución con Docker
+Requisitos: Git, Node.js 24.x con npm y Docker con Compose v2 activo. Desde una terminal:
 
-```bash
-# 1. Clonar el repositorio
-git clone https://github.com/ORGANIZACION/NOMBRE-DEL-PROYECTO.git
-cd NOMBRE-DEL-PROYECTO
-
-# 2. Crear el archivo de variables de entorno
-cp .env.example .env
-
-# 3. Levantar la aplicación y la base de datos
-docker compose up --build
-
-# 4. Aplicar migraciones y datos de ejemplo (en otra terminal)
-docker compose exec app npx prisma migrate deploy
-docker compose exec app npm run seed
+```sh
+git clone https://github.com/Pato77232/ProyectoBusesUTA.git
+cd ProyectoBusesUTA
+npm --prefix backend ci
+node frontend/scripts/dev.cjs up
+node frontend/scripts/dev.cjs status
 ```
 
-La aplicación queda disponible en **http://localhost:3000**.
+Abrir **http://127.0.0.1:8081/**. La API se consulta desde el mismo origen, por ejemplo `/api/v1/health`. El lanzador crea configuración temporal, aplica migraciones y espera los servicios; no necesita el `.env` del proyecto. El health comprueba servicio/base, no todos los módulos.
 
-### Comandos útiles
+**Es un entorno temporal:** al retirarlo se pierden sus datos. No introducir información real ni usarlo para trabajo que deba conservarse. No crea cuentas de demostración ni contraseñas predeterminadas.
 
-| Comando | Descripción |
+```sh
+node frontend/scripts/dev.cjs down
+```
+
+Para preparar usuarios/escenarios de cada módulo, consultar su spec y las [instrucciones de administrador inicial](docs/administrador-inicial.md). Configurar al operador contra la base correcta; no copiar comandos de limpieza de QA a desarrollo. Detalles, puerto alternativo y límites: [guía de integración frontend](frontend/GUIA-INTEGRACION.md).
+
+## Configuración persistente con Compose
+
+`docker-compose.yml` conserva la base y fotografías en volúmenes y ejecuta el backend con `NODE_ENV=production`. Es diferente del entorno temporal anterior; requiere configurar secretos y HTTPS para las sesiones de producción. Este Compose no configura por sí solo la terminación TLS ni constituye una guía completa de despliegue.
+
+El operador puede copiar `.env.example` a `.env` y completar sus valores en su equipo. Nunca versionar `.env`, tokens, contraseñas ni archivos de usuarios.
+
+| Variable de Compose | Uso |
 |---|---|
-| `docker compose up -d` | Levanta los servicios en segundo plano |
-| `docker compose logs -f app` | Muestra los logs de la aplicación |
-| `docker compose exec app npm test` | Ejecuta las pruebas |
-| `docker compose exec app npm run lint` | Revisa el estilo del código |
-| `docker compose down -v` | Detiene todo y borra los volúmenes (reinicia la BD) |
+| `POSTGRES_PASSWORD` | Contraseña de PostgreSQL, elegida por el operador |
+| `DATABASE_URL` | Conexión del backend al servicio `db`, base y usuario `pasajes`; contraseña coherente con la anterior |
+| `JWT_SECRET` | Secreto de firma; generar uno propio, sin valores de ejemplo en producción |
+| `JWT_EXPIRES_IN` | Duración del acceso, valor predeterminado de Compose `30m` |
 
-## 🔐 Variables de entorno
+Compose fija `PORT=3000` y `BUS_PHOTO_STORAGE_DIR` dentro del contenedor. No inyecta automáticamente cualquier variable añadida al archivo local; consultar el Compose y la configuración del módulo antes de configurar almacenamiento o trabajadores adicionales.
 
-Copia `.env.example` a `.env`. **Nunca subas `.env` al repositorio.**
+Desde la raíz, con la configuración preparada por el operador:
 
-| Variable | Descripción | Ejemplo |
-|---|---|---|
-| `PORT` | Puerto de la aplicación | `3000` |
-| `DATABASE_URL` | Cadena de conexión a PostgreSQL | `postgresql://user:pass@db:5432/pasajes` |
-| `SESSION_SECRET` | Secreto de las sesiones | `cambiar-esto` |
-| `SMTP_HOST` / `SMTP_USER` / `SMTP_PASS` | Servidor de correo | — |
-| `UPLOAD_DIR` | Carpeta de comprobantes de pago | `./uploads` |
-
-## 🗂️ Estructura del repositorio
-
-```
-.
-├── .github/                 # Plantillas de issues/PR, CODEOWNERS, workflows
-├── docs/                    # Arquitectura, decisiones (ADR), manual de usuario
-├── prisma/                  # schema.prisma y migraciones
-├── src/
-│   ├── app.js               # Configuración de Express
-│   ├── server.js            # Punto de entrada
-│   ├── config/              # Configuración general
-│   ├── middlewares/         # Autenticación, roles, errores
-│   ├── modules/             # Un módulo por dominio (routes, controller, service)
-│   │   ├── auth/
-│   │   ├── cooperativas/
-│   │   ├── buses/
-│   │   ├── frecuencias/
-│   │   ├── hojas-ruta/
-│   │   ├── boletos/
-│   │   └── pagos/
-│   ├── views/               # Plantillas EJS
-│   └── public/              # CSS, JS e imágenes
-├── tests/
-├── Dockerfile
-├── docker-compose.yml
-├── .env.example
-├── CHANGELOG.md
-├── CITATION.cff
-├── CODE_OF_CONDUCT.md
-├── CONTRIBUTING.md
-├── LICENSE
-├── SECURITY.md
-└── README.md
+```sh
+docker compose build
+docker compose up -d --wait db
+docker compose run --rm --no-deps backend npm run migrate
+docker compose up -d backend frontend
 ```
 
-## 🔀 Flujo de trabajo y gestión de cambios
+Frontend: **http://localhost:8080/**; backend: **http://localhost:3000/api/v1/health**. El acceso autenticado en modo producción requiere el HTTPS indicado arriba. Para el primer administrador, usar una terminal interactiva y el procedimiento documentado; no hay `seed` general:
 
-- **Control de versiones:** Gitflow (`main`, `develop`, `feature/*`, `release/*`, `hotfix/*`).
-- **Commits:** [Conventional Commits](https://www.conventionalcommits.org/es/v1.0.0/).
-- **Versionado:** [Versionamiento Semántico 2.0.0](https://semver.org/lang/es/).
-- **Gestión de cambios:** peticiones de cambio identificadas mediante specs locales hasta elegir Jira o GitHub Issues después de la primera revisión; evaluadas por el **comité de control de cambios (CCB)**.
+```sh
+docker compose exec backend npm run bootstrap:admin
+```
 
-Todo el detalle está en [CONTRIBUTING.md](CONTRIBUTING.md). Versiones solo `MAJOR.MINOR.PATCH`. La entrega funcional del 4 de noviembre de 2026 incluirá en `main` los errores inducidos autorizados según [el protocolo académico](docs/errores-inducidos.md).
+Diagnóstico y parada, sin borrar los volúmenes:
 
-## 📚 Documentación del repositorio
+```sh
+docker compose logs --tail 50 backend
+docker compose down
+```
 
-| Documento | Propósito |
+La imagen backend instala dependencias de ejecución; ejecutar desarrollo y pruebas desde `backend/` con sus dependencias de desarrollo, no dentro de esa imagen.
+
+## Pruebas y calidad
+
+Desde la raíz, después de `npm --prefix backend ci`:
+
+```sh
+npm --prefix backend run lint
+npm --prefix backend run format:check
+npm --prefix frontend run lint
+npm --prefix frontend test
+```
+
+Las pruebas backend de integración limpian tablas: usar exclusivamente PostgreSQL aislado según [testing-database.md](docs/testing-database.md). Esa guía explica cómo configurar `DATABASE_URL` para pruebas y ejecutar `npm test` desde `backend/`. No ejecutarlo contra la base persistente. Si fallan unitarias, `npm test` no continúa con integración; reportar el fallo y ejecutar la integración separadamente sobre la base aislada cuando corresponda.
+
+Las pruebas de navegador requieren Chrome/Chromium y, según el script, Docker. Ver [frontend/README.md](frontend/README.md). No existe garantía de CI verde por tener scripts locales; registrar siempre resultados reales.
+
+## Estructura
+
+```text
+backend/
+  src/modules/       auth, tenants, fleet, frequencies, route-sheets, bookings, payments
+  src/shared/        infraestructura y errores compartidos
+  migrations/        historia de esquema versionada
+  scripts/           migraciones, administrador inicial y utilidades
+  tests/             unitarias, integración y contratos
+frontend/
+  pages/             pantallas HTML
+  src/               módulos JavaScript y estilos
+  assets/            marca y recursos locales con procedencia/licencias
+  tests/             pruebas unitarias y de navegador
+  scripts/           entorno temporal de desarrollo
+docs/
+  specs/             alcance, acuerdos y evidencia por tarea
+  adr/               decisiones de arquitectura
+  evidence/          resultados y capturas
+```
+
+Cada módulo backend organiza `domain`, `application`, `infrastructure` e `interfaces`; las dependencias y APIs públicas se explican en [architecture.md](docs/architecture.md).
+
+## Documentación y contribuciones
+
+| Documento | Para qué consultarlo |
 |---|---|
-| [CONTRIBUTING.md](CONTRIBUTING.md) | Guía de contribución y flujo de trabajo |
-| [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Normas de convivencia del equipo |
-| [SECURITY.md](SECURITY.md) | Cómo reportar vulnerabilidades |
-| [CHANGELOG.md](CHANGELOG.md) | Historial de versiones |
-| [LICENSE](LICENSE) | Licencia GNU GPL v3.0 |
-| [CITATION.cff](CITATION.cff) | Metadatos para citar el repositorio |
-| [docs/](docs/) | Arquitectura y decisiones técnicas |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Preparación, ramas, commits y revisión |
+| [Reglas de negocio](docs/business-rules.md) | Fuente de verdad funcional |
+| [Convenciones](docs/conventions.md) y [calidad](docs/calidad.md) | Código, pruebas y usabilidad |
+| [Equipo y acuerdos](docs/equipo-y-acuerdos.md) | Coordinación y decisiones confirmadas/propuestas |
+| [Estado](docs/estado-proyecto.md) | Evidencia fechada y siguientes pasos |
+| [Uso de IA](docs/AI-USAGE.md) y [flujo de Codex](docs/flujo-codex.md) | Asistencia con responsabilidad y revisión humana |
+| [Diseño](frontend/DESIGN.md) | Identidad transViaje y criterios visuales |
+| [Errores inducidos](docs/errores-inducidos.md) | Protocolo académico, sin autorización para inventar defectos |
 
-## 🧑‍💻 Equipo
+Se usan specs locales como referencia hasta que el equipo confirme la adopción de un gestor externo. La fecha prevista de revisión no demuestra que ese cambio de proceso ya haya ocurrido. No se anuncian políticas, archivos de cita, changelog, workflows o protecciones remotas que no estén disponibles y comprobados.
 
-| Integrante | Rol en el proyecto | Área principal | GitHub |
-|---|---|---|---|
-| NOMBRE 1 | Miembro del CCB / Líder | | @usuario |
-| NOMBRE 2 | Miembro del CCB | | @usuario |
-| NOMBRE 3 | Desarrollador | | @usuario |
-| NOMBRE 4 | Desarrollador | | @usuario |
-| NOMBRE 5 | Desarrollador | | @usuario |
+## Equipo
 
-## 📎 Cómo citar este repositorio
+Coordinación de referencia, según el [registro de acuerdos](docs/equipo-y-acuerdos.md); no designa un comité ni acredita aprobaciones:
 
-Este repositorio incluye un archivo [`CITATION.cff`](CITATION.cff). En GitHub, usa el botón **"Cite this repository"** de la barra lateral para obtener la cita en formato APA o BibTeX.
+| Integrante | Área |
+|---|---|
+| Pablo | Infraestructura, autenticación y cooperativas |
+| Edwin | Flota |
+| David | Frecuencias, hojas de ruta y viajes |
+| Leslie | Reservas |
+| Shirley | Pagos y boletos |
 
-## 📄 Licencia
+## Licencia y recursos
 
-Este proyecto es software libre distribuido bajo la **GNU General Public License v3.0** (`GPL-3.0-only`). Puedes usarlo, estudiarlo, modificarlo y redistribuirlo, siempre que las obras derivadas se distribuyan bajo la misma licencia y con su código fuente.
+La declaración existente del proyecto es **`GPL-3.0-only`**, según [backend/package.json](backend/package.json); el texto completo está en [LICENSE](LICENSE). Esta actualización documental no cambia la licencia ni establece una nueva atribución de titularidad.
 
-El texto completo está en el archivo [LICENSE](LICENSE) y en <https://www.gnu.org/licenses/gpl-3.0.html>.
+Los recursos de terceros mantienen sus avisos: [Bootstrap](frontend/assets/vendor/bootstrap-5.3.8/LICENSE) y [Plus Jakarta Sans](frontend/assets/vendor/plus-jakarta-sans/OFL.txt). La procedencia del logo se documenta en [marca](frontend/assets/brand/README.md). Conservar estos avisos y revisar la procedencia/licencia de nuevas aportaciones.
 
-```
-Copyright (C) 2026 NOMBRES DEL EQUIPO
-
-Este programa es software libre: puedes redistribuirlo y/o modificarlo bajo los
-términos de la Licencia Pública General de GNU publicada por la Free Software
-Foundation, ya sea la versión 3 de la Licencia o (a tu elección) cualquier
-versión posterior... [ver LICENSE]
-```
-
-## Frontend de bienvenida (WEB-01)
-
-La página pública de transViaje se sirve en http://localhost:8080/ mediante el
-servicio `frontend` de Docker Compose. Incluye Bootstrap local, logo y diseño
-adaptable; no requiere autenticación. `/api/v1` se reenvía al backend y la
-bienvenida permanece visible cuando este no está disponible.
-
-Arranque, alcance y pruebas: [frontend/README.md](frontend/README.md).
-Spec: [WEB-01](docs/specs/WEB-01.md). No incluye formularios de acceso ni compra.
+Para citar este trabajo académico, usar el nombre, URL del repositorio y commit o versión realmente consultados; no se proporciona todavía un archivo `CITATION.cff` ni una lista formal de autoría completa.
