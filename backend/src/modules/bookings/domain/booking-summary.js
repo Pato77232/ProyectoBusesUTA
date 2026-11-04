@@ -79,7 +79,8 @@ function createBookingSummary(input, context) {
     { seatIds: input.seatIds, passengers: input.passengers },
     context,
   );
-  if (context?.trip?.commercial === true) return commercialBookingSummary(request, manifest, context);
+  if (context?.trip?.commercial === true)
+    return commercialBookingSummary(request, manifest, context);
   const trip = createAvailabilityTrip(context?.trip, request.tripId);
   if (request.toPosition >= trip.routePointCount) throw new BookingValidationError();
   const inventory = new Set(trip.seatIds);

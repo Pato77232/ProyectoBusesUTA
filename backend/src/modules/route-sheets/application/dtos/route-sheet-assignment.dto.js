@@ -1,5 +1,14 @@
 class RouteSheetAssignmentDTO {
-  constructor({ id, routeSheetId, cooperativeId, busGroupId, busId, frequencyId, createdAt, updatedAt }) {
+  constructor({
+    id,
+    routeSheetId,
+    cooperativeId,
+    busGroupId,
+    busId,
+    frequencyId,
+    createdAt,
+    updatedAt,
+  }) {
     this.id = id;
     this.routeSheetId = routeSheetId;
     this.cooperativeId = cooperativeId;

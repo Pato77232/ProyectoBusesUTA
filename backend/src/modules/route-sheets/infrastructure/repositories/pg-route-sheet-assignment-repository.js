@@ -35,7 +35,13 @@ class PgRouteSheetAssignmentRepository extends RouteSheetAssignmentRepository {
       `INSERT INTO route_sheet_assignments (route_sheet_id, cooperative_id, bus_group_id, bus_id, frequency_id)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING *`,
-      [assignment.routeSheetId, assignment.cooperativeId, assignment.busGroupId, assignment.busId, assignment.frequencyId],
+      [
+        assignment.routeSheetId,
+        assignment.cooperativeId,
+        assignment.busGroupId,
+        assignment.busId,
+        assignment.frequencyId,
+      ],
     );
     return toAssignment(rows[0]);
   }

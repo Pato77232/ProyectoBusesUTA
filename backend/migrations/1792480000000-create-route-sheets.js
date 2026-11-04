@@ -59,11 +59,19 @@ exports.up = (pgm) => {
     },
   });
 
-  pgm.sql('CREATE UNIQUE INDEX route_sheet_assignments_sheet_bus_unique ON route_sheet_assignments (route_sheet_id, bus_id);');
-  pgm.sql('CREATE UNIQUE INDEX route_sheet_assignments_sheet_frequency_unique ON route_sheet_assignments (route_sheet_id, frequency_id);');
-  pgm.createIndex('route_sheet_assignments', ['cooperative_id', 'route_sheet_id', 'bus_id', 'frequency_id'], {
-    name: 'route_sheet_assignments_lookup_idx',
-  });
+  pgm.sql(
+    'CREATE UNIQUE INDEX route_sheet_assignments_sheet_bus_unique ON route_sheet_assignments (route_sheet_id, bus_id);',
+  );
+  pgm.sql(
+    'CREATE UNIQUE INDEX route_sheet_assignments_sheet_frequency_unique ON route_sheet_assignments (route_sheet_id, frequency_id);',
+  );
+  pgm.createIndex(
+    'route_sheet_assignments',
+    ['cooperative_id', 'route_sheet_id', 'bus_id', 'frequency_id'],
+    {
+      name: 'route_sheet_assignments_lookup_idx',
+    },
+  );
 
   pgm.createTable('route_sheet_rest_days', {
     id: { type: 'uuid', primaryKey: true, default: pgm.func('gen_random_uuid()') },
@@ -83,7 +91,9 @@ exports.up = (pgm) => {
     },
   });
 
-  pgm.sql('CREATE UNIQUE INDEX route_sheet_rest_days_sheet_bus_unique ON route_sheet_rest_days (route_sheet_id, bus_id);');
+  pgm.sql(
+    'CREATE UNIQUE INDEX route_sheet_rest_days_sheet_bus_unique ON route_sheet_rest_days (route_sheet_id, bus_id);',
+  );
   pgm.createIndex('route_sheet_rest_days', ['cooperative_id', 'route_sheet_id', 'bus_id'], {
     name: 'route_sheet_rest_days_lookup_idx',
   });
@@ -110,11 +120,19 @@ exports.up = (pgm) => {
     },
   });
 
-  pgm.sql('CREATE UNIQUE INDEX route_sheet_cycles_base_number_unique ON route_sheet_cycles (base_route_sheet_id, cycle_number);');
-  pgm.sql('CREATE UNIQUE INDEX route_sheet_cycles_coop_group_start_unique ON route_sheet_cycles (cooperative_id, bus_group_id, start_date);');
-  pgm.createIndex('route_sheet_cycles', ['cooperative_id', 'bus_group_id', 'start_date', 'end_date'], {
-    name: 'route_sheet_cycles_lookup_idx',
-  });
+  pgm.sql(
+    'CREATE UNIQUE INDEX route_sheet_cycles_base_number_unique ON route_sheet_cycles (base_route_sheet_id, cycle_number);',
+  );
+  pgm.sql(
+    'CREATE UNIQUE INDEX route_sheet_cycles_coop_group_start_unique ON route_sheet_cycles (cooperative_id, bus_group_id, start_date);',
+  );
+  pgm.createIndex(
+    'route_sheet_cycles',
+    ['cooperative_id', 'bus_group_id', 'start_date', 'end_date'],
+    {
+      name: 'route_sheet_cycles_lookup_idx',
+    },
+  );
 
   pgm.createTable('route_sheet_modification_logs', {
     id: { type: 'uuid', primaryKey: true, default: pgm.func('gen_random_uuid()') },
@@ -134,25 +152,37 @@ exports.up = (pgm) => {
     created_at: { type: 'timestamptz', notNull: true, default: pgm.func('CURRENT_TIMESTAMP') },
   });
 
-  pgm.addConstraint('route_sheet_modification_logs', 'route_sheet_modification_logs_route_sheet_id_fk', {
-    foreignKeys: {
-      columns: 'route_sheet_id',
-      references: 'route_sheets(id)',
-      onDelete: 'RESTRICT',
+  pgm.addConstraint(
+    'route_sheet_modification_logs',
+    'route_sheet_modification_logs_route_sheet_id_fk',
+    {
+      foreignKeys: {
+        columns: 'route_sheet_id',
+        references: 'route_sheets(id)',
+        onDelete: 'RESTRICT',
+      },
     },
-  });
+  );
 
-  pgm.addConstraint('route_sheet_modification_logs', 'route_sheet_modification_logs_route_sheet_cycle_id_fk', {
-    foreignKeys: {
-      columns: 'route_sheet_cycle_id',
-      references: 'route_sheet_cycles(id)',
-      onDelete: 'RESTRICT',
+  pgm.addConstraint(
+    'route_sheet_modification_logs',
+    'route_sheet_modification_logs_route_sheet_cycle_id_fk',
+    {
+      foreignKeys: {
+        columns: 'route_sheet_cycle_id',
+        references: 'route_sheet_cycles(id)',
+        onDelete: 'RESTRICT',
+      },
     },
-  });
+  );
 
-  pgm.createIndex('route_sheet_modification_logs', ['cooperative_id', 'route_sheet_id', 'modified_by', 'created_at'], {
-    name: 'route_sheet_modification_logs_lookup_idx',
-  });
+  pgm.createIndex(
+    'route_sheet_modification_logs',
+    ['cooperative_id', 'route_sheet_id', 'modified_by', 'created_at'],
+    {
+      name: 'route_sheet_modification_logs_lookup_idx',
+    },
+  );
 };
 
 exports.down = (pgm) => {

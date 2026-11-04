@@ -1,0 +1,5 @@
+# Formato de entrega, 4 de noviembre de 2026
+
+Edwin solicitó resolver los avisos y autorizó explícitamente «solo formato sin cambiar SQL» en las migraciones 1792470000000 y 1792480000000, excepción concreta a AGENTS.md. Se prepararon copias y se compararon todas las llamadas/argumentos de up y down antes de aplicar: idénticos. Solo cambian comillas externas y saltos de línea; sin modificar SQL, restricciones, nombres ni orden. Los demás cambios son formato de trece JS y del CSS/HTML de registro.
+
+Lint y format:check global aprobados: cero avisos. La primera regresión con base QA reutilizada aprobó 1940 unitarias y dejó 620 integraciones aprobadas/30 fallidas en reversiones. Se conserva ese resultado y se repite con PostgreSQL efímero recién creado; no se amplían timeouts, no se desactivan protecciones ni se debilitan pruebas. El resultado de esa repetición se registrará en el estado de la entrega, sin atribuir un fallo de pruebas a una causa no demostrada. No se introducen defectos académicos en este cambio. Asistencia de Codex; revisión humana pendiente.

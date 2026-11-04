@@ -30,7 +30,8 @@ class RouteSheet {
     this.cooperativeId = cooperativeId;
     this.busGroupId = busGroupId;
     this.routeDate = routeDate;
-    this.status = status instanceof RouteSheetStatus ? status : new RouteSheetStatus(status || 'DRAFT');
+    this.status =
+      status instanceof RouteSheetStatus ? status : new RouteSheetStatus(status || 'DRAFT');
     this.isBase = Boolean(isBase);
     this.cycleLengthWeeks = cycleLengthWeeks;
     this.createdBy = createdBy;

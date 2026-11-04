@@ -21,7 +21,7 @@ exports.up = (pgm) => {
   });
 
   pgm.sql(
-    "CREATE UNIQUE INDEX bus_groups_cooperative_name_unique ON bus_groups (cooperative_id, lower(name));",
+    'CREATE UNIQUE INDEX bus_groups_cooperative_name_unique ON bus_groups (cooperative_id, lower(name));',
   );
 
   pgm.createIndex('bus_groups', 'cooperative_id', {
