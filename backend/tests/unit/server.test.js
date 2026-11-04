@@ -38,7 +38,13 @@ describe('server startup', () => {
     frequencies = { router: {} };
     routeSheets = { router: {} };
     fleet = { busGroupQueries: {}, busQueries: {}, seatQueries: {} };
-    bookings = { router: {}, paymentQueries: {} };
+    bookings = {
+      router: {},
+      paymentQueries: {},
+      maintenance: {
+        startExpirationWorker: jest.fn(() => ({ stop: jest.fn().mockResolvedValue() })),
+      },
+    };
     server = { once: jest.fn(), close: jest.fn((callback) => callback()) };
     app = {
       listen: jest.fn((_port, onListening) => {
@@ -82,7 +88,10 @@ describe('server startup', () => {
       expect.objectContaining({ frequencies, routeSheets, bookings, fleet, pool, auth }),
     );
     expect(app.listen).toHaveBeenCalledWith(3100, expect.any(Function));
-    expect(result).toEqual({ server, pool });
+    expect(result).toEqual({ server, pool, stop: expect.any(Function) });
+    expect(bookings.maintenance.startExpirationWorker).toHaveBeenCalledWith({
+      onFailure: expect.any(Function),
+    });
     expect(processOnce).toHaveBeenCalledWith('SIGTERM', expect.any(Function));
     expect(processOnce).toHaveBeenCalledWith('SIGINT', expect.any(Function));
   });
@@ -100,5 +109,51 @@ describe('server startup', () => {
     expect(pool.end).toHaveBeenCalledTimes(1);
     expect(createApp).not.toHaveBeenCalled();
     expect(app.listen).not.toHaveBeenCalled();
+  });
+  it('drena la expiración antes de cerrar el pool y detiene de forma idempotente', async () => {
+    jest.spyOn(process, 'once').mockImplementation(() => process);
+    let release;
+    const drain = new Promise((resolve) => {
+      release = resolve;
+    });
+    const worker = { stop: jest.fn(() => drain) };
+    bookings.maintenance.startExpirationWorker.mockReturnValue(worker);
+    const running = await start({ PORT: '3100', DATABASE_URL: 'postgres://test' });
+    const stopping = running.stop();
+    expect(running.stop()).toBe(stopping);
+    await Promise.resolve();
+    expect(worker.stop).toHaveBeenCalledTimes(1);
+    expect(pool.end).not.toHaveBeenCalled();
+    release();
+    await stopping;
+    expect(server.close).toHaveBeenCalledTimes(1);
+    expect(pool.end).toHaveBeenCalledTimes(1);
+  });
+  it('cierra HTTP y pool si falla el arranque del trabajador', async () => {
+    const error = new Error('worker unavailable');
+    bookings.maintenance.startExpirationWorker.mockImplementation(() => {
+      throw error;
+    });
+    await expect(start({ PORT: '3100', DATABASE_URL: 'postgres://test' })).rejects.toBe(error);
+    expect(server.close).toHaveBeenCalledTimes(1);
+    expect(pool.end).toHaveBeenCalledTimes(1);
+  });
+  it('espera el drenaje aunque falle el cierre HTTP', async () => {
+    jest.spyOn(process, 'once').mockImplementation(() => process);
+    let release;
+    const drain = new Promise((resolve) => {
+      release = resolve;
+    });
+    bookings.maintenance.startExpirationWorker.mockReturnValue({ stop: () => drain });
+    const error = new Error('HTTP close failed');
+    server.close.mockImplementation((callback) => callback(error));
+    const running = await start({ PORT: '3100', DATABASE_URL: 'postgres://test' });
+    const stopping = running.stop();
+    const assertion = expect(stopping).rejects.toBe(error);
+    await Promise.resolve();
+    expect(pool.end).not.toHaveBeenCalled();
+    release();
+    await assertion;
+    expect(pool.end).toHaveBeenCalledTimes(1);
   });
 });

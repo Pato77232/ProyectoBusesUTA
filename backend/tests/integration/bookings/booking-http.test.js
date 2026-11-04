@@ -385,8 +385,7 @@ test('arranque real conserva health y monta reservas sin inventario simulado', a
     expect((await response.json()).error.code).toBe('BOOKING_TRIP_SERVICE_UNAVAILABLE');
     expect(await counts()).toEqual({ bookings: 0, allocations: 0 });
   } finally {
-    await close(running.server);
-    await running.pool.end();
+    await running.stop();
   }
 });
 
