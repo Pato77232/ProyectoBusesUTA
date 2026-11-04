@@ -369,7 +369,7 @@ test('catálogo real sin verificador no acredita pasajeros ni guarda reserva', a
   expect(await counts()).toEqual({ bookings: 0, allocations: 0 });
 });
 
-test('arranque real conserva health y monta reservas sin inventario simulado', async () => {
+test('arranque real conecta disponibilidad y conserva health sin compras ficticias', async () => {
   const probe = await listen(createApp());
   const port = probe.server.address().port;
   await close(probe.server);
@@ -378,11 +378,19 @@ test('arranque real conserva health y monta reservas sin inventario simulado', a
     const baseUrl = `http://127.0.0.1:${port}`;
     expect((await fetch(baseUrl + '/api/v1/health')).status).toBe(200);
     const browser = await customer(baseUrl);
-    const response = await browser.request(
+    const invalid = await browser.request(
       '/api/v1/bookings/availability?tripId=viaje-prueba&fromPosition=1&toPosition=3',
     );
-    expect(response.status).toBe(503);
-    expect((await response.json()).error.code).toBe('BOOKING_TRIP_SERVICE_UNAVAILABLE');
+    expect(invalid.status).toBe(400);
+    expect((await invalid.json()).error.code).toBe('BOOKING_VALIDATION_ERROR');
+    const missing = await browser.request(
+      `/api/v1/bookings/availability?tripId=${randomUUID()}&fromPosition=0&toPosition=1`,
+    );
+    expect(missing.status).toBe(404);
+    expect((await missing.json()).error.code).toBe('BOOKING_TRIP_UNAVAILABLE');
+    const summary = await browser.request('/api/v1/bookings/summary', 'POST', summaryInput());
+    expect(summary.status).toBe(503);
+    expect((await summary.json()).error.code).toBe('BOOKING_TRIP_SERVICE_UNAVAILABLE');
     expect(await counts()).toEqual({ bookings: 0, allocations: 0 });
   } finally {
     await running.stop();

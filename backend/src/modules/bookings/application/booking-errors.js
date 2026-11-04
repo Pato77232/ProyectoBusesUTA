@@ -1,5 +1,6 @@
 // Errores públicos de los casos de uso para la capa de transporte.
 module.exports = {
+  BookingTripIntegrityError: require('../domain/booking-trip-integrity-error'),
   ...require('../domain/booking-error'),
   BookingAttemptNotFoundError: require('../domain/booking-attempt-not-found-error'),
   BookingAccessError: require('../domain/booking-access-error'),

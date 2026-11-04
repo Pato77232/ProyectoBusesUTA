@@ -4,6 +4,7 @@ const errors = require('../application/booking-errors');
 
 const ERROR_STATUS = Object.freeze({
   BOOKING_VALIDATION_ERROR: 400,
+  BOOKING_TRIP_DATA_INTEGRITY_ERROR: 500,
   UNAUTHENTICATED: 401,
   FORBIDDEN: 403,
   BOOKING_TRIP_UNAVAILABLE: 404,

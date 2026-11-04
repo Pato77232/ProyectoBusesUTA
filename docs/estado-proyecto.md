@@ -684,3 +684,19 @@ Shirley asume la conexión de carga/autorización en su trabajo propio. No se du
 
 
 Actualización previa a publicación: develop avanzó a 4bb6861 con FLEET-09 y catálogo 22; la rama del planificador se avanzó sin commits exclusivos y se recuperó desde respaldo 85bc73e. Se conserva rollbackBefore integrado para las pruebas de migración y no se modifica el catálogo como parte de T5. Commit/push y preparación de PR autorizados por Leslie; revalidación global completada con 2336 pruebas aprobadas. Los resultados anteriores de c95cc73 se mantienen como historia, sin atribuirlos a esta combinación nueva.
+
+
+## Leslie: disponibilidad con viajes reales — 3 de noviembre de 2026
+
+| Spec / área | Estado comprobado | Evidencia y límite |
+| --- | --- | --- |
+| BOOK-06-L04-T5 / PR #65 | Integrada en develop 65957a9, 2026-11-04T01:58:43Z | Comprobado por GitHub y Git; no implica conexión de carga o creación comercial completa. |
+| BOOK-02-L02 §15 | Implementación local de disponibilidad por tramo en feature/BOOK-02-disponibilidad-viajes-reales, base actual 9920792 | [Spec](specs/BOOK-02-L02.md), [evidencia](evidence/BOOK-02-L02/2026-11-03-disponibilidad-real.md). Adaptador y HTTP CUSTOMER con fuente pública real, revisión humana/commit/publicación pendientes. |
+
+Route Sheets ya entrega viaje comercializable e inventario congelado por findBookableForSegment; se sustituye la observación histórica de que faltaba ese proveedor. Disponibilidad valida snapshot antes de ocupaciones y conserva RESERVED/SOLD/revisión/adyacencia y errores sin inventario libre. 28 unitarias y 32 integraciones HTTP dirigidas finales aprobadas. Global ejecutada: 1795 unitarias y 566/568 integraciones; fallo de fotografías y expectativa antigua de arranque. Esta última se adaptó/verificó en la repetición dirigida, sin declarar la suite global verde. Lint/formato propio aprobados; formato global conserva 17 archivos ajenos. No se conectan todavía cotización/creación ni se modifica el trabajo de Shirley/David.
+
+
+Actualización de Leslie previa al checkpoint: disponibilidad recuperada sobre 9920792 con renovación D-05 y catálogo 23. La firma/DTO por tramo permanece estable. Se concilió BOOK-02-L02 conservando el acuerdo transmitido por David y el incremento acotado de Leslie. Revalidación global final aprobada: 1838 unitarias y 581 integraciones, 2419 pruebas en 141 suites, sin cambios productivos adicionales; no trasladar los conteos antiguos como si fueran actuales. Guardado local autorizado, publicación/revisión humana pendientes.
+
+
+Checkpoint de disponibilidad: ejecución completa sobre 9920792 aprobada con arranque real y catálogo 23. Lint/formato propio aprobados; formato global mantiene 17 archivos ajenos. Fotografías pasó sin cambios de código/timeout. Se conserva la evidencia anterior como histórica. Guardado local autorizado; publicación/PR/revisión humana pendientes.
