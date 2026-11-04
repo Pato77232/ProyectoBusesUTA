@@ -6,7 +6,12 @@ const {
   PaymentProofUploadDeadlineExpiredError,
   BookingNotificationUncertainError,
   PaymentProofPersistenceUncertainError,
+  PaymentProofReconciliationRequiredError,
 } = require('../../../src/modules/payments/domain/payment-proof-error');
+const {
+  createPaymentProof,
+  uploadPaymentProof,
+} = require('../../../src/modules/payments/domain/payment-proof');
 
 const NOW = new Date('2026-10-25T12:04:00.000Z');
 const BOOKING = Object.freeze({
@@ -98,7 +103,7 @@ function createHarness({
 function createInput(overrides = {}) {
   return {
     bookingId: BOOKING.bookingId,
-    customerId: BOOKING.ownerId,
+    authContext: { userId: BOOKING.ownerId, role: 'CUSTOMER', cooperativeId: null },
     file: FILE,
     now: NOW,
     ...overrides,
@@ -123,7 +128,10 @@ test('carga el comprobante usando la cooperativa, fecha límite y total de la re
   });
   expect(result.expiresAt).toBe(BOOKING.expiresAt);
   expect(result.total).toBe(BOOKING.total);
-  expect(harness.bookingReader.findForPayment).toHaveBeenCalledWith(BOOKING.bookingId);
+  expect(harness.bookingReader.findForPayment).toHaveBeenCalledWith(
+    { bookingId: BOOKING.bookingId, purpose: 'UPLOAD_PROOF' },
+    { userId: BOOKING.ownerId, role: 'CUSTOMER', cooperativeId: null },
+  );
   expect(harness.bookingPaymentProofNotifier.markPaymentProofReceived).toHaveBeenCalledWith(
     expect.objectContaining({
       bookingId: BOOKING.bookingId,
@@ -140,17 +148,65 @@ test('carga el comprobante usando la cooperativa, fecha límite y total de la re
   expect(harness.outbox.get(BOOKING.bookingId).status).toBe('DELIVERED');
 });
 
+test('transmite y persiste el bookingId opaco sin normalizarlo', async () => {
+  const bookingId = ' booking:opaque-7 ';
+  const booking = { ...BOOKING, bookingId };
+  const harness = createHarness({ booking });
+
+  const result = await harness.useCase.execute(createInput({ bookingId }));
+
+  expect(harness.bookingReader.findForPayment).toHaveBeenCalledWith(
+    { bookingId, purpose: 'UPLOAD_PROOF' },
+    { userId: BOOKING.ownerId, role: 'CUSTOMER', cooperativeId: null },
+  );
+  expect(result.paymentProof.booking_id).toBe(bookingId);
+  expect(
+    harness.paymentProofRepository.saveWithPendingNotification.mock.calls[0][0].booking_id,
+  ).toBe(bookingId);
+  expect(harness.bookingPaymentProofNotifier.markPaymentProofReceived).toHaveBeenCalledWith(
+    expect.objectContaining({ bookingId }),
+  );
+});
+
+test('no adopta una carga histórica que carece de procedencia verificada', async () => {
+  const legacyProof = uploadPaymentProof(
+    createPaymentProof({ booking_id: BOOKING.bookingId, cooperative_id: BOOKING.cooperativeId }),
+    {
+      file_key: 'legacy-file-key',
+      original_file_name: 'legacy.png',
+      media_type: 'image/png',
+      file_size_bytes: PNG_BUFFER.length,
+    },
+    BOOKING.expiresAt,
+    NOW,
+  );
+  const harness = createHarness({ proof: { ...legacyProof, id: 'legacy-proof' } });
+
+  await expect(harness.useCase.execute(createInput())).rejects.toBeInstanceOf(
+    PaymentProofReconciliationRequiredError,
+  );
+
+  expect(harness.bookingPaymentProofNotifier.markPaymentProofReceived).not.toHaveBeenCalled();
+  expect(harness.fileStorage.save).not.toHaveBeenCalled();
+  expect(harness.fileStorage.delete).not.toHaveBeenCalled();
+  expect(harness.paymentProofRepository.deleteByBookingId).not.toHaveBeenCalled();
+});
+
 test.each([
   ['no existe', null, 'customer-1'],
   ['pertenece a otro cliente', BOOKING, 'customer-ajeno'],
-])('responde igual si la reserva %s', async (description, booking, customerId) => {
+])('responde igual si la reserva %s', async (description, booking, userId) => {
   // Arrange
   const harness = createHarness({ booking });
 
   // Act / Assert
-  await expect(harness.useCase.execute(createInput({ customerId }))).rejects.toBeInstanceOf(
-    BookingNotFoundOrNotOwnedError,
-  );
+  await expect(
+    harness.useCase.execute(
+      createInput({
+        authContext: { userId, role: 'CUSTOMER', cooperativeId: null },
+      }),
+    ),
+  ).rejects.toBeInstanceOf(BookingNotFoundOrNotOwnedError);
   expect(harness.fileStorage.save).not.toHaveBeenCalled();
 });
 

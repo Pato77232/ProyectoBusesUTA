@@ -33,6 +33,8 @@ test('crea un comprobante AWAITING_UPLOAD sin archivo asociado', () => {
     file_size_bytes: null,
     uploaded_at: null,
     expired_at: null,
+    upload_authorized_by: null,
+    upload_authorized_at: null,
   });
   expect(Object.isFrozen(paymentProof)).toBe(true);
 });

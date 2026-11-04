@@ -29,6 +29,7 @@ const activeNames = Object.freeze([
   '1793910000000-booking-proof-receipts',
   '1794000000000-payment-booking-identifiers',
   '1794080000000-protect-bus-seats',
+  '1794086400000-payment-proof-upload-provenance',
   '1794160000000-route-sheet-renewals',
 ]);
 const migrationsDirectory = path.join(__dirname, '../migrations');

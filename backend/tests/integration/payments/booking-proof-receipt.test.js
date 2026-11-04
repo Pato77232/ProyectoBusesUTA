@@ -23,6 +23,9 @@ const pass = (_req, _res, next) => next();
 const auth = { authenticate: pass, authorize: () => pass, csrfProtection: pass };
 const file = { buffer: Buffer.from('%PDF-1.4\nQA'), originalFileName: 'recibo.pdf' };
 let pool, directory, booking, proofRepository, fileStorage, bookings, bridge, now;
+function customerContext() {
+  return { userId: booking.ownerId, role: 'CUSTOMER', cooperativeId: null };
+}
 beforeAll(() => {
   assertTestDatabase();
   runMigration();
@@ -68,11 +71,9 @@ afterAll(async () => {
 function uploader(notifier = bridge.bookingPaymentProofNotifier) {
   const query = new QueryAdapter({ paymentQueries: bookings.paymentQueries });
   // Contexto interno exclusivamente de QA; no acredita una ruta autenticada de carga.
-  const context = { userId: booking.ownerId, role: 'CUSTOMER', cooperativeId: null };
   return new UploadPaymentProof({
     bookingReader: {
-      findForPayment: (bookingId) =>
-        query.findForPayment({ bookingId, purpose: 'UPLOAD_PROOF' }, context),
+      findForPayment: (request, authContext) => query.findForPayment(request, authContext),
     },
     fileStorage,
     paymentProofRepository: proofRepository,
@@ -82,7 +83,7 @@ function uploader(notifier = bridge.bookingPaymentProofNotifier) {
 function upload(useCase = uploader()) {
   return useCase.execute({
     bookingId: booking.bookingId,
-    customerId: booking.ownerId,
+    authContext: customerContext(),
     file,
     now: before,
   });
@@ -158,11 +159,7 @@ test('vencimiento confirmado compensa comprobante/archivo y conserva rechazo dur
   const adapter = new QueryAdapter({ paymentQueries: queryBookings.paymentQueries });
   const useCase = uploader();
   useCase.bookingReader = {
-    findForPayment: (bookingId) =>
-      adapter.findForPayment(
-        { bookingId, purpose: 'UPLOAD_PROOF' },
-        { userId: booking.ownerId, role: 'CUSTOMER', cooperativeId: null },
-      ),
+    findForPayment: (request, authContext) => adapter.findForPayment(request, authContext),
   };
   await expect(upload(useCase)).rejects.toMatchObject({
     code: 'PAYMENT_PROOF_UPLOAD_DEADLINE_EXPIRED',
@@ -336,6 +333,7 @@ test('receptor y outbox recuperan el mismo aviso de una identidad con espacios e
         },
         deadline,
         before,
+        { upload_authorized_by: booking.ownerId, upload_authorized_at: before },
       ),
     );
     expect(proof.booking_id).toBe(id);
