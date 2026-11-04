@@ -1,5 +1,13 @@
 # Estado compartido del proyecto
 
+## INTEG-01 — continuación local T7, T6b y composición, 4 de noviembre de 2026
+
+Edwin solicita completar las conexiones pendientes y confirma acreditación manual específica hasta el embarque. Sobre `d9ee164`, en `feature/INTEG-01-T6-compra-comercial`, quedan cambios sin commit: carga autorizada con lector público real de Reservas y reloj propagado; servidor con una sola composición sin `_isMockFunction`; revisión de nacimiento/discapacidad por CLERK, auditada por contexto y con vencimiento al embarque, sin documentos/imágenes. La compra productiva consume ese proveedor persistido; no hay autoacreditación ni verificador favorable simulado. API nueva descrita en [INTEG-01-T6b](specs/INTEG-01-T6b.md); conexiones/evidencia en [INTEG-01](specs/INTEG-01.md).
+
+Validación propia final: **npm test aprobado, 1929/1929 unitarias y 649/649 integraciones** (168 suites), Windows Node 24 y PostgreSQL 16.13 efímero aislado. Incluye cuatro cargas autorizadas originales, arranque real, revisión humana mediante API y compra sin dobles de acreditación, aislamiento/CSRF, decisiones negativas y reversiones protegidas. Lint, formato de todos los JS tocados/nuevos y diff aprobados. `format:check` global sigue fallando en 15 archivos sin cambios en esta continuación; cero avisos corresponden a los archivos modificados. No se amplían timeouts, no se editan migraciones existentes ni se leen `.env`.
+
+Sin commits/push/merge/PR nuevos, sin integración ni cierre humano. FLEET-08 se conserva intacto y fuera del alcance. No se implementan pantallas nuevas, emisión sin pago ni acreditación por servicio externo. La evidencia anterior se conserva como historia, no como estado de estos cambios.
+
 ## Leslie — Reservas y cotización configurada, 4 de noviembre de 2026
 
 En la rama local `feature/BOOK-06-L04-T5-leslie` se conectó el arranque de

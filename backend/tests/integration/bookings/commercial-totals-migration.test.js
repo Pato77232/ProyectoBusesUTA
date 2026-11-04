@@ -41,8 +41,10 @@ afterAll(async () => {
     await admin?.end();
   }
 });
-test('actualiza las 24 migraciones previas, conserva reserva y ocupación, y permite down/up sin importes nuevos', async () => {
-  worker('raw', { names: activeNames.slice(0, -1) });
+test('actualiza las migraciones anteriores a totales comerciales, conserva reserva y ocupación y permite down/up', async () => {
+  const target = activeNames.indexOf('1794250000000-booking-commercial-totals');
+  expect(target).toBeGreaterThan(0);
+  worker('raw', { names: activeNames.slice(0, target) });
   await pool.query("INSERT INTO booking_trip_locks VALUES('cooperativa-legada','viaje-legado')");
   await pool.query(`INSERT INTO bookings(id,cooperative_id,trip_id,owner_id,from_position,to_position,status,summary,
     base_price_cents,discount_cents,total_price_cents,created_at,expires_at,proof_reception_state)
@@ -63,11 +65,32 @@ test('actualiza las 24 migraciones previas, conserva reserva y ocupación, y per
     (await pool.query('SELECT vip_surcharge_cents,rounding_adjustment_cents FROM bookings'))
       .rows[0],
   ).toEqual({ vip_surcharge_cents: '0', rounding_adjustment_cents: '0' });
+  while (
+    (await pool.query('SELECT name FROM pgmigrations ORDER BY id DESC LIMIT 1')).rows[0].name !==
+    activeNames[target]
+  ) {
+    worker('migrate', { direction: 'down' });
+  }
   worker('migrate', { direction: 'down' });
   expect((await pool.query(`SELECT ${columns} FROM bookings`)).rows).toEqual(before);
   expect(
     (await pool.query('SELECT name FROM pgmigrations ORDER BY id')).rows.map((row) => row.name),
-  ).toEqual(activeNames.slice(0, -1));
+  ).toEqual(activeNames.slice(0, target));
   worker('migrate', { direction: 'up' });
   expect((await pool.query(`SELECT ${columns} FROM bookings`)).rows).toEqual(before);
+});
+test('acreditaciones conserva auditoría e historial al rechazar down con datos', async () => {
+  const before = (await pool.query('SELECT name FROM pgmigrations ORDER BY id')).rows;
+  await pool.query(
+    `INSERT INTO booking_benefit_reviews
+    (cooperative_id,reviewed_by,context_hash,decisions,reviewed_at,expires_at)
+    VALUES($1,$2,$3,'[]','2030-01-01T10:00Z','2030-01-01T11:00Z')`,
+    [randomUUID(), randomUUID(), 'a'.repeat(64)],
+  );
+  const records = (await pool.query('SELECT * FROM booking_benefit_reviews')).rows;
+  expect(() => worker('migrate', { direction: 'down' })).toThrow(
+    'Las acreditaciones requieren un plan',
+  );
+  expect((await pool.query('SELECT name FROM pgmigrations ORDER BY id')).rows).toEqual(before);
+  expect((await pool.query('SELECT * FROM booking_benefit_reviews')).rows).toEqual(records);
 });

@@ -160,3 +160,31 @@ La emisión del enlace sigue sin endpoint: el servicio `issue` recibe un puerto 
 ### T6b: acreditador real de beneficios, pendiente de decisión
 
 No existe un acreditador real en el código. `createBookingsModule` usa por defecto un `passengerVerifier` que siempre responde 503, por diseño. BOOK-03-L03-T1 §1 y §3 registran que la secretaria (CLERK) revisa la fecha de nacimiento y la discapacidad, y que David decidió «Solo prepara la integración; dejemos ese flujo pendiente». Implementarlo es funcionalidad nueva, no una reconexión: requiere spec propia y acuerdo del equipo antes de escribir código.
+
+### Continuación autorizada el 4 de noviembre: T7 y limpieza de composición
+
+Edwin solicita completar T7 y retirar `_isMockFunction`. T7 conecta únicamente la carga al adaptador público `BookingsPaymentQueryAdapter` cuando se proporciona `paymentQueries`; conserva la composición aislada de pruebas legadas y la bandeja de lectura real separada. Propaga el reloj ya inyectable hasta HTTP para registrar la autorización con el mismo instante. Aceptación: carga real propia, rechazo de otro propietario, procedencia y recepción durables, sin perder las comprobaciones existentes.
+
+La limpieza conserva una sola composición productiva en `server.js`, con ocupaciones, compromisos, catálogo comercial, lector y confirmador reales. Los dobles de arranque deben implementar esos contratos; se conserva y amplía la comprobación de fallo cerrado si falta el catálogo. No usar indicadores de Jest en producción ni alterar decisiones de negocio. Validar lint, formato, unitarias, integración aislada y arranque real. Sin commits/publicación en esta continuación.
+
+### Estado local de la continuación sobre d9ee164
+
+T7 implementada: la carga consume `BookingsPaymentQueryAdapter` cuando recibe `paymentQueries`; se mantiene el lector legado solo para las composiciones aisladas anteriores y la bandeja antigua, sin cambiar el consumidor real de lectura separado. El reloj inyectado llega al controlador. Las cuatro comprobaciones originales de carga pasan sin cambiar sus expectativas.
+
+Limpieza implementada: una sola composición en servidor, sin `_isMockFunction`. Los dobles de `server.test.js` ahora entregan ocupaciones, compromisos y catálogo comercial como producción; las comprobaciones anteriores de conexiones y cierre se conservan y se añade fallo cerrado sin catálogo. No se omiten guardas por usar Jest.
+
+T6b autorizada y concretada por Edwin, desarrollada en [spec propia](INTEG-01-T6b.md). El estado anterior «pendiente de decisión» conserva el contexto histórico, queda sustituido por ese contrato específico. Se implementa API de revisión CLERK y proveedor persistido, sin pantallas nuevas.
+
+Los cambios actuales permanecen sin commit en `feature/INTEG-01-T6-compra-comercial`, preservando los commits locales T1–T6a y el borrador ajeno FLEET-08. Separación propuesta para revisión/commits posteriores: T7 carga, limpieza de servidor, T6b acreditación y sus comprobaciones de migración. Esta continuación no crea commits ni publica/integrar ramas.
+
+### Validación propia final de la continuación
+
+Windows, Node 24, PostgreSQL 16.13 en contenedor efímero exclusivo `busesuta-integ-continuacion-db`, puerto local aleatorio, base `busesuta_test`, NODE_ENV=test y credenciales sintéticas. Sin leer `.env` ni instalar dependencias.
+
+- `npm run lint`: aprobado.
+- `npm test` con su sintaxis original: **1929/1929 unitarias, 649/649 integraciones**, 109 + 59 suites aprobadas. Integración 225,614 s; arranque real y rutas Auth/CSRF incluidos. Ya no quedan los cuatro 404 de carga.
+- Prettier de todos los JS tocados/nuevos y `git diff --check`: aprobados. `npm run format:check` global conserva 15 archivos con avisos; comprobado contra el diff, ninguno fue modificado aquí.
+- La primera dirigida pasó T7 y la revisión real, pero la reversión VIP probó la nueva migración en lugar de totales. Se apuntó por nombre, preservando mensaje/filas/historial. La repetición detectó además limpieza sin tabla después de retirar la posterior; se añadió restauración en finally. La ejecución completa final aprobó, sin ampliar límites ni quitar expectativas.
+- Un intento de invocar `npm test -- --runInBand` terminó las unitarias pero npm rechazó la bandera antes de integración; no se considera ejecución completa. Se corrigió la invocación y el `npm test` final anterior sí completó ambas suites.
+
+Asistencia de Codex en revisión, implementación y pruebas. Se retira el contenedor exclusivo al terminar. Revisión humana y publicación pendientes; las pruebas aprobadas no equivalen a integración en develop.
