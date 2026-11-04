@@ -1,5 +1,15 @@
 # Estado compartido del proyecto
 
+## Pablo — borrador de recuperación de cuenta, 4 de noviembre de 2026
+
+En `feature/AUTH-CORREO-01-recuperacion-cuenta`, creada desde `origin/develop`
+`5ff50d9`, se prepara [AUTH-CORREO-01](specs/AUTH-CORREO-01.md). Pablo confirmó
+recuperación por correo para todos los roles, enlace de 30 minutos y revocación
+de todas las sesiones al completar el cambio. La spec separa esta tarea de la
+verificación de correo y de AUTH-WEB-02; quedan por acordar entrega/reintentos,
+reemisión y límites exactos. Cambio solo documental: sin código, pruebas de
+producto, revisión humana ni integración.
+
 ## INTEG-01 — continuación local T7, T6b y composición, 4 de noviembre de 2026
 
 Edwin solicita completar las conexiones pendientes y confirma acreditación manual específica hasta el embarque. Sobre `d9ee164`, en `feature/INTEG-01-T6-compra-comercial`, quedan cambios sin commit: carga autorizada con lector público real de Reservas y reloj propagado; servidor con una sola composición sin `_isMockFunction`; revisión de nacimiento/discapacidad por CLERK, auditada por contexto y con vencimiento al embarque, sin documentos/imágenes. La compra productiva consume ese proveedor persistido; no hay autoacreditación ni verificador favorable simulado. API nueva descrita en [INTEG-01-T6b](specs/INTEG-01-T6b.md); conexiones/evidencia en [INTEG-01](specs/INTEG-01.md).
