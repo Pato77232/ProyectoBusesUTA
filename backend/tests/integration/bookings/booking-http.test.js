@@ -388,9 +388,16 @@ test('arranque real conecta disponibilidad y conserva health sin compras fictici
     );
     expect(missing.status).toBe(404);
     expect((await missing.json()).error.code).toBe('BOOKING_TRIP_UNAVAILABLE');
+    // El catálogo comercial real ya está conectado: valida el viaje y no inventa uno.
     const summary = await browser.request('/api/v1/bookings/summary', 'POST', summaryInput());
-    expect(summary.status).toBe(503);
-    expect((await summary.json()).error.code).toBe('BOOKING_TRIP_SERVICE_UNAVAILABLE');
+    expect(summary.status).toBe(400);
+    expect((await summary.json()).error.code).toBe('BOOKING_VALIDATION_ERROR');
+    const unknown = await browser.request('/api/v1/bookings/summary', 'POST', {
+      ...summaryInput(),
+      tripId: randomUUID(),
+    });
+    expect(unknown.status).toBe(404);
+    expect((await unknown.json()).error.code).toBe('BOOKING_TRIP_UNAVAILABLE');
     expect(await counts()).toEqual({ bookings: 0, allocations: 0 });
   } finally {
     await running.stop();

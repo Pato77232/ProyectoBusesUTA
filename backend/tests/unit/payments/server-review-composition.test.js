@@ -7,13 +7,19 @@ jest.mock('../../../src/modules/auth', () => ({ createAuthModule: jest.fn() }));
 jest.mock('../../../src/modules/tenants', () => ({ createTenantsModule: jest.fn() }));
 jest.mock('../../../src/modules/fleet', () => ({ createFleetModule: jest.fn() }));
 jest.mock('../../../src/modules/frequencies', () => ({ createFrequenciesModule: jest.fn() }));
-jest.mock('../../../src/modules/route-sheets', () => ({ createRouteSheetsModule: jest.fn() }));
+jest.mock('../../../src/modules/route-sheets', () => ({
+  createRouteSheetsModule: jest.fn(),
+  createFrequencyCommitmentQueries: jest.fn(),
+}));
 jest.mock('../../../src/modules/payments', () => ({
   createPaymentsModule: jest.fn(),
   createPaymentReceiptModule: jest.fn(),
   createPaymentReviewModule: jest.fn(),
 }));
-jest.mock('../../../src/modules/bookings', () => ({ createBookingsModule: jest.fn() }));
+jest.mock('../../../src/modules/bookings', () => ({
+  createBookingsModule: jest.fn(),
+  createBookingOccupancyQueries: jest.fn(),
+}));
 
 const createApp = require('../../../src/app');
 const { createPool } = require('../../../src/shared/database');
