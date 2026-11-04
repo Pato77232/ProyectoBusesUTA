@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Programación y tarifas · transViaje</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+    <link
+      rel="stylesheet"
+      href="/assets/vendor/bootstrap-5.3.8/bootstrap.min.css"
+    />
+    <link rel="stylesheet" href="/src/styles/app.css" />
+    <link rel="stylesheet" href="/src/styles/route-sheet-editor.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+    <header class="site-header">
+      <div class="container">
+        <a class="brand" href="/" aria-label="transViaje, inicio"
+          ><span class="brand-logo-frame" aria-hidden="true"
+            ><img
+              class="brand-logo"
+              src="/assets/brand/logo-transviaje.png"
+              alt=""
+              width="1600"
+              height="1446" /></span
+        ></a>
+      </div>
+    </header>
+    <main id="contenido" class="container sheet-editor" tabindex="-1">
+      <p class="eyebrow">PROGRAMACIÓN OPERATIVA</p>
+      <h1>Programación y tarifas</h1>
+      <p>
+        Prepara los servicios y precios de la hoja. Guardar un borrador no
+        publica viajes ni habilita ventas.
+      </p>
+      <nav class="editor-actions" aria-label="Navegación de programación">
+        <a href="/pages/hojas-ruta.html">Volver a hojas de ruta</a
+        ><a href="/pages/frecuencias.html">Consultar frecuencias</a
+        ><a href="/pages/registrar-bus.html">Registrar un bus</a>
+      </nav>
+      <section class="editor-card" aria-labelledby="editor-status-title">
+        <h2 id="editor-status-title">Estado de la consulta</h2>
+        <div id="editor-status-panel" data-mode="loading">
+          <p id="editor-status" role="status" aria-live="polite" tabindex="-1">
+            Comprobando sesión…
+          </p>
+        </div>
+        <div class="editor-actions">
+          <button id="editor-reload" type="button" class="btn btn-outline-dark">
+            Descartar cambios y recargar</button
+          ><button id="editor-check" type="button" class="btn btn-dark" hidden>
+            Comprobar guardado</button
+          ><a id="editor-login" href="/pages/login.html" hidden
+            >Iniciar sesión</a
+          ><a id="editor-restart" href="/pages/hojas-ruta.html" hidden
+            >Volver al listado con la sesión actual</a
+          >
+        </div>
+      </section>
+      <div id="editor-content" aria-busy="true" hidden>
+        <section class="editor-card" aria-labelledby="editor-heading">
+          <h2 id="editor-heading"></h2>
+          <p id="editor-state"></p>
+          <p class="editor-note">
+            Todas las fechas y horas se expresan en Ecuador continental
+            (UTC−05:00). Incluye la fecha correcta al cruzar medianoche.
+          </p>
+        </section>
+        <section class="editor-card" aria-labelledby="program-title">
+          <h2 id="program-title">1. Programación del grupo</h2>
+          <p>
+            Versión guardada consultada: <span id="program-version"></span>.
+            <strong id="program-dirty"></strong>
+          </p>
+          <p class="editor-note">
+            Declara cada salida requerida, asigna un bus y completa su agenda.
+            El servidor comprueba cobertura, continuidad, preparación, bloqueos
+            y otros compromisos.
+          </p>
+          <form id="program-form">
+            <fieldset id="program-fields" disabled>
+              <legend class="visually-hidden">Editor de programación</legend>
+              <div id="program-fields-content"></div>
+              <button
+                id="program-review"
+                type="submit"
+                class="btn btn-dark editor-save"
+              >
+                Revisar programación para guardar
+              </button>
+            </fieldset>
+          </form>
+        </section>
+        <section class="editor-card" aria-labelledby="tariff-title">
+          <h2 id="tariff-title">2. Tarifas de la hoja</h2>
+          <p>
+            Versión guardada consultada: <span id="tariff-version"></span>.
+            <strong id="tariff-dirty"></strong>
+          </p>
+          <p class="editor-note">
+            Guarda primero la programación. Introduce un precio positivo para
+            cada combinación de paradas; no se suman tramos. Los porcentajes
+            admiten de 0 a 100 con hasta dos decimales, incluido cero explícito.
+            No uses separadores de miles.
+          </p>
+          <form id="tariff-form">
+            <fieldset id="tariff-fields" disabled>
+              <legend class="visually-hidden">Editor de tarifas</legend>
+              <div id="tariff-fields-content"></div>
+              <button
+                id="tariff-review"
+                type="submit"
+                class="btn btn-dark editor-save"
+              >
+                Revisar tarifas para guardar
+              </button>
+            </fieldset>
+          </form>
+        </section>
+        <section class="editor-card" aria-labelledby="lifecycle-title">
+          <h2 id="lifecycle-title">3. Publicación y siguiente ciclo</h2>
+          <p id="lifecycle-help" class="editor-note"></p>
+          <p>
+            Estas acciones usan únicamente programación y tarifas guardadas. El
+            servidor comprueba disponibilidad, frecuencias y el límite de
+            ciclos.
+          </p>
+          <div class="editor-actions">
+            <button
+              id="sheet-publish"
+              class="btn btn-dark"
+              type="button"
+              disabled
+            >
+              Revisar publicación
+            </button>
+            <button
+              id="sheet-renew"
+              class="btn btn-outline-dark"
+              type="button"
+              disabled
+              hidden
+            >
+              Preparar siguiente ciclo
+            </button>
+            <a id="renewal-destination" class="btn btn-dark" hidden
+              >Abrir programación del siguiente ciclo</a
+            >
+          </div>
+          <p class="editor-note">
+            Si se pierde una respuesta, usa la recuperación de esta pestaña
+            antes de iniciar otra operación. Cerrar la pestaña o borrar sus
+            datos puede perder esa ayuda.
+          </p>
+        </section>
+      </div>
+      <section
+        id="editor-review-panel"
+        class="editor-card editor-review"
+        aria-labelledby="review-title"
+        hidden
+      >
+        <h2 id="review-title" tabindex="-1">Revisar y confirmar</h2>
+        <div id="review-content"></div>
+        <div class="editor-actions">
+          <button id="review-confirm" class="btn btn-dark" type="button">
+            Confirmar</button
+          ><button
+            id="review-cancel"
+            class="btn btn-outline-dark"
+            type="button"
+          >
+            Cancelar y conservar cambios
+          </button>
+        </div>
+      </section>
+      <noscript
+        ><p>
+          Activa JavaScript para comprobar la sesión y consultar la hoja. No se
+          realizarán guardados sin esta comprobación.
+        </p></noscript
+      >
+    </main>
+    <script type="module" src="/src/route-sheets/editor-page.js"></script>
+  </body>
+</html>

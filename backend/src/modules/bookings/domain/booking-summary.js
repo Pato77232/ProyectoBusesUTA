@@ -2,6 +2,7 @@ const { BookingValidationError } = require('./booking-error');
 const { createAvailabilityRequest, createAvailabilityTrip } = require('./availability-request');
 const { createPassengerManifest } = require('./passenger-manifest');
 const { quotePassenger, ageOnDate } = require('./passenger-quote');
+const commercialBookingSummary = require('./commercial-booking-summary');
 
 const INPUT_FIELDS = Object.freeze([
   'tripId',
@@ -78,6 +79,7 @@ function createBookingSummary(input, context) {
   const inventory = new Set(trip.seatIds);
   if (manifest.some((passenger) => !inventory.has(passenger.seatId)))
     throw new BookingValidationError();
+  if (context.trip.commercial === true) return commercialBookingSummary(request, manifest, context);
   const departureDate = context.trip.departureDate;
   ageOnDate(context.onDate, departureDate);
   const prices = selectedPrices(context.trip, request);

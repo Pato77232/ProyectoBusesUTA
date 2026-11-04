@@ -4,6 +4,8 @@ const createApp = require('../../../src/app');
 const { createAuthModule } = require('../../../src/modules/auth');
 const { createTenantsModule } = require('../../../src/modules/tenants');
 const { createFrequenciesModule } = require('../../../src/modules/frequencies');
+const { createFrequencyCommitmentQueries } = require('../../../src/modules/route-sheets');
+const { createBookingOccupancyQueries } = require('../../../src/modules/bookings');
 const { createHasher } = require('../../../src/modules/auth/infrastructure/password-hasher');
 const { runMigration, testPool } = require('../../helpers/database');
 const { assertTestDatabase } = require('../../../scripts/test-database');
@@ -91,7 +93,11 @@ beforeAll(async () => {
     env: { JWT_SECRET: 'test-only-freq-secret-123456789012345' },
   });
   const tenants = createTenantsModule({ pool, auth });
-  const frequencies = createFrequenciesModule({ pool, auth });
+  // Igual que el servidor: la desactivación consulta compromisos reales de hojas y reservas.
+  const commitmentQueries = createFrequencyCommitmentQueries({
+    occupancyQueries: createBookingOccupancyQueries({ pool }),
+  });
+  const frequencies = createFrequenciesModule({ pool, auth, commitmentQueries });
   server = http.createServer(createApp({ auth, tenants, frequencies, pool }));
   await new Promise((resolve) => server.listen(0, resolve));
   url = `http://localhost:${server.address().port}`;

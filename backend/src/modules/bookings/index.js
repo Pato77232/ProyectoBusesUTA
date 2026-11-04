@@ -1,4 +1,5 @@
 const routeSheetAvailabilityCatalog = require('./infrastructure/route-sheet-availability-catalog');
+const routeSheetPurchaseCatalog = require('./infrastructure/route-sheet-purchase-catalog');
 const expireDueBookings = require('./application/expire-due-bookings.use-case');
 const readExpirationConfig = require('./infrastructure/expiration-worker-config');
 const startExpirationWorker = require('./infrastructure/booking-expiration-worker');
@@ -57,6 +58,10 @@ function createBookingsModule({
   const dependencies = {
     repository,
     tripCatalog,
+    purchaseCatalog:
+      typeof availabilityQueries?.findPurchaseContext === 'function'
+        ? routeSheetPurchaseCatalog({ tripQueries: availabilityQueries })
+        : null,
     passengerVerifier,
     clock,
     calendarDateAt,
@@ -112,4 +117,6 @@ function createBookingsModule({
     }),
   };
 }
-module.exports = { createBookingsModule };
+const createBookingOccupancyQueries = require('./infrastructure/create-booking-occupancy-queries');
+
+module.exports = { createBookingsModule, createBookingOccupancyQueries };

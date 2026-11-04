@@ -5,13 +5,16 @@ const { createAuthModule } = require('./modules/auth');
 const { createTenantsModule } = require('./modules/tenants');
 const { createFleetModule } = require('./modules/fleet');
 const { createFrequenciesModule } = require('./modules/frequencies');
-const { createRouteSheetsModule } = require('./modules/route-sheets');
+const {
+  createRouteSheetsModule,
+  createFrequencyCommitmentQueries,
+} = require('./modules/route-sheets');
 const {
   createPaymentsModule,
   createPaymentReceiptModule,
   createPaymentReviewModule,
 } = require('./modules/payments');
-const { createBookingsModule } = require('./modules/bookings');
+const { createBookingsModule, createBookingOccupancyQueries } = require('./modules/bookings');
 function closeServer(server) {
   return new Promise((resolve, reject) =>
     server.close((error) => (error ? reject(error) : resolve())),
@@ -39,7 +42,12 @@ async function start(env = process.env) {
     const auth = await createAuthModule({ pool, env });
     const tenants = createTenantsModule({ pool, auth });
     const fleet = createFleetModule({ pool, auth, env });
-    const frequencies = createFrequenciesModule({ pool, auth });
+    const occupancyQueries = createBookingOccupancyQueries({ pool });
+    const frequencies = createFrequenciesModule({
+      pool,
+      auth,
+      commitmentQueries: createFrequencyCommitmentQueries({ occupancyQueries }),
+    });
     const routeSheets = createRouteSheetsModule({
       pool,
       auth,
@@ -47,6 +55,7 @@ async function start(env = process.env) {
       busGroupQueries: fleet.busGroupQueries,
       busQueries: fleet.busQueries,
       seatQueries: fleet.seatQueries,
+      occupancyQueries,
     });
     if (typeof routeSheets.tripQueries?.findBookableForSegment !== 'function')
       throw new Error('No se pudo conectar el catálogo de viajes por tramo.');

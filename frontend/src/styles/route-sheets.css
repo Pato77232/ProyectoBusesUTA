@@ -53,6 +53,9 @@
 .sheets-card caption {
   color: var(--color-muted);
 }
+.sheets-card td.sheet-edit-action {
+  min-width: 10rem;
+}
 .draft-result {
   margin-top: 20px;
   padding: 16px;

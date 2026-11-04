@@ -1,7 +1,7 @@
 const {
   copyPurchaseInput,
   resolveOwner,
-  readTrip,
+  readPurchaseTrip,
   resolveSummary,
 } = require('./booking-purchase-context');
 const { BookingValidationError } = require('../domain/booking-error');
@@ -36,11 +36,11 @@ function createBooking(dependencies) {
     const ownerId = await resolveOwner(dependencies.buyerIdentity, authContext);
 
     const locate = async () => {
-      const trip = await readTrip(dependencies.tripCatalog, request.tripId);
+      const trip = await readPurchaseTrip(dependencies, request);
       return Object.freeze({ tripId: trip.tripId, cooperativeId: trip.cooperativeId });
     };
     const prepare = async (scope) => {
-      const trip = await readTrip(dependencies.tripCatalog, request.tripId);
+      const trip = await readPurchaseTrip(dependencies, request);
       if (trip.cooperativeId !== scope.cooperativeId) {
         throw new BookingPurchaseError('BOOKING_SUMMARY_CHANGED');
       }

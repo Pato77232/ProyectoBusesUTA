@@ -8,6 +8,7 @@ const PgBusRepository = require('../../../src/modules/fleet/infrastructure/pg-bu
 const PgRenewalRepository = require('../../../src/modules/route-sheets/infrastructure/repositories/pg-route-sheet-renewal-repository');
 const prepareRenewalFactory = require('../../../src/modules/route-sheets/application/use-cases/prepare-route-sheet-renewal.use-case');
 const { runMigration } = require('../../helpers/database');
+const { rollbackBefore } = require('../../helpers/migration-target');
 const { assertTestDatabase } = require('../../../scripts/test-database');
 const { fleetFixtures, busRequest } = require('../../helpers/fleet-bus');
 const makeFixture = require('../../helpers/route-programming');
@@ -375,8 +376,14 @@ test('la procedencia no se edita, borra ni destruye con down', async () => {
   await expect(
     pool.query('DELETE FROM route_sheet_renewals WHERE target_route_sheet_id=$1', [target]),
   ).rejects.toMatchObject({ code: '23514' });
-  expect(() => runMigration('down')).toThrow();
-  expect(await count('route_sheet_renewals')).toBe(1);
+  // Retira por nombre las migraciones posteriores para comprobar el down de la renovación.
+  await rollbackBefore(pool, '1794160000000-route-sheet-renewals');
+  try {
+    expect(() => runMigration('down')).toThrow();
+    expect(await count('route_sheet_renewals')).toBe(1);
+  } finally {
+    runMigration();
+  }
 });
 
 test('un commit con respuesta perdida se recupera por clave desde otra instancia y otro reloj', async () => {

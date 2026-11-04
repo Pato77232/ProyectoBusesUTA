@@ -159,26 +159,43 @@ test.each(kinds)(
 );
 
 test.each(kinds)(
-  'la baja real de %s falla cerrada por falta de proveedor y conserva datos y logs',
+  'la baja real de %s consulta Reservas, elimina una vez y no duplica la auditoría',
   async (kind) => {
     const response = await create(kind, 'Alta para comprobar protección');
     expect(response.status).toBe(200);
     const result = (await response.json()).routeSheet;
     const entity = kind === 'assignment' ? result.assignments[0] : result.restDays[0];
     const path = endpoint(`${kind === 'assignment' ? 'assignments' : 'rest-days'}/${entity.id}`);
-    const before = await snapshot();
     const previousLogs = await logs();
-    for (let attempt = 0; attempt < 2; attempt++) {
-      const removed = await admin.request(path, 'DELETE', {
-        reason: 'Baja de prueba',
-        reasonForChange: 'Baja de prueba',
-        forceWithPassengersWarning: true,
-      });
-      expect(removed.status).toBe(503);
-      expect((await removed.json()).error.code).toBe('BOOKING_QUERIES_UNAVAILABLE');
-      expect(await snapshot()).toEqual(before);
-      expect(await logs()).toEqual(previousLogs);
-    }
+    const body = {
+      reason: 'Baja de prueba',
+      reasonForChange: 'Baja de prueba',
+      forceWithPassengersWarning: true,
+    };
+    // El servidor ya conecta las ocupaciones reales: sin pasajeros, la baja procede.
+    expect((await admin.request(path, 'DELETE', body)).status).toBe(200);
+    const afterRemoval = await snapshot();
+    expect(
+      afterRemoval[kind === 'assignment' ? 'route_sheet_assignments' : 'route_sheet_rest_days'],
+    ).toHaveLength(0);
+    const removalLogs = await logs();
+    expect(removalLogs).toHaveLength(previousLogs.length + 1);
+    expect(removalLogs).toEqual(expect.arrayContaining(previousLogs));
+    expect(removalLogs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          action: 'DELETE',
+          cooperativeId: owner.cooperativeId,
+          modifiedBy: actor,
+          reason: 'Baja de prueba',
+          hasPassengersWarning: false,
+        }),
+      ]),
+    );
+    // Repetir la baja es idempotente: no cambia datos ni agrega otro log.
+    expect((await admin.request(path, 'DELETE', body)).status).toBe(200);
+    expect(await snapshot()).toEqual(afterRemoval);
+    expect(await logs()).toEqual(removalLogs);
   },
 );
 

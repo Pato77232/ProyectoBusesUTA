@@ -7,6 +7,10 @@
  * solo lectura y cruza cooperativas.
  */
 class FrequencyRepository {
+  /** Transacción de desactivación: resuelve compromisos y decide antes de escribir. */
+  async withDeactivation() {
+    throw new Error('FrequencyRepository.withDeactivation debe implementarse.');
+  }
   /** create(cooperativeId, data) guarda la frecuencia con sus paradas y precios; devuelve la frecuencia persistida. */
   async create() {
     throw new Error('FrequencyRepository.create debe implementarse.');

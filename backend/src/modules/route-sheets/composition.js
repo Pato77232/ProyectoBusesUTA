@@ -1,4 +1,6 @@
 const createRouter = require('./interfaces/http/route-sheet.routes');
+const getEditorFactory = require('./application/use-cases/get-route-sheet-editor.use-case');
+const PgEditorRepository = require('./infrastructure/repositories/pg-route-sheet-editor-repository');
 const { randomUUID } = require('node:crypto');
 const prepareRenewalFactory = require('./application/use-cases/prepare-route-sheet-renewal.use-case');
 const PgRenewalRepository = require('./infrastructure/repositories/pg-route-sheet-renewal-repository');
@@ -35,6 +37,7 @@ const FrequencyQueryAdapter = require('./infrastructure/adapters/frequency-query
 const BusGroupQueryAdapter = require('./infrastructure/adapters/bus-group-query-adapter');
 const BusQueryAdapter = require('./infrastructure/adapters/bus-query-adapter');
 const BookingQueryAdapter = require('./infrastructure/adapters/booking-query-adapter');
+const createBookingQueries = require('./infrastructure/adapters/create-booking-queries');
 
 function createRouteSheetsModule({
   pool,
@@ -44,6 +47,7 @@ function createRouteSheetsModule({
   busQueries,
   seatQueries,
   bookingQueries,
+  occupancyQueries,
 } = {}) {
   const legacyPool = legacyProgrammingPool(pool);
   const routeSheetRepository = new PgRouteSheetRepository(legacyPool);
@@ -55,7 +59,11 @@ function createRouteSheetsModule({
   const frequencyQueryPort = new FrequencyQueryAdapter({ frequencyQueries });
   const busGroupQueryPort = new BusGroupQueryAdapter({ busGroupQueries });
   const busQueryPort = new BusQueryAdapter({ busQueries });
-  const bookingQueryPort = new BookingQueryAdapter({ bookingQueries });
+  const bookingQueryPort = new BookingQueryAdapter({
+    bookingQueries:
+      bookingQueries ??
+      (occupancyQueries ? createBookingQueries({ pool, occupancyQueries }) : undefined),
+  });
   const programmingRepository = new PgProgrammingRepository(pool, {
     frequencySessionFactory: frequencyQueries.forTransaction,
   });
@@ -148,6 +156,12 @@ function createRouteSheetsModule({
     tariffQueries: createTariffQueries({ tariffRepository }),
     router: createRouter({
       auth,
+      getEditorUseCase: getEditorFactory({
+        editorRepository: new PgEditorRepository(pool),
+        busQueryPort,
+        busGroupQueryPort,
+        frequencyQueryPort,
+      }),
       configureTariffUseCase,
       prepareRenewalUseCase,
       saveProgrammingUseCase,

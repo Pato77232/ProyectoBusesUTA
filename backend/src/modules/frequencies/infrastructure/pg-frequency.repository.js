@@ -1,5 +1,6 @@
 const FrequencyRepository = require('../domain/frequency.repository');
 const {
+  FrequencyError,
   FrequencyAlreadyExistsError,
   FrequencyNotFoundError,
 } = require('../domain/frequency-error');
@@ -75,9 +76,38 @@ function notFoundOnInvalidId(error) {
 
 /** Implementación PostgreSQL del puerto `FrequencyRepository`; toda consulta filtra por `cooperative_id` (RN-02). */
 class PgFrequencyRepository extends FrequencyRepository {
-  constructor(pool) {
+  constructor(pool, { commitmentQueries } = {}) {
     super();
     this.pool = pool;
+    this.commitmentQueries = commitmentQueries;
+  }
+
+  async withDeactivation(cooperativeId, id, decide) {
+    const client = await this.pool.connect();
+    try {
+      await client.query('BEGIN ISOLATION LEVEL READ COMMITTED');
+      const session = this.commitmentQueries?.forTransaction?.(client);
+      if (!session?.lock || !session?.find) {
+        throw new FrequencyError('FREQUENCY_COMMITMENTS_UNAVAILABLE');
+      }
+      await session.lock();
+      const { rows } = await client.query(
+        `SELECT id FROM frequencies WHERE cooperative_id=$1 AND id=$2 FOR UPDATE`,
+        [cooperativeId, id],
+      );
+      if (!rows.length) throw new FrequencyNotFoundError();
+      const commitments = await session.find({ frequencyId: id, cooperativeId });
+      await decide(commitments);
+      const scoped = new PgFrequencyRepository(client);
+      const result = await scoped.updateStatus(cooperativeId, id, 'INACTIVE');
+      await client.query('COMMIT');
+      return result;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      notFoundOnInvalidId(error);
+    } finally {
+      client.release();
+    }
   }
 
   async lockForRead(id, cooperativeId) {

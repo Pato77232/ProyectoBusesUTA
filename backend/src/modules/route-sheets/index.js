@@ -1,4 +1,5 @@
 const createRouteSheetsModule = require('./composition');
 
-module.exports = { createRouteSheetsModule };
+const createFrequencyCommitmentQueries = require('./infrastructure/create-frequency-commitment-queries');
 
+module.exports = { createRouteSheetsModule, createFrequencyCommitmentQueries };

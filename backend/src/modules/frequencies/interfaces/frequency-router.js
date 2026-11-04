@@ -2,6 +2,14 @@ const express = require('express');
 const { FrequencyError } = require('../domain/frequency-error');
 
 const ERRORS = {
+  FREQUENCY_HAS_COMMITMENTS: [
+    409,
+    'La frecuencia tiene ciclos o servicios pendientes. Espera a que terminen sus obligaciones antes de desactivarla.',
+  ],
+  FREQUENCY_COMMITMENTS_UNAVAILABLE: [
+    503,
+    'No se pudieron verificar los compromisos de la frecuencia. No se ha desactivado.',
+  ],
   VALIDATION_ERROR: [400, 'Datos de frecuencia inválidos.'],
   FREQUENCY_REQUIRES_ANT_RESOLUTION: [
     400,

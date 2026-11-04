@@ -1,5 +1,41 @@
 # Estado compartido del proyecto
 
+## ROUTE-SHEETS-WEB-03 — publicación y renovación web, 4 de noviembre de 2026
+
+| Spec / responsable | Estado y evidencia | Próximo paso |
+|---|---|---|
+| [ROUTE-SHEETS-WEB-03](specs/ROUTE-SHEETS-WEB-03.md) / David | 2.3 implementada localmente sobre `7fff386`, misma rama `feature/ROUTE-SHEETS-10-consulta-ocupaciones`. Publicación con ambas revisiones y renovación explícita mediante backend existente; resumen, recuperación tras recarga, misma clave idempotente y enlace al editor del destino verificado. Frontend 316/316 (18 nuevas), lint/formato propio y QA Chrome/imagen/API/PostgreSQL, teclado/contraste/reflujo aprobados. Backend sin cambios: lint aprobado, 1902 unitarias aprobadas/9 fallidas, 613 integraciones aprobadas/21 fallidas; formato global conserva 36 pendientes previos. [Evidencia](evidence/ROUTE-SHEETS-WEB-03/README.md). | Revisión humana, zoom nativo/lector y conciliación explícita de pruebas históricas pendientes; no integrada/cerrada. Sin commit ni publicación; texto de PR preparado para los bloques acumulados de la rama. |
+
+## ROUTE-SHEETS-WEB-02 — programación y tarifas, 4 de noviembre de 2026
+
+| Spec / responsable | Estado y evidencia | Próximo paso |
+|---|---|---|
+| [ROUTE-SHEETS-WEB-02](specs/ROUTE-SHEETS-WEB-02.md) / David | 2.2 implementada localmente sobre `cc7d4c5`, misma rama `feature/ROUTE-SHEETS-10-consulta-ocupaciones`. Editor estructurado de servicios/agendas/paradas/traslados/bloqueos y tarifas explícitas por par; revisiones y guardados independientes, confirmación, conflictos y recuperación sin reenviar PUT. Consulta propia y catálogos por APIs públicas, aislamiento verificado. Frontend 298/298; 5 unitarias y 4 integraciones nuevas backend aprobadas; lint/formato propio y QA Chrome/imagen/API/PostgreSQL, teclado/contraste/reflujo aprobados. Regresión: 1902 unitarias aprobadas/9 fallidas; 612 integraciones aprobadas/22 fallidas, incluido deadlock de prueba existente cuya repetición aislada aprobó 7/7. Formato global conserva 36 pendientes previos. [Evidencia](evidence/ROUTE-SHEETS-WEB-02/README.md). | Revisión humana, zoom nativo y lector de pantalla pendientes; no integrada/cerrada. 2.3 publicación/renovación web sigue pendiente. Sin commit ni publicación. |
+
+## FREQUENCIES-WEB-02 — listado, detalle y estado, 4 de noviembre de 2026
+
+| Spec / responsable | Estado y evidencia | Próximo paso |
+|---|---|---|
+| [FREQUENCIES-WEB-02](specs/FREQUENCIES-WEB-02.md) / David | 2.1 implementada localmente sobre `95579e2`, misma rama `feature/ROUTE-SHEETS-10-consulta-ocupaciones` por petición expresa. Página frecuencias.html con filtros, detalle inmutable y cambio de estado confirmado; FREQ-03 impide bajas con compromisos. Resultado incierto exige consulta, sin reenvío automático; aislamiento y sesión revalidados. Frontend 281 aprobadas (18 nuevas), lint/formato propio aprobados; QA Chrome/imagen/API/PostgreSQL, capturas 360/640/1280 y contraste aprobados. Backend sin cambios: lint aprobado, 36 pendientes previos de formato; 1897 unitarias aprobadas/9 fallidas y 609 integraciones aprobadas/21 fallidas, contratos históricos documentados. [Evidencia](evidence/FREQUENCIES-WEB-02/README.md). | Revisión humana, zoom nativo y lector de pantalla pendientes; no integrada/cerrada. 2.2/2.3 siguen separadas. Sin commit ni publicación. |
+
+## BOOK-03-L03-T1 — integración comercial preparada, 4 de noviembre de 2026
+
+| Spec / responsable | Estado y evidencia | Próximo paso |
+|---|---|---|
+| [BOOK-03-L03-T1](specs/BOOK-03-L03-T1.md) / David, por petición de 1.3 | Implementación local sobre `a26ea6d` en el checkout feature/ROUTE-SHEETS-10-consulta-ocupaciones. Precio explícito por par, política y VIP congelados, edad al embarque local, mayor beneficio y fracciones exactas; revalidación bajo bloqueo de reserva, resumen v2, referencias comerciales e idempotencia. Migración nueva amplía conciliación sin alterar historia, catálogo de 25 migraciones. 30 unitarias y 9 integraciones nuevas aprobadas, incluidas compra preparada con acreditador de QA, concurrencia, adyacencia, cero sin reserva, VIP/ajuste y actualización desde las 24 migraciones previas con conservación de datos/down/up. Lint/formato propio aprobados; formato global conserva 36 archivos previos. Regresión: 1897 unitarias aprobadas/9 fallidas; 608 integraciones aprobadas/21 fallidas, contratos históricos y timeout documentados en §5. | Flujo de revisión de secretaria pendiente por decisión expresa de David: producción conserva 503 sin acreditador. No habilitada compra completa, no integrada/cerrada. Pruebas históricas conservadas; revisión humana y conciliación pendientes. Sin commit ni publicación. |
+
+## FREQ-03 — desactivación segura, 4 de noviembre de 2026
+
+| Spec / responsable | Estado y evidencia | Próximo paso |
+|---|---|---|
+| [FREQ-03](specs/FREQ-03.md) / David | Bloque 1.2 autorizado en chat, implementación local sobre `7deedc3` en `feature/ROUTE-SHEETS-10-consulta-ocupaciones` (checkout reutilizado). Consulta pública transaccional de compromisos y bloqueo ADR 0006 antes del bloqueo de frecuencia; 409 ante ciclo/servicio/pasajeros afectados, 503 ante fuente no verificable. 10 unitarias nuevas y 7 integraciones nuevas aprobadas, incluidas HTTP/arranque real, límite exacto, historia conservada y espera por lock de publicación. Lint/formato propio aprobados; global conserva 36 archivos previos. Regresión: 1868 unitarias aprobadas/8 fallidas; 617 integraciones aprobadas/4 fallidas (contratos antiguos y timeout de fotos), detalle en §3. | Revisión humana y conciliación de pruebas históricas pendientes; no integrada/cerrada. Pruebas existentes intactas por decisión de David. Sin commit ni publicación. |
+
+## ROUTE-SHEETS-10 — consulta productiva de ocupaciones, 4 de noviembre de 2026
+
+| Spec / responsable | Estado y evidencia | Próximo paso |
+|---|---|---|
+| [ROUTE-SHEETS-10](specs/ROUTE-SHEETS-10.md) / David | Implementación local en `feature/ROUTE-SHEETS-10-consulta-ocupaciones`, sobre `7fb89e6`. David comunica autorización de Leslie para concretar e implementar este contrato con Codex. API pública de Reservas por viajes, resolución propia de Hojas de Ruta e inyección real en servidor, sin SQL entre módulos. 17 unitarias nuevas y 8 integraciones nuevas aprobadas con arranque real; lint y formato propio aprobados. Global: 1860 unitarias aprobadas/6 fallidas por dobles antiguos; 611 integraciones aprobadas/3 fallidas (dos expectativas antiguas de 503 y timeout de fotos). Formato global conserva 37 archivos previos. David pide conservar las pruebas y reportar los fallos. Evidencia en §3 de la spec. | No integrada ni cerrada: revisión humana y conciliación explícita de pruebas históricas pendientes. No modifica desactivación, sustitución ni la no atomicidad de consulta/baja/auditoría. Sin commit ni publicación. |
+
 ## ROUTE-SHEETS-09 — auditoría de modificaciones, secciones 0 y 1 locales, 4 de noviembre de 2026
 
 David solicitó revisar los módulos pendientes, autorizó la sección 0 y luego confirmó las recomendaciones Q1–Q4 y autorizó la sección 1 en `feature/ROUTE-SHEETS-09-auditoria-modificaciones`, rama creada por él sobre `7f378fc` (`develop`); la sección 0 quedó en `73f1b58`.
