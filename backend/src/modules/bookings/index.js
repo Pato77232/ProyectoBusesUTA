@@ -23,6 +23,9 @@ const createGuestBookingRouter = require('./interfaces/guest-booking-router');
 const { createGuestAccess } = require('./application/guest-access');
 const BookingServiceUnavailableError = require('./domain/booking-service-unavailable-error');
 const PgBookingSaleConfirmer = require('./infrastructure/pg-booking-sale-confirmer');
+const PgBenefitReviewRepository = require('./infrastructure/pg-benefit-review.repository');
+const createBenefitReviews = require('./application/benefit-reviews');
+const createBenefitReviewRouter = require('./interfaces/benefit-review-router');
 
 function createBookingsModule({
   pool,
@@ -34,11 +37,7 @@ function createBookingsModule({
     },
   },
   availabilityQueries = null,
-  passengerVerifier = {
-    async verify() {
-      throw new BookingServiceUnavailableError('BOOKING_BENEFIT_SERVICE_UNAVAILABLE');
-    },
-  },
+  passengerVerifier,
   clock = () => new Date(),
   calendarDateAt = defaultCalendarDateAt,
   newId = randomUUID,
@@ -50,7 +49,7 @@ function createBookingsModule({
       (name) => typeof auth?.[name] === 'function',
     ) ||
     typeof tripCatalog?.findBookableById !== 'function' ||
-    typeof passengerVerifier?.verify !== 'function'
+    (passengerVerifier !== undefined && typeof passengerVerifier?.verify !== 'function')
   ) {
     throw new Error('No se pudo componer el módulo de reservas.');
   }
@@ -59,14 +58,28 @@ function createBookingsModule({
       ? undefined
       : routeSheetAvailabilityCatalog({ tripQueries: availabilityQueries });
   const repository = new PgBookingRepository({ pool });
+  const purchaseCatalog =
+    typeof availabilityQueries?.findPurchaseContext === 'function'
+      ? routeSheetPurchaseCatalog({ tripQueries: availabilityQueries })
+      : null;
+  const benefitReviews = purchaseCatalog
+    ? createBenefitReviews({
+        repository: new PgBenefitReviewRepository(pool),
+        purchaseCatalog,
+        clock,
+        calendarDateAt,
+      })
+    : null;
   const dependencies = {
     repository,
     tripCatalog,
-    purchaseCatalog:
-      typeof availabilityQueries?.findPurchaseContext === 'function'
-        ? routeSheetPurchaseCatalog({ tripQueries: availabilityQueries })
-        : null,
-    passengerVerifier,
+    purchaseCatalog,
+    passengerVerifier: passengerVerifier ??
+      benefitReviews ?? {
+        async verify() {
+          throw new BookingServiceUnavailableError('BOOKING_BENEFIT_SERVICE_UNAVAILABLE');
+        },
+      },
     clock,
     calendarDateAt,
     newId,
@@ -113,6 +126,9 @@ function createBookingsModule({
     saleConfirmer,
     guestAccess,
     guestRouter: createGuestBookingRouter({ guestAccess }),
+    benefitReviewRouter: benefitReviews
+      ? createBenefitReviewRouter({ auth, reviews: benefitReviews })
+      : undefined,
     router: createRouter({
       auth,
       getSeatAvailability: getSeatAvailability({

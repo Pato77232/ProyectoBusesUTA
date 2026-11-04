@@ -15,7 +15,7 @@ let pool, running, hash, admin, customer, owner, fixture, tripId, seats, baseUrl
 async function clear() {
   assertTestDatabase();
   await pool.query(
-    'TRUNCATE booking_guest_access_tokens,booking_proof_receipt_results,booking_seat_allocations,bookings,booking_trip_locks',
+    'TRUNCATE booking_benefit_reviews,booking_guest_access_tokens,booking_proof_receipt_results,booking_seat_allocations,bookings,booking_trip_locks',
   );
   await pool.query('TRUNCATE cooperatives,users,auth_sessions CASCADE');
 }
@@ -219,9 +219,98 @@ async function prepared(execute, { birthDateVerified = true } = {}) {
 }
 test('producción mantiene la compra bloqueada sin acreditación y no escribe reservas', async () => {
   const response = await customer.request('/api/v1/bookings/summary', 'POST', input());
-  expect(response.status).toBe(503);
-  expect((await response.json()).error.code).toBe('BOOKING_BENEFIT_SERVICE_UNAVAILABLE');
+  expect(response.status).toBe(409);
+  expect((await response.json()).error.code).toBe('BOOKING_BENEFIT_REVIEW_REQUIRED');
   expect(await count()).toEqual({ bookings: 0, allocations: 0 });
+});
+test('CLERK acredita el contexto real, otra revisión conserva auditoría y permite comprar sin dobles', async () => {
+  const endpoint = '/api/v1/booking-benefit-reviews';
+  const ownerId = (
+    await pool.query("SELECT id FROM users WHERE email='availability-customer@example.ec'")
+  ).rows[0].id;
+  await pool.query(
+    "INSERT INTO users(email,password_hash,role,cooperative_id) VALUES('benefit-clerk@example.ec',$1,'CLERK',$2)",
+    [hash, owner.cooperativeId],
+  );
+  const clerk = new Browser(baseUrl);
+  await clerk.login('benefit-clerk@example.ec', PASSWORD);
+  const purchase = input();
+  const review = {
+    ...purchase,
+    ownerId,
+    decisions: purchase.seatIds.map((seatId) => ({
+      seatId,
+      birthDateVerified: true,
+      disabilityVerified: true,
+    })),
+  };
+  expect((await new Browser(baseUrl).request(endpoint, 'POST', review)).status).toBe(401);
+  expect((await customer.request(endpoint, 'POST', review)).status).toBe(403);
+  expect((await clerk.request(endpoint, 'POST', review, '')).status).toBe(403);
+  expect((await clerk.request(endpoint, 'POST', { ...review, ownerId: 'invalid' })).status).toBe(
+    400,
+  );
+  expect(
+    (await clerk.request(endpoint, 'POST', { ...review, cooperativeId: randomUUID() })).status,
+  ).toBe(400);
+  const submitted = await clerk.request(endpoint, 'POST', review);
+  expect(submitted.status).toBe(201);
+  expect(submitted.headers.get('cache-control')).toBe('no-store');
+  expect(Object.keys((await submitted.json()).review).sort()).toEqual(['expiresAt', 'reviewedAt']);
+  const quote = await customer.request('/api/v1/bookings/summary', 'POST', purchase);
+  expect(quote.status).toBe(200);
+  expect((await quote.json()).summary.passengers[0].quote.appliedCategories).toContain(
+    'DISABILITY',
+  );
+  expect(
+    (
+      await customer.request('/api/v1/bookings/summary', 'POST', {
+        ...purchase,
+        passengers: [{ ...purchase.passengers[0], fullName: 'Otra Persona' }],
+      })
+    ).status,
+  ).toBe(409);
+  expect(
+    (await customer.request('/api/v1/bookings/summary', 'POST', { ...purchase, toPosition: 1 }))
+      .status,
+  ).toBe(409);
+  expect(
+    (
+      await clerk.request(endpoint, 'POST', {
+        ...review,
+        decisions: [{ ...review.decisions[0], birthDateVerified: false }],
+      })
+    ).status,
+  ).toBe(201);
+  expect((await customer.request('/api/v1/bookings/summary', 'POST', purchase)).status).toBe(409);
+  expect((await clerk.request(endpoint, 'POST', review)).status).toBe(201);
+  const accepted = await accept(customer, purchase);
+  const saved = await reserve(customer, accepted.body);
+  expect(saved.status).toBe(201);
+  expect(await count()).toEqual({ bookings: 1, allocations: 1 });
+  const records = (
+    await pool.query(
+      'SELECT reviewed_by,context_hash,decisions FROM booking_benefit_reviews WHERE cooperative_id=$1',
+      [owner.cooperativeId],
+    )
+  ).rows;
+  expect(records).toHaveLength(3);
+  expect(records.every((r) => /^[a-f0-9]{64}$/.test(r.context_hash))).toBe(true);
+  expect(JSON.stringify(records)).not.toContain(purchase.passengers[0].identificationNumber);
+  expect(JSON.stringify(records)).not.toContain(purchase.passengers[0].fullName);
+  const otherCooperative = (
+    await pool.query('SELECT id FROM cooperatives WHERE id<>$1 LIMIT 1', [owner.cooperativeId])
+  ).rows[0].id;
+  await pool.query(
+    "INSERT INTO users(email,password_hash,role,cooperative_id) VALUES('other-benefit-clerk@example.ec',$1,'CLERK',$2)",
+    [hash, otherCooperative],
+  );
+  const otherClerk = new Browser(baseUrl);
+  await otherClerk.login('other-benefit-clerk@example.ec', PASSWORD);
+  expect((await otherClerk.request(endpoint, 'POST', review)).status).toBe(404);
+  expect(
+    (await pool.query('SELECT count(*)::int AS count FROM booking_benefit_reviews')).rows[0].count,
+  ).toBe(3);
 });
 test('la integración preparada usa tarifa explícita y persiste referencias comerciales y propietario real', async () => {
   await prepared(async (browser, verifier) => {
@@ -337,29 +426,37 @@ test('VIP congelado y descuento conservan fracciones, ajuste y reversión segura
       rounding_adjustment_cents: '-1',
       total_price_cents: '281',
     });
-    const before = (await pool.query('SELECT name FROM pgmigrations ORDER BY id')).rows;
-    const failure = JSON.parse(
-      execFileSync(
-        process.execPath,
-        [
-          path.join(__dirname, '../../helpers/migration-worker.js'),
-          'migrate',
-          JSON.stringify({ direction: 'down' }),
-        ],
-        { env: process.env, encoding: 'utf8' },
-      ),
-    );
-    expect(failure.error.message).toContain(
-      'Los importes comerciales requieren un plan de reversión',
-    );
-    expect((await pool.query('SELECT name FROM pgmigrations ORDER BY id')).rows).toEqual(before);
-    expect(
-      (
-        await pool.query(
-          'SELECT vip_surcharge_cents,rounding_adjustment_cents,total_price_cents FROM bookings WHERE id=$1',
-          [booking.bookingId],
-        )
-      ).rows[0],
-    ).toEqual(saved);
+    try {
+      await require('../../helpers/migration-target').rollbackBefore(
+        pool,
+        '1794250000000-booking-commercial-totals',
+      );
+      const before = (await pool.query('SELECT name FROM pgmigrations ORDER BY id')).rows;
+      const failure = JSON.parse(
+        execFileSync(
+          process.execPath,
+          [
+            path.join(__dirname, '../../helpers/migration-worker.js'),
+            'migrate',
+            JSON.stringify({ direction: 'down' }),
+          ],
+          { env: process.env, encoding: 'utf8' },
+        ),
+      );
+      expect(failure.error.message).toContain(
+        'Los importes comerciales requieren un plan de reversión',
+      );
+      expect((await pool.query('SELECT name FROM pgmigrations ORDER BY id')).rows).toEqual(before);
+      expect(
+        (
+          await pool.query(
+            'SELECT vip_surcharge_cents,rounding_adjustment_cents,total_price_cents FROM bookings WHERE id=$1',
+            [booking.bookingId],
+          )
+        ).rows[0],
+      ).toEqual(saved);
+    } finally {
+      runMigration();
+    }
   });
 });
