@@ -1,3 +1,4 @@
+const routeSheetAvailabilityCatalog = require('./infrastructure/route-sheet-availability-catalog');
 const expireDueBookings = require('./application/expire-due-bookings.use-case');
 const readExpirationConfig = require('./infrastructure/expiration-worker-config');
 const startExpirationWorker = require('./infrastructure/booking-expiration-worker');
@@ -27,6 +28,7 @@ function createBookingsModule({
       throw new BookingServiceUnavailableError();
     },
   },
+  availabilityQueries = null,
   passengerVerifier = {
     async verify() {
       throw new BookingServiceUnavailableError('BOOKING_BENEFIT_SERVICE_UNAVAILABLE');
@@ -47,6 +49,10 @@ function createBookingsModule({
   ) {
     throw new Error('No se pudo componer el módulo de reservas.');
   }
+  const segmentCatalog =
+    availabilityQueries === null
+      ? undefined
+      : routeSheetAvailabilityCatalog({ tripQueries: availabilityQueries });
   const repository = new PgBookingRepository({ pool });
   const dependencies = {
     repository,
@@ -95,7 +101,11 @@ function createBookingsModule({
     paymentQueries: Object.freeze({ findForPayment: findForPayment({ repository, clock }) }),
     router: createRouter({
       auth,
-      getSeatAvailability: getSeatAvailability({ tripCatalog, allocationReader: repository }),
+      getSeatAvailability: getSeatAvailability({
+        tripCatalog,
+        segmentCatalog,
+        allocationReader: repository,
+      }),
       getBookingSummary: getBookingSummary(dependencies),
       createBooking: createBooking(dependencies),
       getBookingAttempt: getBookingAttempt(dependencies),

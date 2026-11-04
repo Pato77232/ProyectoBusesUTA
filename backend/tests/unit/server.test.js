@@ -46,7 +46,7 @@ describe('server startup', () => {
     pool = { query: jest.fn().mockResolvedValue({ rows: [] }), end: jest.fn() };
     auth = { router: {} };
     frequencies = { router: {} };
-    routeSheets = { router: {} };
+    routeSheets = { router: {}, tripQueries: { findBookableForSegment: jest.fn() } };
     fleet = { busGroupQueries: {}, busQueries: {}, seatQueries: {} };
     bookings = {
       router: {},
@@ -97,7 +97,12 @@ describe('server startup', () => {
       busQueries: expect.any(Object),
       seatQueries: fleet.seatQueries,
     });
-    expect(createBookingsModule).toHaveBeenCalledWith({ pool, auth, env });
+    expect(createBookingsModule).toHaveBeenCalledWith({
+      pool,
+      auth,
+      env,
+      availabilityQueries: routeSheets.tripQueries,
+    });
     expect(createPaymentReceiptModule).toHaveBeenCalledWith({
       pool,
       createPaymentProofReceiver: bookings.createPaymentProofReceiver,
@@ -194,5 +199,13 @@ describe('server startup', () => {
     release();
     await assertion;
     expect(pool.end).toHaveBeenCalledTimes(1);
+  });
+  it('no inicia HTTP si falta el catálogo real por tramo', async () => {
+    delete routeSheets.tripQueries;
+    await expect(start({ PORT: '3100', DATABASE_URL: 'postgres://test' })).rejects.toThrow(
+      'catálogo de viajes por tramo',
+    );
+    expect(pool.end).toHaveBeenCalledTimes(1);
+    expect(app.listen).not.toHaveBeenCalled();
   });
 });

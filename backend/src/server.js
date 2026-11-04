@@ -48,7 +48,14 @@ async function start(env = process.env) {
       busQueries: fleet.busQueries,
       seatQueries: fleet.seatQueries,
     });
-    const bookings = createBookingsModule({ pool, auth, env });
+    if (typeof routeSheets.tripQueries?.findBookableForSegment !== 'function')
+      throw new Error('No se pudo conectar el catálogo de viajes por tramo.');
+    const bookings = createBookingsModule({
+      pool,
+      auth,
+      env,
+      availabilityQueries: routeSheets.tripQueries,
+    });
     const paymentReceipt = createPaymentReceiptModule({
       pool,
       createPaymentProofReceiver: bookings.createPaymentProofReceiver,

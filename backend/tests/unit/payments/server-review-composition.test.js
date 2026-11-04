@@ -36,7 +36,7 @@ test('server conecta la lectura de pagos a la API pública de reservas', async (
   const tenants = {};
   const fleet = {};
   const frequencies = {};
-  const routeSheets = {};
+  const routeSheets = { tripQueries: { findBookableForSegment: jest.fn() } };
   const payments = { router: {} };
   const paymentReview = { router: {} };
   const paymentReceipt = { bookingPaymentProofNotifier: jest.fn() };
@@ -74,6 +74,12 @@ test('server conecta la lectura de pagos a la API pública de reservas', async (
   const env = { DATABASE_URL: 'postgres://qa.invalid/busesuta_test' };
   const result = await start(env);
 
+  expect(createBookingsModule).toHaveBeenCalledWith({
+    pool,
+    auth,
+    env,
+    availabilityQueries: routeSheets.tripQueries,
+  });
   expect(createPaymentReviewModule).toHaveBeenCalledWith({
     pool,
     auth,
