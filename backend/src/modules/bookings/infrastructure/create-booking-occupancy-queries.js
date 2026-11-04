@@ -4,6 +4,9 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function createBookingOccupancyQueries({ pool }) {
   return Object.freeze({
+    forTransaction(executor) {
+      return createBookingOccupancyQueries({ pool: executor });
+    },
     async hasActiveOccupations({ tripIds, cooperativeId } = {}) {
       if (
         typeof cooperativeId !== 'string' ||

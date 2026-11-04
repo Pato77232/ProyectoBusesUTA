@@ -1,5 +1,11 @@
 # Estado compartido del proyecto
 
+## FREQ-03 — desactivación segura, 4 de noviembre de 2026
+
+| Spec / responsable | Estado y evidencia | Próximo paso |
+|---|---|---|
+| [FREQ-03](specs/FREQ-03.md) / David | Bloque 1.2 autorizado en chat, implementación local sobre `7deedc3` en `feature/ROUTE-SHEETS-10-consulta-ocupaciones` (checkout reutilizado). Consulta pública transaccional de compromisos y bloqueo ADR 0006 antes del bloqueo de frecuencia; 409 ante ciclo/servicio/pasajeros afectados, 503 ante fuente no verificable. 10 unitarias nuevas y 7 integraciones nuevas aprobadas, incluidas HTTP/arranque real, límite exacto, historia conservada y espera por lock de publicación. Lint/formato propio aprobados; global conserva 36 archivos previos. Regresión: 1868 unitarias aprobadas/8 fallidas; 617 integraciones aprobadas/4 fallidas (contratos antiguos y timeout de fotos), detalle en §3. | Revisión humana y conciliación de pruebas históricas pendientes; no integrada/cerrada. Pruebas existentes intactas por decisión de David. Sin commit ni publicación. |
+
 ## ROUTE-SHEETS-10 — consulta productiva de ocupaciones, 4 de noviembre de 2026
 
 | Spec / responsable | Estado y evidencia | Próximo paso |
