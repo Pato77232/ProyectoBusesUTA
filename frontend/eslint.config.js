@@ -1,8 +1,10 @@
-import { bookingRules } from "./bookings-eslint.config.js";
+import { bookingRules } from './bookings-eslint.config.js';
 export default [
   bookingRules,
   {
     files: [
+      'src/search/**/*.js',
+      'tests/search/**/*.js',
       'src/route-sheets/**/*.js',
       'tests/route-sheets/**/*.js',
       'src/api/**/*.js',
@@ -18,7 +20,7 @@ export default [
     ],
     languageOptions: {
       ecmaVersion: 2022,
-      sourceType: "module",
+      sourceType: 'module',
       globals: {
         document: 'readonly',
         Option: 'readonly',
@@ -34,10 +36,10 @@ export default [
       },
     },
     rules: {
-      "no-undef": "error",
-      "no-console": "error",
-      "no-unreachable": "error",
-      eqeqeq: ["error", "always"],
+      'no-undef': 'error',
+      'no-console': 'error',
+      'no-unreachable': 'error',
+      eqeqeq: ['error', 'always'],
     },
   },
 ];

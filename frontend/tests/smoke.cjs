@@ -133,13 +133,24 @@ async function verifyPage(client, url, width, name, zoom = 1) {
       element.getBoundingClientRect().right > innerWidth + 1
     ).slice(0, 8).map(element => element.tagName + '.' + element.className),
     bootstrapLoaded: getComputedStyle(document.querySelector('.row')).display === 'flex',
-    linksValid: [...document.querySelectorAll('a')].every(a =>
-      a.hash.length > 1 && !!document.getElementById(a.hash.slice(1)))
+    linksValid: [...document.querySelectorAll('a')].filter(a => a.hash).every(a =>
+      a.hash.length > 1 && !!document.getElementById(a.hash.slice(1))),
+    pageLinks: [...document.querySelectorAll('a')].filter(a => !a.hash).map(a => a.href)
   }))()`);
   assert.equal(state.language, 'es');
   assert.equal(state.headings, 1);
   assert.equal(state.bootstrapLoaded, true, 'Bootstrap local debe aplicar su rejilla');
   assert.equal(state.linksValid, true, 'Todos los enlaces deben tener un destino real');
+  for (const target of new Set(state.pageLinks)) {
+    assert.equal(new URL(target).origin, new URL(url).origin, 'La navegación debe conservar el origen');
+    const response = await fetch(target);
+    assert.equal(response.status, 200, 'La página enlazada debe existir');
+    assert.match(
+      await response.text(),
+      /<main[\s>]/i,
+      'El destino debe ser una página de aplicación',
+    );
+  }
   assert.ok(
     state.width <= state.viewport + 1,
     `${name}: desbordamiento horizontal: ${JSON.stringify(state)}`,

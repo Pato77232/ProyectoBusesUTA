@@ -6,6 +6,8 @@ COPY nginx.conf /etc/nginx/nginx.conf
 COPY nginx-proxy.conf /etc/nginx/nginx-proxy.conf
 COPY proxy-api.conf /etc/nginx/proxy-api.conf
 COPY index.html /usr/share/nginx/html/index.html
+COPY pages/buscar-viajes.html /usr/share/nginx/html/pages/buscar-viajes.html
+COPY src/search /usr/share/nginx/html/src/search
 COPY pages/registrar-bus.html /usr/share/nginx/html/pages/registrar-bus.html
 COPY pages/login.html /usr/share/nginx/html/pages/login.html
 COPY pages/crear-frecuencia.html /usr/share/nginx/html/pages/crear-frecuencia.html
