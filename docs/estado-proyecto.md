@@ -1,5 +1,11 @@
 # Estado compartido del proyecto
 
+## ROUTE-SHEETS-WEB-03 — publicación y renovación web, 4 de noviembre de 2026
+
+| Spec / responsable | Estado y evidencia | Próximo paso |
+|---|---|---|
+| [ROUTE-SHEETS-WEB-03](specs/ROUTE-SHEETS-WEB-03.md) / David | 2.3 implementada localmente sobre `7fff386`, misma rama `feature/ROUTE-SHEETS-10-consulta-ocupaciones`. Publicación con ambas revisiones y renovación explícita mediante backend existente; resumen, recuperación tras recarga, misma clave idempotente y enlace al editor del destino verificado. Frontend 316/316 (18 nuevas), lint/formato propio y QA Chrome/imagen/API/PostgreSQL, teclado/contraste/reflujo aprobados. Backend sin cambios: lint aprobado, 1902 unitarias aprobadas/9 fallidas, 613 integraciones aprobadas/21 fallidas; formato global conserva 36 pendientes previos. [Evidencia](evidence/ROUTE-SHEETS-WEB-03/README.md). | Revisión humana, zoom nativo/lector y conciliación explícita de pruebas históricas pendientes; no integrada/cerrada. Sin commit ni publicación; texto de PR preparado para los bloques acumulados de la rama. |
+
 ## ROUTE-SHEETS-WEB-02 — programación y tarifas, 4 de noviembre de 2026
 
 | Spec / responsable | Estado y evidencia | Próximo paso |

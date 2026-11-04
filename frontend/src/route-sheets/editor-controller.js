@@ -1,4 +1,5 @@
 import { isUuid } from "./contracts.js";
+import { createLifecycleActions } from "./lifecycle-actions.js";
 import {
   readEditor,
   programModel,
@@ -15,6 +16,7 @@ export function createEditorController({
   sheetId,
   view,
   newId = () => globalThis.crypto.randomUUID(),
+  operationStore,
 }) {
   const state = {
     mode: "loading",
@@ -27,6 +29,7 @@ export function createEditorController({
     conflict: false,
     review: null,
     uncertain: null,
+    destination: null,
   };
   let actor;
   const root = `/api/v1/route-sheets/${sheetId}`;
@@ -39,6 +42,7 @@ export function createEditorController({
     state.context = null;
     state.models = null;
     state.review = null;
+    state.destination = null;
   }
   async function verify() {
     const { user } = await client.request("/api/v1/auth/me");
@@ -76,11 +80,11 @@ export function createEditorController({
     actor = { id: user.id, cooperative_id: user.cooperative_id };
     return true;
   }
-  async function fetchContext() {
+  async function fetchContext(id = sheetId) {
     if (!(await verify())) return null;
-    const result = await client.request(root + "/editor");
+    const result = await client.request(`/api/v1/route-sheets/${id}/editor`);
     if (!(await verify())) return null;
-    return readEditor(result, sheetId, actor.cooperative_id);
+    return readEditor(result, id, actor.cooperative_id);
   }
   function accessError(error) {
     if (error?.status === 401) {
@@ -100,6 +104,7 @@ export function createEditorController({
     return false;
   }
   function install(context) {
+    state.destination = null;
     state.context = context;
     state.models = {
       programming: programModel(context),
@@ -123,6 +128,7 @@ export function createEditorController({
       const context = await fetchContext();
       if (!context) return;
       install(context);
+      if (lifecycle.restore()) return;
       show(
         "ready",
         context.sheet.status === "DRAFT"
@@ -273,6 +279,7 @@ export function createEditorController({
     state.uncertain = null;
   }
   async function confirm() {
+    if (lifecycle.isLifecycle(state.review)) return lifecycle.confirm();
     if (state.busy || state.blocked || !state.review || state.uncertain) return;
     if (state.review.kind === "reload") {
       state.review = null;
@@ -368,6 +375,7 @@ export function createEditorController({
     }
   }
   async function reconcile() {
+    if (lifecycle.isLifecycle(state.uncertain)) return lifecycle.reconcile();
     if (state.busy || state.blocked || !state.uncertain) return;
     const intent = state.uncertain;
     state.busy = true;
@@ -433,7 +441,22 @@ export function createEditorController({
       view.touch(state);
     }
   }
+  const lifecycle = createLifecycleActions({
+    state,
+    client,
+    sheetId,
+    view,
+    fetchContext,
+    verify,
+    getActor: () => actor,
+    install,
+    show,
+    accessError,
+    newId,
+    store: operationStore,
+  });
   return {
+    reviewLifecycle: lifecycle.review,
     load,
     reload,
     edit,

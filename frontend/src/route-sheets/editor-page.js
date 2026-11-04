@@ -13,6 +13,7 @@ const view = createEditorView(document, {
   reconcile: () => controller.reconcile(),
   cancel: () => controller.cancel(),
   confirm: () => controller.confirm(),
+  lifecycle: (kind) => controller.reviewLifecycle(kind),
 });
 const params = new URLSearchParams(globalThis.location.search);
 const sheetId =

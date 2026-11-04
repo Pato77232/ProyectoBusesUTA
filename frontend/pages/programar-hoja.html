@@ -118,6 +118,42 @@
             </fieldset>
           </form>
         </section>
+        <section class="editor-card" aria-labelledby="lifecycle-title">
+          <h2 id="lifecycle-title">3. Publicación y siguiente ciclo</h2>
+          <p id="lifecycle-help" class="editor-note"></p>
+          <p>
+            Estas acciones usan únicamente programación y tarifas guardadas. El
+            servidor comprueba disponibilidad, frecuencias y el límite de
+            ciclos.
+          </p>
+          <div class="editor-actions">
+            <button
+              id="sheet-publish"
+              class="btn btn-dark"
+              type="button"
+              disabled
+            >
+              Revisar publicación
+            </button>
+            <button
+              id="sheet-renew"
+              class="btn btn-outline-dark"
+              type="button"
+              disabled
+              hidden
+            >
+              Preparar siguiente ciclo
+            </button>
+            <a id="renewal-destination" class="btn btn-dark" hidden
+              >Abrir programación del siguiente ciclo</a
+            >
+          </div>
+          <p class="editor-note">
+            Si se pierde una respuesta, usa la recuperación de esta pestaña
+            antes de iniciar otra operación. Cerrar la pestaña o borrar sus
+            datos puede perder esa ayuda.
+          </p>
+        </section>
       </div>
       <section
         id="editor-review-panel"

@@ -1,4 +1,10 @@
-import { POLICY, pointsOf, localTime } from "./editor-model.js";
+import {
+  POLICY,
+  pointsOf,
+  localTime,
+  programmingBody,
+} from "./editor-model.js";
+import { cyclePeriod, periodLabel } from "./lifecycle-model.js";
 const POLICY_LABELS = [
   "Recargo VIP (%)",
   "Descuento menor de 18 años (%)",
@@ -527,11 +533,70 @@ export function createEditorView(document, actions) {
       root.append(card);
     });
   }
-  function renderReview(state) {
-    const root = find("#review-content");
+  function renderReview(state, root = find("#review-content")) {
     root.replaceChildren();
     const review = state.review;
     if (!review) return;
+    if (["publish", "renew"].includes(review.kind)) {
+      root.append(
+        node(
+          "p",
+          `${state.context.sheet.busGroupName}. ${periodLabel(review.period)}.`,
+        ),
+      );
+      root.append(
+        node(
+          "p",
+          review.kind === "publish"
+            ? "Confirmar publica esta programación y congela sus tarifas e inventario comercial. No podrás editar la hoja publicada."
+            : "Confirmar prepara el siguiente borrador contiguo con programación desplazada y copia editable de tarifas. El servidor decide su admisibilidad. No publica viajes ni cambia ventas o reservas anteriores.",
+        ),
+      );
+      root.append(
+        node(
+          "p",
+          `Programación revisada: ${review.body.expectedProgrammingRevision}. Tarifario revisado: ${review.body.expectedRevision ?? review.body.expectedTariffRevision}.`,
+        ),
+      );
+      const programming = node("div"),
+        tariff = node("div");
+      root.append(
+        node(
+          "h3",
+          review.kind === "renew"
+            ? "Patrón guardado de origen que se copiará"
+            : "Programación guardada",
+        ),
+        programming,
+        node("h3", "Precios y porcentajes guardados"),
+        tariff,
+      );
+      renderReview(
+        {
+          ...state,
+          review: {
+            kind: "programming",
+            summaryOnly: true,
+            body: programmingBody(state.models.programming, state.context),
+          },
+        },
+        programming,
+      );
+      renderReview(
+        {
+          ...state,
+          review: {
+            kind: "tariff",
+            body: {
+              policy: state.context.tariff.tariff.policy,
+              frequencies: state.context.tariff.tariff.frequencies,
+            },
+          },
+        },
+        tariff,
+      );
+      return;
+    }
     if (review.kind === "reload") {
       root.append(
         node(
@@ -547,10 +612,10 @@ export function createEditorView(document, actions) {
       root.append(
         node(
           "p",
-          `Ciclo desde ${p.cycleStartDate}, ${p.cycleLengthDays} día(s). Se reemplazará la programación completa, incluidas las retiradas que hiciste.`,
+          `Ciclo desde ${p.cycleStartDate}, ${p.cycleLengthDays} día(s). ${review.summaryOnly ? "Patrón guardado que estás revisando." : "Se reemplazará la programación completa, incluidas las retiradas que hiciste."}`,
         ),
       );
-      if (state.context.sheet.hasLegacyAssignments)
+      if (state.context.sheet.hasLegacyAssignments && !review.summaryOnly)
         root.append(
           node(
             "p",
@@ -612,7 +677,7 @@ export function createEditorView(document, actions) {
       root.append(
         node(
           "p",
-          "Se reemplazarán los porcentajes y todas las tarifas de la programación guardada. No se publicará la hoja.",
+          "Precios explícitos por combinación y porcentajes de la hoja. Un guardado de tarifas por separado no publica viajes.",
         ),
       );
       const list = node("ul");
@@ -670,6 +735,34 @@ export function createEditorView(document, actions) {
       state.busy || state.blocked || !!state.uncertain;
     find("#editor-check").hidden = !state.uncertain;
     find("#editor-check").disabled = state.busy || state.blocked;
+    find("#editor-check").textContent =
+      state.uncertain?.kind === "renew"
+        ? "Recuperar la misma renovación"
+        : state.uncertain?.kind === "publish"
+          ? "Comprobar publicación"
+          : "Comprobar guardado";
+    const lifecycleDisabled =
+      !state.context ||
+      state.busy ||
+      state.blocked ||
+      state.conflict ||
+      !!state.uncertain ||
+      !!state.review ||
+      Object.values(state.dirty).some(Boolean) ||
+      !state.context.programming.revision ||
+      !state.context.tariff.revision;
+    const published = state.context?.sheet.status === "PUBLISHED";
+    find("#sheet-publish").hidden = published;
+    find("#sheet-publish").disabled = lifecycleDisabled || published;
+    find("#sheet-renew").hidden = !published;
+    find("#sheet-renew").disabled =
+      lifecycleDisabled || !published || !!state.destination;
+    find("#renewal-destination").hidden =
+      !state.destination || state.blocked || !!state.uncertain;
+    if (state.destination)
+      find("#renewal-destination").href =
+        `/pages/programar-hoja.html?id=${encodeURIComponent(state.destination.id)}`;
+    else find("#renewal-destination").removeAttribute("href");
     find("#review-confirm").disabled = state.busy || state.blocked;
     find("#review-cancel").disabled = state.busy || state.blocked;
     find("#editor-login").hidden = state.mode !== "signed-out";
@@ -679,6 +772,12 @@ export function createEditorView(document, actions) {
   find("#editor-check").addEventListener("click", () => actions.reconcile());
   find("#review-cancel").addEventListener("click", () => actions.cancel());
   find("#review-confirm").addEventListener("click", () => actions.confirm());
+  find("#sheet-publish").addEventListener("click", () =>
+    actions.lifecycle("publish"),
+  );
+  find("#sheet-renew").addEventListener("click", () =>
+    actions.lifecycle("renew"),
+  );
   return {
     touch,
     render(state) {
@@ -693,6 +792,13 @@ export function createEditorView(document, actions) {
           sheet.status === "DRAFT"
             ? "Borrador: los cambios no habilitan ventas."
             : "Publicada: solo lectura. No puedes alterar su historia.";
+        let period = "Guarda primero una programación y sus tarifas completas.";
+        try {
+          period = `${sheet.status === "PUBLISHED" ? "Siguiente período previsto" : "Período que se publicará"}: ${periodLabel(cyclePeriod(state.context, sheet.status === "PUBLISHED"))}.`;
+        } catch {
+          /* Borrador todavía incompleto. */
+        }
+        find("#lifecycle-help").textContent = period;
         find("#program-version").textContent = String(
           state.context.programming.revision,
         );
@@ -705,6 +811,7 @@ export function createEditorView(document, actions) {
         find("#editor-heading").textContent = "";
         find("#program-fields-content").replaceChildren();
         find("#tariff-fields-content").replaceChildren();
+        find("#lifecycle-help").textContent = "";
       }
       renderReview(state);
       touch(state);
