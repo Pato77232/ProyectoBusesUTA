@@ -12,7 +12,7 @@ function createTripQueries({
   busQueryPort,
   now = () => new Date().toISOString(),
 }) {
-  async function query(tripId, segment) {
+  async function query(tripId, segment, purchase = false) {
     const id = tripUuid(tripId);
     if (!tripRepository?.withSnapshot || !frequencyQueryPort?.findById || !busQueryPort?.findById)
       throw new CommercialTripSourceError();
@@ -46,32 +46,37 @@ function createTripQueries({
     )
       throw new CommercialTripSourceError();
     if (bus.busGroupId !== data.sheet.busGroupId) return null;
-    return evaluate(data, now(), segment);
+    const result = evaluate(data, now(), segment);
+    return result && purchase ? Object.freeze({ ...result, seats: data.seats }) : result;
+  }
+  function segmentQuery(input, purchase = false) {
+    if (
+      !input ||
+      typeof input !== 'object' ||
+      Array.isArray(input) ||
+      Object.keys(input).length !== 3 ||
+      !['tripId', 'fromPosition', 'toPosition'].every((key) => Object.hasOwn(input, key)) ||
+      !Number.isSafeInteger(input.fromPosition) ||
+      input.fromPosition < 0 ||
+      !Number.isSafeInteger(input.toPosition) ||
+      input.toPosition <= input.fromPosition
+    )
+      return Promise.reject(
+        new CommercialTripValidationError('Solo se permite tripId y un par válido de posiciones.'),
+      );
+    return query(
+      input.tripId,
+      {
+        fromPosition: input.fromPosition,
+        toPosition: input.toPosition,
+      },
+      purchase,
+    );
   }
   return Object.freeze({
     findBookableById: (tripId) => query(tripId),
-    findBookableForSegment(input) {
-      if (
-        !input ||
-        typeof input !== 'object' ||
-        Array.isArray(input) ||
-        Object.keys(input).length !== 3 ||
-        !['tripId', 'fromPosition', 'toPosition'].every((key) => Object.hasOwn(input, key)) ||
-        !Number.isSafeInteger(input.fromPosition) ||
-        input.fromPosition < 0 ||
-        !Number.isSafeInteger(input.toPosition) ||
-        input.toPosition <= input.fromPosition
-      )
-        return Promise.reject(
-          new CommercialTripValidationError(
-            'Solo se permite tripId y un par válido de posiciones.',
-          ),
-        );
-      return query(input.tripId, {
-        fromPosition: input.fromPosition,
-        toPosition: input.toPosition,
-      });
-    },
+    findBookableForSegment: (input) => segmentQuery(input),
+    findPurchaseContext: (input) => segmentQuery(input, true),
   });
 }
 module.exports = createTripQueries;

@@ -1,5 +1,11 @@
 # Estado compartido del proyecto
 
+## BOOK-03-L03-T1 — integración comercial preparada, 4 de noviembre de 2026
+
+| Spec / responsable | Estado y evidencia | Próximo paso |
+|---|---|---|
+| [BOOK-03-L03-T1](specs/BOOK-03-L03-T1.md) / David, por petición de 1.3 | Implementación local sobre `a26ea6d` en el checkout feature/ROUTE-SHEETS-10-consulta-ocupaciones. Precio explícito por par, política y VIP congelados, edad al embarque local, mayor beneficio y fracciones exactas; revalidación bajo bloqueo de reserva, resumen v2, referencias comerciales e idempotencia. Migración nueva amplía conciliación sin alterar historia, catálogo de 25 migraciones. 30 unitarias y 9 integraciones nuevas aprobadas, incluidas compra preparada con acreditador de QA, concurrencia, adyacencia, cero sin reserva, VIP/ajuste y actualización desde las 24 migraciones previas con conservación de datos/down/up. Lint/formato propio aprobados; formato global conserva 36 archivos previos. Regresión: 1897 unitarias aprobadas/9 fallidas; 608 integraciones aprobadas/21 fallidas, contratos históricos y timeout documentados en §5. | Flujo de revisión de secretaria pendiente por decisión expresa de David: producción conserva 503 sin acreditador. No habilitada compra completa, no integrada/cerrada. Pruebas históricas conservadas; revisión humana y conciliación pendientes. Sin commit ni publicación. |
+
 ## FREQ-03 — desactivación segura, 4 de noviembre de 2026
 
 | Spec / responsable | Estado y evidencia | Próximo paso |
