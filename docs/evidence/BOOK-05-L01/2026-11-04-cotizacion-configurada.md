@@ -32,7 +32,10 @@ Fecha: 4 de noviembre de 2026, America/Guayaquil.
 - El historial autenticado de reservas quedó implementado con listado paginado
   y detalle protegido por `user.id`; las pruebas unitarias de la rama aprobaron
   1785/1785 y las pruebas PostgreSQL dirigidas de repositorio 44/44.
+- El acceso de invitado quedó preparado con token aleatorio, hash persistido,
+  vencimiento y consumo único; su cobertura unitaria específica y la validación
+  del catálogo aprobaron 18/18.
 
 ## Límites
 
-El acceso de invitado sigue pendiente en `BOOK-09-L07`; la revisión humana e integración siguen pendientes.
+La revisión humana e integración siguen pendientes.

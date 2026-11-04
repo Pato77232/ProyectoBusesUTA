@@ -699,3 +699,15 @@ ni cooperativa desde la petición y devuelven una vista minimizada de la reserva
 La verificación aprobó 1785/1785 pruebas unitarias y 44/44 pruebas PostgreSQL
 dirigidas de repositorio. Queda pendiente el acceso seguro de invitado, además
 de revisión humana, push, PR e integración.
+
+## Leslie: acceso seguro de invitado — 4 de noviembre de 2026
+
+En la misma rama quedó implementada la migración
+`1794110000000-booking-guest-access` y el consumo público
+`GET /api/v1/guest/bookings/:token`. El servicio genera tokens aleatorios de
+256 bits, persiste únicamente su hash SHA-256, controla vencimiento y marca el
+primer consumo como usado. La respuesta no incluye cédulas, comprobantes ni
+tokens internos; la emisión recibe un puerto de correo para entregar el enlace.
+
+La cobertura específica y la validación del catálogo aprobaron 18/18 pruebas.
+Revisión humana, push, PR e integración siguen pendientes.

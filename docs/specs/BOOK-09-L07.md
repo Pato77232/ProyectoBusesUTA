@@ -87,3 +87,9 @@ consulta únicamente mediante el `user.id` de la sesión `CUSTOMER`. La consulta
 no recibe propietario ni cooperativa desde el cliente y minimiza los campos
 devueltos. Las pruebas unitarias totales de la rama alcanzan 1785/1785 y las
 pruebas PostgreSQL dirigidas de repositorio 44/44.
+
+El acceso de invitado quedó implementado con la migración
+`1794110000000-booking-guest-access`: tokens aleatorios de 256 bits, hash
+SHA-256 persistido, vencimiento, uso único y respuesta minimizada. El consumo
+público es `GET /api/v1/guest/bookings/:token`; el servicio de emisión recibe
+un puerto de envío de correo y nunca expone el token almacenado.
