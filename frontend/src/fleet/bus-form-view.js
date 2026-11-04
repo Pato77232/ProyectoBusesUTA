@@ -1,4 +1,4 @@
-// FLEET-05 T1: presenta el formulario. Los datos llegan por parámetro; T3 los pedirá a la API.
+// FLEET-05: presenta el formulario. Los datos llegan por parámetro; bus-controller.js los pide a la API.
 import {
   buildBusData,
   formatPhotoSize,
@@ -157,4 +157,46 @@ export function showFormStatus(form, text, tone) {
   const status = form.querySelector('#bus-form-status');
   showStatus(status, text, tone);
   status.focus();
+}
+
+// Adaptador para bus-controller.js; un estado final bloquea el formulario para no reenviar.
+export function createBusFormView(form) {
+  const fields = form.querySelector('#bus-fields');
+  const submitButton = fields.querySelector('button[type="submit"]');
+  const submitLabel = submitButton.textContent;
+  const loginLink = form.querySelector('#login-link');
+  const newBus = form.querySelector('#new-bus');
+  let locked = false;
+
+  function lock(text, tone) {
+    locked = true;
+    fields.disabled = true;
+    showFormStatus(form, text, tone);
+  }
+
+  return {
+    mount: (options) => mountBusForm(form, options),
+    status: (text, tone) => showFormStatus(form, text, tone),
+    busy(active) {
+      submitButton.textContent = active ? 'Registrando…' : submitLabel;
+      fields.disabled = active || locked;
+    },
+    replaceGroups(busGroups) {
+      const select = form.elements.busGroupId;
+      [...select.options].slice(1).forEach((option) => option.remove());
+      addOptions(select, busGroups, (group) => group.name);
+    },
+    registered(bus) {
+      lock(
+        `Bus ${bus.plate} registrado: unidad ${bus.unitNumber}, ${bus.capacity} asientos ofrecidos.`,
+        'success',
+      );
+      newBus.hidden = false;
+    },
+    signedOut(text) {
+      lock(text, 'error');
+      loginLink.hidden = false;
+    },
+    blocked: (text) => lock(text, 'error'),
+  };
 }

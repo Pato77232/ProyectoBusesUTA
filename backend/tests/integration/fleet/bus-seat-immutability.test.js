@@ -4,7 +4,7 @@ const { runMigration, testPool } = require('../../helpers/database');
 const { rollbackBefore } = require('../../helpers/migration-target');
 const { busRequest, fleetFixtures } = require('../../helpers/fleet-bus');
 
-const THIS_MIGRATION = '1793920000000-protect-bus-seats';
+const THIS_MIGRATION = '1794080000000-protect-bus-seats';
 const RESTRICT_VIOLATION = '23001';
 let pool, repository, fixtures;
 

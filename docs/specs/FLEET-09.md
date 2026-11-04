@@ -5,7 +5,7 @@
 - **Módulo:** `fleet`; lo consume `route-sheets` mediante `seatQueries.listByBus`
 - **Responsable:** Edwin
 - **Revisor propuesto / confirmado:** David; aceptó revisar el 3 de noviembre de 2026, según su mensaje reportado por Edwin
-- **Estado:** T1 implementada en `43693bc`, publicada en borrador en [PR #59](https://github.com/Pato77232/ProyectoBusesUTA/pull/59); no se puede integrar sin las adaptaciones de Route Sheets, correcciones de revisión y validación final.
+- **Estado:** T1 en [PR #59](https://github.com/Pato77232/ProyectoBusesUTA/pull/59), lista para revisión humana; conciliación con develop `c95cc73` verificada en Node 24/PostgreSQL aislado. No integrada ni aceptada.
 - **Prioridad y dependencias:** FLEET-06, FLEET-07 T1 y ROUTE-SHEETS-07 presentes en develop. La sustitución pertenece a D-05 de ROUTE-SHEETS-04.
 - **Rama / PR / base comprobada:** plan integrado por [PR #58](https://github.com/Pato77232/ProyectoBusesUTA/pull/58) en `517473d`; implementación en `feature/FLEET-09-T1-inmutabilidad`, creada desde esa base, [PR #59](https://github.com/Pato77232/ProyectoBusesUTA/pull/59) en borrador hacia develop. Commit funcional `43693bc`.
 - **Autorización de alcance:** Edwin autorizó comenzar T1 según la sección 14 y pidió el 3 de noviembre evaluar `43693bc` y publicarlo en una PR en borrador para coordinar con David. El mensaje de David reenviado por Edwin confirma el reparto: Edwin mantiene Fleet; David adapta las pruebas de Route Sheets en commits separados. Esta revisión no autoriza editar código o pruebas de David.
@@ -145,7 +145,7 @@ Edwin autorizó comenzar T1. Rama `feature/FLEET-09-T1-inmutabilidad`, creada de
 
 **Implementación:**
 
-- Migración nueva `1793920000000-protect-bus-seats.js` (antes `1793760000000`, renombrada por la revisión de David): trigger `bus_seats_immutable` `AFTER UPDATE OR DELETE` que rechaza con `23001` cualquier cambio o borrado de asientos, incluido el borrado en cascada desde `buses`. Es `AFTER` para que las violaciones de CHECK y unicidad conserven sus códigos. La reversión elimina el trigger sin tocar datos.
+- Migración nueva `1794080000000-protect-bus-seats.js` (antes `1793760000000` y `1793920000000`, renombrada para conservar el prefijo de develop): trigger `bus_seats_immutable` `AFTER UPDATE OR DELETE` que rechaza con `23001` cualquier cambio o borrado de asientos, incluido el borrado en cascada desde `buses`. Es `AFTER` para que las violaciones de CHECK y unicidad conserven sus códigos. La reversión elimina el trigger sin tocar datos.
 - `fleet/bus-seat-immutability.test.js`, nueva: alta intacta, rechazo de cambios de `offered`, `category`, `label`, `layout_seat_key` y `row_index`, de una actualización sin cambios, de borrados directos y en cascada, y reversión con reaplicación.
 - `fleet/seat-queries.test.js`: el caso de todos los asientos no ofrecidos desactiva el trigger solo durante su preparación, porque ese estado no puede lograrse por el alta; las comprobaciones no cambian.
 
@@ -211,3 +211,20 @@ David solicitó cambios: la migración no estaba en el catálogo activo (`MIGRAT
 - Dos ejecuciones previas se superpusieron sobre la misma base y se descartaron.
 
 Pendiente: decisión sobre los timeouts de reversión en Windows, aviso a Leslie del ajuste en su prueba y nueva revisión de David.
+
+
+### Conciliación de PR #59 con develop `c95cc73` — 3 de noviembre
+
+Edwin autorizó resolver los conflictos y publicar la resolución sobre la rama FLEET-09. Se conservan los cambios entrantes de Pagos y frontend de develop, sin integrar este PR en develop.
+
+- Tres conflictos: catálogo activo, prueba unitaria del catálogo y prueba de integración del catálogo.
+- Se conserva `1794000000000-payment-booking-identifiers` y se añade Fleet después como `1794080000000-protect-bus-seats`: 22 migraciones. La migración de Fleet sigue sin estar integrada en develop; se renombra su archivo sin modificar SQL (mismo blob `d60337c4e922ea2bb76fec24f30fdc6e115441ed`). No se reescriben migraciones integradas ni historiales de bases existentes.
+- Se conservan los controles de catálogo e historial y las comprobaciones de identidad opaca de Pagos. Las reversiones retiran primero Fleet y después verifican la reversión de Pagos; una identidad opaca sigue rechazándose con 23514 sin cambios.
+- El fixture con VIP usa el alta pública de Fleet, en lugar de modificar un asiento después de instalar el trigger. Se mantienen sus datos y comprobaciones; no se desactiva la protección.
+- Se añade una prueba desde las 21 migraciones actuales de develop, con identidad opaca persistida en comprobante y outbox: aplicar Fleet agrega solo su migración, conserva filas/definiciones y protege asientos; revertir Fleet devuelve exactamente el snapshot anterior y reaplicarla vuelve a protegerlos.
+
+**Validación final repetida en Node 24.21.0 y PostgreSQL 16.13 aislado:** `npm test` aprobado: 1747/1747 unitarias (90 suites) y 555/555 integraciones (43 suites), incluidas actualización desde las 21 migraciones actuales, reversiones, Pagos, Reservas y protección de asientos. Lint y Prettier de los seis archivos de catálogo/pruebas modificados aprobados. `npm run format:check` mantiene 17 avisos: se comprobó que todos corresponden a archivos sin diferencias frente a `origin/develop`; no se reformatearon archivos ajenos.
+
+La primera ejecución completa detectó dos fallos: la prueba `receipt-expiration` seguía suponiendo que Pagos era la última migración y el ciclo completo intentaba revertir una base compartida con fixtures de otras suites. Se conserva su expectativa de rechazo e historial: `rollbackBefore` retira solo las migraciones posteriores al objetivo; la prueba del ciclo completo usa una base temporal propia con sufijo `_test`, sin truncar datos de otras suites ni reducir las comprobaciones. La repetición completa pasó. No se aumentaron límites; los timeouts históricos de Windows no se declaran resueltos por esta ejecución Linux.
+
+QA temporal local: `fleet09-conflicts-final-a359b431` bajo TEMP, con registros de instalación, lint, formato y pruebas. El entorno se creó con credenciales sintéticas y sin leer `.env`; contenedores y red eliminados al terminar. No cambia la composición del servidor. FLEET-08 sigue sin seguimiento y fuera de esta entrega. Pendiente revisión humana de David y validación de la PR publicada; no se declara integración en develop.
