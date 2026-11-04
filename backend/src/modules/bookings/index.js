@@ -14,6 +14,7 @@ const getSeatAvailability = require('./application/get-seat-availability.use-cas
 const getBookingSummary = require('./application/get-booking-summary.use-case');
 const createBooking = require('./application/create-booking.use-case');
 const getBookingAttempt = require('./application/get-booking-attempt.use-case');
+const getBookingHistory = require('./application/get-booking-history.use-case');
 const findForPayment = require('./application/find-for-payment.use-case');
 const createRouter = require('./interfaces/booking-router');
 const BookingServiceUnavailableError = require('./domain/booking-service-unavailable-error');
@@ -53,7 +54,7 @@ function createBookingsModule({
   const dependencies = {
     repository,
     tripCatalog,
-      tariffQueries,
+    tariffQueries,
     passengerVerifier,
     clock,
     calendarDateAt,
@@ -63,6 +64,7 @@ function createBookingsModule({
   };
   const lifecycle = new PgBookingLifecycleRepository({ pool });
   const saleConfirmer = new PgBookingSaleConfirmer({ pool, clock });
+  const history = getBookingHistory({ repository });
   const expirationConfig = readExpirationConfig(env);
   const expire = expireBooking({ repository: lifecycle, clock });
   const coordinator = (onFailure) =>
@@ -104,6 +106,7 @@ function createBookingsModule({
       getBookingSummary: getBookingSummary(dependencies),
       createBooking: createBooking(dependencies),
       getBookingAttempt: getBookingAttempt(dependencies),
+      getBookingHistory: history,
     }),
   };
 }
