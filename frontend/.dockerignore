@@ -44,6 +44,8 @@
 !src/bookings/access.js
 
 !pages/hojas-ruta.html
+!pages/programar-hoja.html
+!src/styles/route-sheet-editor.css
 !src/route-sheets/
 !src/route-sheets/*.js
 !src/styles/route-sheets.css

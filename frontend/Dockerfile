@@ -34,5 +34,7 @@ COPY src/api/json-transport.js src/api/api-error.js /usr/share/nginx/html/src/ap
 
 # ROUTE-SHEETS-WEB-01: consulta de hojas y creación explícita de borradores.
 COPY pages/hojas-ruta.html /usr/share/nginx/html/pages/hojas-ruta.html
+COPY pages/programar-hoja.html /usr/share/nginx/html/pages/programar-hoja.html
+COPY src/styles/route-sheet-editor.css /usr/share/nginx/html/src/styles/route-sheet-editor.css
 COPY src/route-sheets /usr/share/nginx/html/src/route-sheets
 COPY src/styles/route-sheets.css /usr/share/nginx/html/src/styles/route-sheets.css

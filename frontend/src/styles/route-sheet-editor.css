@@ -1,0 +1,120 @@
+.sheet-editor {
+  max-width: 1200px;
+  padding-block: 48px;
+}
+.sheet-editor h1 {
+  font-size: clamp(2rem, 5vw, 3rem);
+}
+.editor-card {
+  padding: 28px;
+  margin-top: 24px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+.editor-card h2 {
+  font-size: 1.45rem;
+}
+.editor-card h3 {
+  font-size: 1.25rem;
+  margin-block: 24px 16px;
+}
+.editor-card h4 {
+  font-size: 1.15rem;
+}
+.editor-card h5 {
+  font-size: 1.05rem;
+  margin-bottom: 16px;
+}
+.editor-item {
+  background: var(--color-surface);
+  padding: 20px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  margin-block: 16px;
+}
+.editor-activity {
+  background: var(--color-canvas);
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  margin-block: 16px;
+}
+.editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  margin-block: 16px;
+}
+.editor-actions .editor-field {
+  flex: 1 1 260px;
+}
+.editor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.editor-field {
+  min-width: 0;
+}
+.editor-field .form-control,
+.editor-field .form-select {
+  min-height: 44px;
+  border-color: var(--color-muted);
+}
+.editor-field input[readonly] {
+  background: var(--color-surface);
+}
+.editor-note {
+  color: var(--color-muted);
+}
+.editor-warning {
+  color: var(--color-error);
+  font-weight: 600;
+}
+.editor-save {
+  margin-top: 24px;
+}
+.editor-review {
+  background: var(--color-accent-surface);
+}
+.sheet-editor button {
+  min-height: 44px;
+}
+.sheet-editor p,
+.sheet-editor li,
+.sheet-editor h2,
+.sheet-editor label {
+  overflow-wrap: anywhere;
+}
+.sheet-editor :focus-visible {
+  outline: 3px solid var(--color-brand);
+  outline-offset: 3px;
+}
+.sheet-editor [data-mode="error"],
+.sheet-editor [data-mode="invalid"],
+.sheet-editor [data-mode="conflict"],
+.sheet-editor [data-mode="uncertain"],
+.sheet-editor [data-mode="rejected"],
+.sheet-editor [data-mode="forbidden"],
+.sheet-editor [data-mode="session-changed"] {
+  color: var(--color-error);
+}
+@media (max-width: 640px) {
+  .sheet-editor {
+    padding-block: 28px;
+  }
+  .editor-card {
+    padding: 18px;
+  }
+  .editor-item {
+    padding: 14px;
+  }
+  .editor-activity {
+    padding: 12px;
+  }
+  .editor-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

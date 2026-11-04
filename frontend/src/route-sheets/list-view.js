@@ -60,6 +60,16 @@ export function createRouteSheetListView(document) {
           sheet.id,
         ])
           row.append(element("td", text));
+        const action = element("td");
+        action.className = "sheet-edit-action";
+        const link = element(
+          "a",
+          sheet.status === "DRAFT" ? "Editar borrador" : "Ver programación",
+        );
+        link.href = `/pages/programar-hoja.html?id=${encodeURIComponent(sheet.id)}`;
+        link.className = "btn btn-outline-dark";
+        action.append(link);
+        row.append(action);
         rows.append(row);
       }
       find("#sheets-table").hidden = sheets.length === 0;

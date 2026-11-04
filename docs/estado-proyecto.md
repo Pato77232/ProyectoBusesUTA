@@ -1,5 +1,11 @@
 # Estado compartido del proyecto
 
+## ROUTE-SHEETS-WEB-02 — programación y tarifas, 4 de noviembre de 2026
+
+| Spec / responsable | Estado y evidencia | Próximo paso |
+|---|---|---|
+| [ROUTE-SHEETS-WEB-02](specs/ROUTE-SHEETS-WEB-02.md) / David | 2.2 implementada localmente sobre `cc7d4c5`, misma rama `feature/ROUTE-SHEETS-10-consulta-ocupaciones`. Editor estructurado de servicios/agendas/paradas/traslados/bloqueos y tarifas explícitas por par; revisiones y guardados independientes, confirmación, conflictos y recuperación sin reenviar PUT. Consulta propia y catálogos por APIs públicas, aislamiento verificado. Frontend 298/298; 5 unitarias y 4 integraciones nuevas backend aprobadas; lint/formato propio y QA Chrome/imagen/API/PostgreSQL, teclado/contraste/reflujo aprobados. Regresión: 1902 unitarias aprobadas/9 fallidas; 612 integraciones aprobadas/22 fallidas, incluido deadlock de prueba existente cuya repetición aislada aprobó 7/7. Formato global conserva 36 pendientes previos. [Evidencia](evidence/ROUTE-SHEETS-WEB-02/README.md). | Revisión humana, zoom nativo y lector de pantalla pendientes; no integrada/cerrada. 2.3 publicación/renovación web sigue pendiente. Sin commit ni publicación. |
+
 ## FREQUENCIES-WEB-02 — listado, detalle y estado, 4 de noviembre de 2026
 
 | Spec / responsable | Estado y evidencia | Próximo paso |
