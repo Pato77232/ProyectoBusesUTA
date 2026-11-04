@@ -1,5 +1,14 @@
 class RouteSheetAssignment {
-  constructor({ id, routeSheetId, cooperativeId, busGroupId, busId, frequencyId, createdAt = new Date(), updatedAt = new Date() }) {
+  constructor({
+    id,
+    routeSheetId,
+    cooperativeId,
+    busGroupId,
+    busId,
+    frequencyId,
+    createdAt = new Date(),
+    updatedAt = new Date(),
+  }) {
     if (!routeSheetId) {
       throw new Error('El ID de la hoja de ruta es obligatorio.');
     }

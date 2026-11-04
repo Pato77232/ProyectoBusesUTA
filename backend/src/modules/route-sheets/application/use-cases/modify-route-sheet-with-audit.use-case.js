@@ -12,7 +12,14 @@ function modifyRouteSheetWithAuditUseCase({
 }) {
   const validationService = new RouteSheetValidationService();
 
-  return async ({ routeSheetId, cooperativeId, modifiedBy, reason, changes = [], forceWithPassengersWarning = false }) => {
+  return async ({
+    routeSheetId,
+    cooperativeId,
+    modifiedBy,
+    reason,
+    changes = [],
+    forceWithPassengersWarning = false,
+  }) => {
     if (!reason || reason.trim() === '') {
       throw new Error('La razón de la modificación es obligatoria.');
     }
@@ -25,20 +32,41 @@ function modifyRouteSheetWithAuditUseCase({
       throw new RouteSheetNotFoundError();
     }
 
-    const assignments = await routeSheetAssignmentRepository.findByRouteSheetId(routeSheetId, cooperativeId);
-    const restDays = await routeSheetRestDayRepository.findByRouteSheetId(routeSheetId, cooperativeId);
+    const assignments = await routeSheetAssignmentRepository.findByRouteSheetId(
+      routeSheetId,
+      cooperativeId,
+    );
+    const restDays = await routeSheetRestDayRepository.findByRouteSheetId(
+      routeSheetId,
+      cooperativeId,
+    );
 
     const logs = [];
     for (const change of changes) {
       if (change.entityType === 'ASSIGNMENT' && bookingQueryPort) {
-        const hasPassengers = await bookingQueryPort.hasPassengersForAssignment(change.entityId, cooperativeId);
-        validationService.validatePassengersConflict(hasPassengers, forceWithPassengersWarning, reason);
+        const hasPassengers = await bookingQueryPort.hasPassengersForAssignment(
+          change.entityId,
+          cooperativeId,
+        );
+        validationService.validatePassengersConflict(
+          hasPassengers,
+          forceWithPassengersWarning,
+          reason,
+        );
       }
       if (change.entityType === 'REST_DAY' && bookingQueryPort) {
         const restDay = restDays.find((r) => r.id === change.entityId);
         if (restDay) {
-          const hasPassengers = await bookingQueryPort.hasPassengersForBusOnRouteSheet(routeSheetId, restDay.busId, cooperativeId);
-          validationService.validatePassengersConflict(hasPassengers, forceWithPassengersWarning, reason);
+          const hasPassengers = await bookingQueryPort.hasPassengersForBusOnRouteSheet(
+            routeSheetId,
+            restDay.busId,
+            cooperativeId,
+          );
+          validationService.validatePassengersConflict(
+            hasPassengers,
+            forceWithPassengersWarning,
+            reason,
+          );
         }
       }
 
@@ -58,7 +86,9 @@ function modifyRouteSheetWithAuditUseCase({
         passengersNotifiedContext: change.passengersNotifiedContext || null,
       });
 
-      const savedLog = routeSheetModificationLogRepository.save ? await routeSheetModificationLogRepository.save(log) : log;
+      const savedLog = routeSheetModificationLogRepository.save
+        ? await routeSheetModificationLogRepository.save(log)
+        : log;
       logs.push(savedLog);
     }
 

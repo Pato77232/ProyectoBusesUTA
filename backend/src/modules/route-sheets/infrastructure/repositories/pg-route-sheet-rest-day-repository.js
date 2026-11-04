@@ -27,7 +27,13 @@ class PgRouteSheetRestDayRepository extends RouteSheetRestDayRepository {
       `INSERT INTO route_sheet_rest_days (route_sheet_id, cooperative_id, bus_group_id, bus_id, reason)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING *`,
-      [restDay.routeSheetId, restDay.cooperativeId, restDay.busGroupId, restDay.busId, restDay.reason],
+      [
+        restDay.routeSheetId,
+        restDay.cooperativeId,
+        restDay.busGroupId,
+        restDay.busId,
+        restDay.reason,
+      ],
     );
     return toRestDay(rows[0]);
   }

@@ -1,6 +1,9 @@
 const RouteSheetCycle = require('../../domain/entities/route-sheet-cycle');
 const RouteSheetCycleDTO = require('../dtos/route-sheet-cycle.dto');
-const { CycleGenerationNotAllowedError, MaxAutomaticCyclesExceededError } = require('../../domain/errors/route-sheet-errors');
+const {
+  CycleGenerationNotAllowedError,
+  MaxAutomaticCyclesExceededError,
+} = require('../../domain/errors/route-sheet-errors');
 
 function generateAutomaticCyclesUseCase({
   routeSheetRepository,
@@ -17,7 +20,12 @@ function generateAutomaticCyclesUseCase({
       throw new CycleGenerationNotAllowedError();
     }
 
-    if (!baseRouteSheet.isBase && baseRouteSheet.status && baseRouteSheet.status.toString && baseRouteSheet.status.toString() !== 'PUBLISHED') {
+    if (
+      !baseRouteSheet.isBase &&
+      baseRouteSheet.status &&
+      baseRouteSheet.status.toString &&
+      baseRouteSheet.status.toString() !== 'PUBLISHED'
+    ) {
       throw new CycleGenerationNotAllowedError();
     }
 
@@ -28,11 +36,20 @@ function generateAutomaticCyclesUseCase({
       throw new MaxAutomaticCyclesExceededError();
     }
 
-    const assignments = await routeSheetAssignmentRepository.findByRouteSheetId(baseRouteSheetId, cooperativeId);
-    const restDays = await routeSheetRestDayRepository.findByRouteSheetId(baseRouteSheetId, cooperativeId);
+    const assignments = await routeSheetAssignmentRepository.findByRouteSheetId(
+      baseRouteSheetId,
+      cooperativeId,
+    );
+    const restDays = await routeSheetRestDayRepository.findByRouteSheetId(
+      baseRouteSheetId,
+      cooperativeId,
+    );
 
     const cyclesToGenerate = [];
-    const baseDate = baseRouteSheet.routeDate instanceof Date ? baseRouteSheet.routeDate : new Date(baseRouteSheet.routeDate);
+    const baseDate =
+      baseRouteSheet.routeDate instanceof Date
+        ? baseRouteSheet.routeDate
+        : new Date(baseRouteSheet.routeDate);
 
     for (let cycleNumber = existingCount + 1; cycleNumber <= 2; cycleNumber += 1) {
       const startDate = new Date(baseDate);
@@ -51,7 +68,9 @@ function generateAutomaticCyclesUseCase({
         generatedBy,
       });
 
-      const savedCycle = routeSheetCycleRepository.save ? await routeSheetCycleRepository.save(cycle) : cycle;
+      const savedCycle = routeSheetCycleRepository.save
+        ? await routeSheetCycleRepository.save(cycle)
+        : cycle;
       cyclesToGenerate.push(savedCycle);
     }
 

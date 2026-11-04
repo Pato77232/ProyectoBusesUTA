@@ -1,6 +1,10 @@
 const RouteSheet = require('../../domain/entities/route-sheet');
 const RouteSheetDTO = require('../dtos/route-sheet.dto');
-const { RouteSheetAlreadyExistsForDateAndGroupError, BusGroupNotFromCooperativeError, MissingBusGroupForRouteSheetError } = require('../../domain/errors/route-sheet-errors');
+const {
+  RouteSheetAlreadyExistsForDateAndGroupError,
+  BusGroupNotFromCooperativeError,
+  MissingBusGroupForRouteSheetError,
+} = require('../../domain/errors/route-sheet-errors');
 
 function createRouteSheetUseCase({ routeSheetRepository, busGroupQueryPort }) {
   return async ({ cooperativeId, routeDate, busGroupId, createdBy, notes }) => {
@@ -16,7 +20,11 @@ function createRouteSheetUseCase({ routeSheetRepository, busGroupQueryPort }) {
       throw new BusGroupNotFromCooperativeError();
     }
 
-    const exists = await routeSheetRepository.existsByDateAndGroup(cooperativeId, busGroupId, routeDate);
+    const exists = await routeSheetRepository.existsByDateAndGroup(
+      cooperativeId,
+      busGroupId,
+      routeDate,
+    );
     if (exists) {
       throw new RouteSheetAlreadyExistsForDateAndGroupError();
     }
