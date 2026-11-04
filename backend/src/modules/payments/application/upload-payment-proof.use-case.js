@@ -7,6 +7,7 @@ const {
   PaymentProofUploadDeadlineExpiredError,
   BookingNotificationUncertainError,
   PaymentProofPersistenceUncertainError,
+  PaymentProofReconciliationRequiredError,
 } = require('../domain/payment-proof-error');
 const { MAX_FILE_SIZE_BYTES } = require('../domain/payment-proof-constraints');
 
@@ -61,8 +62,13 @@ function validateInput(input) {
     typeof input !== 'object' ||
     typeof input.bookingId !== 'string' ||
     !input.bookingId.trim() ||
-    typeof input.customerId !== 'string' ||
-    !input.customerId.trim() ||
+    !input.authContext ||
+    typeof input.authContext !== 'object' ||
+    Array.isArray(input.authContext) ||
+    typeof input.authContext.userId !== 'string' ||
+    !input.authContext.userId.trim() ||
+    input.authContext.role !== 'CUSTOMER' ||
+    input.authContext.cooperativeId !== null ||
     !(input.now instanceof Date) ||
     Number.isNaN(input.now.getTime())
   ) {
@@ -111,20 +117,38 @@ class UploadPaymentProof {
 
   async execute(input) {
     validateInput(input);
-    const { bookingId, customerId, file, now } = input;
-    const booking = await this.bookingReader.findForPayment(bookingId.trim());
+    const bookingId = input.bookingId;
+    const authContext = Object.freeze({
+      userId: input.authContext.userId,
+      role: input.authContext.role,
+      cooperativeId: input.authContext.cooperativeId,
+    });
+    const customerId = authContext.userId;
+    const now = new Date(input.now.getTime());
+    const booking = await this.bookingReader.findForPayment(
+      { bookingId, purpose: 'UPLOAD_PROOF' },
+      authContext,
+    );
 
-    if (!booking || booking.ownerId !== customerId.trim()) {
+    if (!booking || booking.ownerId !== customerId) {
       throw new BookingNotFoundOrNotOwnedError();
     }
-
-    const fileMetadata = validateFile(file);
     const existingProof = await this.paymentProofRepository.findByBookingId(booking.bookingId);
     if (existingProof?.status === 'UPLOADED') {
+      if (
+        existingProof.upload_authorized_by !== customerId ||
+        !(existingProof.upload_authorized_at instanceof Date) ||
+        Number.isNaN(existingProof.upload_authorized_at.getTime())
+      ) {
+        throw new PaymentProofReconciliationRequiredError();
+      }
       await this.notifyBooking(existingProof, existingProof.file_key);
       return { paymentProof: existingProof, expiresAt: booking.expiresAt, total: booking.total };
     }
     if (booking.acceptsPaymentProof !== true) throw new BookingNotPayableError();
+
+    const file = input.file;
+    const fileMetadata = validateFile(file);
 
     const paymentProof =
       existingProof ||
@@ -151,6 +175,7 @@ class UploadPaymentProof {
         },
         booking.expiresAt,
         now,
+        { upload_authorized_by: customerId, upload_authorized_at: now },
       );
       savedProof = await this.paymentProofRepository.saveWithPendingNotification(uploadedProof);
     } catch (error) {

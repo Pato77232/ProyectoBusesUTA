@@ -89,7 +89,11 @@ function createPaymentProofController({
       try {
         const result = await uploadPaymentProof.execute({
           bookingId: request.paymentProofInput.bookingId,
-          customerId: request.auth.user.id,
+          authContext: Object.freeze({
+            userId: request.auth.user.id,
+            role: request.auth.user.role,
+            cooperativeId: request.auth.user.cooperative_id,
+          }),
           file: request.paymentProofInput.file,
           now: clock(),
         });

@@ -4,6 +4,8 @@ const createApp = require('../../../src/app');
 const { createAuthModule } = require('../../../src/modules/auth');
 const { createTenantsModule } = require('../../../src/modules/tenants');
 const { createFrequenciesModule } = require('../../../src/modules/frequencies');
+const { createFrequencyCommitmentQueries } = require('../../../src/modules/route-sheets');
+const { createBookingOccupancyQueries } = require('../../../src/modules/bookings');
 const { createHasher } = require('../../../src/modules/auth/infrastructure/password-hasher');
 const { runMigration, testPool } = require('../../helpers/database');
 const { assertTestDatabase } = require('../../../scripts/test-database');
@@ -91,7 +93,11 @@ beforeAll(async () => {
     env: { JWT_SECRET: 'test-only-freq-secret-123456789012345' },
   });
   const tenants = createTenantsModule({ pool, auth });
-  const frequencies = createFrequenciesModule({ pool, auth });
+  // Igual que el servidor: la desactivación consulta compromisos reales de hojas y reservas.
+  const commitmentQueries = createFrequencyCommitmentQueries({
+    occupancyQueries: createBookingOccupancyQueries({ pool }),
+  });
+  const frequencies = createFrequenciesModule({ pool, auth, commitmentQueries });
   server = http.createServer(createApp({ auth, tenants, frequencies, pool }));
   await new Promise((resolve) => server.listen(0, resolve));
   url = `http://localhost:${server.address().port}`;
@@ -100,7 +106,7 @@ beforeAll(async () => {
 beforeEach(async () => {
   assertTestDatabase();
   await pool.query(
-    'TRUNCATE route_sheet_trips, route_sheet_commercial_inventories, route_sheet_commercial_cycles, route_sheet_commercial_series, route_sheet_programming_blocks, route_sheet_transfers, route_sheet_service_points, route_sheet_bus_availability, route_sheet_required_services, route_sheet_programming_ids, route_sheet_programmings, bus_photos, bus_seats, buses, route_sheet_modification_logs, route_sheet_cycles, route_sheet_rest_days, route_sheet_assignments, route_sheets, bus_groups, auth_sessions, users, cooperatives, frequency_segment_prices, frequency_stops, frequencies',
+    'TRUNCATE route_sheet_renewals, route_sheet_trips, route_sheet_commercial_inventories, route_sheet_commercial_cycles, route_sheet_commercial_series, route_sheet_programming_blocks, route_sheet_transfers, route_sheet_service_points, route_sheet_bus_availability, route_sheet_required_services, route_sheet_programming_ids, route_sheet_programmings, bus_photos, bus_seats, buses, route_sheet_modification_logs, route_sheet_cycles, route_sheet_rest_days, route_sheet_assignments, route_sheets, bus_groups, auth_sessions, users, cooperatives, frequency_segment_prices, frequency_stops, frequencies',
   );
   cooperativeId = await createCooperative('Cooperativa de prueba');
   anotherCooperativeId = await createCooperative('Otra cooperativa');

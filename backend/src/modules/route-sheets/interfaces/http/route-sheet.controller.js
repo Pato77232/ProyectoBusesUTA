@@ -138,7 +138,7 @@ function createRouteSheetController({
           cooperativeId: req.auth.user.cooperative_id,
           restDayId: req.params.restDayId,
           modifiedBy: req.auth.user.id,
-          reasonForChange: req.body?.reasonForChange,
+          reasonForChange: req.body?.reasonForChange ?? req.body?.reason,
           forceWithPassengersWarning: req.body?.forceWithPassengersWarning,
         });
         return res.status(200).json({ routeSheet: result });

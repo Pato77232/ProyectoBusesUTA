@@ -1,6 +1,7 @@
 const { BookingValidationError } = require('./booking-error');
 const { createBookingSummary } = require('./booking-summary');
 const { createBookingDeadline } = require('./booking-deadline');
+const BookingPurchaseError = require('./booking-purchase-error');
 
 const INPUT_FIELDS = Object.freeze([
   'tripId',
@@ -33,6 +34,9 @@ function createPendingBooking(input, context) {
   const expiresAt = createBookingDeadline(context?.startedAt, context?.proofWindowSeconds);
   const { summaryAccepted, ...summaryInput } = input;
   const summary = createBookingSummary(summaryInput, context);
+  if (summary.schemaVersion === 2 && summary.totals.totalPriceCents === 0) {
+    throw new BookingPurchaseError('BOOKING_ZERO_TOTAL_UNSUPPORTED');
+  }
   return Object.freeze({
     bookingId,
     ownerId,

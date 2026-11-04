@@ -9,7 +9,7 @@ const { Pool } = require('pg');
 const { assertTestDatabase } = require('../../scripts/test-database');
 const createApp = require('../../src/app');
 const { createAuthModule } = require('../../src/modules/auth');
-const { createPaymentReviewModule } = require('../../src/modules/payments');
+const { createPaymentsModule, createPaymentReviewModule } = require('../../src/modules/payments');
 const SessionBrowser = require('../helpers/session-browser');
 
 const API = '/api/v1/payment-proofs';
@@ -54,13 +54,18 @@ async function main() {
     });
     let now = new Date('2026-11-03T14:01:00.000Z');
     const bookings = createBookingsModule({ pool, auth, env: {}, clock: () => new Date(now) });
-    const payments = createPaymentReviewModule({
+    const paymentReview = createPaymentReviewModule({
       pool,
       auth,
       paymentQueries: bookings.paymentQueries,
       env: { PAYMENT_PROOF_STORAGE_DIR: directory },
     });
-    server = http.createServer(createApp({ pool, auth, payments }));
+    const payments = createPaymentsModule({
+      pool,
+      auth,
+      env: { PAYMENT_PROOF_STORAGE_DIR: directory },
+    });
+    server = http.createServer(createApp({ pool, auth, paymentReview, payments }));
     await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
     const origin = `http://127.0.0.1:${server.address().port}`;
     const account = async (role, cooperativeId) => {

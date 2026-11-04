@@ -108,6 +108,21 @@ async function readTrip(tripCatalog, request, tariffQueries) {
   return Object.freeze(trip);
 }
 
+async function readPurchaseTrip(dependencies, request) {
+  if (!dependencies.purchaseCatalog) return readTrip(dependencies.tripCatalog, request);
+  const trip = await dependencies.purchaseCatalog.findPurchaseContext({
+    tripId: request.tripId,
+    fromPosition: request.fromPosition,
+    toPosition: request.toPosition,
+  });
+  if (trip === null) throw new BookingTripUnavailableError();
+  return Object.freeze({
+    ...trip,
+    commercial: true,
+    departureDate: dependencies.calendarDateAt(new Date(trip.boardingAt)),
+  });
+}
+
 function serverTime({ clock, calendarDateAt }) {
   const value = clock();
   if (!(value instanceof Date) || !Number.isFinite(value.getTime())) {
@@ -140,7 +155,7 @@ function verifiedBenefits(entries, preliminary) {
       const ageDiscount = passenger.quote.eligibleCategories.some((category) =>
         ['MINOR', 'SENIOR'].includes(category),
       );
-      if (ageDiscount && !verified.birthDateVerified) {
+      if ((ageDiscount || preliminary.schemaVersion === 2) && !verified.birthDateVerified) {
         throw new BookingPurchaseError('BOOKING_BENEFIT_REVIEW_REQUIRED');
       }
       return Object.freeze({
@@ -163,11 +178,24 @@ async function resolveSummary(request, ownerId, dependencies, trip) {
     passengerBenefits: passengers.map(({ seatId }) => ({ seatId, disabilityVerified: false })),
   });
   const verification = await dependencies.passengerVerifier.verify(
-    Object.freeze({ ownerId, passengers, departureDate: trip.departureDate }),
+    Object.freeze({
+      ownerId,
+      passengers,
+      departureDate: trip.departureDate,
+      ...(trip.commercial
+        ? {
+            tripId: trip.tripId,
+            cooperativeId: trip.cooperativeId,
+            fromPosition: request.fromPosition,
+            toPosition: request.toPosition,
+          }
+        : {}),
+    }),
   );
   const passengerBenefits = verifiedBenefits(verification, preliminary);
-  const context = { ...serverTime(dependencies), trip, passengerBenefits };
+  const currentTrip = trip.commercial ? await readPurchaseTrip(dependencies, request) : trip;
+  const context = { ...serverTime(dependencies), trip: currentTrip, passengerBenefits };
   return { summary: createBookingSummary(request, context), context };
 }
 
-module.exports = { copyPurchaseInput, resolveOwner, readTrip, resolveSummary };
+module.exports = { copyPurchaseInput, resolveOwner, readTrip, readPurchaseTrip, resolveSummary };

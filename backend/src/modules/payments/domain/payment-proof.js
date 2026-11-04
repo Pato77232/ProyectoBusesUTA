@@ -15,7 +15,23 @@ const INITIAL_FILE_FIELDS = Object.freeze({
   file_size_bytes: null,
   uploaded_at: null,
   expired_at: null,
+  upload_authorized_by: null,
+  upload_authorized_at: null,
 });
+
+function paymentAuthorization(input) {
+  const userId = input.upload_authorized_by ?? null;
+  const authorizedAt = input.upload_authorized_at ?? null;
+  if ((userId === null) !== (authorizedAt === null)) throw new PaymentProofValidationError();
+  if (userId === null) return { upload_authorized_by: null, upload_authorized_at: null };
+  if (!(authorizedAt instanceof Date) || Number.isNaN(authorizedAt.getTime())) {
+    throw new PaymentProofValidationError();
+  }
+  return {
+    upload_authorized_by: requiredIdentifier(userId),
+    upload_authorized_at: new Date(authorizedAt.getTime()),
+  };
+}
 
 function requiredIdentifier(value) {
   if (typeof value !== 'string' || !value.trim()) {
@@ -35,7 +51,14 @@ function createPaymentProof(input) {
     throw new PaymentProofValidationError();
   }
 
-  const allowedFields = ['id', 'booking_id', 'cooperative_id', 'status'];
+  const allowedFields = [
+    'id',
+    'booking_id',
+    'cooperative_id',
+    'status',
+    'upload_authorized_by',
+    'upload_authorized_at',
+  ];
   if (Object.keys(input).some((field) => !allowedFields.includes(field))) {
     throw new PaymentProofValidationError();
   }
@@ -52,10 +75,17 @@ function createPaymentProof(input) {
     cooperative_id: requiredIdentifier(input.cooperative_id),
     status,
     ...INITIAL_FILE_FIELDS,
+    ...paymentAuthorization(input),
   });
 }
 
-function uploadPaymentProof(paymentProof, file, paymentDeadlineAt, now = new Date()) {
+function uploadPaymentProof(
+  paymentProof,
+  file,
+  paymentDeadlineAt,
+  now = new Date(),
+  authorization,
+) {
   if (!paymentProof || !file || typeof file !== 'object' || Array.isArray(file)) {
     throw new PaymentProofValidationError();
   }
@@ -87,6 +117,7 @@ function uploadPaymentProof(paymentProof, file, paymentDeadlineAt, now = new Dat
 
   return Object.freeze({
     ...paymentProof,
+    ...(authorization === undefined ? {} : paymentAuthorization(authorization)),
     status: 'UPLOADED',
     file_key: file_key.trim(),
     original_file_name: original_file_name.trim(),

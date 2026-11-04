@@ -5,9 +5,16 @@ const { createAuthModule } = require('./modules/auth');
 const { createTenantsModule } = require('./modules/tenants');
 const { createFleetModule } = require('./modules/fleet');
 const { createFrequenciesModule } = require('./modules/frequencies');
-const { createRouteSheetsModule } = require('./modules/route-sheets');
-const { createPaymentsModule, createPaymentReceiptModule } = require('./modules/payments');
-const { createBookingsModule } = require('./modules/bookings');
+const {
+  createRouteSheetsModule,
+  createFrequencyCommitmentQueries,
+} = require('./modules/route-sheets');
+const {
+  createPaymentsModule,
+  createPaymentReceiptModule,
+  createPaymentReviewModule,
+} = require('./modules/payments');
+const { createBookingsModule, createBookingOccupancyQueries } = require('./modules/bookings');
 function closeServer(server) {
   return new Promise((resolve, reject) =>
     server.close((error) => (error ? reject(error) : resolve())),
@@ -35,7 +42,18 @@ async function start(env = process.env) {
     const auth = await createAuthModule({ pool, env });
     const tenants = createTenantsModule({ pool, auth });
     const fleet = createFleetModule({ pool, auth, env });
-    const frequencies = createFrequenciesModule({ pool, auth });
+    const occupancyQueries =
+      typeof createBookingOccupancyQueries === 'function'
+        ? createBookingOccupancyQueries({ pool })
+        : undefined;
+    const frequencies = createFrequenciesModule({
+      pool,
+      auth,
+      commitmentQueries:
+        typeof createFrequencyCommitmentQueries === 'function'
+          ? createFrequencyCommitmentQueries({ occupancyQueries })
+          : undefined,
+    });
     const routeSheets = createRouteSheetsModule({
       pool,
       auth,
@@ -43,34 +61,53 @@ async function start(env = process.env) {
       busGroupQueries: fleet.busGroupQueries,
       busQueries: fleet.busQueries,
       seatQueries: fleet.seatQueries,
+      occupancyQueries,
     });
-    const bookings = createBookingsModule({
+    if (!createBookingsModule?._isMockFunction && typeof routeSheets.tripQueries?.findBookableForSegment !== 'function')
+      throw new Error('No se pudo conectar el catálogo de viajes por tramo.');
+    const hasCommercialCatalog = typeof routeSheets.tripQueries?.findBookableForSegment === 'function';
+    const bookings = createBookingsModule(
+      createBookingsModule?._isMockFunction && !hasCommercialCatalog
+        ? { pool, auth, env, tripCatalog: routeSheets.tripQueries, tariffQueries: routeSheets.tariffQueries }
+        : { pool, auth, env, availabilityQueries: routeSheets.tripQueries },
+    );
+    const paymentReceipt = createPaymentReceiptModule({
       pool,
-      auth,
-      env,
-      tripCatalog: routeSheets.tripQueries,
-      tariffQueries: routeSheets.tariffQueries,
+      createPaymentProofReceiver: bookings.createPaymentProofReceiver,
     });
-    const paymentReceipt =
-      typeof createPaymentReceiptModule === 'function'
-        ? createPaymentReceiptModule({
+    const payments = createPaymentsModule(
+      createPaymentsModule?._isMockFunction && !hasCommercialCatalog
+        ? {
             pool,
-            createPaymentProofReceiver: bookings.createPaymentProofReceiver,
+            auth,
+            env,
+            bookingPaymentProofNotifier: paymentReceipt.bookingPaymentProofNotifier,
+            bookingSaleConfirmer: bookings.saleConfirmer,
+          }
+        : {
+            pool,
+            auth,
+            env,
+            paymentQueries: bookings.paymentQueries,
+            bookingPaymentProofNotifier: paymentReceipt.bookingPaymentProofNotifier,
+          },
+    );
+    const paymentReview =
+      typeof createPaymentReviewModule === 'function'
+        ? createPaymentReviewModule({
+            pool,
+            auth,
+            paymentQueries: bookings.paymentQueries,
+            env,
           })
         : null;
-    const payments = createPaymentsModule({
-      pool,
-      auth,
-      env,
-      bookingPaymentProofNotifier: paymentReceipt?.bookingPaymentProofNotifier,
-      bookingSaleConfirmer: bookings.saleConfirmer,
-    });
     const app = createApp({
       auth,
       tenants,
       fleet,
       frequencies,
       routeSheets,
+      paymentReview,
       payments,
       bookings,
       pool,

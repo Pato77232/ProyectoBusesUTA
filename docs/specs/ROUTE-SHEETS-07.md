@@ -235,3 +235,11 @@ Comprobación final del código definitivo: **36 pruebas nuevas aprobadas (30 un
 Lint aprobado; formato de todos los JS nuevos/cambiados aprobado; `format:check` global mantiene los 41 archivos previos pendientes, incluidas cuatro migraciones históricas intactas. Diff revisado y `git diff --check` aprobado. Sin `.env` leído. PostgreSQL aislado con credenciales ficticias versionadas, proyecto busesuta-trips-s2, retirado al terminar. Node local 22.19.0; sigue pendiente verificar Node 24. No constituye aprobación humana ni integración remota; no se ejecutan commit, push ni merge.
 
 Commit sugerido: `feat(hojas-ruta): consulta viajes y valida su comercialización`.
+
+## 15. Respuesta de Leslie y continuación de renovación — 3 de noviembre de 2026
+
+Fuente: mensaje de Leslie aportado por David al autorizar la sección 0 de [ROUTE-SHEETS-08](ROUTE-SHEETS-08.md). Leslie acepta la propuesta `findBookableForSegment({ tripId, fromPosition, toPosition })`, condicionando adaptar su consumidor a concretar respuesta y errores: identidad del viaje, tenant, hoja/asignación, bus, embarque fechado, referencia de inventario, tarifa explícita en centavos y política congelada con revisión. Pide revalidar esos datos al reservar bajo protección de concurrencia. Esta respuesta no acredita adaptación ni composición de Bookings ni aceptación humana del código existente.
+
+La implementación de §6/14 ya aporta esos datos en el DTO por par, con `tariffRevision` y `policy`; errores de dominio/fuente y null se mantienen según §6. Falta acordar la correspondencia exacta con el puerto consumidor y su protocolo de revalidación antes de conectarlo. No se modifica esa API en esta sección documental. [BOOK-02/L-02](BOOK-02-L02.md) conserva la contraparte; no reabrir las reglas ya acordadas de embarque/ciclos ni presentar esta nota como una integración ejecutada.
+
+Leslie permite preparar renovación conservando viajes/reservas anteriores. ROUTE-SHEETS-08 sección 0 concreta esa planificación y registra también los contratos de ocupaciones/sustitución todavía propuestos. Una renovación crea un destino nuevo; la sustitución y su coordinación concurrente se especificarán aparte, sin mutar copias publicadas ni recalcular compras antiguas por inferencia.

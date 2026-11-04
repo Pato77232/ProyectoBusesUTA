@@ -40,7 +40,10 @@ La bandeja muestra exclusivamente comprobantes `UPLOADED` aún no aprobados. No 
 - **Supuesto de aislamiento:** `cooperative_id` se obtiene de `request.auth.user.cooperative_id`, emitido por la autenticación existente; no se acepta del cliente.
 - **Supuesto de consulta:** `GET /api/v1/payment-proofs` devuelve únicamente comprobantes `UPLOADED` pendientes, con paginación técnica de 50 elementos por página y cursor opaco.
 - **Supuesto de lectura del archivo:** se añade `GET /api/v1/payment-proofs/:paymentProofId/file`, protegido por autenticación y el mismo filtro de cooperativa; el contenido se transmite en línea con su tipo validado, sin revelar `file_key` ni rutas locales.
-- **Contrato acordado con Leslie:** `confirmSale({ bookingId, cooperativeId, paymentProofId })`; `paymentProofId` es la clave idempotente. Un reintento con la misma clave y vínculos consulta primero la venta persistida y devuelve el resultado previo aunque haya transcurrido el plazo. Timeout o pérdida de respuesta no son rechazo definitivo.
+- **Contrato acordado con Leslie:** `confirmSale({ bookingId, cooperativeId, paymentProofId })` conserva su firma. La identidad idempotente de una venta combina `paymentProofId` y `proofVersion`, con los mismos vínculos. Un reintento de esa identidad consulta primero la venta persistida y devuelve el resultado previo aunque haya transcurrido el plazo. Timeout o pérdida de respuesta no son rechazo definitivo.
+- **Acuerdo de versión confirmado por Leslie el 4 de noviembre de 2026:** `proofVersion` es un entero que inicia en 1 para comprobantes nuevos y aumenta tras cada reemplazo completado correctamente. Payments registra la versión junto con oficinista y fecha de intención, bloqueando el comprobante en la misma transacción. El bloqueo permanece ante resultado incierto.
+- **Consulta pública de intención acordada:** recibe `bookingId`, `cooperativeId` y `paymentProofId`; devuelve esos vínculos, `proofVersion`, oficinista y fecha, garantizando que la versión corresponde al contenido bloqueado. Se consume desde la composición, sin acceso de Bookings a persistencia interna.
+- **Resultado e idempotencia versionada acordados:** Bookings conserva `proofVersion` con la venta. Un reintento de la misma identidad y versión recupera el resultado persistido; una versión distinta no es el mismo intento. El adaptador traduce venta persistida a `true`, rechazo definitivo a `BookingSaleRejectedError` e incertidumbre a `BookingSaleUncertainError`; `false` no expresa rechazo definitivo.
 - **Vínculo de recepción acordado:** `markPaymentProofReceived({ bookingId, cooperativeId, paymentProofId })` permite a `bookings` conservar el vínculo aceptado antes de `confirmSale`. La spec de PAGOS-01 ya refleja el cambio; la implementación se ajusta en esta rama.
 - **Importe acordado:** `bookings` es autoridad del total final en centavos/USD. `payments` muestra ese total al oficinista y este lo contrasta con el importe visible en el comprobante durante la revisión; `bookings` no puede verificar por sí solo el dinero transferido.
 - **Plazo acordado:** los 3–5 minutos configurables aplican a recibir el comprobante. Si `bookings` aceptó la recepción a tiempo, la reserva permanece en revisión y puede aprobarse después del plazo. Recepción, expiración y confirmación se coordinan para que solo una transición incompatible prevalezca.
@@ -61,9 +64,9 @@ El listado no incluye datos personales innecesarios. Incluye `bookingId`, total 
 
 ### Persistencia
 
-Crear migraciones nuevas; no editar migraciones existentes. `payment_proofs` conserva `approved_at TIMESTAMPTZ NULL` y `approved_by UUID NULL`, y agrega `approval_requested_at TIMESTAMPTZ NULL` y `approval_requested_by UUID NULL`. Cada pareja debe estar completa o vacía; una aprobación final exige una intención previa. No se crean FKs físicas a `users`; ambos actores son relaciones lógicas de identidades verificadas. Los registros existentes quedan sin intención y conservan sus decisiones anteriores.
+Crear migraciones nuevas; no editar migraciones existentes. `payment_proofs` conserva `approved_at TIMESTAMPTZ NULL` y `approved_by UUID NULL`, y agrega `approval_requested_at TIMESTAMPTZ NULL` y `approval_requested_by UUID NULL`. La implementación acordada agrega `proof_version` entero: los comprobantes nuevos inician en 1 y cada reemplazo completado incrementa su versión. La asignación/migración de versiones para comprobantes preexistentes sigue pendiente de decisión; no se hará automáticamente antes de documentar su tratamiento. La intención (incluida la versión), oficinista y fecha se registra al bloquear el contenido en la misma transacción. Cada pareja de metadatos de aprobación debe estar completa o vacía; una aprobación final exige una intención previa. No se crean FKs físicas a `users`; ambos actores son relaciones lógicas de identidades verificadas.
 
-El repositorio filtra por `cooperative_id`, `status = 'UPLOADED'` y `approved_at IS NULL`. La primera solicitud guarda condicionalmente intención, hora y actor; los reintentos reutilizan ese actor. Después de confirmación, una actualización condicional registra la aprobación final. Una respuesta incierta conserva la intención y permite reintentar con la misma clave.
+El repositorio filtra por `cooperative_id`, `status = 'UPLOADED'` y `approved_at IS NULL`. La primera solicitud guarda condicionalmente intención, versión, hora y actor; los reintentos reutilizan esa intención. Después de confirmación, una actualización condicional registra la aprobación final. Una respuesta incierta conserva la intención y permite reintentar con el mismo `paymentProofId` y `proofVersion`.
 
 ### Puerto de dominio
 
@@ -90,10 +93,15 @@ Los endpoints no reciben `cooperative_id`, `booking_id`, `approved_by`, importe 
 - [ ] **Dado** que se inicia una aprobación, **cuando** `payments` llama a `confirmSale`, **entonces** la intención y el actor ya constan como pendientes; la aprobación final solo se persiste tras una confirmación.
 - [ ] **Dado** un reintento autorizado por otro oficinista, **cuando** ya hay una intención pendiente, **entonces** se conserva el actor original y la misma clave del comprobante.
 - [ ] **Dado** un comprobante ya aprobado, **cuando** se repite la aprobación, **entonces** la respuesta es idempotente y no crea una segunda venta.
-- [ ] **Dado** un timeout o resultado incierto de `confirmSale`, **cuando** se procesa la solicitud, **entonces** no se marca aprobado y se puede reintentar con la misma clave estable.
+- [ ] **Dado** un timeout o resultado incierto de `confirmSale`, **cuando** se procesa la solicitud, **entonces** no se marca aprobado y se puede reintentar con el mismo `paymentProofId` y `proofVersion`.
 - [ ] **Dado** un comprobante ausente, expirado, ya no pendiente o perteneciente a otra cooperativa, **cuando** se intenta aprobar, **entonces** no se confirma una venta ni se modifica otra cooperativa.
 - [ ] **Dado** un rol distinto de `CLERK` o falta de CSRF, **cuando** intenta leer o aprobar, **entonces** auth rechaza la operación antes de acceder al archivo o invocar `confirmSale`.
 - [ ] **Dado** una carrera de dos aprobaciones, **cuando** ambas llegan simultáneamente, **entonces** la clave estable y actualización condicional evitan duplicar la venta y la decisión persistida.
+- [ ] **Dado** un comprobante nuevo o reemplazado, **cuando** su carga se completa correctamente, **entonces** su `proofVersion` inicia en 1 o incrementa en uno; si el reemplazo falla, conserva contenido y versión anteriores.
+- [ ] **Dado** que inicia la aprobación, **cuando** Payments persiste la intención, **entonces** bloquea el contenido y registra versión, oficinista y fecha en una sola transacción; conserva el bloqueo ante incertidumbre.
+- [ ] **Dado** que Bookings consulta la intención pública con los tres identificadores, **cuando** existe, **entonces** recibe los vínculos, versión, oficinista y fecha, y la versión corresponde al contenido bloqueado.
+- [ ] **Dado** un reintento de la misma identidad y versión, **cuando** Bookings ya persistió la venta, **entonces** recupera ese resultado; una versión distinta no se considera el mismo intento.
+- [ ] **Dado** comprobantes preexistentes, **cuando** se prepara la migración, **entonces** no se les asignan versiones automáticamente hasta acordar y documentar su tratamiento.
 
 ## 8. Errores y casos borde
 
@@ -147,7 +155,7 @@ Leslie remitió BOOK-06-L04 y BOOK-07-L05 completos, aún sin commit/publicació
 
 El listado local llama hoy `findForPayment(bookingId)` y solo recibe `cooperativeId` en su entrada; una futura adaptación al contexto verificado requiere cambios explícitos en controlador/caso de uso, puerto y pruebas, después de aprobar el contrato. No se modifica silenciosamente la firma. El total proviene de Reservas y un fallo al consultarlo no equivale a cero o ausencia de reserva.
 
-La identidad/versionado de archivos, el bloqueo de reemplazos durante aprobación pendiente o incierta y el registro de importe observado/moneda/actor siguen en conciliación; el código actual no acredita esas funciones. La intención/actor de aprobación local que documenta §13 se conserva como evidencia del alcance anterior, con adaptador simulado.
+Leslie confirmó el 4 de noviembre el contrato de `proofVersion`, el bloqueo transaccional y la consulta pública de intención descritos en §4–§5. El tratamiento de comprobantes preexistentes sigue pendiente. La implementación actual no acredita versionado ni vínculo entre versión y contenido bloqueado; la intención/actor local de §13 conserva el alcance anterior y usa un adaptador simulado.
 
 Pablo aceptó revisar los incrementos PAGOS-02, PAGOS-03, PAGOS-CORR-01 y PAGOS-CAJA-01 en PR separadas; esa respuesta no aprueba anticipadamente cambios ni publica las ramas. Su propuesta de correo/contexto invitado requiere el acuerdo y las specs correspondientes. La recomendación PDF/JPEG/PNG quedó posteriormente ratificada según su respuesta humana registrada en §16; el máximo de 5 MiB ya estaba confirmado.
 
@@ -353,3 +361,93 @@ Los 12 grupos cubren DTO y total, contexto autenticado, roles y aislamiento entr
 La ejecución del contrato terminó con salida 0: 12 grupos aprobados. En el candidato conciliado, npm test aprobó 1747 unitarias y 545 integraciones (2292 en total, 132 suites); lint y Prettier de package.json y del script CJS aprobaron. format:check global falló en 17 archivos previos de Route Sheets, conservados sin modificación. El primer intento del contrato falló porque los imports ESM no usan NODE_PATH; instalar las dependencias bloqueadas en el snapshot temporal permitió repetirlo correctamente.
 
 No hay cambios de producto, migraciones, dependencias o pruebas anteriores atribuibles a #56. La composición productiva no se activa. GitHub todavía debe recibir la rama conciliada; la revisión de Pablo y los checks de CI están pendientes. La PR permanece en borrador hasta inspeccionar esos resultados.
+
+## 20. Activación productiva de la lectura de comprobantes — 3 de noviembre de 2026
+
+### Autorización y alcance
+
+Por solicitud de Shirley de continuar con los pendientes de Pagos, este primer
+paso conecta únicamente la lectura de la bandeja y del archivo privado con la
+API pública real de Reservas ya integrada en `develop`. La base es `2f194b7`, que
+incluye #51, #54, #55, #56, #60, #62 y #64.
+
+Se compone `createPaymentReviewModule` con `bookings.paymentQueries` y se monta
+su router autenticado para `GET /api/v1/payment-proofs` y
+`GET /api/v1/payment-proofs/:paymentProofId/file`. La identidad, rol y
+cooperativa se derivan de `request.auth.user` verificado por Auth en cada
+petición. El router de lectura debe ejecutarse antes del router legado de
+Payments para que sus rutas homónimas nunca respondan con el lector simulado.
+
+Este paso no adapta `POST /api/v1/payment-proofs`, `POST
+/api/v1/payment-proofs/:paymentProofId/approve`, el aviso de recepción ni
+`confirmSale`; tampoco modifica APIs públicas, reglas, migraciones, dependencias,
+pruebas existentes, archivos o criterios de PAGOS-WEB-01 ya integrada. La carga
+y la aprobación continúan con sus adaptadores actuales y no se presentan como
+productivas.
+
+### Criterios de aceptación
+
+- La composición real de `server.js` conecta Payments con
+  `bookings.paymentQueries.findForPayment` por la API pública, sin importar
+  capas internas de Bookings.
+- Un CLERK autenticado obtiene únicamente su cooperativa; valores de tenant o
+  usuario enviados en query no cambian el contexto autorizado.
+- Una sesión ausente responde 401 y un rol prohibido 403 antes de consultar la
+  bandeja.
+- El total persistido se presenta en centavos USD; una reserva ausente,
+  inconsistente o ajena asociada a un comprobante produce error seguro de
+  integridad y no se omite ni se convierte en total cero.
+- La lectura del archivo conserva autorización de cooperativa, respuesta
+  `no-store` y bytes privados; comprobante ajeno e inexistente no se distinguen.
+- Las rutas de carga y aprobación mantienen los controladores/casos de uso
+  actuales; ninguna prueba de este paso acredita recepción, venta o liberación.
+- Prueba de integración con Auth, Payments, Bookings y PostgreSQL aislado que
+  monte el mismo `createApp`/composición que el servidor. Verificar la lectura
+  autenticada, tenant cruzado, archivo privado y denegaciones; además ejecutar
+  lint, formato y suite backend. Como cambia la composición, comprobar el
+  arranque real con base aislada.
+
+La siguiente entrega independiente será conectar `UPLOAD_PROOF` y la recepción
+real desde la carga de PAGOS-01, conservando IDs opacos y procedencia de archivos.
+La venta real de PAGOS-02 y `confirmSale` permanecen pendientes de un contrato y
+proveedor públicos disponibles; no quedan resueltos por el lector ni por #56.
+
+### Resultado de ejecución — rama aislada, 3 de noviembre de 2026
+
+`feature/PAGOS-02-conexion-reservas`, basada en `2f194b7`. La implementación
+conecta la lectura real en `server.js` y da precedencia a su router en `app.js`;
+las rutas de carga y aprobación conservan los adaptadores legados. Evidencia
+detallada: [conexión de lectura productiva](../evidence/PAGOS-02/2026-11-03-conexion-lectura-productiva.md).
+
+Verificación ejecutada en esta rama: 1748/1748 unitarias; prueba de integración
+dirigida 8/8; contrato real con Bookings 12 grupos; lint y Prettier de archivos
+propios aprobados; `git diff --check` aprobado. La suite de integración global
+aprobó 523/545 casos en 41/42 suites: los 22 fallos corresponden a
+`route-sheet-programming.test.js`, cuyo `migrate.js down` no pudo ejecutarse.
+`format:check` global continúa fallando en 17 archivos previos de Route Sheets.
+El arranque real respondió salud 200, listado sin sesión 401 y `Cache-Control:
+no-store`. No se editaron migraciones, pruebas preexistentes para debilitarlas,
+dependencias declaradas, ni esos archivos ajenos. `npm ci` usó el lockfile sin
+modificarlo; el instalador reportó 26 avisos de vulnerabilidad y no se aplicó
+ninguna corrección automática.
+
+Sin commit, push, revisión humana ni CI remota. El checkout original de Shirley
+no fue modificado. Esta pieza no cierra PAGOS-02 ni PAGOS-01: falta conectar
+`UPLOAD_PROOF` y la recepción real, y `confirmSale` sigue sin proveedor público.
+
+### Reverificación conjunta posterior — 3 de noviembre de 2026
+
+Al completar PAGOS-01 §17 y actualizar la base de trabajo a
+`origin/develop` `65957a9`, los cambios se trasladaron a la rama aislada
+`feature/PAGOS-02-develop-actualizado`. Se conservaron la protección de asientos
+de Fleet, el trabajador de expiración de Bookings y sus pruebas. `npm test` desde
+cero en PostgreSQL temporal aprobó 92 suites/1776 pruebas unitarias y 45
+suites/571 integraciones, salida 0. Lint, Prettier de todos los JS modificados,
+`git diff --check` y arranque real también aprobaron; el servidor respondió
+salud 200, lectura sin sesión 401 y carga sin sesión 401. Por tanto, los
+resultados globales anteriores de §20 quedan superados por esta regresión limpia.
+`format:check` global conserva 17 archivos previos ajenos a Pagos. La carga y
+recepción ya constan en PAGOS-01 §17; esta sección sigue limitada a la lectura.
+`confirmSale` no existe en la API pública de Bookings de esta base, por lo que la
+aprobación productiva sigue pendiente de esa dependencia. Revisión humana y CI
+también pendientes; cambios futuros de develop pueden requerir conciliación.

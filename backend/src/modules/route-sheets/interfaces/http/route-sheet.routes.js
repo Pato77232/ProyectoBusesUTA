@@ -2,6 +2,8 @@ const express = require('express');
 const createRouteSheetController = require('./route-sheet.controller');
 const configureTariffController = require('./configure-route-sheet-tariff.controller');
 const createProgrammingController = require('./route-sheet-programming.controller');
+const prepareRenewalController = require('./prepare-renewal.controller');
+const getEditorController = require('./get-route-sheet-editor.controller');
 
 function createRouter({ auth, ...useCases }) {
   const router = express.Router();
@@ -13,6 +15,17 @@ function createRouter({ auth, ...useCases }) {
   });
 
   router.use(auth.authenticate);
+  router.get(
+    '/:id/editor',
+    auth.authorize('COOPERATIVE_ADMIN'),
+    getEditorController(useCases.getEditorUseCase),
+  );
+  router.post(
+    '/:id/renewals',
+    auth.authorize('COOPERATIVE_ADMIN'),
+    auth.csrfProtection,
+    prepareRenewalController(useCases.prepareRenewalUseCase),
+  );
   router.put(
     '/:id/programming',
     auth.authorize('COOPERATIVE_ADMIN'),

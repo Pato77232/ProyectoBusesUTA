@@ -9,6 +9,8 @@ COPY index.html /usr/share/nginx/html/index.html
 COPY pages/registrar-bus.html /usr/share/nginx/html/pages/registrar-bus.html
 COPY pages/login.html /usr/share/nginx/html/pages/login.html
 COPY pages/crear-frecuencia.html /usr/share/nginx/html/pages/crear-frecuencia.html
+COPY pages/frecuencias.html /usr/share/nginx/html/pages/frecuencias.html
+COPY src/styles/frequency-list.css /usr/share/nginx/html/src/styles/frequency-list.css
 COPY src/frequencies /usr/share/nginx/html/src/frequencies
 COPY src/styles/frequency-form.css /usr/share/nginx/html/src/styles/frequency-form.css
 COPY pages/comprobantes.html /usr/share/nginx/html/pages/comprobantes.html
@@ -29,3 +31,10 @@ CMD ["nginx", "-g", "daemon off;"]
 COPY pages/reservas.html /usr/share/nginx/html/pages/reservas.html
 COPY src/bookings /usr/share/nginx/html/src/bookings
 COPY src/api/json-transport.js src/api/api-error.js /usr/share/nginx/html/src/api/
+
+# ROUTE-SHEETS-WEB-01: consulta de hojas y creación explícita de borradores.
+COPY pages/hojas-ruta.html /usr/share/nginx/html/pages/hojas-ruta.html
+COPY pages/programar-hoja.html /usr/share/nginx/html/pages/programar-hoja.html
+COPY src/styles/route-sheet-editor.css /usr/share/nginx/html/src/styles/route-sheet-editor.css
+COPY src/route-sheets /usr/share/nginx/html/src/route-sheets
+COPY src/styles/route-sheets.css /usr/share/nginx/html/src/styles/route-sheets.css

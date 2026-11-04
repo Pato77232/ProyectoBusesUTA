@@ -327,3 +327,81 @@ y Pagos sin sesión 401; no activa el puente en servidor. Sin cambios a pruebas
 anteriores, Bookings, migraciones o dependencias. Sin commit/publicación ni
 aprobación humana. [Evidencia y reproducción](../evidence/PAGOS-01/2026-11-03-puente-recepcion.md)
 y [descripción de PR](../evidence/PAGOS-01/descripcion-pr-recepcion.md).
+
+## 17. Carga autenticada y recepción productiva — 3 de noviembre de 2026
+
+### Base y alcance autorizado
+
+La rama `feature/PAGOS-02-conexion-reservas` parte de `develop` `2f194b7`, que
+contiene la consulta pública de Reservas `findForPayment`, el receptor
+`createPaymentProofReceiver`, el puente persistido de recepción y la migración
+de IDs opacos `1794000000000-payment-booking-identifiers.js`. Este incremento
+activa solo la carga `POST /api/v1/payment-proofs` y su aviso de recepción real.
+No adapta aprobación, venta, rechazo, expiración periódica, UI ni rutas de lectura.
+
+El controlador copia `{ userId, role, cooperativeId }` de la sesión verificada
+por Auth. El caso de uso consulta
+`findForPayment({ bookingId, purpose: 'UPLOAD_PROOF' }, authContext)` antes de
+guardar archivo o filas; actor, tenant, monto y vencimiento no se aceptan del
+body. El `bookingId` es opaco: se valida que tenga contenido, pero se conserva
+byte por byte sin `trim`, conversión UUID ni normalización al consultar,
+persistir, construir el comprobante o notificar.
+
+### Procedencia persistida e historia anterior
+
+Una migración nueva de Payments agrega `upload_authorized_by` y
+`upload_authorized_at` a `payment_proofs`. Son opcionales para preservar filas
+anteriores. Los dos valores se escriben junto con comprobante y outbox en la
+misma transacción, solo después de que la consulta real de Bookings autoriza al
+propietario. No se hace backfill ni se admiten datos de autorización del
+navegador. La consulta interna que Bookings usa como fuente de recepción solo
+presenta comprobantes con procedencia completa.
+
+Un comprobante histórico `UPLOADED` sin procedencia o con un actor distinto no
+se lee desde el almacenamiento, sobrescribe, vuelve a notificar, aprueba ni
+borra durante un reintento. Se responde con error seguro 409 que solicita
+conciliación separada. Una fila histórica `AWAITING_UPLOAD` sí puede recibir su
+primera carga tras una nueva autorización real; esa carga registra la
+procedencia en la transacción.
+
+### Criterios de aceptación
+
+- Auth y CSRF se ejecutan antes del parser; una carga sin sesión, con sesión
+  revocada, rol incorrecto o CSRF ausente no consulta Bookings ni persiste.
+- Reserva inexistente y reserva de otro propietario son indistinguibles; la
+  cooperativa, total y plazo usados provienen exclusivamente de Bookings.
+- IDs opacos, incluidos espacios externos significativos, llegan idénticos a la
+  API pública de Bookings y quedan idénticos en comprobante/outbox/aviso.
+- Una primera carga autorizada deja comprobante y outbox consistentes con
+  procedencia; Bookings recibe el vínculo real y una sola recepción aceptada.
+- El reintento con sesión nueva del mismo dueño conserva ID de comprobante,
+  archivo y recepción idempotente. Una respuesta incierta conserva evidencia;
+  solo rechazo definitivo confirmado permite compensar.
+- `UPLOADED` histórico sin procedencia no se adopta, ni siquiera si tiene un
+  recibo previo; no se borra archivo, fila ni asiento. `AWAITING_UPLOAD` antiguo
+  puede completar la primera carga bajo autorización nueva.
+- Migración nueva comprobada sobre base vacía y datos existentes; su reversión
+  no elimina columnas/datos si el resultado convertiría una fila autorizada en
+  historia sin procedencia.
+- Prueba HTTP con Auth, Payments, Bookings y PostgreSQL aislado, incluidos
+  falsificación de contexto, privacidad de reservas, archivo/outbox, carreras,
+  reintentos e incertidumbre. Ejecutar lint, formato y suite backend; verificar
+  arranque real porque se modifica la composición.
+
+Esta sección no activa `confirmSale` ni hace productiva la aprobación de
+PAGOS-02. El contrato de venta, rechazo y liberación sigue siendo dependencia
+separada de Bookings.
+
+### Resultado de ejecución local
+
+Implementación final local en `feature/PAGOS-02-develop-actualizado`, trasladada
+a `origin/develop` `65957a9` después de conciliar cambios de Fleet y expiración
+programada de Reservas. En esta base, `npm test` aprobó 92 suites/1776 unitarias
+y 45 suites/571 integraciones; `npm run lint`, Prettier para todos los JS modificados,
+`git diff --check` y arranque real aprobaron. La salud respondió 200; GET de
+lectura y POST de carga sin sesión respondieron 401. `npm run format:check`
+global conserva 17 archivos previos ajenos a Pagos. La base PostgreSQL fue
+temporal y aislada. Sin cambios a dependencias, `package.json`, lockfile ni
+migraciones históricas. Sin commit/push ni revisión humana o CI atribuidas. La
+suite y el desglose se guardan en
+[evidencia de ejecución](../evidence/PAGOS-01/2026-11-03-carga-autenticada-productiva.md).

@@ -51,6 +51,15 @@ class PgRouteSheetTariffRepository extends RouteSheetTariffRepository {
       );
       const sheet = rows[0];
       if (!sheet) throw new TariffNotFoundError();
+      // El down autorizado solo elimina esta tabla cuando no existe ninguna renovación.
+      const installed = await client.query("SELECT to_regclass('route_sheet_renewals') AS name");
+      const { rows: renewals } = installed.rows[0].name
+        ? await client.query(
+            'SELECT series_id,bus_group_id,start_at,end_exclusive FROM route_sheet_renewals WHERE target_route_sheet_id=$1 AND cooperative_id=$2',
+            [routeSheetId, cooperativeId],
+          )
+        : { rows: [] };
+      const binding = renewals[0];
       const assignments = await client.query(
         'SELECT frequency_id FROM route_sheet_assignments WHERE route_sheet_id = $1 AND cooperative_id = $2 ORDER BY frequency_id FOR SHARE',
         [routeSheetId, cooperativeId],
@@ -78,6 +87,12 @@ class PgRouteSheetTariffRepository extends RouteSheetTariffRepository {
       };
       const result = await operation({
         sheet,
+        renewalBinding: binding && {
+          seriesId: binding.series_id,
+          busGroupId: binding.bus_group_id,
+          startAt: binding.start_at.toISOString(),
+          endExclusive: binding.end_exclusive.toISOString(),
+        },
         frequencyIds: assignments.rows.map(({ frequency_id }) => frequency_id),
         save,
         freeze,

@@ -44,3 +44,4 @@ class BookingQueryAdapter extends BookingQueryPort {
 }
 
 module.exports = BookingQueryAdapter;
+module.exports.BookingQueriesUnavailableError = BookingQueriesUnavailableError;

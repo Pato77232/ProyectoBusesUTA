@@ -4,8 +4,8 @@
 - **Spec existente:** [BOOK-02](BOOK-02.md).
 - **Responsable:** Leslie Coello.
 - **Revisor propuesto:** Pablo, conforme a la preferencia previa de Leslie; aceptación de este incremento pendiente. Coordinar contratos con los responsables indicados.
-- **Estado:** Borrador; implementación de los nuevos incrementos no autorizada.
-- **Base:** rama `feature/BOOK-03-resumen-creacion-dominio`, `c7ceed9`; remoto `origin/develop b60201e`, consultado el 1 de noviembre de 2026, sin integrar.
+- **Estado:** incremento de disponibilidad por tramo seleccionado y autorizado por la petición actual de Leslie de continuar tras PR #65; revisión humana del resultado pendiente. Los demás incrementos conservan sus pendientes.
+- **Base histórica (base actual en §15):** rama `feature/BOOK-03-resumen-creacion-dominio`, `c7ceed9`; remoto `origin/develop b60201e`, consultado el 1 de noviembre de 2026, sin integrar.
 - **Autorización:** el usuario pidió preparar specs antes de implementar; no se infiere aprobación de este borrador.
 - **Referencias:** [plan y evidencia](../reservas-plan-primera-entrega.md), [acuerdos vigentes](https://github.com/Pato77232/ProyectoBusesUTA/blob/b60201e/docs/acuerdos-primera-entrega.md), arquitectura y calidad del proyecto.
 
@@ -102,3 +102,76 @@ Bus ausente o ajeno devuelve null; entrada inválida genera VALIDATION_ERROR ant
 Evaluación técnica: contrato suficiente para preparar un adaptador acotado de asientos NORMAL, pero no resuelve identidad/recorrido comercial del viaje ni configuración histórica por hoja. La estabilidad actual de seatId y ausencia de edición del bus no constituyen versionado por hoja. No se interpreta ningún asiento como VIP/accesible. Confirmación del contrato por Leslie, autorización del incremento y relación de programación siguen pendientes; esta nota no las inventa.
 
 Pruebas previstas adicionales: dos buses con igual plantilla/clave y distintos seatId; offered false excluido sin confundir con ocupado; bus/tenant incorrectos, error del proveedor propagado y validación previa a ocupaciones. Se leyó código público, caso de uso, validador y SQL del proveedor; no se repitieron sus pruebas ni se integra código remoto en la rama de Leslie.
+
+## Respuesta de Leslie transmitida por David — 3 de noviembre de 2026
+
+David aportó la respuesta de Leslie al solicitar la sección 0 de [ROUTE-SHEETS-08](ROUTE-SHEETS-08.md): acepta la firma propuesta `findBookableForSegment({ tripId, fromPosition, toPosition })` y pide concretar DTO/errores y revalidación al crear la reserva bajo protección de concurrencia. Solicita identidad de viaje, cooperativa, hoja/asignación, bus, embarque fechado, referencia de inventario, tarifa explícita en centavos y política congelada con revisión.
+
+La consulta por par y su DTO ya están implementados en [ROUTE-SHEETS-07 §6/14](ROUTE-SHEETS-07.md); las menciones anteriores a proveedor sin implementar son antecedentes históricos. La correspondencia con el puerto de Bookings y el protocolo de revalidación siguen pendientes de concretar y autorizar antes de adaptar el consumidor. No se afirma conexión productiva, pruebas nuevas ni autorización de implementación en Bookings por este registro. Renovación conserva las reservas anteriores; sustitución requiere otro contrato.
+
+
+## 15. Incremento seleccionado: disponibilidad con viajes publicados
+
+Base 65957a9, PR #65 integrada (2026-11-04T01:58:43Z); rama feature/BOOK-02-disponibilidad-viajes-reales. Leslie solicita verificar integración y continuar el siguiente paso: se concreta únicamente disponibilidad real. No se atribuye aprobación colectiva ni se cierran L-01/L-03/L-05/L-06.
+
+Inspección actual: ROUTE-SHEETS-07 ya expone tripQueries.findBookableForSegment({ tripId, fromPosition, toPosition }) en createRouteSheetsModule; valida publicación, ciclo/embarque, frecuencia/bus, recorrido, tarifa y copia de inventario por hoja. No rehacer el catálogo ni consultar asientos actuales de Fleet como sustituto de la copia. La firma propuesta por David coincide con este código. PR accesibles por disponibilidad: #15 es la entrega histórica, sin este proveedor; no se identificó una integración posterior equivalente.
+
+### Alcance y contratos
+
+- Mantener GET /api/v1/bookings/availability y su protección CUSTOMER/no-store; no abrir acceso anónimo/invitado ni añadir pantallas.
+- Inyectar tripQueries por la API pública de Route Sheets solo para disponibilidad. Un adaptador de Bookings llama siempre findBookableForSegment con la entrada validada. Si falla, no intenta findBookableById como alternativa.
+- Antes de consultar ocupaciones: validar identidad exacta de viaje/par, UUID de relaciones y asientos, revisiones positivas, puntos ordenados por posición con lugares/instantes completos, boardingAt correspondiente al embarque elegido y referencia de inventario congelado. El proveedor es la autoridad de la elegibilidad temporal; el navegador no aporta reloj/tenant/inventario.
+- DTO interno consumido: tripId, cooperativeId, routeSheetId, assignmentId, requiredServiceId, frequencyId, busId, programmingRevision, tariffRevision, inventorySnapshotId, inventoryRevision, routePointCount, routePoints, seatIds, fromPosition, toPosition, boardingAt y confirmedThroughExclusive. La tarifa/política acompañan el DTO de origen, pero no se calculan ni muestran importes en este incremento.
+- Proyectar únicamente el snapshot mínimo al cálculo existente. El lector usa cooperativa/viaje derivados; RESERVED y SOLD efectivos bloquean superposición, incluida revisión. La salida sigue siendo { seats: [{ seatId, status }] }, sin datos personales o metadatos comerciales.
+- null del proveedor -> BOOKING_TRIP_UNAVAILABLE (404); COMMERCIAL_TRIP_INVALID -> BOOKING_VALIDATION_ERROR (400); indisponibilidad conocida -> BOOKING_TRIP_SERVICE_UNAVAILABLE (503). Snapshot incoherente -> BOOKING_TRIP_DATA_INTEGRITY_ERROR (500). Otros errores se propagan al manejo seguro general (500), nunca lista libre.
+- Mantener el puerto antiguo solo para consumidores/pruebas internos existentes que lo inyectan explícitamente. El servidor exige y conecta el proveedor por tramo real; su ausencia falla composición antes de escuchar HTTP. No hay fallback de producción a inventario simulado.
+
+### Separación de alcance
+
+Resumen/creación conservan su configuración previa: conectarlos requiere tarifas/acreditación y revalidación de L-01/L-03. Disponibilidad es informativa, no bloquea ni promete un asiento; la reserva futura debe revalidar dentro de la transacción. Sustitución de buses/reubicación requiere un contrato separado con David/Edwin. No se edita código de esos módulos, migraciones ni dependencias.
+
+### Verificación
+
+Conservar pruebas históricas T2a. Añadir pruebas de puerto por segmento, DTO corrupto/otra identidad/posiciones antes de ocupaciones, error sin fallback, copia de datos, asientos congelados y privacidad. PostgreSQL: publicación real mediante APIs Route Sheets/Fleet/Frequencies y consulta HTTP CUSTOMER con Auth real; RESERVED/SOLD/revisión, adyacencia y errores. Arranque real con la composición actual; mantener pruebas de compra que siguen devolviendo indisponibilidad cuando falta su proveedor.
+
+SOLID: adaptador independiente sobre API pública, validación pura del snapshot y reutilización del cálculo de ocupación. Sin interfaz nueva, no aplica DESIGN.md en este incremento. Ejecutar lint, format:check y npm test desde backend con PostgreSQL aislado. No modificar timeout de fotografías ni pruebas para obtener verde. Actualizar evidencia y estado con resultados reales; sin commit/push/merge hasta petición posterior de Leslie.
+
+
+Adaptación de la prueba histórica de arranque: antes esperaba 503 por catálogo ausente en disponibilidad. Al componer el proveedor real, una entrada que no es UUID devuelve 400 y un viaje UUID inexistente 404. Se exige ambos resultados y se conservan health 200, cero reservas/ocupaciones y cierre stop; se añade que summary mantiene 503 mientras no se conecte su proveedor. No se debilita el aislamiento ni se habilita inventario ficticio para satisfacer la expectativa antigua.
+
+
+## 16. Resultado anterior sobre 65957a9 y límites de verificación
+
+Implementado §15 sobre 65957a9, sin commit/push ni integración. 28/28 unitarias dirigidas finales y 32/32 integraciones HTTP dirigidas aprobadas (incluyen las cuatro nuevas y la prueba de arranque adaptada). Servidor real, Auth, publicación de hoja, inventario congelado y ocupaciones PostgreSQL comprobados.
+
+npm test global ejecutado: 1795/1795 unitarias (92 suites); integración 566/568 (43/45 suites), 607,854 s, salida 1. Dos fallos: timeout original de fotografías de Fleet y expectativa antigua de 503 en disponibilidad al arrancar. Esta última se adaptó al contrato nuevo conforme a §15 y pasó en la repetición dirigida de 32 pruebas; no hubo cambio productivo para ocultar el fallo. No se recalcula el conteo global ni se declara verde una suite completa no repetida tras esa adaptación. El timeout permanece sin cambios y conserva su resultado real.
+
+Lint y formato propio (12 JS) aprobados; format:check global conserva 17 archivos ajenos. [Evidencia](../evidence/BOOK-02-L02/2026-11-03-disponibilidad-real.md), [descripción preparada](../evidence/BOOK-02-L02/descripcion-pr-disponibilidad.md). Revisión humana pendiente. Cotización/creación/acreditación, invitados, sustitución y pantallas no quedan implementados por este incremento.
+
+
+## 17. Revisión y guardado sobre renovación integrada
+
+Leslie solicita continuar con el paso recomendado de revisión y guardado del incremento. Antes del commit se comprobó origin/develop 9920792, con ROUTE-SHEETS-08/PR #68 y catálogo 23. findBookableForSegment y el DTO que consume disponibilidad conservan su contrato. Se avanzó la rama sin commits exclusivos por fast-forward, conservando respaldo 7cf67dc3de02420093087d68e65a41ae1ec7e4fb; no hubo merge/rebase ni cambios a main/develop.
+
+Único conflicto en esta spec: se conservan tanto la respuesta de Leslie transmitida por David como §§15–16 y las actualizaciones del equipo. El registro de David no autorizaba implementación por sí mismo; el alcance local de disponibilidad y su revisión/guardado proceden de las solicitudes posteriores de Leslie. La revalidación de creación y la sustitución continúan fuera de este incremento.
+
+Repetir controles sobre catálogo 23 y la prueba de arranque ya adaptada; no tratar los resultados antiguos como validación de la base nueva. El código del adaptador y la consulta no cambia al conciliar la renovación. Se autoriza guardar un commit local; publicación/PR de esta rama aún pendientes de petición específica.
+
+
+Resultado final sobre 9920792: npm test aprobado, 1838/1838 unitarias (95 suites) y 581/581 integraciones (46 suites), salida 0. Total 2419 pruebas y 141 suites. Integración 337,724 s. Incluye arranque y prueba HTTP adaptada, hoja publicada con parada, ocupaciones persistidas y las pruebas integradas de renovación. No cambió código productivo al conciliar la base.
+
+Lint y formato propio (12 JS) aprobados; format:check global mantiene 17 archivos ajenos. Fotografías pasó sin cambiar código/límite; sus fallos anteriores conservan fecha/alcance histórico y no se declaran corregidos de forma determinista. Diff revisado. Checkpoint local autorizado: feat(reservas): conecta la disponibilidad con viajes publicados. Publicación, PR y revisión humana pendientes; no integración atribuida.
+
+
+## 18. Conciliación de PR #70 con Pagos integrado — 4 de noviembre de 2026
+
+Leslie solicita corregir los conflictos de la PR publicada. Cabeza e262428, base develop 9f7ac91, con lectura/carga productivas y procedencia de Pagos. Se incorpora develop en la misma rama mediante merge sin rebase ni force-push; no se integra la PR ni se cambia a main/develop. Se conservan las migraciones/contratos de Pagos, sin editarlos.
+
+Conflictos reales: server.js y tests/unit/server.test.js. La composición conserva Bookings con availabilityQueries reales; paymentReceipt recibe su createPaymentProofReceiver; carga y lectura reciben sus paymentQueries, y createApp conserva paymentReview. El trabajador de expiración/cierre sigue igual. Se preservan las aserciones de ambos lados y se adapta el doble de Route Sheets en la prueba de composición de Pagos, añadiendo la comprobación del proveedor de disponibilidad. Estado-proyecto se fusionó automáticamente conservando ambos registros.
+
+Pruebas requeridas antes de publicar: unitarias de ambas composiciones/adaptador, integraciones reales de disponibilidad/carga/lectura/recepción, lint/formato/npm test completos y arranque real con catálogo actual. No alterar tests/timeouts de fotografías ni inventar cierre/CI/aprobación humana. La corrección solicitada autoriza commit y push únicamente en la rama de la PR #70.
+
+
+Evidencia de conciliación: [PR #70](../evidence/BOOK-02-L02/2026-11-04-conciliacion-pr70.md). El catálogo 24 integrado rechaza el catálogo previo de 23 con renovación aplicada antes de procedencia; comprobado sin cambios en copia efímera. No se alteran migraciones o historial para resolverlo incidentalmente: las bases persistentes con esa historia requieren plan aparte con Pablo/Shirley. No se afirma haber encontrado una base persistente en ese estado.
+
+Resultado de conciliación: 1842 unitarias y 588 integraciones aprobadas (2430 pruebas, 143 suites), incluido arranque real. Lint y formato de los tres JS conciliados aprobados; formato global conserva 17 archivos ajenos. Fotografías pasó sin alterar su timeout. Entorno PostgreSQL temporal eliminado. Corrección lista para publicar en la PR #70; revisión humana e integración pendientes.

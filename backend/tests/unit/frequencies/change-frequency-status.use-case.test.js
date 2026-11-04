@@ -5,20 +5,21 @@ const {
   FrequencyValidationError,
 } = require('../../../src/modules/frequencies/domain/frequency-error');
 
+// La desactivación pasa por compromisos verificados: ver guarded-deactivation.test.js.
 test('cambia el estado de la frecuencia', async () => {
   // Arrange
-  const frequency = { id: 'uuid-1', status: 'INACTIVE' };
+  const frequency = { id: 'uuid-1', status: 'ACTIVE' };
   const repository = { updateStatus: jest.fn().mockResolvedValue(frequency) };
   const useCase = changeFrequencyStatusUseCase({ repository });
 
   // Act
-  const result = await useCase('uuid-1', 'INACTIVE', {
+  const result = await useCase('uuid-1', 'ACTIVE', {
     role: 'COOPERATIVE_ADMIN',
     cooperative_id: 'coop-1',
   });
 
   // Assert
-  expect(repository.updateStatus).toHaveBeenCalledWith('coop-1', 'uuid-1', 'INACTIVE');
+  expect(repository.updateStatus).toHaveBeenCalledWith('coop-1', 'uuid-1', 'ACTIVE');
   expect(result).toEqual(frequency);
 });
 

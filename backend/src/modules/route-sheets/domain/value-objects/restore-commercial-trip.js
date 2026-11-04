@@ -202,6 +202,7 @@ function restore(snapshot, requestedId) {
     inventoryRevision: inventory.revision,
     points,
     seatIds: Object.freeze(offered.seats.map((s) => s.seatId)),
+    seats: offered.seats,
     tariff,
     prices: frequencyTariff.prices,
   };

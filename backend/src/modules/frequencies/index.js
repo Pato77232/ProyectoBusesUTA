@@ -7,8 +7,8 @@ const findActiveByRouteUseCase = require('./application/find-active-by-route.use
 const createRouter = require('./interfaces/frequency-router');
 const createFrequencyQueries = require('./application/create-frequency-queries');
 
-function createFrequenciesModule({ pool, auth }) {
-  const repository = new PgFrequencyRepository(pool);
+function createFrequenciesModule({ pool, auth, commitmentQueries }) {
+  const repository = new PgFrequencyRepository(pool, { commitmentQueries });
   const findActiveByRoute = findActiveByRouteUseCase({ repository });
   const frequencyQueries = createFrequencyQueries({ repository });
   return {

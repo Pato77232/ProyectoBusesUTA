@@ -1,8 +1,8 @@
 # AUTH-06: Crear oficinista de cooperativa
 
 - **ID local:** AUTH-06; sin ticket externo.
-- **Responsable:** Pablo. **Revisora propuesta:** Shirley; revisión de esta spec pendiente.
-- **Estado:** [PR #53](https://github.com/Pato77232/ProyectoBusesUTA/pull/53) publicada y lista para revisión de Shirley; integración pendiente.
+- **Responsable:** Pablo. **Revisora confirmada:** Shirley.
+- **Estado:** Cerrada; revisión humana e integración comprobadas en la PR #53.
 - **Base de implementación:** `origin/develop` `1dcbd6d`, consultada el 2 de noviembre de 2026.
 - **Autorización:** Pablo pidió preparar estas dependencias; aceptación de Shirley
   reportada por Pablo. No equivale a aprobar el contrato técnico completo.
@@ -86,3 +86,19 @@ integración de AUTH-06 pendiente.
   [PR #53](https://github.com/Pato77232/ProyectoBusesUTA/pull/53) contra `develop`.
   GitHub muestra a Shirley (`shirley6126`) como revisora solicitada. Revisión
   humana, combinación con la base vigente e integración pendientes.
+
+## Revisión, integración y cierre — 2 de noviembre de 2026
+
+Shirley aprobó la cabeza `c28e431` de la
+[PR #53](https://github.com/Pato77232/ProyectoBusesUTA/pull/53) después de una
+verificación independiente de permisos, CSRF, aislamiento por cooperativa,
+duplicados concurrentes y login posterior del CLERK. La PR se integró en
+`develop` mediante `f5b9bde` a las 23:32 (America/Guayaquil).
+
+La regresión completa más reciente de la base integrada, registrada al integrar
+la PR #65 el 3 de noviembre, aprobó 1772 pruebas unitarias y 564 de integración.
+Esta referencia posterior no sustituye la revisión específica anterior; acredita
+que el recorrido permanece en la base comprobada `65957a9`. No se crea una cuenta
+operativa ni se amplía el alcance a pantalla, recuperación o administración de
+oficinistas. AUTH-06 queda Cerrada; los apartados anteriores conservan el estado
+histórico de sus respectivas sesiones.

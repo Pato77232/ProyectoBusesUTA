@@ -80,8 +80,9 @@ async function insertBooking(client, booking, operation, proofContext) {
     `INSERT INTO bookings (id, cooperative_id, trip_id, owner_id, from_position, to_position,
        status, summary, base_price_cents, discount_cents, total_price_cents, created_at, expires_at,
        creation_request_key, creation_request_fingerprint,
-       proof_window_started_at, proof_window_seconds, proof_reception_state)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,'NOT_RECEIVED')`,
+       proof_window_started_at, proof_window_seconds, proof_reception_state,
+       vip_surcharge_cents,rounding_adjustment_cents)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,'NOT_RECEIVED',$18,$19)`,
     [
       booking.bookingId,
       summary.cooperativeId,
@@ -100,6 +101,8 @@ async function insertBooking(client, booking, operation, proofContext) {
       operation?.requestFingerprint ?? null,
       proofContext.startedAt,
       proofContext.proofWindowSeconds,
+      summary.totals.vipSurchargeCents ?? 0,
+      summary.totals.roundingAdjustmentCents ?? 0,
     ],
   );
   for (const passenger of summary.passengers) {

@@ -14,6 +14,23 @@ function changeFrequencyStatusUseCase({ repository }) {
       throw error;
     }
     const normalizedStatus = createFrequencyStatus(status);
+    if (normalizedStatus === 'INACTIVE') {
+      if (typeof repository.withDeactivation !== 'function') {
+        throw new FrequencyError('FREQUENCY_COMMITMENTS_UNAVAILABLE');
+      }
+      return repository.withDeactivation(actor.cooperative_id, id, (commitments) => {
+        const flags = ['hasUnfinishedCycles', 'hasFutureServices', 'hasPassengers'];
+        if (
+          commitments?.verifiable !== true ||
+          flags.some((flag) => typeof commitments[flag] !== 'boolean')
+        ) {
+          throw new FrequencyError('FREQUENCY_COMMITMENTS_UNAVAILABLE');
+        }
+        if (flags.some((flag) => commitments[flag])) {
+          throw new FrequencyError('FREQUENCY_HAS_COMMITMENTS');
+        }
+      });
+    }
     return repository.updateStatus(actor.cooperative_id, id, normalizedStatus);
   };
 }

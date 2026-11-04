@@ -10,6 +10,8 @@
 !pages/login.html
 !pages/comprobantes.html
 !pages/crear-frecuencia.html
+!pages/frecuencias.html
+!src/styles/frequency-list.css
 !src/
 !src/styles/
 !src/styles/app.css
@@ -40,3 +42,10 @@
 !src/api/json-transport.js
 !src/api/api-error.js
 !src/bookings/access.js
+
+!pages/hojas-ruta.html
+!pages/programar-hoja.html
+!src/styles/route-sheet-editor.css
+!src/route-sheets/
+!src/route-sheets/*.js
+!src/styles/route-sheets.css
