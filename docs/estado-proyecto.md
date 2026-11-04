@@ -1,5 +1,14 @@
 # Estado compartido del proyecto
 
+## D-05 — renovación, sección 0 documental, 3 de noviembre de 2026
+
+David autorizó preparar [ROUTE-SHEETS-08](specs/ROUTE-SHEETS-08.md) y aportó la respuesta humana de Leslie. Rama existente `feature/ROUTE-SHEETS-08-renovacion-ciclos`, base `072f845`, inicialmente limpia; fetch comprobó `origin/develop` en `4bb6861`. Se reutiliza la rama sin merge/rebase; el avance remoto se distingue de la base de esta documentación.
+
+| Spec / responsable | Estado y evidencia | Próximo paso |
+|---|---|---|
+| [ROUTE-SHEETS-08](specs/ROUTE-SHEETS-08.md) / David | Secciones 0/1 en 80c2211 y 4ff9723; sección 2 guardada por David en ba30b4a. Combinación local con develop 65957a9 iniciada por David y cinco conflictos resueltos, catálogo de 23 migraciones y registro del equipo preservados. Node 24: 1815/1815 unitarias y 575/577 integraciones; dos timeouts. Administradores aprobó 1/1 al repetir aislado; fotos de Fleet conserva su timeout previo. Lint/formato propio aprobados; global conserva 39 archivos previos. Evidencia en §17. | Revisión humana, commit de combinación y actualización remota pendientes. Sin commit/push del asistente ni integración de la PR. La renovación no cierra paradas ni sustitución de D-05. |
+
+Leslie acepta la firma de consulta por tramo condicionada a concretar DTO/errores/revalidación; no acredita su consumidor conectado. Detalle de ocupaciones es propuesta sin API pública/commit disponible; protocolo concurrente, versión de Fleet y procedimiento humano de reubicación/comunicación pendientes. Se referencian en ambas specs consumidoras, sin modificar Bookings/Fleet ni habilitar sustitución. Paradas operativas y sustitución se prepararán en specs separadas. Asistencia de Codex en planificación documental; validación de enlaces/diff se registra en la spec.
 ## Conciliación de tareas de Pablo — 3 de noviembre de 2026
 
 Fetch comprobado: `origin/develop` `65957a9` a las 20:58
