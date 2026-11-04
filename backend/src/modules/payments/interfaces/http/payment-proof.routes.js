@@ -21,6 +21,7 @@ function createPaymentProofRouter({
     listPendingPaymentProofs,
     readPaymentProofFile,
     approvePaymentProof,
+    rejectPaymentProof,
   });
 
   router.get('/', auth.authenticate, auth.authorize('CLERK'), controller.listPending);

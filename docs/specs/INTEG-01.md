@@ -5,7 +5,7 @@
 - **Módulos:** catálogo de migraciones (`backend/scripts`), `bookings`, `payments` y composición del servidor
 - **Responsable:** Edwin, por acuerdo del equipo de que cualquier integrante puede resolver los bloqueos comunes
 - **Revisor propuesto:** pendiente; la revisión de IA no sustituye revisión humana
-- **Estado:** T1 en `feature/INTEG-01-catalogo-migraciones` (commits `cf285b3` y `183d95b`), pendiente de PR. T2 en `feature/INTEG-01-T2-historial-reservas`, creada sobre T1. T3–T6 sin empezar.
+- **Estado:** T1 en `feature/INTEG-01-catalogo-migraciones` (commits `cf285b3` y `183d95b`), pendiente de PR. T2 en `feature/INTEG-01-T2-historial-reservas` (`44cd95b`), creada sobre T1. T3 en `feature/INTEG-01-T3-rechazo-comprobantes`, creada sobre T2. T4–T6 sin empezar.
 - **Base comprobada:** `origin/develop` en `64f39cd`, sin PR abiertas.
 
 ## 1. Objetivo
@@ -73,3 +73,19 @@ Cada tarea va en su propia rama `feature/INTEG-01-*` desde develop, con commit a
 - Sin sesión responde 401; `ownerId` o `limit` inválidos por query responden 400, sin escribir reservas.
 
 **Resultados** (rama basada en T1, PostgreSQL aislado, sin leer `.env`): lint y formato de los archivos tocados aprobados; **1925/1925 unitarias**; integración **615/637**. Los 22 fallos son los mismos conocidos de T1 (T4, T6 y carga autorizada).
+
+### T3: rechazo de comprobantes, 4 de noviembre de 2026
+
+**Causa:** `createPaymentProofRouter` recibía `rejectPaymentProof`, pero no lo pasaba a `createPaymentProofController`. `POST /api/v1/payment-proofs/:id/reject` llamaba `.execute` sobre `undefined` y respondía 500, incluso con datos inválidos o con un comprobante ajeno.
+
+**Cambio:** `payment-proof.routes.js` entrega `rejectPaymentProof` al controlador. Sin cambios en el caso de uso, el dominio ni la ruta.
+
+**Pruebas nuevas** en `tests/integration/payments/payment-proof-rejection.http.test.js`, con sesión real y PostgreSQL. Antes del cambio, las tres fallaban con 500.
+
+- Un CLERK rechaza con motivo: responde 200 y avisa a Reservas una sola vez (`rejectSale`) con la reserva, la cooperativa y el actor de la sesión. Se guardan el actor y el motivo sin espacios, y no se llama a `confirmSale`.
+- Sin justificación, o con solo espacios, responde 400 `PAYMENT_PROOF_VALIDATION_ERROR`, sin avisar a Reservas ni modificar el comprobante (RN: rechazar exige justificación).
+- Un comprobante de otra cooperativa responde 404; sin CSRF, 403; sin sesión, 401. En los tres casos no hay aviso ni cambios.
+
+La prueba sustituye el confirmador por un doble porque el confirmador simulado actual no implementa `rejectSale`. Con el confirmador por defecto, el rechazo termina en `BOOKING_SALE_UNCERTAIN`; conectar el confirmador real de Reservas corresponde a T4.
+
+**Resultados** (rama basada en T2, PostgreSQL aislado, sin leer `.env`): lint y formato aprobados; **1925/1925 unitarias**; integración **618/640**. Los 22 fallos son los ya conocidos.
