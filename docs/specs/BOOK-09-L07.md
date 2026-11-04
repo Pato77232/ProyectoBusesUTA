@@ -69,10 +69,14 @@ puerto no está compuesto, la solicitud falla sin revelar si la reserva existe.
 
 La migración de estados será nueva y no modificará migraciones existentes.
 
-## 7. Resultado del primer incremento
+## 7. Resultado de los incrementos implementados
 
-Implementado localmente el contrato de confirmación idempotente: migración
+Implementados localmente los contratos de confirmación y rechazo: migraciones
 `1794090000000-booking-sale-lifecycle`, `PgBookingSaleConfirmer`, composición
-de Payments con Reservas y pruebas unitarias/HTTP de PostgreSQL. El endpoint de
-rechazo con justificación y los lectores de historial/invitado quedan en los
-siguientes incrementos de esta misma spec.
+de Payments con Reservas, migración `1794100000000-payment-proof-rejection`,
+caso de uso y endpoint `POST /api/v1/payment-proofs/:paymentProofId/reject`.
+El rechazo es idempotente por comprobante y conserva actor y justificación.
+Historial autenticado y acceso de invitado quedan como incrementos siguientes.
+
+Verificación PostgreSQL temporal: 22/22 pruebas de migraciones y ciclo de
+venta/rechazo aprobadas; unitarias dirigidas: 259/259.

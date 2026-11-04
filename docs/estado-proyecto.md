@@ -682,3 +682,9 @@ Actualización previa a publicación: develop avanzó a 4bb6861 con FLEET-09 y c
 ## Leslie: cotización configurada y revisión tarifaria — 4 de noviembre de 2026
 
 `BOOK-05-L01` tiene un incremento local implementado: tarifa explícita, recargo VIP, mayor beneficio elegible, categorías empatadas y `tariffRevision` en el resumen. La evidencia está en [BOOK-05-L01](evidence/BOOK-05-L01/2026-11-04-cotizacion-configurada.md). La regresión completa comprobada sobre PostgreSQL temporal aprobó 1776 unitarias y 564 integraciones. La activación del catálogo comercial real y la revisión humana siguen pendientes; no se declara integración ni cierre.
+
+## Leslie: rechazo justificado de comprobantes — 4 de noviembre de 2026
+
+En la rama `feature/BOOK-06-L04-T5-leslie` quedó implementado el segundo incremento de `BOOK-09-L07`: `POST /api/v1/payment-proofs/:paymentProofId/reject`, la migración `1794100000000-payment-proof-rejection` y el puente de rechazo hacia Reservas. Exige actor y justificación, marca comprobante y reserva como `REJECTED`, desactiva asignaciones reservadas y permite reintentar de forma idempotente ante una persistencia incierta.
+
+La verificación dirigida aprobó 259/259 unitarias y 22/22 pruebas PostgreSQL. Quedan como siguiente incremento el historial autenticado y el acceso de invitado; revisión humana, push, PR e integración no se declaran realizados.

@@ -27,7 +27,9 @@ Fecha: 4 de noviembre de 2026, America/Guayaquil.
   convierte asignaciones a `SOLD` y repite idempotentemente la misma clave:
   2/2 pruebas de integración aprobadas.
 - La integración se ejecutó con PostgreSQL temporal `busesuta_test`; el contenedor y la red fueron retirados al finalizar.
+- El segundo incremento de `BOOK-09-L07` implementa rechazo justificado de comprobantes, persistencia `REJECTED`, desactivación de asignaciones reservadas y reintento idempotente.
+- La verificación dirigida adicional aprobó 259/259 unitarias y 22/22 pruebas PostgreSQL de catálogo y ciclo de venta/rechazo.
 
 ## Límites
 
-La recepción, aprobación/rechazo y venta final de comprobantes siguen dependiendo de los contratos de Payments y de revisión humana; no se afirma compra comercial completa ni integración aprobada.
+El historial autenticado y el acceso de invitado siguen pendientes en `BOOK-09-L07`; la revisión humana e integración siguen pendientes.
