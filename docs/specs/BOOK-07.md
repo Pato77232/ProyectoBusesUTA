@@ -173,3 +173,9 @@ Verificación final: npm test salida 0, 1904 unitarias y 608 integraciones aprob
 La persistencia interna confirma reserva y todos los asientos en una transacción y recupera resultados idempotentes. Aún no se expone confirmSale desde la API pública de Bookings ni se conecta fuente simulada de Payments. Siguiente incremento: caso de uso y composición con fuente pública real de intención versionada. Sin commit/push ni integración en esta sesión.
 
 Guardado autorizado por Leslie el 4 de noviembre de 2026: commit del incremento de persistencia atómica con validación versionada, pruebas, migración y documentación. No se autoriza publicación en esta confirmación. Desde la suite final solo se modificó documentación; API pública e integración siguen pendientes.
+
+## 17. Conciliación documental con develop — 4 de noviembre de 2026
+
+Leslie solicita corregir el conflicto de comparación de su rama publicada. Base de rama cfd206d; develop da9c678 solo agrega el acuerdo documental de versionado. Merge en feature/BOOK-07-confirmacion-venta sin cambiar a main/develop ni integrar la funcionalidad. Único conflicto: párrafo adicional al final de BOOK-07-L05; se conserva tanto el acuerdo publicado de Shirley como la confirmación posterior del tratamiento conservador de históricos.
+
+No cambios de backend: se comprueba igualdad del árbol backend con el commit cfd206d que pasó 2512 pruebas. No repetir suites por esta conciliación exclusivamente documental ni presentar esas pruebas como ejecución nueva. Diff/enlaces/marcadores revisados. Corrección en commit separado para publicar la rama sin conflictos; no apertura/merge de PR. Leslie reafirma completar API pública y conexión productiva antes de abrir PR; el número de commits no sustituye ese resultado.
