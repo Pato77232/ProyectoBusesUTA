@@ -26,6 +26,22 @@ function inventory() {
     ],
   };
 }
+
+test('excluye espacios accesibles y falla cerrado si una fuente intenta ofrecerlos', () => {
+  const source = inventory();
+  const accessible = {
+    ...source.seats[0],
+    seatId: randomUUID(),
+    layoutSeatKey: 'wheelchair',
+    label: 2,
+    category: 'ACCESSIBLE',
+    offered: false,
+  };
+  source.seats.push(accessible);
+  expect(commercialInventory(source, busId).seats).toHaveLength(1);
+  accessible.offered = true;
+  expect(() => commercialInventory(source, busId)).toThrow();
+});
 function series() {
   return {
     id: randomUUID(),

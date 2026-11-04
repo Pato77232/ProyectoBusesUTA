@@ -80,6 +80,12 @@ test('actualiza las migraciones anteriores a totales comerciales, conserva reser
   expect((await pool.query(`SELECT ${columns} FROM bookings`)).rows).toEqual(before);
 });
 test('acreditaciones conserva auditoría e historial al rechazar down con datos', async () => {
+  while (
+    (await pool.query('SELECT name FROM pgmigrations ORDER BY id DESC LIMIT 1')).rows[0].name !==
+    '1794260000000-booking-benefit-reviews'
+  ) {
+    worker('migrate', { direction: 'down' });
+  }
   const before = (await pool.query('SELECT name FROM pgmigrations ORDER BY id')).rows;
   await pool.query(
     `INSERT INTO booking_benefit_reviews

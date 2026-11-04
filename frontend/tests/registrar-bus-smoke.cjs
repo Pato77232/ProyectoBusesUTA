@@ -184,7 +184,11 @@ async function checkVipSelection(browser, origin) {
   const labels = await browser.evaluate(
     `[...document.querySelectorAll('#seat-section h3')].map((e) => e.textContent)`,
   );
-  assert.deepEqual(labels, ['Asientos no ofrecidos', 'Asientos VIP']);
+  assert.deepEqual(labels, [
+    'Asientos no ofrecidos',
+    'Asientos VIP',
+    'Espacios para silla de ruedas',
+  ]);
   await submit(browser);
   const [{ data }] = await browser.evaluate('window.sent');
   assert.deepEqual(data.vipSeatKeys, ['s1']);
@@ -211,6 +215,30 @@ async function fillValidForm(browser) {
   }
   await browser.evaluate(`document.querySelector('[value="s2"]').click()`);
   await attachPhoto(browser, 'bus-ficticio.png', 'image/png', 2048);
+}
+
+async function checkAccessibleSpaces(browser, origin) {
+  await loadPage(browser, origin, 1280);
+  await mount(browser, SETUP);
+  await fillValidForm(browser);
+  await browser.evaluate(
+    `document.querySelector('[name="accessibleSeatKeys"][value="s1"]').click(); document.querySelector('[name="vipSeatKeys"][value="s1"]').click()`,
+  );
+  await submit(browser);
+  assert.equal((await browser.evaluate('window.sent')).length, 0);
+  assert.match(
+    await browser.evaluate('document.querySelector("#bus-form-status").textContent'),
+    /no puede ser VIP/,
+  );
+  await browser.evaluate(`document.querySelector('[name="vipSeatKeys"][value="s1"]').click()`);
+  await submit(browser);
+  assert.deepEqual((await browser.evaluate('window.sent'))[0].data.accessibleSeatKeys, ['s1']);
+  await screenshot(browser, 'accesibilidad-1280.png');
+  await setValue(browser, 'seatLayoutId', 'UNO');
+  assert.equal(
+    await browser.evaluate('document.querySelectorAll("[name=accessibleSeatKeys]:checked").length'),
+    0,
+  );
 }
 
 async function checkValidSubmission(browser, origin) {
@@ -277,6 +305,7 @@ async function main() {
     checkLayoutChange,
     checkValidSubmission,
     checkVipSelection,
+    checkAccessibleSpaces,
     checkPhotoLimit,
     checkMobileReflow,
     checkKeyboardOrder,
