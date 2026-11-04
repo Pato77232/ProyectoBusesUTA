@@ -6,7 +6,11 @@ const { createTenantsModule } = require('./modules/tenants');
 const { createFleetModule } = require('./modules/fleet');
 const { createFrequenciesModule } = require('./modules/frequencies');
 const { createRouteSheetsModule } = require('./modules/route-sheets');
-const { createPaymentsModule } = require('./modules/payments');
+const {
+  createPaymentsModule,
+  createPaymentReceiptModule,
+  createPaymentReviewModule,
+} = require('./modules/payments');
 const { createBookingsModule } = require('./modules/bookings');
 function closeServer(server) {
   return new Promise((resolve, reject) =>
@@ -44,14 +48,31 @@ async function start(env = process.env) {
       busQueries: fleet.busQueries,
       seatQueries: fleet.seatQueries,
     });
-    const payments = createPaymentsModule({ pool, auth, env });
     const bookings = createBookingsModule({ pool, auth, env });
+    const paymentReceipt = createPaymentReceiptModule({
+      pool,
+      createPaymentProofReceiver: bookings.createPaymentProofReceiver,
+    });
+    const payments = createPaymentsModule({
+      pool,
+      auth,
+      env,
+      paymentQueries: bookings.paymentQueries,
+      bookingPaymentProofNotifier: paymentReceipt.bookingPaymentProofNotifier,
+    });
+    const paymentReview = createPaymentReviewModule({
+      pool,
+      auth,
+      paymentQueries: bookings.paymentQueries,
+      env,
+    });
     const app = createApp({
       auth,
       tenants,
       fleet,
       frequencies,
       routeSheets,
+      paymentReview,
       payments,
       bookings,
       pool,

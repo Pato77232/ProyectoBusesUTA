@@ -353,3 +353,93 @@ Los 12 grupos cubren DTO y total, contexto autenticado, roles y aislamiento entr
 La ejecución del contrato terminó con salida 0: 12 grupos aprobados. En el candidato conciliado, npm test aprobó 1747 unitarias y 545 integraciones (2292 en total, 132 suites); lint y Prettier de package.json y del script CJS aprobaron. format:check global falló en 17 archivos previos de Route Sheets, conservados sin modificación. El primer intento del contrato falló porque los imports ESM no usan NODE_PATH; instalar las dependencias bloqueadas en el snapshot temporal permitió repetirlo correctamente.
 
 No hay cambios de producto, migraciones, dependencias o pruebas anteriores atribuibles a #56. La composición productiva no se activa. GitHub todavía debe recibir la rama conciliada; la revisión de Pablo y los checks de CI están pendientes. La PR permanece en borrador hasta inspeccionar esos resultados.
+
+## 20. Activación productiva de la lectura de comprobantes — 3 de noviembre de 2026
+
+### Autorización y alcance
+
+Por solicitud de Shirley de continuar con los pendientes de Pagos, este primer
+paso conecta únicamente la lectura de la bandeja y del archivo privado con la
+API pública real de Reservas ya integrada en `develop`. La base es `2f194b7`, que
+incluye #51, #54, #55, #56, #60, #62 y #64.
+
+Se compone `createPaymentReviewModule` con `bookings.paymentQueries` y se monta
+su router autenticado para `GET /api/v1/payment-proofs` y
+`GET /api/v1/payment-proofs/:paymentProofId/file`. La identidad, rol y
+cooperativa se derivan de `request.auth.user` verificado por Auth en cada
+petición. El router de lectura debe ejecutarse antes del router legado de
+Payments para que sus rutas homónimas nunca respondan con el lector simulado.
+
+Este paso no adapta `POST /api/v1/payment-proofs`, `POST
+/api/v1/payment-proofs/:paymentProofId/approve`, el aviso de recepción ni
+`confirmSale`; tampoco modifica APIs públicas, reglas, migraciones, dependencias,
+pruebas existentes, archivos o criterios de PAGOS-WEB-01 ya integrada. La carga
+y la aprobación continúan con sus adaptadores actuales y no se presentan como
+productivas.
+
+### Criterios de aceptación
+
+- La composición real de `server.js` conecta Payments con
+  `bookings.paymentQueries.findForPayment` por la API pública, sin importar
+  capas internas de Bookings.
+- Un CLERK autenticado obtiene únicamente su cooperativa; valores de tenant o
+  usuario enviados en query no cambian el contexto autorizado.
+- Una sesión ausente responde 401 y un rol prohibido 403 antes de consultar la
+  bandeja.
+- El total persistido se presenta en centavos USD; una reserva ausente,
+  inconsistente o ajena asociada a un comprobante produce error seguro de
+  integridad y no se omite ni se convierte en total cero.
+- La lectura del archivo conserva autorización de cooperativa, respuesta
+  `no-store` y bytes privados; comprobante ajeno e inexistente no se distinguen.
+- Las rutas de carga y aprobación mantienen los controladores/casos de uso
+  actuales; ninguna prueba de este paso acredita recepción, venta o liberación.
+- Prueba de integración con Auth, Payments, Bookings y PostgreSQL aislado que
+  monte el mismo `createApp`/composición que el servidor. Verificar la lectura
+  autenticada, tenant cruzado, archivo privado y denegaciones; además ejecutar
+  lint, formato y suite backend. Como cambia la composición, comprobar el
+  arranque real con base aislada.
+
+La siguiente entrega independiente será conectar `UPLOAD_PROOF` y la recepción
+real desde la carga de PAGOS-01, conservando IDs opacos y procedencia de archivos.
+La venta real de PAGOS-02 y `confirmSale` permanecen pendientes de un contrato y
+proveedor públicos disponibles; no quedan resueltos por el lector ni por #56.
+
+### Resultado de ejecución — rama aislada, 3 de noviembre de 2026
+
+`feature/PAGOS-02-conexion-reservas`, basada en `2f194b7`. La implementación
+conecta la lectura real en `server.js` y da precedencia a su router en `app.js`;
+las rutas de carga y aprobación conservan los adaptadores legados. Evidencia
+detallada: [conexión de lectura productiva](../evidence/PAGOS-02/2026-11-03-conexion-lectura-productiva.md).
+
+Verificación ejecutada en esta rama: 1748/1748 unitarias; prueba de integración
+dirigida 8/8; contrato real con Bookings 12 grupos; lint y Prettier de archivos
+propios aprobados; `git diff --check` aprobado. La suite de integración global
+aprobó 523/545 casos en 41/42 suites: los 22 fallos corresponden a
+`route-sheet-programming.test.js`, cuyo `migrate.js down` no pudo ejecutarse.
+`format:check` global continúa fallando en 17 archivos previos de Route Sheets.
+El arranque real respondió salud 200, listado sin sesión 401 y `Cache-Control:
+no-store`. No se editaron migraciones, pruebas preexistentes para debilitarlas,
+dependencias declaradas, ni esos archivos ajenos. `npm ci` usó el lockfile sin
+modificarlo; el instalador reportó 26 avisos de vulnerabilidad y no se aplicó
+ninguna corrección automática.
+
+Sin commit, push, revisión humana ni CI remota. El checkout original de Shirley
+no fue modificado. Esta pieza no cierra PAGOS-02 ni PAGOS-01: falta conectar
+`UPLOAD_PROOF` y la recepción real, y `confirmSale` sigue sin proveedor público.
+
+### Reverificación conjunta posterior — 3 de noviembre de 2026
+
+Al completar PAGOS-01 §17 y actualizar la base de trabajo a
+`origin/develop` `65957a9`, los cambios se trasladaron a la rama aislada
+`feature/PAGOS-02-develop-actualizado`. Se conservaron la protección de asientos
+de Fleet, el trabajador de expiración de Bookings y sus pruebas. `npm test` desde
+cero en PostgreSQL temporal aprobó 92 suites/1776 pruebas unitarias y 45
+suites/571 integraciones, salida 0. Lint, Prettier de todos los JS modificados,
+`git diff --check` y arranque real también aprobaron; el servidor respondió
+salud 200, lectura sin sesión 401 y carga sin sesión 401. Por tanto, los
+resultados globales anteriores de §20 quedan superados por esta regresión limpia.
+`format:check` global conserva 17 archivos previos ajenos a Pagos. La carga y
+recepción ya constan en PAGOS-01 §17; esta sección sigue limitada a la lectura.
+`confirmSale` no existe en la API pública de Bookings de esta base, por lo que la
+aprobación productiva sigue pendiente de esa dependencia. Revisión humana y CI
+también pendientes; cambios futuros de develop pueden requerir conciliación.

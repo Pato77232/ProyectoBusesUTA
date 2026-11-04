@@ -5,12 +5,15 @@ const os = require('node:os');
 const path = require('node:path');
 const createApp = require('../../../src/app');
 const { createAuthModule } = require('../../../src/modules/auth');
-const { createPaymentReviewModule } = require('../../../src/modules/payments');
+const {
+  createPaymentsModule,
+  createPaymentReviewModule,
+} = require('../../../src/modules/payments');
 const { runMigration, testPool } = require('../../helpers/database');
 const SessionBrowser = require('../../helpers/session-browser');
 
 const API = '/api/v1/payment-proofs';
-let pool, server, origin, tenant, otherTenant, storage, key, provider;
+let pool, server, origin, tenant, otherTenant, storage, key, provider, legacyPayments, authModule;
 const records = new Map();
 const bytes = Buffer.from('bytes-exclusivos-de-QA');
 async function cooperative() {
@@ -22,8 +25,8 @@ async function cooperative() {
     ])
   ).rows[0].id;
 }
-async function login(role = 'CLERK', cooperativeId = tenant) {
-  const browser = new SessionBrowser(origin);
+async function login(role = 'CLERK', cooperativeId = tenant, targetOrigin = origin) {
+  const browser = new SessionBrowser(targetOrigin);
   const email = `qa-${randomUUID()}@qa.invalid`;
   const password = randomBytes(24).toString('hex');
   await browser.token();
@@ -71,17 +74,25 @@ beforeEach(async () => {
   key = randomUUID();
   await writeFile(path.join(storage, key), bytes);
   provider = { findForPayment: jest.fn(async ({ bookingId }) => records.get(bookingId) ?? null) };
-  const auth = await createAuthModule({
+  authModule = await createAuthModule({
     pool,
     env: { JWT_SECRET: randomBytes(48).toString('hex') },
   });
-  const payments = createPaymentReviewModule({
+  const paymentReview = createPaymentReviewModule({
     pool,
-    auth,
+    auth: authModule,
     paymentQueries: provider,
     env: { PAYMENT_PROOF_STORAGE_DIR: storage },
   });
-  server = http.createServer(createApp({ pool, auth, payments }));
+  legacyPayments = createPaymentsModule({
+    pool,
+    auth: authModule,
+    env: { PAYMENT_PROOF_STORAGE_DIR: storage },
+  });
+  jest.spyOn(legacyPayments.bookingReader, 'findForPayment');
+  server = http.createServer(
+    createApp({ pool, auth: authModule, paymentReview, payments: legacyPayments }),
+  );
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   origin = `http://127.0.0.1:${server.address().port}`;
 });
@@ -115,6 +126,7 @@ test('contexto real de Auth y tenant fijados por servidor; DTO conserva contrato
     { bookingId: own.bookingId, purpose: 'REVIEW_PAYMENT' },
     { userId, role: 'CLERK', cooperativeId: tenant },
   );
+  expect(legacyPayments.bookingReader.findForPayment).not.toHaveBeenCalled();
 });
 
 test.each(['CUSTOMER', 'COOPERATIVE_ADMIN'])('rol %s no consulta el proveedor', async (role) => {
@@ -183,7 +195,21 @@ test('errores públicos mantienen clasificación HTTP segura sin SQL del proveed
 
 test('composición exige proveedor explícito y no ofrece mutaciones de pago', async () => {
   expect(() => createPaymentReviewModule({ pool })).toThrow('paymentQueries.findForPayment');
-  const { browser } = await login();
-  expect((await browser.request(API, 'POST', {})).status).toBe(404);
-  expect((await browser.request(`${API}/${randomUUID()}/approve`, 'POST', {})).status).toBe(404);
+  const reviewOnly = createPaymentReviewModule({
+    pool,
+    auth: authModule,
+    paymentQueries: provider,
+  });
+  const readOnlyServer = http.createServer(
+    createApp({ pool, auth: authModule, paymentReview: reviewOnly }),
+  );
+  await new Promise((resolve) => readOnlyServer.listen(0, '127.0.0.1', resolve));
+  const targetOrigin = `http://127.0.0.1:${readOnlyServer.address().port}`;
+  try {
+    const { browser } = await login('CLERK', tenant, targetOrigin);
+    expect((await browser.request(API, 'POST', {})).status).toBe(404);
+    expect((await browser.request(`${API}/${randomUUID()}/approve`, 'POST', {})).status).toBe(404);
+  } finally {
+    await new Promise((resolve) => readOnlyServer.close(resolve));
+  }
 });

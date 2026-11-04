@@ -1,5 +1,33 @@
 # Estado compartido del proyecto
 
+## Shirley — PAGOS-01 carga autorizada y PAGOS-02 lectura productiva, 3 de noviembre de 2026
+
+Rama aislada final `feature/PAGOS-02-develop-actualizado`, basada en el
+`origin/develop` actualizado `65957a9`; sin commit ni publicación. Se conectó la lectura autenticada de
+bandeja/archivo privado con `bookings.paymentQueries` y la carga multipart con
+Auth, la consulta `UPLOAD_PROOF` y la recepción real de Bookings. La migración
+nueva registra la procedencia del actor autorizado y conserva la historia sin
+atribuirle autorizaciones. La rama se trasladó manualmente desde la base anterior
+para conservar también la migración de protección de asientos y el trabajador
+de expiración de Reservas; los solapamientos en servidor, catálogo y pruebas se
+conciliaron y verificaron. El checkout original con cambios locales sigue intacto.
+
+Verificación final sobre la base actualizada: `npm test` aprobó 92 suites/1776
+pruebas unitarias y 45 suites/571 integraciones; lint, Prettier de archivos modificados, arranque real
+(salud 200; lectura y carga sin sesión 401) y `git diff --check` aprobados.
+`format:check` global mantiene 17 archivos previos ajenos a este cambio. La
+prueba HTTP de carga se aisló por reserva después de detectar que la base
+compartida conserva registros de otras suites. No se modificaron esas suites ni
+los archivos con formato previo pendiente. [PAGOS-01 §17](specs/PAGOS-01.md#17-carga-autenticada-y-recepción-productiva--3-de-noviembre-de-2026),
+[PAGOS-02 §20](specs/PAGOS-02.md#20-activación-productiva-de-la-lectura-de-comprobantes-3-de-noviembre-de-2026),
+[evidencia de carga](evidence/PAGOS-01/2026-11-03-carga-autenticada-productiva.md)
+y [evidencia de lectura](evidence/PAGOS-02/2026-11-03-conexion-lectura-productiva.md).
+Siguiente dependencia: aprobación/venta productiva (`confirmSale`) requiere que
+Bookings publique su capacidad; no existe `confirmSale` en la API pública de
+Bookings de `65957a9`. Falta revisión humana y CI. La rama se basa en el último
+`origin/develop` observado y los solapamientos actuales quedaron conciliados;
+futuros cambios de `develop` aún pueden requerir otra revisión.
+
 ## PAGOS-02 — prueba conjunta con Reservas real, actualizada el 3 de noviembre de 2026
 
 Las PR #54 y #55 están integradas; también las PR #60 y #62. La rama de trabajo es codex/PAGOS-02-pr56, con la cabeza de #56 15218ae conciliándose localmente con develop c95cc73. El proveedor de QA se obtuvo de c95cc732b7a895fc3f4d1b00f39aa1dd9fb2345e y se montó desde un snapshot temporal.

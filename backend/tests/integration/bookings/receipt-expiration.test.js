@@ -470,10 +470,12 @@ test('UNKNOWN no inventa ausencia ni permite liberar', async () => {
 test('down protege evidencia y estados persistidos sin alterar historial', async () => {
   const { input } = await setup();
   await receiver().markPaymentProofReceived(input);
-  await rollbackBefore(pool, '1794000000000-payment-booking-identifiers');
+  await rollbackBefore(pool, '1794086400000-payment-proof-upload-provenance');
   expect(
     (await pool.query('SELECT name FROM pgmigrations ORDER BY id DESC LIMIT 1')).rows[0].name,
-  ).toBe('1794000000000-payment-booking-identifiers');
+  ).toBe('1794086400000-payment-proof-upload-provenance');
+  runMigration('down');
+  runMigration('down');
   runMigration('down');
   try {
     const previous = (await pool.query('SELECT * FROM pgmigrations ORDER BY id')).rows;
