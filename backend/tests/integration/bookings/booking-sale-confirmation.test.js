@@ -13,7 +13,7 @@ beforeAll(() => {
 beforeEach(async () => {
   assertTestDatabase();
   await pool.query(
-    'TRUNCATE booking_proof_receipt_results, booking_seat_allocations, bookings, booking_trip_locks',
+    'TRUNCATE booking_guest_access_tokens, booking_proof_receipt_results, booking_seat_allocations, bookings, booking_trip_locks',
   );
   await pool.query("INSERT INTO booking_trip_locks VALUES('coop-sale','trip-sale')");
   await pool.query(

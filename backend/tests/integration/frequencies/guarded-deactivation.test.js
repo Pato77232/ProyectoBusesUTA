@@ -13,7 +13,7 @@ let pool, running, hash, admin, customer, owner, fixture, tripId, seats, baseUrl
 async function clear() {
   assertTestDatabase();
   await pool.query(
-    'TRUNCATE booking_proof_receipt_results,booking_seat_allocations,bookings,booking_trip_locks',
+    'TRUNCATE booking_guest_access_tokens,booking_proof_receipt_results,booking_seat_allocations,bookings,booking_trip_locks',
   );
   await pool.query('TRUNCATE cooperatives,users,auth_sessions CASCADE');
 }

@@ -31,14 +31,14 @@ beforeAll(async () => {
 beforeEach(async () => {
   assertTestDatabase();
   await pool.query(
-    'TRUNCATE booking_proof_receipt_results,booking_seat_allocations,bookings,booking_trip_locks',
+    'TRUNCATE booking_guest_access_tokens,booking_proof_receipt_results,booking_seat_allocations,bookings,booking_trip_locks',
   );
   await pool.query(`TRUNCATE ${schema}.proofs`);
 });
 afterAll(async () => {
   if (pool) {
     await pool.query(
-      'TRUNCATE booking_proof_receipt_results,booking_seat_allocations,bookings,booking_trip_locks',
+      'TRUNCATE booking_guest_access_tokens,booking_proof_receipt_results,booking_seat_allocations,bookings,booking_trip_locks',
     );
     if (!/^receiptqa_[a-f0-9]{32}$/.test(schema)) throw new Error('Schema QA inválido.');
     await pool.query(`DROP SCHEMA ${schema} CASCADE`);

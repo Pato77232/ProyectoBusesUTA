@@ -34,7 +34,7 @@ beforeAll(() => {
 beforeEach(async () => {
   assertTestDatabase();
   await pool.query(
-    'TRUNCATE payment_proof_notification_outbox,payment_proofs,booking_proof_receipt_results,booking_seat_allocations,bookings,booking_trip_locks',
+    'TRUNCATE payment_proof_notification_outbox,payment_proofs,booking_guest_access_tokens,booking_proof_receipt_results,booking_seat_allocations,bookings,booking_trip_locks',
   );
   directory = await fs.mkdtemp(path.join(os.tmpdir(), 'receipt-bridge-'));
   fileStorage = new FileStorage({ rootDirectory: directory });
