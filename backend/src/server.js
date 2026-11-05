@@ -122,7 +122,7 @@ async function start(env = process.env) {
       onFailure: (failure) =>
         logger.error(failure, 'No se pudo completar la expiración de reservas.'),
     });
-    passwordResetWorker = auth.maintenance.startPasswordResetWorker({
+    passwordResetWorker = auth.maintenance?.startPasswordResetWorker?.({
       onFailure: () => logger.error('No se pudo procesar la recuperación de cuenta.'),
     });
     logger.info({ port }, 'Servidor iniciado');
