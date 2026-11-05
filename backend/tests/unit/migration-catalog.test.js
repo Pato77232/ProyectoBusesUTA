@@ -28,6 +28,8 @@ test('catálogo explícito conserva la cadena de develop, Pagos, protección, re
   expect(activeNames[30]).toBe('1794280000000-auth-password-reset-actions');
   expect(activeNames[31]).toBe('1794290000000-index-password-reset-attempt-retention');
   expect(activeNames[32]).toBe('1794300000000-index-password-reset-action-retention');
+  expect(activeNames[33]).toBe('1794330000000-auth-guest-email-access');
+  expect(activeNames[34]).toBe('1794340000000-booking-guest-contact');
   expect(activeNames[33]).toBe('1794310000000-create-tickets');
   expect(activeNames[34]).toBe('1794320000000-booking-benefit-requests');
   expect(activeNames[35]).toBe('1794330000000-booking-benefit-request-reviews');

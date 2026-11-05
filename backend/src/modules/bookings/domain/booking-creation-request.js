@@ -19,6 +19,7 @@ function bookingCreationFingerprint(request, acceptedSummaryRevision) {
       identificationNumber: passenger.identificationNumber,
       fullName: passenger.fullName,
       birthDate: passenger.birthDate,
+      ...(passenger.contact !== undefined ? { contact: passenger.contact } : {}),
     }))
     .sort((left, right) => (left.seatId < right.seatId ? -1 : left.seatId > right.seatId ? 1 : 0));
   const payload = {

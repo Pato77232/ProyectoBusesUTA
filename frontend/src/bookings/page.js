@@ -22,7 +22,28 @@ function purchaseInput() {
   return {
     ...context,
     seatIds: [...selected],
-    passengers: [...selected].map((seatId) => ({ ...drafts.get(seatId) })),
+    passengers: [...selected].map((seatId) => {
+      const {
+        deliveryEmail,
+        guardianFullName,
+        guardianBirthDate,
+        ...passenger
+      } = drafts.get(seatId);
+      return {
+        ...passenger,
+        contact: {
+          email: deliveryEmail,
+          ...(guardianFullName || guardianBirthDate
+            ? {
+                guardian: {
+                  fullName: guardianFullName,
+                  birthDate: guardianBirthDate,
+                },
+              }
+            : {}),
+        },
+      };
+    }),
   };
 }
 async function benefitAction(refresh = false) {
@@ -62,8 +83,7 @@ let loginRequired = false;
 let hasCustomerSession = false;
 const context = readTripContext(window.location.search);
 const reservationReturn =
-  "/pages/reservas.html" +
-  (context ? "?" + new URLSearchParams(context) : "");
+  "/pages/reservas.html" + (context ? "?" + new URLSearchParams(context) : "");
 element("register-customer").href =
   "/pages/registro.html?" + new URLSearchParams({ next: reservationReturn });
 const selected = new Set();
@@ -217,6 +237,9 @@ function renderPassengers() {
         fullName: "",
         identificationNumber: "",
         birthDate: "",
+        deliveryEmail: "",
+        guardianFullName: "",
+        guardianBirthDate: "",
       });
     const draft = drafts.get(seatId);
     const fieldset = node("fieldset", undefined, "booking-passenger");
@@ -226,6 +249,21 @@ function renderPassengers() {
       ["fullName", "Nombre completo", "text"],
       ["identificationNumber", "Cédula (10 dígitos)", "text"],
       ["birthDate", "Fecha de nacimiento", "date"],
+      [
+        "deliveryEmail",
+        "Correo de entrega: pasajero adulto o responsable del menor",
+        "email",
+      ],
+      [
+        "guardianFullName",
+        "Si es menor al viajar: nombre del responsable adulto",
+        "text",
+      ],
+      [
+        "guardianBirthDate",
+        "Si es menor al viajar: nacimiento del responsable adulto",
+        "date",
+      ],
     ]) {
       const wrapper = node("div", undefined, "booking-field");
       const id = "passenger-" + index + "-" + field;
@@ -235,7 +273,7 @@ function renderPassengers() {
       Object.assign(input, {
         id,
         type,
-        required: true,
+        required: !["guardianFullName", "guardianBirthDate"].includes(field),
         value: draft[field],
         autocomplete: "off",
       });
@@ -273,6 +311,17 @@ function renderSummary(target, summary) {
           money(passenger.quote.totalPriceCents),
       ),
     );
+    if (passenger.contact)
+      item.append(
+        node(
+          "small",
+          "Correo de entrega: " +
+            passenger.contact.email +
+            (passenger.contact.guardian
+              ? " · Responsable: " + passenger.contact.guardian.fullName
+              : ""),
+        ),
+      );
     passengers.append(item);
   }
   const totals = node("dl", undefined, "booking-totals");
@@ -496,7 +545,14 @@ element("passenger-form").addEventListener("input", (event) => {
   const { seatId, field } = event.target.dataset;
   if (
     !drafts.has(seatId) ||
-    !["fullName", "identificationNumber", "birthDate"].includes(field)
+    ![
+      "fullName",
+      "identificationNumber",
+      "birthDate",
+      "deliveryEmail",
+      "guardianFullName",
+      "guardianBirthDate",
+    ].includes(field)
   )
     return;
   drafts.get(seatId)[field] = event.target.value;
