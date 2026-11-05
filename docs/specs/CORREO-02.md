@@ -145,7 +145,7 @@ Cada incremento se cierra con lint, formato y `npm test` (integración con Postg
 
 ### Evidencia de T1 (5 de noviembre de 2026)
 
-- Migración `1794320000000-create-email-notifications`, después de `1794310000000-create-tickets` de BOLETOS-01. La base valida estados, reclamo (`SENDING` exige `claimed_at`) y cierre (`ACCEPTED`, `FAILED` y `SKIPPED` exigen `finished_at`).
+- Migración `1794340000000-create-email-notifications`, después de `1794310000000-create-tickets` de BOLETOS-01. La base valida estados, reclamo (`SENDING` exige `claimed_at`) y cierre (`ACCEPTED`, `FAILED` y `SKIPPED` exigen `finished_at`).
 - `createNotificationsModule().outbox.enqueueWith(client, aviso)`: valida el aviso, inserta con `ON CONFLICT (kind, booking_id) DO NOTHING` y devuelve `{ queued }`. Las pruebas comprueban que el aviso se confirma o desaparece con la transacción del llamador.
 - Reservas: `createBookingNotificationQueries({ pool }).findNotificationContext(...)`, separado de BOOK-09; si la reserva no tiene tramo congelado devuelve `trip: null` en lugar de fallar.
 - Auth: `createCustomerContactQueries({ pool }).findCustomerEmail(userId)`; solo `CUSTOMER` y solo identificadores UUID.

@@ -140,7 +140,7 @@ test('Reservas entrega el contexto del aviso y Auth el correo del cliente', asyn
 
 test('la reversión de la migración se bloquea con avisos registrados', async () => {
   await inTransaction((client) => outbox.enqueueWith(client, notice));
-  await rollbackBefore(pool, '1794320000000-create-email-notifications');
+  await rollbackBefore(pool, '1794340000000-create-email-notifications');
   expect(() => runMigration('down')).toThrow();
   expect(await stored()).toHaveLength(1);
   await pool.query('TRUNCATE email_notifications');

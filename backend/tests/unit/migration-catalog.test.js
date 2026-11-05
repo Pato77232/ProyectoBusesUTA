@@ -29,7 +29,7 @@ test('catálogo explícito conserva la cadena de develop, Pagos, protección, re
   expect(activeNames[31]).toBe('1794290000000-index-password-reset-attempt-retention');
   expect(activeNames[32]).toBe('1794300000000-index-password-reset-action-retention');
   expect(activeNames[33]).toBe('1794310000000-create-tickets');
-  expect(activeNames[34]).toBe('1794320000000-create-email-notifications');
+  expect(activeNames[34]).toBe('1794340000000-create-email-notifications');
   expect(() => validateHistory(activeNames.slice(0, 22))).not.toThrow();
   expect(new Set(activeNames).size).toBe(activeNames.length);
   expect([...activeNames].sort()).toEqual(activeNames);
