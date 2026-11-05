@@ -1,3 +1,14 @@
+const destinations = {
+  SYSTEM_ADMIN: {
+    href: "/pages/cooperativas.html",
+    label: "Administrar cooperativas",
+  },
+  COOPERATIVE_ADMIN: {
+    href: "/pages/operaciones-cooperativa.html",
+    label: "Operaciones de cooperativa",
+  },
+};
+
 export function createLoginView(root) {
   const form = root.querySelector("form");
   const fields = form.querySelector("fieldset");
@@ -8,17 +19,6 @@ export function createLoginView(root) {
   const identity = root.querySelector("#session-email");
   const administration = root.querySelector("#administration-link");
   const change = root.querySelector("#change-account");
-  const destinations = {
-    SYSTEM_ADMIN: {
-      href: "/pages/cooperativas.html",
-      label: "Administrar cooperativas",
-    },
-    COOPERATIVE_ADMIN: {
-      href: "/pages/oficinistas.html",
-      label: "Crear oficinistas",
-    },
-  };
-
   function render({ mode, message, email: userEmail, role, errorField }) {
     const wasHidden = form.hidden;
     const lostFocus =
@@ -37,7 +37,7 @@ export function createLoginView(root) {
     identity.textContent = mode === "session" ? userEmail : "";
     change.hidden = mode !== "session" && mode !== "signing-out";
     change.disabled = mode !== "session";
-    const destination = mode === "session" ? destinations[role] : null;
+    const destination = mode === "session" ? loginDestination(role) : null;
     administration.hidden = !destination;
     if (destination) {
       administration.href = destination.href;
@@ -70,4 +70,8 @@ export function createLoginView(root) {
       password.value = "";
     },
   };
+}
+
+export function loginDestination(role) {
+  return destinations[role] ?? null;
 }

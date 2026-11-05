@@ -1,5 +1,22 @@
 # Estado compartido del proyecto
 
+## OPS-WEB-01 — acceso a operaciones de cooperativa, 4 de noviembre de 2026
+
+En `feature/AUTH-WEB-01-cierre-sesion-cambio-cuenta`, sobre commit
+`1f15756`, el solicitante eligió agregar un menú para el rol
+`COOPERATIVE_ADMIN`. Login ahora enlaza a `/pages/operaciones-cooperativa.html`;
+la página valida `/api/v1/auth/me` antes de mostrar enlaces a registrar bus,
+frecuencias, hojas de ruta y crear oficinistas. Se explicita que Flota aún
+requiere un grupo y no hay pantalla para crearlo. La página y su módulo se
+incluyen en la imagen Nginx. No hubo cambios backend ni dependencias.
+
+Pruebas: frontend 366/366, lint, Prettier, build Docker y recorrido
+`test:admin` con Chrome y stack aislado aprobados. El smoke confirmó enlaces
+HTTP 200, rol denegado y reflujo a 360 px. El entorno de QA se retiró; el
+entorno temporal que el usuario ya tenía activo no se detuvo. La evidencia y
+los límites constan en [OPS-WEB-01](specs/OPS-WEB-01.md). Pendientes: revisión
+humana e integración. Sin commit, push o merge.
+
 ## AUTH-WEB-01 — ampliación de cierre y cambio de cuenta, 4 de noviembre de 2026
 
 El solicitante autorizó implementar en su rama feature administrada por él.
