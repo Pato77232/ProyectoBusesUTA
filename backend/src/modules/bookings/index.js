@@ -145,4 +145,9 @@ function createBookingsModule({
 }
 const createBookingOccupancyQueries = require('./infrastructure/create-booking-occupancy-queries');
 
-module.exports = { createBookingsModule, createBookingOccupancyQueries };
+const createBookingTicketQueries = require('./infrastructure/create-booking-ticket-queries');
+module.exports = {
+  createBookingsModule,
+  createBookingOccupancyQueries,
+  createBookingTicketQueries,
+};

@@ -726,3 +726,7 @@ tokens internos; la emisión recibe un puerto de correo para entregar el enlace.
 
 La cobertura específica y la validación del catálogo aprobaron 18/18 pruebas.
 Revisión humana, push, PR e integración siguen pendientes.
+
+## Leslie — lectura de venta para boletos, 4 de noviembre de 2026
+
+Rama feature/BOOK-09-lectura-venta-boletos actualizada por fast-forward a 5c48d22, hotfix #94 integrado. [Spec](specs/BOOK-09-lectura-boletos.md), [contrato interno](contratos/bookings-lectura-boletos.md) y [evidencia histórica y vigente](evidence/BOOK-09/2026-11-04-lectura-boletos.md). Implementados lector privado de venta SOLD y proyección desde snapshot comercial schemaVersion 2, con coherencia de pasajeros, precio y asignaciones y lectura sin efectos. Verificación final tras sincronizar dependencias existentes: npm test aprobado, 1990 unitarias + 662 integraciones, 2652 pruebas/172 suites. Lint, formato global y diff --check aprobados; arranque real health 200 y stop ordenado. Pendientes: revisión humana y consumidor de boletos de Shirley. Leslie autoriza crear commit y publicar esta rama. PR, revisión humana y conexión con Tickets pendientes; funcionalidad no integrada. Cambios previos y respaldo del lector conservados en los stashes documentados. Los fallos anteriores permanecen en evidencia con su base y fecha; no describen el resultado final actual.
