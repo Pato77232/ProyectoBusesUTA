@@ -4,9 +4,49 @@ const DomainError = require('../errors/domain-error');
 const TIMEOUT_MS = 15000;
 const MAX_SUBJECT_LENGTH = 200;
 const MAX_TEXT_LENGTH = 50000;
+const MAX_QR_PNG_BYTES = 256 * 1024;
+const PNG_SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+const PNG_FILENAME = /^[a-z0-9][a-z0-9._-]{0,78}\.png$/i;
 const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 const EMAIL = /^[^\s<>@,;]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
 const isEmail = (value) => typeof value === 'string' && EMAIL.test(value);
+function isPng(content) {
+  if (
+    !Buffer.isBuffer(content) ||
+    content.length > MAX_QR_PNG_BYTES ||
+    content.length < 45 ||
+    !content.subarray(0, PNG_SIGNATURE.length).equals(PNG_SIGNATURE)
+  )
+    return false;
+  let offset = PNG_SIGNATURE.length;
+  let first = true;
+  while (offset + 12 <= content.length) {
+    const length = content.readUInt32BE(offset);
+    const end = offset + 12 + length;
+    if (end > content.length) return false;
+    const type = content.toString('ascii', offset + 4, offset + 8);
+    if (first && (type !== 'IHDR' || length !== 13)) return false;
+    if (first && (!content.readUInt32BE(offset + 8) || !content.readUInt32BE(offset + 12)))
+      return false;
+    if (type === 'IEND') return length === 0 && end === content.length;
+    first = false;
+    offset = end;
+  }
+  return false;
+}
+function isQrAttachment(attachment) {
+  return (
+    attachment &&
+    typeof attachment === 'object' &&
+    !Array.isArray(attachment) &&
+    Object.keys(attachment).length === 3 &&
+    Object.keys(attachment).every((key) => ['filename', 'contentType', 'content'].includes(key)) &&
+    typeof attachment.filename === 'string' &&
+    PNG_FILENAME.test(attachment.filename) &&
+    attachment.contentType === 'image/png' &&
+    isPng(attachment.content)
+  );
+}
 function sendFailure(error) {
   if (Number.isInteger(error?.responseCode)) {
     if (error.responseCode >= 500 && error.responseCode < 600)
@@ -72,7 +112,7 @@ function createSmtpMailer(env = {}, createTransport = nodemailer.createTransport
       if (
         !input ||
         Object.keys(input).some(
-          (key) => !['to', 'subject', 'text', 'notificationId'].includes(key),
+          (key) => !['to', 'subject', 'text', 'notificationId', 'attachment'].includes(key),
         ) ||
         !isEmail(input.to) ||
         typeof input.subject !== 'string' ||
@@ -83,18 +123,28 @@ function createSmtpMailer(env = {}, createTransport = nodemailer.createTransport
         !input.text.trim() ||
         input.text.length > MAX_TEXT_LENGTH ||
         typeof input.notificationId !== 'string' ||
-        !UUID.test(input.notificationId)
+        !UUID.test(input.notificationId) ||
+        (Object.hasOwn(input, 'attachment') && !isQrAttachment(input.attachment))
       )
         fail('MAIL_INVALID_MESSAGE', 'Los datos del aviso no son válidos.');
       let result;
       try {
-        result = await transport.sendMail({
+        const mail = {
           from: env.SMTP_FROM,
           to: input.to,
           subject: input.subject,
           text: input.text,
           messageId: `<${input.notificationId}@transviaje.local>`,
-        });
+        };
+        if (input.attachment)
+          mail.attachments = [
+            {
+              filename: input.attachment.filename,
+              contentType: 'image/png',
+              content: Buffer.from(input.attachment.content),
+            },
+          ];
+        result = await transport.sendMail(mail);
       } catch (error) {
         sendFailure(error);
       }

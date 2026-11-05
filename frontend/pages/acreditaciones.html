@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Acreditación de beneficios · transViaje</title>
+    <link rel="icon" href="../assets/favicon.svg" />
+    <link
+      rel="stylesheet"
+      href="../assets/vendor/bootstrap-5.3.8/bootstrap.min.css"
+    />
+    <link rel="stylesheet" href="../src/styles/app.css" />
+    <link rel="stylesheet" href="../src/styles/benefits.css" />
+  </head>
+  <body class="benefits-page">
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+    <header class="site-header">
+      <div
+        class="container d-flex flex-wrap align-items-center justify-content-between gap-3"
+      >
+        <a class="brand" href="../index.html" aria-label="transViaje, inicio"
+          ><span class="brand-logo-frame" aria-hidden="true"
+            ><img
+              class="brand-logo"
+              src="../assets/brand/logo-transviaje.png"
+              alt=""
+              width="1600"
+              height="1446" /></span
+        ></a>
+        <nav aria-label="Área de oficinista" class="d-flex flex-wrap gap-4">
+          <a href="comprobantes.html">Comprobantes</a
+          ><a href="login.html">Mi sesión</a>
+        </nav>
+      </div>
+    </header>
+    <main id="contenido" class="container benefit-layout" tabindex="-1">
+      <p class="eyebrow">COOPERATIVA · OFICINISTA</p>
+      <h1>Primero, sus beneficios.</h1>
+      <p class="benefit-lead">
+        Contrasta los documentos de cada pasajero antes de que acepte el total
+        de su compra.
+      </p>
+      <p>
+        Esta verificación no reserva asientos ni aprueba un pago. Las
+        referencias de documentos son privadas.
+      </p>
+      <div id="benefit-workspace">
+        <div class="d-flex flex-wrap gap-3 my-4">
+          <button
+            id="refresh-benefits"
+            type="button"
+            class="btn btn-dark rounded-pill"
+          >
+            Actualizar bandeja</button
+          ><a href="login.html" class="align-self-center">Cambiar sesión</a>
+        </div>
+        <p
+          id="benefit-status"
+          class="benefit-status"
+          role="status"
+          aria-live="polite"
+          tabindex="-1"
+        >
+          Comprobando sesión…
+        </p>
+        <button
+          id="retry-benefits"
+          class="btn btn-dark rounded-pill mb-3"
+          type="button"
+          hidden
+        >
+          Recuperar el mismo envío
+        </button>
+        <div class="benefit-columns">
+          <section aria-labelledby="list-title">
+            <h2 id="list-title">Solicitudes</h2>
+            <div id="benefit-list" class="benefit-list"></div>
+            <button
+              id="next-benefits"
+              type="button"
+              class="btn btn-outline-dark rounded-pill my-3"
+              disabled
+            >
+              Siguiente página
+            </button>
+            <p>Actualizar bandeja vuelve a la primera página.</p>
+          </section>
+          <section
+            id="benefit-detail"
+            class="benefit-detail"
+            tabindex="-1"
+            hidden
+            aria-label="Revisar solicitud"
+          >
+            <div id="benefit-context"></div>
+            <form id="benefit-form" autocomplete="off">
+              <p id="benefit-instructions">
+                Marca únicamente lo que hayas comprobado con el documento
+                presentado. Una casilla sin marcar se registra como no
+                acreditada.
+              </p>
+              <div id="benefit-fields"></div>
+              <label id="benefit-confirmation" class="benefit-confirmation"
+                ><input id="confirmed-context" type="checkbox" required /> He
+                contrastado los pasajeros y sus documentos. Entiendo que esta
+                revisión quedará registrada.</label
+              >
+              <button
+                id="save-benefits"
+                type="submit"
+                class="btn btn-dark rounded-pill mt-3"
+              >
+                Guardar verificación
+              </button>
+            </form>
+          </section>
+        </div>
+      </div>
+    </main>
+    <script type="module" src="../src/bookings/benefits-page.js"></script>
+  </body>
+</html>

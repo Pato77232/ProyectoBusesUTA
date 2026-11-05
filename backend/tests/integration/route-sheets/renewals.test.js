@@ -480,3 +480,140 @@ test('un fallo después de las escrituras revierte borrador, tarifa, programaci�
   expect(await count('route_sheet_renewals')).toBe(0);
   expect(await count('route_sheet_trips')).toBe(3);
 });
+
+async function commercialHistory() {
+  return Promise.all(
+    TABLES.map(async (table) => ({
+      table,
+      rows: (await pool.query(`SELECT * FROM ${table} ORDER BY id`)).rows,
+    })),
+  );
+}
+
+async function expectHistoryPreserved(history) {
+  for (const { table, rows } of history) {
+    const current = await pool.query(
+      `SELECT * FROM ${table} WHERE id=ANY($1::uuid[]) ORDER BY id`,
+      [rows.map((row) => row.id)],
+    );
+    expect(current.rows).toEqual(rows);
+  }
+}
+
+async function searchDate(date) {
+  const response = await new Browser(url).request(
+    `/api/v1/trips?origin=Ambato&destination=Latacunga&date=${date}`,
+  );
+  expect(response.status).toBe(200);
+  return response.json();
+}
+
+function commercialQueries() {
+  const createQueries = require('../../../src/modules/route-sheets/application/create-trip-queries');
+  const Repository = require('../../../src/modules/route-sheets/infrastructure/repositories/pg-commercial-trip-query-repository');
+  return createQueries({
+    tripRepository: new Repository(pool),
+    frequencyQueryPort: frequencyQueries,
+    busQueryPort: busQueries,
+    now: () => '2029-12-31T00:00:00.000Z',
+  });
+}
+
+test('solo publicar la renovación amplía búsqueda y horizonte sin duplicar ni alterar historia', async () => {
+  await publishedSource();
+  const history = await commercialHistory();
+  const firstTrip = history.find((entry) => entry.table === 'route_sheet_trips').rows[0];
+  const queries = commercialQueries();
+  const originalSearch = await searchDate('2030-01-01');
+  expect(originalSearch.trips).toHaveLength(1);
+  const empty = { trips: [], truncated: false };
+  expect(await searchDate('2030-01-02')).toEqual(empty);
+  const response = await renew(request());
+  expect(response.status).toBe(201);
+  const target = (await response.json()).renewal.routeSheetId;
+  expect(await searchDate('2030-01-02')).toEqual(empty);
+  expect((await queries.findBookableById(firstTrip.id)).confirmedThroughExclusive).toBe(
+    '2030-01-02T05:00:00.000Z',
+  );
+  expect(await Promise.all(TABLES.map(count))).toEqual([3, 1, 1, 1]);
+
+  const published = await Promise.all(
+    [1, 2].map(() => admin.request(`/api/v1/route-sheets/${target}/publish`, 'POST', {})),
+  );
+  expect(published.map((result) => result.status)).toEqual([200, 200]);
+  const manifests = await Promise.all(
+    published.map(async (result) => (await result.json()).routeSheet.commercial),
+  );
+  expect(manifests[1]).toEqual(manifests[0]);
+  expect(manifests[0].cycleNumber).toBe(2);
+  const found = await searchDate('2030-01-02');
+  expect(found.trips).toHaveLength(1);
+  expect(manifests[0].tripIds).toContain(found.trips[0].tripId);
+  expect(found.trips[0]).toMatchObject({
+    amountCents: 450,
+    boardingAt: '2030-01-02T12:00:00.000Z',
+  });
+  expect((await queries.findBookableById(firstTrip.id)).confirmedThroughExclusive).toBe(
+    '2030-01-03T05:00:00.000Z',
+  );
+  expect(await searchDate('2030-01-01')).toEqual(originalSearch);
+  const counts = await Promise.all(TABLES.map(count));
+  expect(counts).toEqual([6, 2, 2, 1]);
+  expect((await renew(request(), { context: { routeSheetId: target } })).status).toBe(409);
+  expect(await Promise.all(TABLES.map(count))).toEqual(counts);
+  await expectHistoryPreserved(history);
+});
+
+test('el fin exclusivo libera cupo para preparar el tercero sin publicarlo ni renumerar historia', async () => {
+  const source = await publishedSource();
+  const second = (await (await renew(request())).json()).renewal.routeSheetId;
+  expect((await admin.request(`/api/v1/route-sheets/${second}/publish`, 'POST', {})).status).toBe(
+    200,
+  );
+  const history = await commercialHistory();
+  const body = { ...request(), sourceRouteSheetId: second };
+  const actor = {
+    id: f.context.modifiedBy,
+    cooperative_id: owner.cooperativeId,
+    role: 'COOPERATIVE_ADMIN',
+  };
+  const prepareAt = (now) =>
+    prepareRenewalFactory({
+      renewalRepository: new PgRenewalRepository(pool, {
+        frequencySessionFactory: frequencyQueries.forTransaction,
+      }),
+      busQueryPort: busQueries,
+      now: () => now,
+      newId: randomUUID,
+    })(body, actor);
+  await expect(prepareAt('2030-01-02T04:59:59.999Z')).rejects.toMatchObject({
+    code: 'COMMERCIAL_SERIES_CONFLICT',
+  });
+  expect(await count('route_sheets')).toBe(2);
+  const prepared = await prepareAt('2030-01-02T05:00:00.000Z');
+  expect(prepared.renewal).toMatchObject({
+    sourceRouteSheetId: second,
+    seriesId: source.commercial.seriesId,
+    status: 'DRAFT',
+    startAt: '2030-01-03T05:00:00.000Z',
+    endExclusive: '2030-01-04T05:00:00.000Z',
+  });
+  expect(await searchDate('2030-01-03')).toEqual({ trips: [], truncated: false });
+  expect(await Promise.all(TABLES.map(count))).toEqual([6, 2, 2, 1]);
+  const cycles = await pool.query(
+    'SELECT cycle_number FROM route_sheet_commercial_cycles WHERE series_id=$1 ORDER BY cycle_number',
+    [source.commercial.seriesId],
+  );
+  expect(cycles.rows).toEqual([{ cycle_number: 1 }, { cycle_number: 2 }]);
+  // HTTP usa el reloj actual: los dos períodos de 2030 siguen sin terminar.
+  const publishThird = await admin.request(
+    `/api/v1/route-sheets/${prepared.renewal.routeSheetId}/publish`,
+    'POST',
+    {},
+  );
+  expect(publishThird.status).toBe(409);
+  expect(await Promise.all(TABLES.map(count))).toEqual([6, 2, 2, 1]);
+  expect((await prepareAt('2030-01-02T05:00:00.000Z')).renewal).toEqual(prepared.renewal);
+  expect(await count('route_sheets')).toBe(3);
+  await expectHistoryPreserved(history);
+});

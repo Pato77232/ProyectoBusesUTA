@@ -170,6 +170,50 @@
             </button>
           </form>
           <section
+            id="benefit-request-panel"
+            class="booking-panel"
+            hidden
+            aria-labelledby="benefit-request-title"
+          >
+            <h2 id="benefit-request-title">Acredita tus beneficios</h2>
+            <p>
+              Antes de aceptar el total, un oficinista de la cooperativa debe
+              contrastar los documentos de tus pasajeros. Presenta documento de
+              identidad o nacimiento y, si corresponde, la acreditación de
+              discapacidad.
+            </p>
+            <p>
+              La solicitud no reserva asientos. Conserva esta pestaña abierta
+              para consultar el resultado; cambiar pasajeros, asiento o tramo
+              requiere otra revisión.
+            </p>
+            <p
+              id="benefit-buyer-status"
+              role="status"
+              aria-live="polite"
+              tabindex="-1"
+            >
+              Completa los pasajeros antes de solicitar la revisión.
+            </p>
+            <div class="booking-actions">
+              <button
+                id="request-benefit"
+                class="booking-button booking-button-light"
+                type="button"
+              >
+                Solicitar revisión de documentos
+              </button>
+              <button
+                id="refresh-benefit"
+                class="booking-button booking-button-light"
+                type="button"
+                hidden
+              >
+                Consultar verificación
+              </button>
+            </div>
+          </section>
+          <section
             id="summary-panel"
             class="booking-panel"
             hidden
@@ -249,6 +293,11 @@
             <p>Referencia de tu reserva</p>
             <p id="booking-reference" class="booking-reference"></p>
             <p id="booking-status"></p>
+            <p id="booking-tickets" hidden>
+              <a id="booking-tickets-link" class="booking-button" href="boletos.html"
+                >Ver mis boletos</a
+              >
+            </p>
             <p>Vencimiento indicado: <time id="booking-expiry"></time></p>
             <p
               id="booking-countdown"
@@ -256,7 +305,7 @@
               aria-live="off"
             ></p>
             <div id="receipt-content"></div>
-            <p class="booking-small">
+            <p id="booking-not-ticket" class="booking-small">
               La reserva todavía no es un boleto ni una venta aprobada.
             </p>
             <div class="booking-actions">

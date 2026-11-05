@@ -42,6 +42,9 @@ const activeNames = Object.freeze([
   '1794300000000-index-password-reset-action-retention',
   '1794330000000-auth-guest-email-access',
   '1794340000000-booking-guest-contact',
+  '1794310000000-create-tickets',
+  '1794320000000-booking-benefit-requests',
+  '1794330000000-booking-benefit-request-reviews',
 ]);
 const migrationsDirectory = path.join(__dirname, '../migrations');
 // node-pg-migrate ancla este patrón; preservar explícitamente su exclusión de ocultos.

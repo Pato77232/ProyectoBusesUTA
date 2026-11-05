@@ -214,6 +214,7 @@ test('copia de develop con datos conserva cada fila/definición y añade tablas 
       'auth_guest_sessions',
       'auth_guest_verifications',
       'auth_password_reset_attempts',
+      'booking_benefit_requests',
       'booking_benefit_reviews',
       'booking_guest_access_tokens',
       'booking_proof_receipt_results',
@@ -221,9 +222,11 @@ test('copia de develop con datos conserva cada fila/definición y añade tablas 
       'booking_trip_locks',
       'bookings',
       'route_sheet_renewals',
+      'tickets',
     ]);
     expect(after.data.bookings).toEqual([]);
     expect(after.data.route_sheet_renewals).toEqual([]);
+    expect(after.data.tickets).toEqual([]);
   });
 });
 
