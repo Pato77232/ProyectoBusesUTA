@@ -1,3 +1,4 @@
+const getAccessibleAvailability = require('./application/get-accessible-availability.use-case');
 const createBenefitRequests = require('./application/benefit-requests');
 const PgBenefitRequestRepository = require('./infrastructure/pg-benefit-request.repository');
 const createBenefitRequestRouter = require('./interfaces/benefit-request-router');
@@ -148,6 +149,10 @@ function createBookingsModule({
       getSeatAvailability: getSeatAvailability({
         tripCatalog,
         segmentCatalog,
+        allocationReader: repository,
+      }),
+      getAccessibleAvailability: getAccessibleAvailability({
+        purchaseCatalog,
         allocationReader: repository,
       }),
       getBookingSummary: getBookingSummary(dependencies),

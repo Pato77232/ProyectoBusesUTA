@@ -115,7 +115,12 @@
                 Iniciar sesión y continuar
               </button>
             </form>
-            <p>¿Aún no tienes cuenta? <a id="register-customer" href="/pages/registro.html">Crear cuenta</a></p>
+            <p>
+              ¿Aún no tienes cuenta?
+              <a id="register-customer" href="/pages/registro.html"
+                >Crear cuenta</a
+              >
+            </p>
           </details>
           <section
             id="seat-panel"
@@ -142,6 +147,11 @@
             <div class="booking-legend" aria-label="Estados de los asientos">
               <span>□ Libre</span><span>✓ Elegido</span><span>× Ocupado</span>
             </div>
+            <label class="d-block mb-3"
+              ><input id="include-accessible" type="checkbox" /> Consultar
+              espacios para silla de ruedas (acompañante en asiento normal
+              separado)</label
+            >
             <div
               id="seat-list"
               class="booking-seats"
@@ -294,7 +304,10 @@
             <p id="booking-reference" class="booking-reference"></p>
             <p id="booking-status"></p>
             <p id="booking-tickets" hidden>
-              <a id="booking-tickets-link" class="booking-button" href="boletos.html"
+              <a
+                id="booking-tickets-link"
+                class="booking-button"
+                href="boletos.html"
                 >Ver mis boletos</a
               >
             </p>
