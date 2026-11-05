@@ -20,6 +20,18 @@ class BusRepository {
     throw new Error('BusRepository.listByCooperative debe implementarse.');
   }
 
+  async listAdminBuses() {
+    throw new Error('BusRepository.listAdminBuses debe implementarse.');
+  }
+
+  async findAdminDetails() {
+    throw new Error('BusRepository.findAdminDetails debe implementarse.');
+  }
+
+  async findPhotoById() {
+    throw new Error('BusRepository.findPhotoById debe implementarse.');
+  }
+
   async listByBusGroup() {
     throw new Error('BusRepository.listByBusGroup debe implementarse.');
   }
