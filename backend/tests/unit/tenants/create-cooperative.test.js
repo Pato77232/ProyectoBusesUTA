@@ -1,5 +1,6 @@
 const {createCooperativeData}=require('../../../src/modules/tenants/domain/cooperative');
 const createCooperative=require('../../../src/modules/tenants/application/create-cooperative.use-case');
+const listCooperatives=require('../../../src/modules/tenants/application/list-cooperatives.use-case');
 const PgCooperativeRepository=require('../../../src/modules/tenants/infrastructure/pg-cooperative.repository');
 const valid={name:'Cooperativa de prueba',ruc:'0012345678901'};
 test('normaliza textos, conserva ceros de RUC y convierte opcionales vacíos en null',()=>{
@@ -24,4 +25,15 @@ test('repositorio traduce solo duplicado de RUC y conserva otros errores',async(
  await expect(repository.create(createCooperativeData(valid))).rejects.toMatchObject({code:'COOPERATIVE_ALREADY_EXISTS'});
  const failure=new Error('database unavailable');pool.query.mockRejectedValue(failure);
  await expect(repository.create(createCooperativeData(valid))).rejects.toBe(failure);
+});
+
+test('listado solo consulta el repositorio para SYSTEM_ADMIN', async () => {
+ const repository={listSummary:jest.fn().mockResolvedValue([{id:'id',name:'UTA',ruc:'0012345678901'}])};
+ const list=listCooperatives({repository});
+ await expect(list({role:'SYSTEM_ADMIN'})).resolves.toHaveLength(1);
+ expect(repository.listSummary).toHaveBeenCalledTimes(1);
+ for(const role of ['CUSTOMER','CLERK','COOPERATIVE_ADMIN']) {
+  await expect(list({role})).rejects.toMatchObject({code:'FORBIDDEN'});
+ }
+ expect(repository.listSummary).toHaveBeenCalledTimes(1);
 });

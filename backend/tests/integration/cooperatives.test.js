@@ -51,6 +51,30 @@ test('SYSTEM_ADMIN crea y persiste cooperativa sin crear administrador',async()=
  expect((await pool.query('SELECT id FROM cooperatives WHERE ruc=$1',[payload.ruc])).rows[0].id).toBe(cooperative.id);
  expect((await pool.query('SELECT count(*)::int AS count FROM users')).rows[0].count).toBe(4);
 });
+test('SYSTEM_ADMIN lista cooperativas ordenadas sin datos de contacto',async()=>{
+ const browser=new Browser();await browser.signIn();
+ const inserted=(await pool.query(
+  'INSERT INTO cooperatives(name,ruc,email,phone,address) VALUES($1,$2,$3,$4,$5) RETURNING id',
+  ['Alfa','0011111111111','contacto@example.ec','0999999999','Ambato'],
+ )).rows[0];
+ const response=await browser.request('/api/v1/cooperatives');
+ expect(response.status).toBe(200);
+ expect(response.headers.get('cache-control')).toBe('no-store');
+ expect(await response.json()).toEqual({cooperatives:[
+  {id:inserted.id,name:'Alfa',ruc:'0011111111111'},
+  {id:baselineCooperatives[0].id,name:'Cooperativa inicial',ruc:'0099999999999'},
+ ]});
+});
+test.each(['CUSTOMER','COOPERATIVE_ADMIN','CLERK'])('%s no consulta el catálogo global',async(role)=>{
+ const browser=new Browser();await browser.signIn(role);
+ expect((await browser.request('/api/v1/cooperatives')).status).toBe(403);
+});
+test('sin sesión vigente no se consulta el catálogo global',async()=>{
+ const browser=new Browser();
+ expect((await browser.request('/api/v1/cooperatives')).status).toBe(401);
+ await browser.signIn();await pool.query('UPDATE auth_sessions SET revoked_at=CURRENT_TIMESTAMP');
+ expect((await browser.request('/api/v1/cooperatives')).status).toBe(401);
+});
 test('opcionales omitidos o vacíos se guardan como null',async()=>{
  const browser=new Browser();await browser.signIn();const res=await browser.create({...payload,email:' ',phone:null});
  expect(res.status).toBe(201);expect((await res.json()).cooperative).toMatchObject({email:null,phone:null,address:null});

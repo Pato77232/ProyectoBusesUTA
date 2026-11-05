@@ -1,5 +1,20 @@
 # Estado compartido del proyecto
 
+## Pablo — AUTH-WEB-03, pantallas administrativas, 4 de noviembre de 2026
+
+En `feature/AUTH-WEB-03-administracion`, creada desde `origin/develop`
+`d7ea282`, Pablo aprobó el contrato de [AUTH-WEB-03](specs/AUTH-WEB-03.md).
+Pablo confirmó agregar consulta de cooperativas para poder asignar un
+administrador a una cooperativa ya creada. Se implementaron tres pantallas:
+alta de cooperativa y administrador por `SYSTEM_ADMIN`, y alta de oficinistas
+por `COOPERATIVE_ADMIN` con cooperativa de la sesión. El recorrido real de
+cooperativa → administrador → oficinista, rechazo por rol y móvil aprobó.
+Backend lint/formato, 2018/2018 unitarias, 687/688 integraciones y frontend
+lint, 352/352 pruebas aprobaron. La única falla global fue una reversión de
+migración de Flota, que pasó 9/9 sola con base nueva; detalles en la spec.
+En commits locales por cambio lógico; sin publicación, revisión humana ni
+integración de esta tarea.
+
 ## Pablo — AUTH-CORREO-01 publicada y conciliada con develop, 4 de noviembre de 2026
 
 La rama `feature/AUTH-CORREO-01-recuperacion-cuenta` contiene la solicitud
