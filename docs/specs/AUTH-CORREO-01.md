@@ -1,7 +1,7 @@
 # AUTH-CORREO-01: recuperar el acceso mediante correo
 
 - **Responsable de preparación:** Pablo. **Revisión de contrato:** Edwin respondió las preguntas por mensaje comunicado por Pablo; revisión del cambio documental y del código pendiente.
-- **Estado:** contrato funcional confirmado por Pablo el 4 de noviembre de 2026; implementación pendiente.
+- **Estado:** contrato cerrado por Pablo el 4 de noviembre de 2026; primer incremento de implementación local, sin integración.
 - **Base comprobada:** `origin/develop` `5ff50d9`, 4 de noviembre de 2026; rama `feature/AUTH-CORREO-01-recuperacion-cuenta`.
 - **Reglas y decisiones:** RN-01/03 en [business-rules](../business-rules.md), [ADR 0004](../adr/0004-autenticacion-sesiones-credenciales.md), [CORREO-01](CORREO-01.md), [calidad](../calidad.md) y `frontend/DESIGN.md`.
 
@@ -61,3 +61,28 @@ La base PostgreSQL temporal `busesuta_test` se retiró tras la verificación.
 `npm ci` informó 24 hallazgos de auditoría (3 bajos, 20 moderados, 1 alto);
 no se actualizaron dependencias en esta tarea documental. Revisión humana e
 integración de esta PR siguen pendientes.
+
+## Incremento local: solicitud durable
+
+Pablo declaró cerrado el contrato y autorizó comenzar la implementación el 4
+de noviembre de 2026. Se añadió una migración nueva con `auth_email_actions`
+y contadores de solicitudes. `POST /api/v1/auth/password-reset` exige CSRF,
+normaliza el correo y devuelve 202 uniforme para cuenta existente, inexistente,
+enfriamiento y límite por correo. El límite por IP devuelve 429. Los contadores
+se serializan por IP y correo en PostgreSQL, incluidos los correos inexistentes.
+Una solicitud admitida invalida acciones anteriores y deja una sola `PENDING`;
+no genera token ni envía correo dentro de HTTP. Los límites son configurables.
+La acción guarda el identificador de la cuenta sin FK para que la eliminación
+de una cuenta no quede bloqueada por acciones efímeras. El trabajador deberá
+comprobar que la cuenta sigue existiendo antes de emitir el enlace.
+
+La clasificación SMTP, emisión/reintento del trabajador, consumo del token,
+revocación de sesiones y pantallas son los incrementos siguientes. El endpoint
+solo registra la solicitud; hasta que el trabajador esté conectado no entrega
+enlaces. Las pruebas y el estado exacto de este incremento se registran en
+`docs/estado-proyecto.md`.
+
+Validación del incremento: backend lint, formato, 1946/1946 pruebas unitarias
+y 655/655 integraciones con PostgreSQL aislado aprobaron. El servidor real
+respondió 200 en `/api/v1/health` y cerró ordenadamente. No se cambiaron
+dependencias ni se envió correo.

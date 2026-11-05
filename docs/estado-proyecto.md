@@ -1,5 +1,19 @@
 # Estado compartido del proyecto
 
+## Pablo — AUTH-CORREO-01, solicitud durable local, 4 de noviembre de 2026
+
+Pablo cerró el contrato y autorizó implementar. En
+`feature/AUTH-CORREO-01-recuperacion-cuenta` existe un primer incremento sin
+commit ni publicación nueva: migración de acciones/contadores, endpoint público
+`POST /api/v1/auth/password-reset` con CSRF, 202 uniforme, límites por IP y
+correo y enfriamiento. Solicitudes concurrentes se serializan en PostgreSQL.
+La petición no envía correo ni genera token. Auth dirigido: 16/16 integraciones
+aprobadas; backend lint y formato aprobaron. Suite global con PostgreSQL aislado:
+1946/1946 unitarias y 655/655 integraciones aprobadas. Arranque real con base
+de prueba: `/api/v1/health` respondió 200 y cierre ordenado.
+Pendientes: trabajador SMTP, token y consumo atómico, revocación de sesiones,
+pantallas, revisión humana e integración.
+
 ## Pablo — borrador de recuperación de cuenta, 4 de noviembre de 2026
 
 En `feature/AUTH-CORREO-01-recuperacion-cuenta`, creada desde `origin/develop`
