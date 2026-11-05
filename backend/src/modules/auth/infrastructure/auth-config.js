@@ -38,6 +38,11 @@ function readAuthConfig(env = process.env) {
       60,
       'PASSWORD_RESET_COOLDOWN_SECONDS',
     ),
+    resetResponseFloorMs: positiveInteger(
+      env.PASSWORD_RESET_RESPONSE_FLOOR_MS,
+      300,
+      'PASSWORD_RESET_RESPONSE_FLOOR_MS',
+    ),
   };
 }
 module.exports = { readAuthConfig };
