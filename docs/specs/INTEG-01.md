@@ -6,7 +6,6 @@
 - **Responsable:** Edwin, por acuerdo del equipo de que cualquier integrante puede resolver los bloqueos comunes
 - **Revisor propuesto:** pendiente; la revisión de IA no sustituye revisión humana
 - **Estado:** T1 en `feature/INTEG-01-catalogo-migraciones` (commits `cf285b3` y `183d95b`), pendiente de PR. T2 en `feature/INTEG-01-T2-historial-reservas` (`44cd95b`), creada sobre T1. T3 en `feature/INTEG-01-T3-rechazo-comprobantes` (`3d3261f`), creada sobre T2. T4 en `feature/INTEG-01-T4-confirmador-venta` (`3e6f4ef`), creada sobre T3. T5 en `feature/INTEG-01-T5-acceso-invitado` (`70fcbd2`, `a0387dd`), creada sobre T4. T6a (creación comercial) en `feature/INTEG-01-T6-compra-comercial`, creada sobre T5; T6b (acreditador real) requiere decisión del equipo.
-- **Estado:** T1 en `feature/INTEG-01-catalogo-migraciones` (commits `cf285b3` y `183d95b`), pendiente de PR. T2 en `feature/INTEG-01-T2-historial-reservas` (`44cd95b`), creada sobre T1. T3 en `feature/INTEG-01-T3-rechazo-comprobantes` (`3d3261f`), creada sobre T2. T4 en `feature/INTEG-01-T4-confirmador-venta` (`3e6f4ef`), creada sobre T3. T5 en `feature/INTEG-01-T5-acceso-invitado`, creada sobre T4. T6 sin empezar.
 - **Base comprobada:** `origin/develop` en `64f39cd`, sin PR abiertas.
 
 ## 1. Objetivo
