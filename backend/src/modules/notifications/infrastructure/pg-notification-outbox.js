@@ -1,4 +1,4 @@
-const { emailNotice } = require('../domain/email-notice');
+const { MAX_JUSTIFICATION_LENGTH, emailNotice } = require('../domain/email-notice');
 
 /**
  * Outbox de avisos. `enqueueWith` usa el cliente de la transacción de quien cambia el
@@ -9,6 +9,7 @@ function createNotificationOutbox({ newId, clock }) {
   if (typeof newId !== 'function' || typeof clock !== 'function')
     throw new TypeError('El outbox de avisos requiere identificadores y reloj.');
   return Object.freeze({
+    maxJustificationLength: MAX_JUSTIFICATION_LENGTH,
     async enqueueWith(client, input) {
       if (typeof client?.query !== 'function')
         throw new TypeError('Se requiere el cliente de la transacción en curso.');

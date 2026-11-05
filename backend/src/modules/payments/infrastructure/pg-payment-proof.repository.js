@@ -111,9 +111,33 @@ function toPaymentProof(row) {
 }
 
 class PgPaymentProofRepository extends PaymentProofRepository {
-  constructor(pool) {
+  /**
+   * `notificationOutbox` (API pública de Avisos) es opcional: si llega, la aprobación y el
+   * rechazo encolan su aviso al comprador en la misma transacción que el cambio de estado.
+   */
+  constructor(pool, { notificationOutbox } = {}) {
     super();
+    if (notificationOutbox !== undefined && typeof notificationOutbox?.enqueueWith !== 'function')
+      throw new TypeError('El outbox de avisos no es válido.');
     this.pool = pool;
+    this.notificationOutbox = notificationOutbox;
+  }
+
+  async withNotice(sql, values, noticeFor) {
+    if (!this.notificationOutbox) return (await this.pool.query(sql, values)).rows;
+    const client = await this.pool.connect();
+    try {
+      await client.query('BEGIN');
+      const { rows } = await client.query(sql, values);
+      if (rows.length === 1) await this.notificationOutbox.enqueueWith(client, noticeFor(rows[0]));
+      await client.query('COMMIT');
+      return rows;
+    } catch (error) {
+      await client.query('ROLLBACK').catch(() => {});
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   async findByBookingId(bookingId) {
@@ -166,7 +190,7 @@ class PgPaymentProofRepository extends PaymentProofRepository {
   }
 
   async markApprovedIfPending({ paymentProofId, cooperativeId, approvedBy, approvedAt }) {
-    const { rows } = await this.pool.query(
+    const rows = await this.withNotice(
       `UPDATE payment_proofs SET approved_by = approval_requested_by, approved_at = $4,
          updated_at = CURRENT_TIMESTAMP
        WHERE id = $1 AND cooperative_id = $2 AND status = 'UPLOADED'
@@ -174,6 +198,11 @@ class PgPaymentProofRepository extends PaymentProofRepository {
          AND approval_requested_at IS NOT NULL
        RETURNING ${PAYMENT_PROOF_COLUMNS}`,
       [paymentProofId, cooperativeId, approvedBy, approvedAt],
+      (row) => ({
+        kind: 'TICKETS_READY',
+        bookingId: row.booking_id,
+        cooperativeId: row.cooperative_id,
+      }),
     );
     return rows.length === 0 ? null : toPaymentProof(rows[0]);
   }
@@ -185,12 +214,22 @@ class PgPaymentProofRepository extends PaymentProofRepository {
     rejectionJustification,
     rejectedAt,
   }) {
-    const { rows } = await this.pool.query(
+    const rows = await this.withNotice(
       `UPDATE payment_proofs SET status='REJECTED', rejected_by=$3,
          rejection_justification=$4, rejected_at=$5, updated_at=CURRENT_TIMESTAMP
        WHERE id=$1 AND cooperative_id=$2 AND status='UPLOADED' AND approved_at IS NULL
        RETURNING ${PAYMENT_PROOF_COLUMNS}`,
       [paymentProofId, cooperativeId, rejectedBy, rejectionJustification, rejectedAt],
+      (row) => ({
+        kind: 'PROOF_REJECTED',
+        bookingId: row.booking_id,
+        cooperativeId: row.cooperative_id,
+        // El aviso lleva la justificación hasta el límite de Avisos; Pagos conserva la completa.
+        justification: row.rejection_justification.slice(
+          0,
+          this.notificationOutbox.maxJustificationLength,
+        ),
+      }),
     );
     return rows.length === 0 ? null : toPaymentProof(rows[0]);
   }

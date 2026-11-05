@@ -21,9 +21,10 @@ function createPaymentsModule({
   bookingPaymentProofNotifier,
   bookingSaleConfirmer,
   paymentQueries,
+  notificationOutbox,
   clock = () => new Date(),
 } = {}) {
-  const paymentProofRepository = new PgPaymentProofRepository(pool);
+  const paymentProofRepository = new PgPaymentProofRepository(pool, { notificationOutbox });
   const fileStorage = new LocalPrivateFileStorage({
     rootDirectory:
       env.PAYMENT_PROOF_STORAGE_DIR ||

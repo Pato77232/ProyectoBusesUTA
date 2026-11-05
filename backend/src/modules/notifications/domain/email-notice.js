@@ -52,4 +52,4 @@ function emailNotice(input) {
   });
 }
 
-module.exports = { KINDS, emailNotice, EmailNoticeError };
+module.exports = { KINDS, MAX_JUSTIFICATION_LENGTH, emailNotice, EmailNoticeError };
