@@ -1,5 +1,34 @@
 # Estado compartido del proyecto
 
+## Leslie y Pablo — preparación de compra como invitado, 4 de noviembre de 2026
+
+En `feature/BOOK-11-compra-invitado`, creada desde `origin/develop` `c9d14bf`,
+se preparó [BOOK-11](specs/BOOK-11.md) para RN-41. El solicitante confirmó
+verificar el correo antes de reservar, enlace de 15 minutos, sesión limitada de
+30 minutos y preparación interna con el flujo público apagado. Después indicó
+que el equipo acuerda encargar a Codex el contrato entre módulos y autorizó,
+por esta vez, actualizar las pruebas existentes del catálogo para el esquema
+nuevo; no se registran respuestas individuales de Leslie o Shirley.
+
+Auth interno genera y canjea secretos hasheados, conserva un comprador estable
+por correo verificado y revoca sesiones. Reservas dispone de resumen, creación
+y lectura para Pagos con identidad invitada verificada. Al ocupar asientos fija
+el correo acreditado en `bookings.guest_contact_email`, dentro de la misma
+transacción. Una consulta de comprobante para una reserva ajena devuelve ausencia;
+la consulta ordinaria de Pagos no acepta un rol invitado forjado. Dos migraciones
+nuevas y el catálogo registran este vínculo; la reversión de la columna se niega
+si hay reservas invitadas para evitar perder el correo. Las pruebas de catálogo
+conservan la comprobación de orden, tablas y datos previos.
+
+Lint y formato backend aprobaron. La suite unitaria global aprobó 2034/2034;
+el catálogo dirigido aprobó 19/19 y la integración nueva de reserva invitada
+aprobó 1/1 tras corregir el test de reversión. La ejecución global anterior
+aprobó 691/692 integraciones; el único fallo fue ese test antes de corregirlo.
+La repetición global en otra base nueva se detuvo por petición del solicitante
+para publicar sin más pruebas. No hay ruta pública ni correo enviado; siguen
+pendientes carga de comprobante por invitado, Boletos y entrega durable del
+enlace. Revisión humana e integración de BOOK-11 pendientes.
+
 ## Pablo — AUTH-WEB-03, pantallas administrativas, 4 de noviembre de 2026
 
 En `feature/AUTH-WEB-03-administracion`, creada desde `origin/develop`
