@@ -5,7 +5,7 @@
 - **Módulo:** `notifications` (nuevo), con cambios acotados en `payments`, `bookings` y `auth`
 - **Responsable:** Edwin
 - **Revisor propuesto / confirmado:** Pablo (correo y Auth), Shirley (Pagos) y Leslie (Reservas); sin confirmar
-- **Estado:** En desarrollo (T1 local)
+- **Estado:** En desarrollo (T1 con commit; T2 local)
 - **Prioridad y dependencias:** depende de [BOLETOS-01](BOLETOS-01.md) (PR #103, sin integrar) por la página `boletos.html` y la lectura de venta con tramo; reutiliza `smtp-mailer.js` de [CORREO-01](CORREO-01.md).
 - **Rama / PR / base comprobada:** `feature/CORREO-02-avisos-correo` desde `feature/BOLETOS-01-emision-qr` `2dac0c0` (incluye `origin/develop` `292bb1f`), 4 de noviembre de 2026. Sin PR.
 - **Autorización de alcance:** Edwin, 4 de noviembre de 2026: avisos de boletos listos, comprobante rechazado y reserva vencida; el correo de boletos lleva un enlace a «Mis boletos», sin QR adjunto; Pagos (y Reservas al vencer) encolan el aviso en la misma transacción que el cambio de estado. No es revisión técnica.
@@ -82,7 +82,7 @@ No se guarda el correo del destinatario ni el texto: se resuelven al enviar. As�
 ### Configuración (sin números fijos en el código)
 
 - `NOTIFICATIONS_WORKER_ENABLED` (`false` por defecto). Si es `true`, exige SMTP completo y `PUBLIC_WEB_ORIGIN` válido, igual que el trabajador de recuperación.
-- `NOTIFICATIONS_POLL_MS` (5000), `NOTIFICATIONS_CLAIM_MS` (120000), `NOTIFICATIONS_MAX_ATTEMPTS` (5), `NOTIFICATIONS_RETRY_DELAYS_MINUTES` (`1,5,15,60`).
+- `NOTIFICATIONS_POLL_MS` (5000), `NOTIFICATIONS_CLAIM_MS` (120000), `NOTIFICATIONS_BATCH_SIZE` (10), `NOTIFICATIONS_MAX_ATTEMPTS` (5), `NOTIFICATIONS_RETRY_DELAYS_MINUTES` (`1,5,15,60`).
 
 ### Contenido de los avisos (texto plano)
 
@@ -135,8 +135,8 @@ No aplica: por decisión de Edwin del 4 de noviembre de 2026, la entrega no incl
 
 | Incremento | Contenido                                                                    | Estado    |
 | ---------- | ---------------------------------------------------------------------------- | --------- |
-| T1         | Migración `email_notifications`, `enqueueWith` y lecturas de Reservas y Auth | Local, sin commit |
-| T2         | Trabajador: reclamo, textos, envío, reintentos y configuración               | Pendiente |
+| T1         | Migración `email_notifications`, `enqueueWith` y lecturas de Reservas y Auth | Commit `08258ac` |
+| T2         | Trabajador: reclamo, textos, envío, reintentos y configuración               | Local, sin commit |
 | T3         | Encolado en la aprobación y el rechazo de Pagos                              | Pendiente |
 | T4         | Encolado en el vencimiento de Reservas                                       | Pendiente |
 | T5         | Composición en `server.js`, `.env.example` y arranque real                   | Pendiente |
@@ -150,3 +150,10 @@ Cada incremento se cierra con lint, formato y `npm test` (integración con Postg
 - Reservas: `createBookingNotificationQueries({ pool }).findNotificationContext(...)`, separado de BOOK-09; si la reserva no tiene tramo congelado devuelve `trip: null` en lugar de fallar.
 - Auth: `createCustomerContactQueries({ pool }).findCustomerEmail(userId)`; solo `CUSTOMER` y solo identificadores UUID.
 - Pruebas existentes modificadas: las listas esperadas del catálogo de migraciones (unitaria e integración) incorporan la migración y la tabla nuevas.
+
+### Evidencia de T2 (5 de noviembre de 2026)
+
+- Trabajador `createNotificationsModule({ pool, env, bookingContexts, customerContacts, mailer }).maintenance.startWorker()`: apagado salvo `NOTIFICATIONS_WORKER_ENABLED=true`; encendido exige SMTP configurado y `PUBLIC_WEB_ORIGIN` válido (mismas reglas que la recuperación).
+- Reclamo de uno en uno con `FOR UPDATE SKIP LOCKED`, hasta `NOTIFICATIONS_BATCH_SIZE` por ronda. Cada reclamo suma un intento y los cierres exigen el mismo `attempts`, así un reclamo abandonado y recuperado no se pisa.
+- Clasificación igual a la de recuperación: `MAIL_PERMANENT_FAILURE`, `MAIL_NOT_ACCEPTED` y `MAIL_INVALID_MESSAGE` no se reintentan; el resto espera la demora configurada hasta el máximo de intentos. Reservas o Auth caídos se reintentan; reserva inexistente o en otro estado cierra como `FAILED`; sin correo de cliente, `SKIPPED`.
+- El `Message-ID` es el `id` del aviso. El texto no incluye cédulas ni códigos de boleto.
