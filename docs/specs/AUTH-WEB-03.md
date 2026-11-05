@@ -1,7 +1,7 @@
 # AUTH-WEB-03: altas administrativas desde la web
 
 - **Responsable:** Pablo.
-- **Estado:** contrato aprobado por Pablo el 4 de noviembre de 2026; implementación pendiente.
+- **Estado:** contrato aprobado por Pablo el 4 de noviembre de 2026; implementación local completa, pendiente de revisión humana e integración.
 - **Base comprobada:** `origin/develop` `d7ea282`, 4 de noviembre de 2026; rama `feature/AUTH-WEB-03-administracion`.
 - **Reglas:** RN-01/02/03, [TENANTS-01](TENANTS-01.md), [AUTH-05](AUTH-05.md), [AUTH-06](AUTH-06.md), [ADR 0004](../adr/0004-autenticacion-sesiones-credenciales.md).
 - **Diseño:** aplicar `frontend/DESIGN.md` D-02, D-03, D-04 y D-07: tipografía y colores existentes, tarjetas sencillas, etiquetas, foco visible, mensajes en vivo y reflujo móvil. Sin dependencias visuales nuevas.
@@ -28,7 +28,7 @@ con confirmación en pantalla. No se guardan en almacenamiento del navegador, no
 se muestran después del envío y no se mandan por correo. La creación no inicia
 sesión para la cuenta nueva.
 
-## Consulta nueva aprobada
+## Consulta nueva implementada
 
 `GET /api/v1/cooperatives`, exclusivamente `SYSTEM_ADMIN` con sesión vigente,
 devuelve `200 { cooperatives: [{ id, name, ruc }] }`, ordenadas por nombre e ID.
@@ -40,7 +40,7 @@ Tenants con caso de uso y puerto de repositorio; HTTP solo traduce la petición.
 No se añade edición, eliminación ni búsqueda pública. Si el tamaño del catálogo
 requiere paginación, se acordará en otra spec antes de ampliar este contrato.
 
-## Pantallas aprobadas
+## Pantallas implementadas
 
 1. `pages/cooperativas.html`: `SYSTEM_ADMIN` consulta el catálogo y registra
    cooperativas. Muestra el ID y los datos devueltos por el servidor al crear;
@@ -94,3 +94,22 @@ frontend copia las páginas y módulos nuevos.
 No se introducen defectos académicos. No se modifican migraciones existentes ni
 se añaden dependencias. Revisión humana e integración se registrarán con su
 evidencia, sin inferir aprobación de otras personas.
+
+## Evidencia local del 4 de noviembre de 2026
+
+- `GET /api/v1/cooperatives` usa sesión `SYSTEM_ADMIN` y proyecta solo ID,
+  nombre y RUC en orden estable. Prueba de integración dirigida: 14/14.
+- Las tres páginas y la navegación desde login están en la imagen frontend.
+  El recorrido real con PostgreSQL, backend, Nginx y Chrome aprobó alta de
+  cooperativa, alta de administrador, alta de oficinista, rechazo de `CUSTOMER`,
+  contraseña vaciada y reflujo a 360 px. Los datos fueron ficticios y aislados.
+- Backend lint y `format:check` aprobaron. `npm test`: 2018/2018 unitarias;
+  687/688 integraciones. Falló la reversión de migración de Flota en
+  `fleet/bus-seat-immutability.test.js`, sin cambios de esta tarea; al repetir
+  esa suite sola con una base nueva aprobó 9/9. Se registra el fallo global,
+  sin alterar ni debilitar la prueba.
+- Frontend lint, formato de los archivos nuevos y 352/352 pruebas aprobaron.
+  El paquete Docker se construyó y arrancó en el recorrido real.
+- No se instalaron dependencias. Los cambios quedan en commits locales por
+  contrato, consulta, controladores, pantallas, navegación y evidencia; sin
+  push. Falta revisión humana; no se declara integrada o cerrada.
