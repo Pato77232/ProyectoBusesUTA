@@ -30,22 +30,25 @@ Permitir que un pasajero compre un espacio accesible identificado en el bus sele
 
 ### 3.2 Capacidad y acompañante
 
-- **Pregunta:** ¿cada clave `ACCESSIBLE` representa un pasajero en silla de ruedas o varias posiciones/celdas? ¿Cómo se asigna y exige el acompañante?
-- **Opciones:** (A) una plaza accesible más un asiento normal opcional; (B) plaza accesible y acompañante obligatorio, vendidos como conjunto; (C) otra regla acordada por el equipo.
-- **Recomendación:** no inferir capacidad a partir de una celda del layout; acordar la semántica y el bloqueo conjunto si aplica.
+- **Resuelto por FLEET-08:** una posición `ACCESSIBLE` ocupa una celda y no aumenta la capacidad comercial del bus; el acompañante, si corresponde, ocupa un asiento normal separado.
+- **Pregunta pendiente:** ¿el acompañante es obligatorio y se reserva/vende como parte de la misma operación, o el pasajero puede comprar solo la posición accesible?
+- **Opciones:** (A) acompañante opcional, con asiento normal reservado por separado; (B) acompañante obligatorio y ambas posiciones se bloquean/venden atómicamente; (C) otro flujo asistido acordado por el equipo.
+- **Recomendación:** dejar explícito si la compra puede confirmarse sin asiento normal de acompañante y proteger ambas posiciones ante concurrencia cuando se vendan juntas.
 - **Estado:** sin respuestas humanas registradas.
 
 ### 3.3 Precio y snapshot comercial
 
-- **Pregunta:** ¿el espacio accesible usa la tarifa regular del tramo? ¿Se permite recargo VIP? ¿Qué regla de descuento aplica tras la acreditación?
-- **Recomendación:** definir precio final y persistirlo en el snapshot inmutable de la compra, incluyendo categoría, identificador/clave de asiento y regla/tarifa aplicada. No conceder descuento por la sola categoría `ACCESSIBLE`.
+- **Pregunta:** ¿el espacio accesible usa la tarifa regular aplicable al tramo o requiere una tarifa propia? ¿Qué descuento se aplica después de una acreditación válida?
+- **Contexto resuelto:** FLEET-08 prohíbe que la misma posición sea a la vez `VIP` y `ACCESSIBLE`; no corresponde proponer recargo VIP para esa posición.
+- **Recomendación:** definir el precio y persistirlo en el snapshot inmutable de la compra, con categoría, identidad del asiento y tarifa/descuento aplicados. La categoría `ACCESSIBLE` por sí sola no acredita discapacidad ni concede descuento.
 - **Estado:** sin respuestas humanas registradas.
 
 ### 3.4 Compatibilidad del contrato
 
-- **Pregunta:** ¿cómo se representa la plaza vendible en el catálogo comercial sin romper consumidores que esperan solo `NORMAL`/`VIP` ni cambiar silenciosamente `offered: false` de FLEET-08?
-- **Opciones:** (A) evolución compatible explícita y versionada del DTO; (B) endpoint/consulta comercial separados con versión de contrato; (C) mantener el contrato actual y bloquear la venta hasta que consumidores migren coordinadamente.
-- **Recomendación:** acordar el cambio entre Fleet, Route Sheets y Bookings, con pruebas de compatibilidad y sin cambiar el significado existente de `offered` de forma implícita.
+- **Contrato actual:** Fleet identifica la categoría `ACCESSIBLE` con `offered: false`; Route Sheets valida que no se ofrezca y la excluye del catálogo comercial. Bookings consume el contrato comercial `NORMAL`/`VIP`.
+- **Pregunta:** ¿cómo evolucionan Fleet y Route Sheets para que Bookings pueda ofrecer espacios accesibles sin romper a los consumidores existentes?
+- **Opciones:** (A) versionar/evolucionar explícitamente el DTO comercial con consumidores coordinados; (B) crear una consulta comercial versionada separada; (C) mantener el contrato actual hasta una migración coordinada que cubra los tres módulos.
+- **Recomendación:** acordar el cambio entre Fleet, Route Sheets y Bookings y probar compatibilidad; no cambiar silenciosamente el significado actual de `offered`.
 - **Estado:** sin respuestas humanas registradas.
 
 ## 4. Alcance propuesto tras aprobación
