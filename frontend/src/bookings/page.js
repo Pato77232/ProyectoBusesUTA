@@ -306,7 +306,13 @@ function sync() {
     element("booking-status").textContent =
       booking.status === "PENDING_PAYMENT"
         ? "Estado: pendiente de comprobante."
-        : "Estado pendiente de actualización.";
+        : booking.status === "SOLD"
+          ? "Estado: compra aprobada. Tus boletos ya están disponibles."
+          : "Estado pendiente de actualización.";
+    element("booking-tickets").hidden = booking.status !== "SOLD";
+    element("booking-not-ticket").hidden = booking.status === "SOLD";
+    element("booking-tickets-link").href =
+      "boletos.html?" + new URLSearchParams({ reserva: booking.bookingId });
     element("booking-expiry").dateTime = booking.expiresAt;
     element("booking-expiry").textContent =
       instantFormat.format(new Date(booking.expiresAt)) + " · hora de Ecuador";

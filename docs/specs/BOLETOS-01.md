@@ -5,7 +5,7 @@
 - **Módulo:** `tickets` (nuevo), con ampliación del contrato de lectura de `bookings` (BOOK-09)
 - **Responsable:** Edwin (asumió la tarea el 4 de noviembre de 2026; el área de Boletos estaba propuesta para Shirley)
 - **Revisor propuesto / confirmado:** Shirley (Pagos y Boletos) y Leslie (por la ampliación de BOOK-09); sin confirmar
-- **Estado:** Borrador
+- **Estado:** En desarrollo (T1 a T3 con commit; T4 local)
 - **Prioridad y dependencias:** prioridad alta para la demostración. Depende de BOOK-09 (#98, integrada) y de la aprobación de comprobantes (PAGOS-02, integrada).
 - **Rama / PR / base comprobada:** `feature/BOLETOS-01-emision-qr` desde `origin/develop` `3695655`, comprobada el 4 de noviembre de 2026. Sin PR.
 - **Autorización de alcance:** Edwin, 4 de noviembre de 2026: emitir al consultar, generar el QR en el servidor con `qrcode` 1.5.4 y ampliar BOOK-09 para los datos del viaje. No es revisión técnica.
@@ -166,7 +166,15 @@ T3 monta `GET /api/v1/tickets/bookings/:bookingId` en `app.js` y compone `create
 | ---------- | ------------------------------------------------------------------------------------------------------------------- | ----------------- |
 | T1         | Ampliación de BOOK-09: `findSoldForOwner` y `trip`                                                                  | Commit `edd96d6` |
 | T2         | Módulo `tickets`: dominio, migración, repositorio y caso de uso idempotente                                         | Commit `91f4962`         |
-| T3         | Endpoint HTTP, QR con `qrcode` 1.5.4 (MIT; depende de `pngjs`, `yargs` y `dijkstrajs`) y composición en `server.js` | Local, sin commit         |
-| T4         | Página de boletos imprimible y enlace desde «Mis reservas»                                                          | Pendiente         |
+| T3         | Endpoint HTTP, QR con `qrcode` 1.5.4 (MIT; depende de `pngjs`, `yargs` y `dijkstrajs`) y composición en `server.js` | Commit `172f005`         |
+| T4         | Página de boletos imprimible y enlace desde «Mis reservas»                                                          | Local, sin commit         |
 
 Cada incremento se cierra con `npm run lint`, `npm run format:check` y `npm test` en `backend/` (integración con PostgreSQL aislado según `docs/testing-database.md`), pruebas del frontend y, en T3 y T4, arranque real.
+
+### Evidencia de T4 (4 de noviembre de 2026)
+
+- `pages/boletos.html` sin parámetro lista las compras vendidas del cliente (`GET /api/v1/bookings`, que responde `{ bookings: { items, nextCursor } }`) con «Ver más compras»; con `?reserva=<id>` muestra un boleto por pasajero, con el QR como imagen SVG (`<img>` con URL `data:`, sin insertar el SVG en el DOM), y botón de impresión. La hoja de impresión oculta navegación y acciones y deja un boleto por página.
+- En «Reservas», una reserva vendida muestra «Ver mis boletos» y oculta el aviso de que aún no es boleto.
+- Frontend: 340/340 pruebas y lint aprobados.
+- Recorrido real en el entorno temporal (`node frontend/scripts/dev.cjs up`, puerto 8081) con un cliente registrado por la API y una venta confirmada con el confirmador real de Reservas: la lista mostró la compra; la reserva mostró 2 boletos con fecha, horas, pasajero, cédula, valor y código; una reserva ajena mostró el mensaje de vacío. Un lector independiente (jsQR 1.4.0, instalado fuera del proyecto) decodificó los dos QR servidos como `TRANSVIAJE:TICKET:<code>`.
+- Pendiente: revisión visual en escritorio, móvil e impresión (el panel del navegador estaba oculto y no permitió capturas) y escaneo con un teléfono. El inicio de sesión todavía no regresa a `boletos.html` porque `login.html` solo acepta volver a Reservas.

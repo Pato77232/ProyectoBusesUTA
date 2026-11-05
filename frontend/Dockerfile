@@ -41,3 +41,8 @@ COPY pages/programar-hoja.html /usr/share/nginx/html/pages/programar-hoja.html
 COPY src/styles/route-sheet-editor.css /usr/share/nginx/html/src/styles/route-sheet-editor.css
 COPY src/route-sheets /usr/share/nginx/html/src/route-sheets
 COPY src/styles/route-sheets.css /usr/share/nginx/html/src/styles/route-sheets.css
+
+# BOLETOS-01: boletos imprimibles del cliente.
+COPY pages/boletos.html /usr/share/nginx/html/pages/boletos.html
+COPY src/tickets /usr/share/nginx/html/src/tickets
+COPY src/styles/tickets.css /usr/share/nginx/html/src/styles/tickets.css

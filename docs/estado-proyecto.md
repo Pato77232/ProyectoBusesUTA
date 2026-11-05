@@ -4,7 +4,7 @@
 
 | Spec / responsable | Estado y evidencia | Próximo paso |
 | --- | --- | --- |
-| [BOLETOS-01](specs/BOLETOS-01.md) / Edwin | Rama `feature/BOLETOS-01-emision-qr` desde `origin/develop` `3695655`. Spec en borrador con las decisiones de Edwin. T1 en `edd96d6`: `findSoldForOwner` en la lectura de BOOK-09, con el tramo congelado; `findSoldForTicket` no cambia. T2 en `91f4962`: módulo `tickets`, migración `1794290000000-create-tickets` y emisión idempotente por propietario. T3 local: `GET /api/v1/tickets/bookings/:bookingId` para el CUSTOMER propietario, QR SVG con `qrcode` 1.5.4 y composición en `server.js`. Sin push ni PR. | Avisar a Leslie de la ampliación de su contrato; seguir con T4 (página imprimible). |
+| [BOLETOS-01](specs/BOLETOS-01.md) / Edwin | Rama `feature/BOLETOS-01-emision-qr` desde `origin/develop` `3695655`. Spec en borrador con las decisiones de Edwin. T1 en `edd96d6`: `findSoldForOwner` en la lectura de BOOK-09, con el tramo congelado; `findSoldForTicket` no cambia. T2 en `91f4962`: módulo `tickets`, migración `1794290000000-create-tickets` y emisión idempotente por propietario. T3 en `172f005`: `GET /api/v1/tickets/bookings/:bookingId` para el CUSTOMER propietario, QR SVG con `qrcode` 1.5.4 y composición en `server.js`. T4 local: `pages/boletos.html` imprimible y enlace desde Reservas; recorrido real y QR decodificado con lector independiente. Sin push ni PR. | Revisión visual en escritorio, móvil e impresión; avisar a Leslie; abrir PR hacia `develop`. |
 
 ## Pablo — pantalla de registro de clientes, 4 de noviembre de 2026
 
