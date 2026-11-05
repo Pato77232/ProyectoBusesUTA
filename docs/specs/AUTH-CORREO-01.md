@@ -1,7 +1,7 @@
 # AUTH-CORREO-01: recuperar el acceso mediante correo
 
 - **Responsable de preparación:** Pablo. **Revisión de contrato:** Edwin respondió las preguntas por mensaje comunicado por Pablo; revisión del cambio documental y del código pendiente.
-- **Estado:** contrato cerrado por Pablo el 4 de noviembre de 2026; primer incremento de implementación local, sin integración.
+- **Estado:** contrato cerrado por Pablo el 4 de noviembre de 2026; recuperación implementada localmente, sin integración ni prueba SMTP real.
 - **Base comprobada:** `origin/develop` `5ff50d9`, 4 de noviembre de 2026; rama `feature/AUTH-CORREO-01-recuperacion-cuenta`.
 - **Reglas y decisiones:** RN-01/03 en [business-rules](../business-rules.md), [ADR 0004](../adr/0004-autenticacion-sesiones-credenciales.md), [CORREO-01](CORREO-01.md), [calidad](../calidad.md) y `frontend/DESIGN.md`.
 
@@ -73,16 +73,54 @@ se serializan por IP y correo en PostgreSQL, incluidos los correos inexistentes.
 Una solicitud admitida invalida acciones anteriores y deja una sola `PENDING`;
 no genera token ni envía correo dentro de HTTP. Los límites son configurables.
 La acción guarda el identificador de la cuenta sin FK para que la eliminación
-de una cuenta no quede bloqueada por acciones efímeras. El trabajador deberá
-comprobar que la cuenta sigue existiendo antes de emitir el enlace.
+de una cuenta no quede bloqueada por acciones efímeras. El trabajador comprueba
+que la cuenta sigue existiendo antes de emitir el enlace.
 
-La clasificación SMTP, emisión/reintento del trabajador, consumo del token,
-revocación de sesiones y pantallas son los incrementos siguientes. El endpoint
-solo registra la solicitud; hasta que el trabajador esté conectado no entrega
-enlaces. Las pruebas y el estado exacto de este incremento se registran en
+En ese momento, la clasificación SMTP, emisión/reintento del trabajador, consumo
+del token, revocación de sesiones y pantallas eran los incrementos siguientes.
+El endpoint por sí solo registra la solicitud; el trabajador se conectó en el
+incremento posterior descrito abajo. Las pruebas de ese primer incremento están en
 `docs/estado-proyecto.md`.
 
 Validación del incremento: backend lint, formato, 1946/1946 pruebas unitarias
 y 655/655 integraciones con PostgreSQL aislado aprobaron. El servidor real
 respondió 200 en `/api/v1/health` y cerró ordenadamente. No se cambiaron
 dependencias ni se envió correo.
+
+## Implementación local del trabajador, confirmación y pantallas
+
+El trabajador se habilita expresamente con `PASSWORD_RESET_WORKER_ENABLED=true`
+y exige SMTP completo y `PUBLIC_WEB_ORIGIN` válido. El origen debe ser HTTPS,
+salvo loopback en desarrollo. La configuración permite ajustar sondeo, reclamo
+de acciones abandonadas, vigencia del token (20 minutos por defecto), cinco
+intentos, demoras de 1/5/15/15 minutos y retención de contadores de un día.
+Las acciones se reclaman con `FOR UPDATE SKIP LOCKED`; cada intento sustituye
+el hash del token. El correo se construye en memoria y solo el hash queda en
+PostgreSQL. El adaptador distingue rechazos SMTP 4xx, 5xx y resultados inciertos.
+Los contadores antiguos se purgan en lotes; el emisor comprueba que la cuenta
+todavía existe. `ACCEPTED` indica aceptación SMTP, no entrega.
+
+`POST /api/v1/auth/password-reset/confirm` exige CSRF, valida la misma política
+de contraseña que el registro y devuelve 204 al consumir el token. La transacción
+cambia el hash Argon2id, marca el enlace usado, invalida otras acciones y revoca
+todas las sesiones activas. Token mal formado, vencido, usado o inexistente
+devuelve un mismo error 400. Dos confirmaciones concurrentes solo permiten un
+éxito. Las pantallas `recuperar-cuenta.html` y `restablecer.html` enlazan desde
+login, confirman la contraseña y muestran el resultado antes de volver al login.
+La página de destino borra el fragmento con `history.replaceState` y añade
+`Referrer-Policy: no-referrer`; usa solo recursos locales. Se aplican D-02/03/04/07
+de `frontend/DESIGN.md`.
+La respuesta 202 mantiene un tiempo mínimo configurable de 300 ms para reducir
+diferencias observables entre cuentas existentes e inexistentes.
+
+Validación dirigida: SMTP 14/14 pruebas unitarias, configuración del trabajador
+9/9, trabajador PostgreSQL 7/7 y Auth 19/19 integraciones. Frontend lint y
+326/326 pruebas aprobaron. El recorrido QA en navegador con contenedores reales
+aprobó solicitud, token en fragmento, cambio, login, etiquetas, foco por teclado
+y reflujo a 360 px. El recorrido insertó un hash QA para simular la aceptación
+del correo; no se contactó SMTP externo ni se comprobó llegada a un buzón.
+El backend arrancó con el trabajador habilitado y un transporte SMTP simulado,
+respondió 200 en `/api/v1/health` y cerró ordenadamente sin enviar mensajes.
+La suite backend completa aprobó lint, formato, 1962/1962 unitarias y 665/665
+integraciones con PostgreSQL aislado. La activación operativa requiere configurar
+SMTP y el origen público en su entorno, seguido de prueba con un buzón propio.

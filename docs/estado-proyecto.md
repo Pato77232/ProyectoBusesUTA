@@ -1,6 +1,22 @@
 # Estado compartido del proyecto
 
-## Pablo — AUTH-CORREO-01, solicitud durable local, 4 de noviembre de 2026
+## Pablo — AUTH-CORREO-01 implementada localmente, 4 de noviembre de 2026
+
+La rama `feature/AUTH-CORREO-01-recuperacion-cuenta` contiene la solicitud
+durable, el trabajador reintentable, enlace de 20 minutos, confirmación atómica,
+revocación de sesiones y dos pantallas enlazadas desde login. Los cambios
+están en commits atómicos locales frente a la PR #97; sin push ni integración.
+El trabajador está apagado por defecto y exige SMTP y `PUBLIC_WEB_ORIGIN` para
+habilitarlo. La respuesta 202 mantiene un tiempo mínimo configurable de 300 ms
+para reducir diferencias observables entre cuentas. No se envió correo real.
+Validación dirigida, frontend 326/326 y recorrido de navegador con backend/DB
+reales aprobaron; el token QA del recorrido se insertó como hash para simular
+el correo. Backend lint/formato, 1962/1962 unitarias y 665/665 integraciones
+con PostgreSQL aislado aprobaron. [Detalle](specs/AUTH-CORREO-01.md).
+Pendientes: configurar y comprobar SMTP con buzón propio, revisión humana,
+publicación e integración.
+
+## Pablo — AUTH-CORREO-01, primer incremento histórico, 4 de noviembre de 2026
 
 Pablo cerró el contrato y autorizó implementar. En
 `feature/AUTH-CORREO-01-recuperacion-cuenta` existe un primer incremento sin
