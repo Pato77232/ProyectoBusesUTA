@@ -21,3 +21,66 @@ Lint backend/frontend aprobado. Dirigidas backend: 18/18, incluidas composición
 El smoke de portada asumía que todos los enlaces eran anclas y fallaba desde el login existente. Conserva la comprobación de destinos de anclas y ahora comprueba además mismo origen, HTTP 200 y contenido de aplicación de cada página enlazada. No se salta la comprobación de enlaces. Primera repetición falló por el nombre de variable del harness nuevo; corregido sin cambiar producto, repetición aprobó escritorio, móvil, teclado y reflujo CSS al 200 % (no zoom nativo).
 
 La regresión previa a Search, con Fleet-08/SMTP/formato y PostgreSQL recién creado, aprobó 1940 unitarias y 650 integraciones. No se atribuye esa ejecución a los cambios posteriores de Search. Revisión humana, prueba de empaquetado y publicación de estos incrementos pendientes. No inventa ocupación ni ofrece compra ya confirmada.
+
+## Plan del recorrido de ciclos y búsqueda — 4 de noviembre de 2026
+
+El solicitante autoriza dividir su trabajo en secciones e implementar únicamente
+la primera en la rama que él administra. Las operaciones de Git corresponden
+exclusivamente al humano; el asistente no ejecutará ni siquiera comandos de
+consulta. Última base comprobada en esta conversación: `d7ea282`; no se afirma
+haber vuelto a verificar rama, cambios locales o remoto en este incremento.
+
+| Sección | Resultado delimitado | Spec y dependencia |
+|---|---|---|
+| 1. Búsqueda por embarque | Prueba HTTP/PostgreSQL real de viaje nocturno: fecha local del origen y de la parada, publicación previa, tarifa explícita y frecuencia activa | SEARCH-01, contrato existente; autorizada en esta sesión |
+| 2. Ciclos confirmados | Revisar y comprobar preparación/publicación, límite de períodos e historia conservada; corregir solo defectos reproducidos dentro del contrato vigente | ROUTE-SHEETS-04/07/08; siguiente sección, no implementada aquí |
+| 3. Generación automática moderna | Preparar contrato para generación de borradores compatible con programación en días, continuidad y confirmación humana antes de venta | Requiere spec y decisiones; el generador legado no acredita este recorrido |
+| 4. Migraciones en Windows | Reproducir y diagnosticar reversiones y timeouts, con Edwin como participante propuesto, sin atribuirle aceptación | Tarea independiente; spec técnica antes de corregir, sin ampliar timeouts para ocultar fallos |
+
+### Sección 1: alcance y aceptación
+
+Se extiende la suite de integración de viajes sin modificar pruebas existentes,
+producto, migraciones, dependencias declaradas ni composición. La API de búsqueda
+ya existe: el incremento aporta cobertura faltante del cambio de día.
+
+- Dado un borrador nocturno, buscar su embarque intermedio no devuelve viajes.
+- Tras publicar una salida de Ambato a las 23:00 del 1 de enero de 2030 con
+  embarque de Salcedo a las 00:20 del 2, cada origen aparece exclusivamente en
+  su fecha local de America/Guayaquil; la respuesta conserva embarque y llegada.
+- La tarifa completa explícita (999 centavos) difiere de la suma de tramos
+  (200 + 250); el precio desde la parada es 250, sin cálculo aditivo.
+- Las búsquedas conservan las cantidades de viajes, ciclos e inventarios.
+- Una frecuencia inactiva no aparece en la búsqueda.
+
+SOLID: se ejercitan las APIs públicas existentes y su composición real, sin nuevas
+abstracciones ni acceso de Search a SQL de módulos ajenos. Sin cambios de pantalla:
+la usabilidad visual y el recorrido de navegador quedan fuera de esta sección.
+La prueba publica mediante sesión/CSRF reales y busca sin sesión; PostgreSQL
+aislado según testing-database.md, sin lectura de `.env`. Revisión humana pendiente.
+
+### Sección 1: evidencia de ejecución
+
+Windows, Node 24.22.2 y PostgreSQL 16.13 efímero, proyecto Compose
+`search-seccion1`, usando `--env-file NUL` y credenciales exclusivas de pruebas.
+No se instalaron dependencias en esta sección. Resultados reales:
+
+- Suite dirigida `tests/integration/route-sheets/trip-queries.test.js`: **7/7**,
+  incluido el caso nocturno nuevo; arranque real de `server.js` y HTTP aprobados.
+- `npm run lint` y `npm run format:check`: aprobados.
+- `npm test`: **2017/2017 unitarias** (116 suites); **654/684 integraciones**
+  (55 suites aprobadas y 7 fallidas). Resultado global fallido, no se declara verde.
+- Los 30 fallos de integración proceden de `migrate.js down` en
+  `user-cooperative-integrity`, `route-sheet-programming`, `commercial-trips`,
+  `cooperative-admin`, `bus.migration`, `bus-group.repository` y `bus-vip-seats`.
+  El proceso informa «No se pudo ejecutar la migración. Verifica conexión y
+  esquema.»; no se ha diagnosticado aquí la causa ni se atribuye a timeout.
+  También se observaron fallos de reversión antes de este incremento en la
+  conversación, pero no se ejecutó una comparación nueva contra otra rama.
+
+No se modificaron migraciones, producción, pruebas anteriores ni límites de
+tiempo para resolver esos fallos; requieren diagnóstico de la sección 4. Frontend
+y navegador no ejecutados en este incremento, que solo añade cobertura backend.
+Archivos completos de la prueba y las adiciones documentales revisados mediante
+lectura; no se ejecutó diff de Git por instrucción humana. Entorno temporal
+retirado al terminar. Sección 1 implementada localmente, pendiente de revisión
+humana; no integrada/cerrada. Asistencia de Codex en pruebas y documentación.

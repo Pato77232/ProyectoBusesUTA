@@ -1,5 +1,27 @@
 # Estado compartido del proyecto
 
+## David — SEARCH-01, sección 1 de verificación del recorrido, 4 de noviembre de 2026
+
+El solicitante autorizó dividir ciclos/búsqueda en secciones e implementar solo la
+primera. [SEARCH-01](specs/SEARCH-01.md) registra el plan: búsqueda por embarque,
+ciclos confirmados, contrato de generación automática moderna y deuda técnica de
+migraciones. Las secciones posteriores no se implementan en este incremento.
+
+Se añade una prueba de integración de viaje nocturno a la suite de consultas
+comerciales: borrador fuera de venta, publicación real, fecha local distinta en
+origen/parada, tarifa explícita no aditiva, lecturas sin nuevos viajes/ciclos y
+frecuencia inactiva excluida. La suite dirigida aprobó 7/7 con servidor real y
+PostgreSQL 16.13 aislado. Backend lint y formato global aprobaron; 2017/2017
+unitarias aprobaron. Integración general: 654/684 aprobadas, 30 fallos en siete
+suites al ejecutar `migrate.js down`; causa pendiente de diagnóstico, sin atribuir
+a timeout. Resultado global fallido; detalle en la spec. Entorno temporal retirado.
+
+Sin cambios de producto, migraciones, dependencias declaradas o pantallas; sin
+revisión humana ni cierre de RN-31. Git queda exclusivamente a cargo del humano:
+no se ejecutaron comandos de consulta, cambio de rama, commit ni publicación en
+esta sección. Última base conocida de la conversación: `d7ea282`, sin nueva
+verificación de rama/remoto. Asistencia de Codex en pruebas y documentación.
+
 ## Pablo — AUTH-CORREO-01 publicada y conciliada con develop, 4 de noviembre de 2026
 
 La rama `feature/AUTH-CORREO-01-recuperacion-cuenta` contiene la solicitud
