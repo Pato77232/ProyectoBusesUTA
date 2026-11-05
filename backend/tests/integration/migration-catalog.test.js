@@ -209,6 +209,7 @@ test('copia de develop con datos conserva cada fila/definición y añade solamen
         .filter((table) => !Object.hasOwn(before.data, table))
         .sort(),
     ).toEqual([
+      'booking_benefit_requests',
       'booking_benefit_reviews',
       'booking_guest_access_tokens',
       'booking_proof_receipt_results',
