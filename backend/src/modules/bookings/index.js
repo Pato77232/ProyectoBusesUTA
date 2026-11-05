@@ -1,3 +1,7 @@
+const getAccessibleAvailability = require('./application/get-accessible-availability.use-case');
+const createBenefitRequests = require('./application/benefit-requests');
+const PgBenefitRequestRepository = require('./infrastructure/pg-benefit-request.repository');
+const createBenefitRequestRouter = require('./interfaces/benefit-request-router');
 const routeSheetAvailabilityCatalog = require('./infrastructure/route-sheet-availability-catalog');
 const routeSheetPurchaseCatalog = require('./infrastructure/route-sheet-purchase-catalog');
 const expireDueBookings = require('./application/expire-due-bookings.use-case');
@@ -7,9 +11,10 @@ const expirationFailure = require('./domain/expiration-failure');
 const PgBookingLifecycleRepository = require('./infrastructure/pg-booking-lifecycle.repository');
 const receivePaymentProof = require('./application/receive-payment-proof.use-case');
 const expireBooking = require('./application/expire-booking.use-case');
-const { randomUUID } = require('node:crypto');
+const { randomUUID, createHash } = require('node:crypto');
 const PgBookingRepository = require('./infrastructure/pg-booking.repository');
 const createVerifiedCustomerIdentity = require('./infrastructure/verified-customer-identity');
+const createVerifiedGuestBuyerIdentity = require('./infrastructure/verified-guest-buyer-identity');
 const readBookingConfig = require('./infrastructure/booking-config');
 const defaultCalendarDateAt = require('./infrastructure/booking-clock');
 const getSeatAvailability = require('./application/get-seat-availability.use-case');
@@ -38,6 +43,7 @@ function createBookingsModule({
   },
   availabilityQueries = null,
   passengerVerifier,
+  guestEmailAccess,
   clock = () => new Date(),
   calendarDateAt = defaultCalendarDateAt,
   newId = randomUUID,
@@ -86,6 +92,27 @@ function createBookingsModule({
     buyerIdentity: createVerifiedCustomerIdentity(),
     ...readBookingConfig(env),
   };
+  const guestPurchase = guestEmailAccess
+    ? (() => {
+        const guestDependencies = {
+          ...dependencies,
+          buyerIdentity: createVerifiedGuestBuyerIdentity(guestEmailAccess),
+        };
+        const paymentQuery = findForPayment({ repository, clock, allowVerifiedGuest: true });
+        return Object.freeze({
+          getSummary: getBookingSummary(guestDependencies),
+          createBooking: createBooking(guestDependencies),
+          async findForPayment(query, context) {
+            const identity = await guestDependencies.buyerIdentity.resolve(context);
+            return paymentQuery(query, {
+              userId: identity.ownerId,
+              role: 'GUEST_BUYER',
+              cooperativeId: null,
+            });
+          },
+        });
+      })()
+    : undefined;
   const lifecycle = new PgBookingLifecycleRepository({ pool });
   const saleConfirmer = new PgBookingSaleConfirmer({ pool, clock });
   const guestAccess = createGuestAccess({ pool, clock });
@@ -124,8 +151,20 @@ function createBookingsModule({
     }),
     paymentQueries: Object.freeze({ findForPayment: findForPayment({ repository, clock }) }),
     saleConfirmer,
+    guestPurchase,
     guestAccess,
     guestRouter: createGuestBookingRouter({ guestAccess }),
+    benefitRequestRouter: createBenefitRequestRouter({
+      auth,
+      requests: createBenefitRequests({
+        repository: new PgBenefitRequestRepository(pool),
+        purchaseCatalog,
+        clock,
+        calendarDateAt,
+        newId,
+        fingerprint: (value) => createHash('sha256').update(value).digest('hex'),
+      }),
+    }),
     benefitReviewRouter: benefitReviews
       ? createBenefitReviewRouter({ auth, reviews: benefitReviews })
       : undefined,
@@ -134,6 +173,10 @@ function createBookingsModule({
       getSeatAvailability: getSeatAvailability({
         tripCatalog,
         segmentCatalog,
+        allocationReader: repository,
+      }),
+      getAccessibleAvailability: getAccessibleAvailability({
+        purchaseCatalog,
         allocationReader: repository,
       }),
       getBookingSummary: getBookingSummary(dependencies),

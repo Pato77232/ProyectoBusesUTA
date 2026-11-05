@@ -210,7 +210,11 @@ test('copia de develop con datos conserva cada fila/definición y añade tablas 
         .sort(),
     ).toEqual([
       'auth_email_actions',
+      'auth_guest_buyers',
+      'auth_guest_sessions',
+      'auth_guest_verifications',
       'auth_password_reset_attempts',
+      'booking_benefit_requests',
       'booking_benefit_reviews',
       'booking_guest_access_tokens',
       'booking_proof_receipt_results',
@@ -218,9 +222,11 @@ test('copia de develop con datos conserva cada fila/definición y añade tablas 
       'booking_trip_locks',
       'bookings',
       'route_sheet_renewals',
+      'tickets',
     ]);
     expect(after.data.bookings).toEqual([]);
     expect(after.data.route_sheet_renewals).toEqual([]);
+    expect(after.data.tickets).toEqual([]);
   });
 });
 
@@ -416,10 +422,12 @@ test('actualiza develop con Reservas existentes sin perder plazos ni ocupaciones
         const updatedRows = after.data.bookings.map(({ row }) => {
           const booking = JSON.parse(row);
           expect(booking.expired_at).toBeNull();
+          expect(booking.guest_contact_email).toBeNull();
           expect(booking).toMatchObject({ vip_surcharge_cents: 0, rounding_adjustment_cents: 0 });
           delete booking.expired_at;
           delete booking.vip_surcharge_cents;
           delete booking.rounding_adjustment_cents;
+          delete booking.guest_contact_email;
           delete booking.sold_at;
           delete booking.rejected_at;
           delete booking.rejection_justification;

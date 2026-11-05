@@ -38,6 +38,38 @@ Entornos web y PostgreSQL temporales retirados. No se ejecutaron comandos de Git
 sin nueva verificación. Revisión humana e integración pendientes, sin reabrir
 por inferencia el cierre del alcance original. Asistencia de Codex.
 
+## Edwin — catálogo de migraciones tras BOOK-11 (INTEG-02), 5 de noviembre de 2026
+
+| Spec / responsable | Estado y evidencia | Próximo paso |
+| --- | --- | --- |
+| [INTEG-02](specs/INTEG-02.md) / Edwin | `develop` `22a77c0` rechaza su catálogo: las migraciones de invitado quedaron en mitad de la lista y con marcas repetidas. Rama `feature/INTEG-02-catalogo-migraciones`: se renumeran a `1794350000000` y `1794360000000` sin cambiar su SQL. | Integrar antes de CORREO-02 y del release; recrear bases locales que ya aplicaron los nombres anteriores. |
+
+## Conciliación de PR #106
+
+Rama actualizada con develop `a7a4a9a`, conflictos resueltos y migraciones
+propias renumeradas a 179432/179433 sin alterar SQL. Node 24.22.2:
+2168 unitarias backend y 370 frontend aprobadas; lint/formato aprobados.
+Integración PostgreSQL y revisión humana pendientes. Véase la
+[evidencia final](evidence/BOOK-08/2026-11-04-revision-pr106.md).
+La sección anterior de revisión se conserva como fotografía previa.
+
+## Revisión actual de BOOK-08 / PR #106 — 4 de noviembre de 2026
+
+B/C y pantalla D publicados en `9ea3cdb`; PR #106 abierta, sin integrar.
+Correcciones locales de respuestas tardías, cambio de sesión con guardado
+incierto y publicación del resultado del comprador tras verificar identidad.
+Frontend 336/336, backend 2049/2049 unitarias, lint de ambos y formato backend
+aprobados con Node 26.4.0 (requiere repetición en Node 24). Sin PostgreSQL/Docker
+para repetir integración. Conflictos con develop `a7a4a9a` y conciliación del
+catálogo pendientes. [Evidencia y límites](evidence/BOOK-08/2026-11-04-revision-pr106.md).
+Sin commits/publicación nuevos ni revisión humana; las filas anteriores son
+históricas cuando contradicen esta comprobación remota.
+
+## Edwin — boletos con QR (BOLETOS-01), 4 de noviembre de 2026
+
+| Spec / responsable | Estado y evidencia | Próximo paso |
+| --- | --- | --- |
+| [BOLETOS-01](specs/BOLETOS-01.md) / Edwin | Rama `feature/BOLETOS-01-emision-qr` desde `origin/develop` `3695655`. Spec en borrador con las decisiones de Edwin. T1 en `edd96d6`: `findSoldForOwner` en la lectura de BOOK-09, con el tramo congelado; `findSoldForTicket` no cambia. T2 en `91f4962`: módulo `tickets`, migración `1794310000000-create-tickets` y emisión idempotente por propietario. T3 en `172f005`: `GET /api/v1/tickets/bookings/:bookingId` para el CUSTOMER propietario, QR SVG con `qrcode` 1.5.4 y composición en `server.js`. T4 local: `pages/boletos.html` imprimible y enlace desde Reservas; recorrido real y QR decodificado con lector independiente. Sin push ni PR. | Revisión visual en escritorio, móvil e impresión; avisar a Leslie; abrir PR hacia `develop`. |
 ## David — INFRA-05, sección 4 del recorrido, 4 de noviembre de 2026
 
 El solicitante autoriza diagnóstico y solicita commit/texto de PR.
@@ -535,7 +567,7 @@ Antes de orientar a alguien:
 | [FLEET-07](specs/FLEET-07.md) | Edwin | T1 preparada para revisión en [PR #44](https://github.com/Pato77232/ProyectoBusesUTA/pull/44); sin integración | 3 de noviembre: VIP no ofrecido confirmado por Edwin; migración VIP renumerada con autorización y SQL intacto; reversión independiente de la última migración. Integración Linux/PostgreSQL aislado 280/280, prueba con migración posterior 5/5 y upgrade desde develop aprobados. Unitarias globales 1074 aprobadas/2 fallidas de hojas de ruta; base conservada sin merge por decisión de Edwin. Leslie y revisión humana pendientes; T2 aparte. |
 | [FLEET-09](specs/FLEET-09.md) | Edwin; David revisa | T1 en [PR #59](https://github.com/Pato77232/ProyectoBusesUTA/pull/59); conflictos con develop c95cc73 conciliados | Catálogo de 22 migraciones, Fleet renombrada a 1794080000000 sin cambiar SQL; conservadas comprobaciones de Pagos y actualización desde 21 migraciones. Node 24/PostgreSQL aislado: 1747 unitarias y 555 integraciones aprobadas; lint/formato propio aprobados, 17 avisos globales sin diferencias frente a develop. Revisión humana pendiente; timeouts históricos Windows no se declaran resueltos. No integrada ni aceptada. |
 | [FLEET-10](specs/FLEET-10.md) | Solicitante; David propuesto como revisor | Implementación local en `feature/FLEET-10-inventario-admin-hotfix`, base `origin/develop` `5c48d22`; commits `aee5b92`, `e7f55f4`, `bb86d76`, `e25779c` | 11 unitarias dirigidas y 325 pruebas frontend aprobadas; lint frontend/backend completos y smoke de navegador con API simulada aprobados. Dos suites unitarias no cargan por módulos ausentes del worktree; integración PostgreSQL y revisión humana pendientes. Sin push. |
-| [BOOK-10](specs/BOOK-10.md) | Responsable y revisores funcionales por confirmar | Borrador de contrato en `feature/BOOK-10-venta-accesible-develop`, base `origin/develop` `d7ea282`; sin aprobación ni implementación | Pendientes elegibilidad, capacidad/acompañante, precio/snapshot y compatibilidad Fleet/Route Sheets. FLEET-08 mantiene estos espacios con `offered: false`; no comenzar venta hasta acordar y aprobar la spec. |
+| [BOOK-10](specs/BOOK-10.md) | Responsable y revisores funcionales por confirmar | Borrador de contrato en `feature/BOOK-10-venta-accesible-develop`, base `origin/develop` `d7ea282`; sin aprobación ni implementación | Pendientes elegibilidad, capacidad/acompañante, precio/snapshot y compatibilidad Fleet/Route Sheets. FLEET-08 mantiene estos espacios con `offered: false`; no comenzar venta hasta acordar y aprobar la spec. | Consumidor de Leslie preparado por separado en [BOOK-10-consumidor-reservas](specs/BOOK-10-consumidor-reservas.md); requiere productor versionado y revisión funcional, no habilita venta real con el proveedor actual.
 | [INTEG-01](specs/INTEG-01.md) | Edwin | T1 (cf285b3, 183d95b), T2 (44cd95b), T3 (3d3261f), T4 (3e6f4ef), T5 (70fcbd2, a0387dd) y T6a en ramas feature/INTEG-01-* encadenadas desde develop 64f39cd; T6b requiere decisión del equipo | T1 catálogo; T2 historial; T3 rechazo; T4 confirmador real; T5 canje de invitado; T6a creación comercial con readPurchaseTrip. 1925/1925 unitarias; integración 643/647. Quedan 4 fallos de carga autorizada 404. Acreditador real sin implementar (flujo pendiente por decisión de David). Hallazgo: server.js compone según _isMockFunction. Revisión humana pendiente. |
 | search, bookings, payments y tickets | Según propuesta inferior | Sin implementación en la base examinada | Confirmar ramas de los responsables antes de crear tareas |
 | [PAGOS-01](specs/PAGOS-01.md) | Shirley | Código integrado en `origin/develop` en `f26415d`; revisión/cierre humano no se infieren | El merge commit `f26415d` incorpora PAGOS-01 (`518c46b` como segundo padre). La evidencia de pruebas registrada corresponde a la rama de origen, no a una repetición posterior al merge. `bookings` sigue simulado conforme al alcance T4. |
@@ -543,7 +575,7 @@ Antes de orientar a alguien:
 | [Lectura `findForPayment`](pagos-reservas-find-for-payment.md), anexo de PAGOS-01/02 y BOOK-07-L05 | Pablo seleccionó por delegación reportada; Leslie proveedor, Shirley consumidor | Diseño seleccionado en PR #46 con conformidad documental; adaptador consumidor acotado probado | proofWindowStartedAt explícito, contexto/códigos seleccionados y recepción persistida requerida. No repetir aceptación genérica del diseño. Adaptador nuevo no conectado; Leslie debe publicar persistencia/proveedor y sus pruebas. El lector anterior de las rutas aún no cambió; F11 y la matriz completa de proveedor siguen pendientes. |
 | PAGOS-03, planificación S-03 | Shirley; Pablo aceptó revisar el incremento | Borrador existente en la referencia local `origin/feature/PAGOS-01-subir-comprobante`, commit `72887bd`; no está en la rama actual PAGOS-02 ni consta aprobación técnica | Rechazo justificado y liberación coordinada; falta concretar `releaseBooking` y recuperación entre módulos. No se crea una segunda spec con el mismo ID. |
 | PAGOS-CORR-01, planificación S-03 | Shirley; Pablo aceptó revisar el incremento | Borrador local conciliado el 2 de noviembre, separado de la publicación PAGOS-02; no aprobado para implementar | PR #35 ya confirma 3/15 minutos; eventos técnicos, rondas, versionado/correo y efecto del vencimiento siguen pendientes. Leslie no aprobó cerrar edición/mantener revisión al vencer. Depende de S-02, L-05, PAGOS-01/02 y P-03. |
-| PAGOS-CAJA-01, relacionada con S-04 | Shirley; Pablo aceptó revisar el incremento | Borrador local conciliado el 2 de noviembre, separado de la publicación PAGOS-02; no aprobado para implementar | PR #35 confirma efectivo mediante reserva y sin archivo de depósito. Plazo de caja, titularidad, abandono/cancelación, resultados e idempotencia siguen pendientes. Depende de P-02, L-03 y L-05. |
+| PAGOS-CAJA-01, relacionada con S-04 | Shirley; Pablo aceptó revisar el incremento | Borrador local conciliado el 2 de noviembre, separado de la publicación PAGOS-02; no aprobado para implementar | PR #35 confirma efectivo mediante reserva y sin archivo de depósito. Plazo de caja, titularidad, abandono/cancelación, resultados e idempotencia siguen pendientes. Depende de P-02, L-03 y L-05. | Propuesta de Reservas actual: [BOOK-CAJA-01](specs/BOOK-CAJA-01.md), PR borrador por revisar; sin código de cobro.
 | CI | Pablo | Sin workflow versionado en la base | Proponer una spec propia; no afirmar protecciones remotas sin consultarlas |
 
 ## Actualización parcial de reservas — 27 de octubre de 2026
@@ -977,3 +1009,11 @@ Revisión humana, push, PR e integración siguen pendientes.
 ## Leslie — lectura de venta para boletos, 4 de noviembre de 2026
 
 Rama feature/BOOK-09-lectura-venta-boletos actualizada por fast-forward a 5c48d22, hotfix #94 integrado. [Spec](specs/BOOK-09-lectura-boletos.md), [contrato interno](contratos/bookings-lectura-boletos.md) y [evidencia histórica y vigente](evidence/BOOK-09/2026-11-04-lectura-boletos.md). Implementados lector privado de venta SOLD y proyección desde snapshot comercial schemaVersion 2, con coherencia de pasajeros, precio y asignaciones y lectura sin efectos. Verificación final tras sincronizar dependencias existentes: npm test aprobado, 1990 unitarias + 662 integraciones, 2652 pruebas/172 suites. Lint, formato global y diff --check aprobados; arranque real health 200 y stop ordenado. Pendientes: revisión humana y consumidor de boletos de Shirley. Leslie autoriza crear commit y publicar esta rama. PR, revisión humana y conexión con Tickets pendientes; funcionalidad no integrada. Cambios previos y respaldo del lector conservados en los stashes documentados. Los fallos anteriores permanecen en evidencia con su base y fecha; no describen el resultado final actual.
+
+## Leslie — acreditación, incrementos B y C, 4 de noviembre de 2026
+
+Rama feature/BOOK-08-acreditacion-web desde 46a96a2; origin/develop observado en 432ae27 sin incorporar. [Spec](specs/BOOK-08-acreditacion-web.md), [contrato B/C](contratos/solicitudes-acreditacion.md), [evidencia B](evidence/BOOK-08/2026-11-04-solicitudes-acreditacion.md) y [evidencia C](evidence/BOOK-08/2026-11-04-revision-acreditacion.md). Solicitudes propias idempotentes, bandeja/detalle por rol y cooperativa y guardado CLERK transaccional con evidencia privada, versión, control de concurrencia y recuperación de respuesta perdida. La revisión alimenta la fuente real del resumen y no crea reserva ni ocupa asientos. Migraciones nuevas B/C al final del catálogo (32), sin alterar previas ni desactivar validación de historia. npm test final aprobado: 2049 unitarias + 686 integraciones, 2735 pruebas/177 suites. Lint, formato global y diff --check aprobados; arranque real health 200, listado/revisión sin sesión 401 y no-store, cierre ordenado. Pendientes: D (pantalla/flujo web conforme a DESIGN.md), revisión humana e integración. Sin commit/push/PR. La API anterior de acreditación mantiene su semántica; no se afirma serializar sus revisiones posteriores. La API de boletos de PR #98 está integrada en 46a96a2; no acredita emisión QR/correo.
+
+Actualización posterior BOOK-08: Leslie autoriza commit y push de B/C en feature/BOOK-08-acreditacion-web. Se mantienen los resultados comprobados y los pendientes D/revisión humana/integración; no se declara PR creada.
+
+Actualización D: pantalla local de acreditación implementada, sin commit/push/PR. [Evidencia de pantalla](evidence/BOOK-08/2026-11-04-pantalla-acreditacion.md): lint frontend y 333 pruebas aprobadas; Chrome/PostgreSQL aislado aprobó solicitud desde compra, bandeja CLERK, revisión por teclado, privacidad, reflujo y resumen posterior. El intento de repetir integraciones backend en otra base temporal fue interrumpido por el entorno sin resultado, por lo que no se presenta como aprobado; D no modifica backend y conserva la evidencia B/C. Pendientes: revisión humana e integración.

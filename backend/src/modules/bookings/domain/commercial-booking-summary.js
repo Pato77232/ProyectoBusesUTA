@@ -1,3 +1,4 @@
+const { validatePassengerContact } = require('./passenger-contact');
 const quote = require('./commercial-passenger-quote');
 const { BookingValidationError } = require('./booking-error');
 const TOTAL_FIELDS = [
@@ -40,6 +41,7 @@ module.exports = function commercialBookingSummary(request, manifest, context) {
       throw new BookingValidationError();
     benefits.set(benefit.seatId, benefit.disabilityVerified);
   }
+  manifest.forEach((passenger) => validatePassengerContact(passenger, trip.departureDate));
   const passengers = Object.freeze(
     manifest.map((passenger) => {
       const seat = trip.seats.find((candidate) => candidate.seatId === passenger.seatId);
@@ -74,6 +76,7 @@ module.exports = function commercialBookingSummary(request, manifest, context) {
     totals: Object.freeze(totals),
     commercial: Object.freeze({
       ...Object.fromEntries(REFERENCE_FIELDS.map((key) => [key, trip[key]])),
+      ...(trip.accessibleInventoryVersion === 2 ? { accessibleInventoryVersion: 2 } : {}),
       unitPriceCents: trip.amountCents,
       policy: trip.policy,
       routePoints: trip.routePoints,

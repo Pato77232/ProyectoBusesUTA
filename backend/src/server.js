@@ -16,7 +16,12 @@ const {
   createPaymentReceiptModule,
   createPaymentReviewModule,
 } = require('./modules/payments');
-const { createBookingsModule, createBookingOccupancyQueries } = require('./modules/bookings');
+const {
+  createBookingsModule,
+  createBookingOccupancyQueries,
+  createBookingTicketQueries,
+} = require('./modules/bookings');
+const { createTicketsModule } = require('./modules/tickets');
 function closeServer(server) {
   return new Promise((resolve, reject) =>
     server.close((error) => (error ? reject(error) : resolve())),
@@ -101,6 +106,11 @@ async function start(env = process.env) {
       paymentQueries: bookings.paymentQueries,
       env,
     });
+    const tickets = createTicketsModule({
+      pool,
+      auth,
+      soldBookings: createBookingTicketQueries({ pool }),
+    });
     const app = createApp({
       auth,
       tenants,
@@ -111,6 +121,7 @@ async function start(env = process.env) {
       payments,
       bookings,
       search,
+      tickets,
       pool,
       trustProxy: env.TRUST_PROXY === 'loopback',
     });

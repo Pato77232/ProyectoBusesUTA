@@ -1,3 +1,4 @@
+const accessibleInventory = require('../domain/accessible-purchase-inventory');
 const { createAvailabilityRequest } = require('../domain/availability-request');
 const validateTrip = require('../domain/commercial-availability-trip');
 const BookingTripIntegrityError = require('../domain/booking-trip-integrity-error');
@@ -58,10 +59,13 @@ function purchaseTrip(source, request) {
     }
     categories.set(seat.seatId, seat.category);
   }
+  const accessibleSpaces = accessibleInventory(source);
   return Object.freeze({
     ...trip,
     ...request,
     ...Object.fromEntries(SOURCE_FIELDS.map((field) => [field, source[field]])),
+    seatIds: Object.freeze([...trip.seatIds, ...accessibleSpaces.map((space) => space.seatId)]),
+    ...(source.accessibleInventoryVersion === 2 ? { accessibleInventoryVersion: 2 } : {}),
     currency: 'USD',
     amountCents: source.amountCents,
     policy: Object.freeze(
@@ -69,9 +73,10 @@ function purchaseTrip(source, request) {
         ['discountStrategy', ...POLICY_FIELDS].map((key) => [key, source.policy[key]]),
       ),
     ),
-    seats: Object.freeze(
-      trip.seatIds.map((seatId) => Object.freeze({ seatId, category: categories.get(seatId) })),
-    ),
+    seats: Object.freeze([
+      ...trip.seatIds.map((seatId) => Object.freeze({ seatId, category: categories.get(seatId) })),
+      ...accessibleSpaces,
+    ]),
     routePoints: Object.freeze(source.routePoints.map((point) => Object.freeze({ ...point }))),
   });
 }

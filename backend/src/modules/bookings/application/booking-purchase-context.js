@@ -1,3 +1,4 @@
+const { contact } = require('../domain/passenger-contact');
 const {
   createAvailabilityRequest,
   createAvailabilityTrip,
@@ -36,12 +37,15 @@ function copyPurchaseInput(input, acceptance = false) {
       !passenger ||
       typeof passenger !== 'object' ||
       Array.isArray(passenger) ||
-      Object.keys(passenger).some((key) => !PASSENGER_FIELDS.includes(key)) ||
+      Object.keys(passenger).some((key) => ![...PASSENGER_FIELDS, 'contact'].includes(key)) ||
       PASSENGER_FIELDS.some((key) => typeof passenger[key] !== 'string')
     ) {
       throw new BookingValidationError();
     }
-    return Object.freeze({ ...passenger });
+    return Object.freeze({
+      ...passenger,
+      ...(passenger.contact !== undefined ? { contact: contact(passenger.contact) } : {}),
+    });
   });
   return Object.freeze({
     ...request,
@@ -50,12 +54,19 @@ function copyPurchaseInput(input, acceptance = false) {
   });
 }
 
-async function resolveOwner(buyerIdentity, authContext) {
+async function resolveBuyer(buyerIdentity, authContext) {
   const identity = await buyerIdentity.resolve(authContext);
   if (typeof identity?.ownerId !== 'string' || !identity.ownerId.trim()) {
     throw new BookingValidationError();
   }
-  return identity.ownerId.trim();
+  return Object.freeze({
+    ownerId: identity.ownerId.trim(),
+    contactEmail: identity.contactEmail ?? null,
+  });
+}
+
+async function resolveOwner(buyerIdentity, authContext) {
+  return (await resolveBuyer(buyerIdentity, authContext)).ownerId;
 }
 
 async function readTrip(tripCatalog, request, tariffQueries) {
@@ -199,4 +210,11 @@ async function resolveSummary(request, ownerId, dependencies, trip) {
   return { summary: createBookingSummary(request, context), context };
 }
 
-module.exports = { copyPurchaseInput, resolveOwner, readTrip, readPurchaseTrip, resolveSummary };
+module.exports = {
+  copyPurchaseInput,
+  resolveBuyer,
+  resolveOwner,
+  readTrip,
+  readPurchaseTrip,
+  resolveSummary,
+};

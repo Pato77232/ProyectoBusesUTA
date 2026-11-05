@@ -1,3 +1,5 @@
+import { createBenefitsApi } from "./benefits-api.js";
+import { createBenefitBuyer } from "./benefits-controller.js";
 import { createBookingAccess } from "./access.js";
 import { createBookingsApi, readTripContext } from "./api.js";
 import { createAttemptStore, createBookingFlow } from "./flow.js";
@@ -6,12 +8,82 @@ import { ApiError } from "../api/api-error.js";
 const element = (id) => document.getElementById(id);
 const api = createBookingsApi(window.fetch.bind(window));
 const access = createBookingAccess({ api });
+const benefitBuyer = createBenefitBuyer({
+  api: createBenefitsApi(),
+  newKey: () => window.crypto.randomUUID(),
+});
+let benefitBusy = false;
+function forgetBenefits() {
+  benefitBuyer.forget();
+  element("benefit-buyer-status").textContent =
+    "Completa los pasajeros antes de solicitar la revisión.";
+}
+function purchaseInput() {
+  return {
+    ...context,
+    seatIds: [...selected],
+    passengers: [...selected].map((seatId) => {
+      const {
+        deliveryEmail,
+        guardianFullName,
+        guardianBirthDate,
+        ...passenger
+      } = drafts.get(seatId);
+      return {
+        ...passenger,
+        contact: {
+          email: deliveryEmail,
+          ...(guardianFullName || guardianBirthDate
+            ? {
+                guardian: {
+                  fullName: guardianFullName,
+                  birthDate: guardianBirthDate,
+                },
+              }
+            : {}),
+        },
+      };
+    }),
+  };
+}
+async function benefitAction(refresh = false) {
+  if (
+    benefitBusy ||
+    flow.state.locked ||
+    !selected.size ||
+    !element("passenger-form").reportValidity()
+  )
+    return;
+  benefitBusy = true;
+  element("benefit-buyer-status").textContent = "Consultando la revisión…";
+  sync();
+  try {
+    const request = refresh
+      ? await benefitBuyer.refresh()
+      : await benefitBuyer.submit(purchaseInput());
+    element("benefit-buyer-status").textContent =
+      request.status === "EXPIRED"
+        ? "El plazo terminó. Consulta nuevamente el viaje."
+        : request.review
+          ? "La revisión está registrada. Pulsa Ver resumen para consultar el total autorizado. Un dato no acreditado puede impedir continuar."
+          : "Solicitud recibida. Presenta los documentos a la cooperativa y pulsa Consultar verificación.";
+  } catch (error) {
+    handleSessionFailure(error);
+    element("benefit-buyer-status").textContent =
+      !error.status || error.status >= 500
+        ? "No pudimos confirmar la respuesta. Pulsa de nuevo para recuperar el mismo intento."
+        : message(error);
+  } finally {
+    benefitBusy = false;
+    sync();
+  }
+}
+
 let loginRequired = false;
 let hasCustomerSession = false;
 const context = readTripContext(window.location.search);
 const reservationReturn =
-  "/pages/reservas.html" +
-  (context ? "?" + new URLSearchParams(context) : "");
+  "/pages/reservas.html" + (context ? "?" + new URLSearchParams(context) : "");
 element("register-customer").href =
   "/pages/registro.html?" + new URLSearchParams({ next: reservationReturn });
 const selected = new Set();
@@ -52,6 +124,7 @@ function notice(text, tone = "info", focus = false) {
 function forgetPrivateView() {
   if (!flow) return;
   flow.forgetPrivateData();
+  forgetBenefits();
   seats = [];
   selected.clear();
   drafts.clear();
@@ -137,6 +210,8 @@ function renderSeats() {
     button.dataset.seatId = seat.seatId;
     button.dataset.status = seat.status;
     button.setAttribute("aria-pressed", String(chosen));
+    const label =
+      seat.category === "ACCESSIBLE" ? "Espacio accesible " : "Asiento ";
     const status =
       seat.status === "AVAILABLE"
         ? chosen
@@ -145,8 +220,8 @@ function renderSeats() {
         : seat.status === "SOLD"
           ? "× Vendido"
           : "× Reservado";
-    button.setAttribute("aria-label", "Asiento " + seat.seatId + ", " + status);
-    button.append(node("span", seat.seatId), node("small", status));
+    button.setAttribute("aria-label", label + seat.seatId + ", " + status);
+    button.append(node("span", label + seat.seatId), node("small", status));
     list.append(button);
   }
   element("selection-count").textContent = selected.size
@@ -164,6 +239,9 @@ function renderPassengers() {
         fullName: "",
         identificationNumber: "",
         birthDate: "",
+        deliveryEmail: "",
+        guardianFullName: "",
+        guardianBirthDate: "",
       });
     const draft = drafts.get(seatId);
     const fieldset = node("fieldset", undefined, "booking-passenger");
@@ -173,6 +251,21 @@ function renderPassengers() {
       ["fullName", "Nombre completo", "text"],
       ["identificationNumber", "Cédula (10 dígitos)", "text"],
       ["birthDate", "Fecha de nacimiento", "date"],
+      [
+        "deliveryEmail",
+        "Correo de entrega: pasajero adulto o responsable del menor",
+        "email",
+      ],
+      [
+        "guardianFullName",
+        "Si es menor al viajar: nombre del responsable adulto",
+        "text",
+      ],
+      [
+        "guardianBirthDate",
+        "Si es menor al viajar: nacimiento del responsable adulto",
+        "date",
+      ],
     ]) {
       const wrapper = node("div", undefined, "booking-field");
       const id = "passenger-" + index + "-" + field;
@@ -182,7 +275,7 @@ function renderPassengers() {
       Object.assign(input, {
         id,
         type,
-        required: true,
+        required: !["guardianFullName", "guardianBirthDate"].includes(field),
         value: draft[field],
         autocomplete: "off",
       });
@@ -220,6 +313,17 @@ function renderSummary(target, summary) {
           money(passenger.quote.totalPriceCents),
       ),
     );
+    if (passenger.contact)
+      item.append(
+        node(
+          "small",
+          "Correo de entrega: " +
+            passenger.contact.email +
+            (passenger.contact.guardian
+              ? " · Responsable: " + passenger.contact.guardian.fullName
+              : ""),
+        ),
+      );
     passengers.append(item);
   }
   const totals = node("dl", undefined, "booking-totals");
@@ -254,9 +358,13 @@ function tick() {
 function sync() {
   if (!flow) return;
   const state = flow.state;
-  const busy = state.busy || loadingSeats || access.state.busy;
+  const busy = state.busy || loadingSeats || access.state.busy || benefitBusy;
   const locked =
-    state.locked || loadingSeats || access.state.busy || loginRequired;
+    state.locked ||
+    loadingSeats ||
+    access.state.busy ||
+    loginRequired ||
+    benefitBusy;
   document
     .querySelector(".booking-workflow")
     .setAttribute("aria-busy", String(busy));
@@ -278,12 +386,18 @@ function sync() {
     !seats.length || !!state.reference || !!state.booking;
   element("passenger-form").hidden =
     !selected.size || !!state.reference || !!state.booking;
+  element("benefit-request-panel").hidden =
+    !selected.size || !!state.reference || !!state.booking;
+  element("request-benefit").disabled = locked || !selected.size;
+  element("refresh-benefit").disabled = locked || !benefitBuyer.state.request;
+  element("refresh-benefit").hidden = !benefitBuyer.state.request;
   element("summary-panel").hidden =
     !state.review || !!state.reference || !!state.booking;
   element("pending-panel").hidden = !state.reference || !!state.booking;
   element("receipt-panel").hidden = !state.booking;
   element("retry-attempt").hidden = !state.canRetry;
   element("refresh-seats").disabled = locked || !context;
+  element("include-accessible").disabled = locked || !context;
   element("retry-availability").hidden =
     !context ||
     seats.length > 0 ||
@@ -306,7 +420,13 @@ function sync() {
     element("booking-status").textContent =
       booking.status === "PENDING_PAYMENT"
         ? "Estado: pendiente de comprobante."
-        : "Estado pendiente de actualización.";
+        : booking.status === "SOLD"
+          ? "Estado: compra aprobada. Tus boletos ya están disponibles."
+          : "Estado pendiente de actualización.";
+    element("booking-tickets").hidden = booking.status !== "SOLD";
+    element("booking-not-ticket").hidden = booking.status === "SOLD";
+    element("booking-tickets-link").href =
+      "boletos.html?" + new URLSearchParams({ reserva: booking.bookingId });
     element("booking-expiry").dateTime = booking.expiresAt;
     element("booking-expiry").textContent =
       instantFormat.format(new Date(booking.expiresAt)) + " · hora de Ecuador";
@@ -328,6 +448,7 @@ function sync() {
 }
 function invalidate() {
   flow.invalidate();
+  forgetBenefits();
   element("accept-summary").checked = false;
 }
 async function loadSeats() {
@@ -337,6 +458,18 @@ async function loadSeats() {
   sync();
   try {
     const result = await api.availability(context);
+    if (element("include-accessible").checked) {
+      const accessible = await api.accessibleAvailability(context);
+      if (
+        !Array.isArray(accessible?.seats) ||
+        accessible.seats.some((seat) => seat.category !== "ACCESSIBLE")
+      )
+        throw new ApiError(
+          "RESPONSE_INVALID",
+          "Inventario accesible inválido.",
+        );
+      result.seats = [...result.seats, ...accessible.seats];
+    }
     if (
       !Array.isArray(result?.seats) ||
       result.seats.some(
@@ -427,7 +560,14 @@ element("passenger-form").addEventListener("input", (event) => {
   const { seatId, field } = event.target.dataset;
   if (
     !drafts.has(seatId) ||
-    !["fullName", "identificationNumber", "birthDate"].includes(field)
+    ![
+      "fullName",
+      "identificationNumber",
+      "birthDate",
+      "deliveryEmail",
+      "guardianFullName",
+      "guardianBirthDate",
+    ].includes(field)
   )
     return;
   drafts.get(seatId)[field] = event.target.value;
@@ -438,12 +578,9 @@ element("passenger-form").addEventListener("submit", (event) => {
   event.preventDefault();
   if (!selected.size || flow.state.locked || !event.target.reportValidity())
     return;
-  const input = {
-    ...context,
-    seatIds: [...selected],
-    passengers: [...selected].map((seatId) => ({ ...drafts.get(seatId) })),
-  };
-  invalidate();
+  const input = purchaseInput();
+  flow.invalidate();
+  element("accept-summary").checked = false;
   run(
     () => flow.review(input),
     () => {
@@ -452,6 +589,9 @@ element("passenger-form").addEventListener("submit", (event) => {
     },
   );
 });
+element("request-benefit").addEventListener("click", () => benefitAction());
+element("refresh-benefit").addEventListener("click", () => benefitAction(true));
+window.addEventListener("pagehide", forgetBenefits);
 element("accept-summary").addEventListener("change", sync);
 element("edit-details").addEventListener("click", () => {
   invalidate();
@@ -471,6 +611,7 @@ element("refresh-booking").addEventListener("click", () =>
   run(() => flow.recover()),
 );
 element("refresh-seats").addEventListener("click", loadSeats);
+element("include-accessible").addEventListener("change", loadSeats);
 element("retry-availability").addEventListener("click", loadSeats);
 element("finish-booking").addEventListener("click", (event) => {
   try {

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mis boletos | transViaje</title>
+    <link rel="icon" href="../assets/favicon.svg" />
+    <link rel="stylesheet" href="../assets/vendor/bootstrap-5.3.8/bootstrap.min.css" />
+    <link rel="stylesheet" href="../src/styles/app.css" />
+    <link rel="stylesheet" href="../src/styles/tickets.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+    <header class="site-header">
+      <nav class="container">
+        <a class="brand" href="../index.html"
+          ><img src="../assets/brand/logo-transviaje.png" alt="transViaje" width="140" /></a
+        ><a href="buscar-viajes.html">Buscar viajes</a>
+      </nav>
+    </header>
+    <main class="container py-5" id="contenido">
+      <h1 id="tickets-title">Mis boletos</h1>
+      <p class="tickets-intro">
+        Un boleto por pasajero. Presenta el código QR al abordar, impreso o en tu teléfono.
+        Horarios de Ecuador continental (UTC−05:00).
+      </p>
+      <p id="tickets-status" role="status" aria-live="polite" tabindex="-1">Cargando…</p>
+      <p id="tickets-login" class="tickets-actions" hidden>
+        <a class="btn btn-primary" href="login.html">Iniciar sesión</a>
+      </p>
+      <div id="tickets-toolbar" class="tickets-actions" hidden>
+        <button id="tickets-print" class="btn btn-primary" type="button">Imprimir boletos</button>
+        <a class="btn btn-outline-dark" href="boletos.html">Volver a mis compras</a>
+      </div>
+      <ul id="sold-bookings" class="list-unstyled tickets-list" aria-busy="false"></ul>
+      <p id="sold-more-row" class="tickets-actions" hidden>
+        <button id="sold-more" class="btn btn-outline-dark" type="button">Ver más compras</button>
+      </p>
+      <section id="tickets-sheet" aria-labelledby="tickets-title" hidden></section>
+    </main>
+    <script type="module" src="../src/tickets/tickets-page.js"></script>
+  </body>
+</html>

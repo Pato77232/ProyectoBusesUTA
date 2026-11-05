@@ -1,0 +1,130 @@
+/* BOLETOS-01: boletos imprimibles; usa los tokens de app.css (DESIGN.md D-03, D-04, D-07). */
+.tickets-intro {
+  max-width: 60ch;
+  color: var(--color-muted);
+}
+.tickets-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-block: 16px 24px;
+}
+.tickets-list {
+  display: grid;
+  gap: 16px;
+}
+#tickets-sheet {
+  display: grid;
+  gap: 24px;
+}
+#tickets-sheet[hidden] {
+  display: none;
+}
+.ticket-card {
+  border: 1px solid var(--color-muted);
+  border-radius: var(--radius-panel);
+  padding: 28px;
+  background: var(--color-canvas);
+  break-inside: avoid;
+}
+.ticket-header {
+  border-bottom: 1px dashed var(--color-muted);
+  padding-bottom: 16px;
+  margin-bottom: 20px;
+}
+.ticket-kicker {
+  margin: 0 0 4px;
+  color: var(--color-brand);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+.ticket-header h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  overflow-wrap: anywhere;
+}
+.ticket-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px;
+  align-items: start;
+}
+.ticket-data {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 24px;
+  margin: 0;
+}
+.ticket-data dt {
+  color: var(--color-muted);
+  font-weight: 400;
+  font-size: 0.85rem;
+}
+.ticket-data dd {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.ticket-qr-box {
+  margin: 0;
+  text-align: center;
+}
+.ticket-qr {
+  display: block;
+  width: 180px;
+  height: 180px;
+}
+.ticket-code {
+  margin-top: 8px;
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  overflow-wrap: anywhere;
+  max-width: 180px;
+}
+.ticket-reference {
+  margin: 20px 0 0;
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 575.98px) {
+  .ticket-card {
+    padding: 20px;
+  }
+  .ticket-body,
+  .ticket-data {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ticket-qr-box {
+    justify-self: center;
+  }
+}
+
+@media print {
+  .site-header,
+  .skip-link,
+  .tickets-intro,
+  .tickets-actions,
+  #tickets-status,
+  .tickets-list {
+    display: none !important;
+  }
+  main {
+    padding: 0 !important;
+  }
+  #tickets-title {
+    font-size: 1.25rem;
+  }
+  .ticket-card {
+    break-after: page;
+    border-color: #000;
+  }
+  .ticket-card:last-child {
+    break-after: auto;
+  }
+}

@@ -5,6 +5,28 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-05
+
+Segunda versión entregada.
+
+### Añadido
+
+- **Boletos:** un boleto por pasajero con código QR opaco (sin datos personales) para cada reserva vendida; página «Mis boletos» imprimible y enlace desde Reservas (#103).
+- **Correo:** recuperación de contraseña con enlace de un uso y revocación de sesiones (#97); el puerto SMTP admite un adjunto PNG (#104).
+- **Autenticación:** pantalla de registro de clientes (#95); pantallas administrativas de cooperativas, administradores y oficinistas (#101); acceso verificado de invitados por correo y vínculo con sus reservas (#107).
+- **Flota:** listado y detalle de buses de la cooperativa (#99).
+- **Reservas:** lectura de ventas para boletos (#98); solicitud y acreditación web de beneficios (#106); historial web de reservas propias (#108); contactos de pasajeros y responsables para entregar boletos (#109).
+- **Infraestructura:** diagnóstico de migraciones y verificación del recorrido de ciclos y búsqueda (#105).
+- **Documentación:** política académica conciliada (#96); contratos de venta accesible (#100, #102), venta en caja (#110) y corrección de comprobantes (#111).
+
+### Corregido
+
+- El catálogo de migraciones quedó desordenado y con marcas repetidas al integrar #107, y el migrador rechazaba el arranque. Se renumeran las migraciones de invitado sin cambiar su SQL (INTEG-02).
+
+### Errores académicos
+
+- Ninguno, como en 0.1.x.
+
 ## [0.1.1] - 2026-11-04
 
 ### Corregido
