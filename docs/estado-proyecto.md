@@ -10,8 +10,13 @@ trabajador, reintentos, reemisión, límites y respuestas HTTP. La spec separa
 esta tarea de verificación de correo y AUTH-WEB-02. Faltan clasificación de
 errores en el adaptador SMTP, diseño operativo del trabajador y revisión del
 cambio; `auth_email_actions` y `PUBLIC_WEB_ORIGIN` aún no existen en esta base.
-Actualización documental para la draft PR #97; sin código, pruebas de producto,
-revisión de código ni integración.
+Actualización documental para la draft PR #97; `origin/develop` `5c48d22` se
+incorporó localmente en `cf200e3`, sin conflictos. Backend lint/formato y
+1946/1946 unitarias aprobaron; 650/651 integraciones aprobaron y la reversión
+de migración de Fleet falló también al repetirla sola. Frontend lint y 319/319
+pruebas aprobaron; el backend arrancó y health respondió 200 con PostgreSQL
+aislado, luego retirado. Detalles en la spec. Sin código propio, revisión humana
+ni integración de esta PR.
 
 ## INTEG-01 — continuación local T7, T6b y composición, 4 de noviembre de 2026
 

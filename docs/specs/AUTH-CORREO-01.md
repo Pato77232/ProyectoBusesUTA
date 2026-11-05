@@ -39,6 +39,25 @@ En `origin/develop` `5ff50d9` no existen `auth_email_actions`, `encrypted_messag
 4. Añadir interfaz y comprobar teclado, foco, lector de estado, escritorio/móvil y recorrido con backend real y transporte QA. La recepción en buzón real se comprueba solo con intervención del operador.
 5. Ejecutar `npm run lint`, `npm run format:check` y `npm test` desde `backend/`; frontend lint/pruebas; si cambia la composición, comprobar arranque real. Registrar resultados sin ocultar fallos de la base.
 
-La base original `5ff50d9` tenía un fallo de composición en `backend/src/server.js`; `origin/develop` `5c48d22` ya incorpora el hotfix 0.1.1. La actualización de esta rama desde ese commit requiere verificar la combinación; esta spec no declara operativo el arranque por inferencia. Sin cambios de producto, dependencias, migraciones ni pruebas en este incremento documental.
+La base original `5ff50d9` tenía un fallo de composición en `backend/src/server.js`; `origin/develop` `5c48d22` ya incorpora el hotfix 0.1.1. La combinación se verificó como se indica abajo. Sin cambios propios de producto, dependencias, migraciones ni pruebas en este incremento documental.
 
 Guía de seguridad consultada: [OWASP Forgot Password Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html).
+
+## Conciliación con develop y verificación del 4 de noviembre de 2026
+
+La decisión funcional quedó en `157d5e2`; se incorporó `origin/develop`
+`5c48d22` mediante merge local `cf200e3`, sin conflictos. El diff propio frente
+a esa base sigue limitado a esta spec y `docs/estado-proyecto.md`. El hotfix
+0.1.1 de `server.js` está presente en la combinación; el arranque real con
+PostgreSQL de prueba respondió 200 en `/api/v1/health` y se cerró ordenadamente.
+
+Con `npm ci --ignore-scripts` desde el lock vigente, backend `npm run lint` y
+`npm run format:check` aprobaron. `npm test` aprobó 1946/1946 unitarias, pero
+falló globalmente por 1 de 651 integraciones: `fleet/bus-seat-immutability`
+no pudo ejecutar `migrate.js down` al probar reversión/reaplicación. La repetición
+dirigida también falló en ese caso (8/9 pruebas aprobadas); no se alteraron
+pruebas ni migraciones para ocultarlo. Frontend lint y 319/319 pruebas aprobaron.
+La base PostgreSQL temporal `busesuta_test` se retiró tras la verificación.
+`npm ci` informó 24 hallazgos de auditoría (3 bajos, 20 moderados, 1 alto);
+no se actualizaron dependencias en esta tarea documental. Revisión humana e
+integración de esta PR siguen pendientes.
