@@ -8,6 +8,7 @@
     "test:bookings:browser": "node tests/bookings/browser.cjs",
     "test:bookings:container": "node tests/bookings/container.cjs",
     "test:login": "node tests/login-smoke.cjs",
+    "test:admin": "node tests/admin-browser-smoke.cjs",
     "test:password-reset": "node tests/password-reset-smoke.cjs",
     "test:frequencies": "node tests/crear-frecuencia-smoke.cjs",
     "test:frequencies:api": "node tests/crear-frecuencia-api-smoke.cjs",
