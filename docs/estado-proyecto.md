@@ -1,5 +1,28 @@
 # Estado compartido del proyecto
 
+## David — ciclos confirmados, sección 2 del recorrido, 4 de noviembre de 2026
+
+El solicitante autorizó continuar con la sección 2 del plan de
+[SEARCH-01](specs/SEARCH-01.md), bajo los contratos ROUTE-SHEETS-04/07/08.
+Dos recorridos nuevos en la suite de renovación comprueban búsqueda/horizonte
+antes y después de publicar, publicaciones simultáneas sin duplicación, rechazo
+del tercer período sin cupo y liberación exacta al fin exclusivo del primero.
+La preparación del tercer borrador usa reloj inyectado y PostgreSQL reales; no
+publica ni renumera los ciclos anteriores. La publicación vuelve a validar el
+límite con su reloj. Viajes, inventarios, ciclos y serie previos se conservan
+iguales; no se crean reservas/ventas para esta cobertura.
+
+Suite dirigida: 14/14 integraciones con arranque real aprobadas. Lint y formato
+backend aprobados; 2017/2017 unitarias y repetición completa de integración
+686/686 (62 suites) aprobadas. La primera fase global de integración se detuvo
+sin resumen y se repitió; detalle y límites de la evidencia en
+[ROUTE-SHEETS-08](specs/ROUTE-SHEETS-08.md). Sin cambios de producto, migraciones,
+dependencias o pantallas. Los fallos de reversión de la sección 1 no se
+reprodujeron; no se atribuye una corrección ni diagnóstico nuevo. Entorno
+temporal retirado. Git exclusivamente a cargo del humano, sin comandos
+ejecutados por el asistente. Última base conocida de esta conversación `d7ea282`,
+sin nueva verificación de rama/remoto. Revisión humana e integración pendientes.
+
 ## David — SEARCH-01, sección 1 de verificación del recorrido, 4 de noviembre de 2026
 
 El solicitante autorizó dividir ciclos/búsqueda en secciones e implementar solo la

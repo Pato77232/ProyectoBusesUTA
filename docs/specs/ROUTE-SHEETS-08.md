@@ -222,3 +222,66 @@ Lint y formato de los cuatro JS resueltos aprobados. Format:check global mantien
 No se leyó .env ni se modificaron dependencias o migraciones existentes. Npm ci se ejecutó únicamente dentro de contenedores efímeros, con lock verificado antes de reutilizar los binarios nativos de Sharp. La base aislada se retira al terminar. Asistencia de Codex en resolución, pruebas y documentación; sin commit ni push del asistente.
 
 La combinación queda preparada para revisión y confirmación humana. Mensaje sugerido para el commit de combinación: `chore(hojas-ruta): concilia la renovación con develop`. No se crea otra PR: una publicación humana posterior actualizará la existente.
+
+## 18. Verificación de ciclos confirmados — 4 de noviembre de 2026
+
+El solicitante pide implementar la sección 2 del
+[plan del recorrido](SEARCH-01.md#sección-2-ciclos-confirmados) y sugerir su
+commit. Se conserva el contrato funcional existente. No se ejecuta ningún
+comando de Git por instrucción humana; última base conocida de la conversación
+`d7ea282`, sin nueva comprobación de rama/remoto ni atribución de integración.
+
+Se añaden dos pruebas a `tests/integration/route-sheets/renewals.test.js`:
+
+1. Publicación base, preparación de renovación, ausencia en búsqueda y horizonte
+   original conservado; publicación simultánea del mismo borrador con manifiesto
+   idéntico y cantidades exactas (seis viajes, dos inventarios, dos ciclos y una
+   serie); segundo período visible en búsqueda y horizonte ampliado solo tras
+   publicar. Preparar el tercero sin cupo responde 409 sin escrituras comerciales.
+2. Preparación del tercero con caso de uso y repositorio PostgreSQL reales y reloj
+   inyectado: un milisegundo antes del fin exclusivo del primero rechaza; en el
+   límite exacto prepara un borrador contiguo de igual duración, sin viajes nuevos.
+   El endpoint de publicación con reloj actual vuelve a rechazar por dos períodos
+   aún no terminados, sin confiar en la preparación hecha con otro reloj. Replay
+   recupera el mismo borrador; permanecen los ciclos históricos 1 y 2.
+
+Ambas pruebas conservan iguales todas las columnas de las filas comerciales
+previas (viajes, inventarios, ciclos y serie). No crean reservas ni ventas reales;
+no acreditan conservación de compras de Bookings ni publicación efectiva del
+tercer ciclo. La asignación de su número 3 sigue cubierta por las pruebas de
+dominio existentes. Se mantiene la confirmación humana antes de venta.
+
+SOLID: fábricas y puertos existentes, sin abstracciones o cambios de producción.
+Sin nueva UI, dependencias, migraciones, scheduler o cambios a pruebas anteriores
+y timeouts. La suite usa servidor real, sesión/CSRF y consultas públicas de
+búsqueda. Revisión humana pendiente; asistencia de Codex en pruebas/documentación.
+
+### Resultados de esta verificación
+
+Windows, Node 24.22.2 y PostgreSQL 16.13 aislado, proyecto Compose
+`ciclos-seccion2` con `--env-file NUL` y credenciales ficticias de pruebas.
+Sin lectura de `.env` ni instalación de dependencias.
+
+- Suite dirigida de renovación: **14/14 integraciones**, incluidas las dos nuevas,
+  arranque real y autenticación/CSRF. Aprobada.
+- Backend `npm run lint` y `npm run format:check`: aprobados.
+- `npm test` completó **2017/2017 unitarias, 116 suites**. Su fase de integración
+  se interrumpió al interpretar erróneamente la falta de salida como falta de
+  avance; el registro final mostró nuevos arranques. No se atribuyen totales a
+  esa fase incompleta.
+- Repetición completa con `npm run test:integration`, sin redirección del registro:
+  **686/686 integraciones, 62 suites**, aprobadas en 316,649 segundos.
+
+Los 30 fallos de reversión registrados en la sección 1 de SEARCH-01 no se
+reprodujeron en esta repetición. No se cambió código de migraciones ni se
+diagnosticó su causa; no se afirma haber corregido una intermitencia o el
+problema de Windows. No se debilitaron pruebas ni ampliaron timeouts.
+
+Se revisaron por lectura el archivo de pruebas y las adiciones documentales;
+no se ejecutó diff ni ningún otro comando de Git por instrucción humana. No se
+repitieron frontend/navegador al no cambiar producto ni UI. Recursos temporales
+retirados al terminar. Implementación local lista para revisión humana, sin
+declarar integración/cierre del módulo.
+
+Commit sugerido: `test(hojas-ruta): verifica publicación y límites de ciclos`,
+con `Refs: docs/specs/ROUTE-SHEETS-08.md`.

@@ -33,7 +33,7 @@ haber vuelto a verificar rama, cambios locales o remoto en este incremento.
 | Sección | Resultado delimitado | Spec y dependencia |
 |---|---|---|
 | 1. Búsqueda por embarque | Prueba HTTP/PostgreSQL real de viaje nocturno: fecha local del origen y de la parada, publicación previa, tarifa explícita y frecuencia activa | SEARCH-01, contrato existente; autorizada en esta sesión |
-| 2. Ciclos confirmados | Revisar y comprobar preparación/publicación, límite de períodos e historia conservada; corregir solo defectos reproducidos dentro del contrato vigente | ROUTE-SHEETS-04/07/08; siguiente sección, no implementada aquí |
+| 2. Ciclos confirmados | Revisar y comprobar preparación/publicación, límite de períodos e historia conservada; corregir solo defectos reproducidos dentro del contrato vigente | ROUTE-SHEETS-04/07/08; implementación autorizada posteriormente por el solicitante |
 | 3. Generación automática moderna | Preparar contrato para generación de borradores compatible con programación en días, continuidad y confirmación humana antes de venta | Requiere spec y decisiones; el generador legado no acredita este recorrido |
 | 4. Migraciones en Windows | Reproducir y diagnosticar reversiones y timeouts, con Edwin como participante propuesto, sin atribuirle aceptación | Tarea independiente; spec técnica antes de corregir, sin ampliar timeouts para ocultar fallos |
 
@@ -84,3 +84,36 @@ Archivos completos de la prueba y las adiciones documentales revisados mediante
 lectura; no se ejecutó diff de Git por instrucción humana. Entorno temporal
 retirado al terminar. Sección 1 implementada localmente, pendiente de revisión
 humana; no integrada/cerrada. Asistencia de Codex en pruebas y documentación.
+
+### Sección 2: ciclos confirmados
+
+El solicitante autoriza implementar esta sección y pide sugerencia de commit,
+sin autorizar operaciones de Git. Se añaden recorridos a la suite de renovación
+de ROUTE-SHEETS-08, con contratos existentes de ROUTE-SHEETS-04/07:
+
+- Un borrador renovado no amplía el horizonte comercial ni aparece en búsqueda;
+  su publicación explícita incorpora el siguiente período y sus viajes.
+- Dos publicaciones simultáneas de ese borrador recuperan el mismo resultado,
+  sin duplicar viajes, inventarios ni ciclos. Dos períodos no terminados impiden
+  preparar el tercero.
+- Con reloj inyectado en el caso de uso real y PostgreSQL, un milisegundo antes
+  del fin exclusivo del primero todavía no hay cupo; en el instante exacto se
+  permite preparar el tercer borrador contiguo con numeración histórica intacta.
+- Preparar y consultar no publican el tercer período. La publicación revalida el
+  límite con su reloj, sin confiar en el recibo previo de preparación.
+- Las filas comerciales previas de viajes, inventarios, ciclos y serie se
+  conservan iguales en ambos recorridos.
+
+Sin nuevas reglas, endpoints, migraciones o pantallas. No se modifica el reloj
+del sistema ni se habilita generación/publicación automática. Esta cobertura
+comprueba historia comercial; no crea ventas/reservas, por lo que no acredita
+por sí sola conservación de compras reales. Revisión humana pendiente.
+
+Resultado: dos recorridos nuevos, suite dirigida de renovación 14/14 aprobada;
+lint y formato backend aprobados, 2017/2017 unitarias y repetición completa
+686/686 integraciones aprobadas. La primera fase global de integración se
+interrumpió sin resumen; no se le atribuyen totales. Evidencia y límites en
+[ROUTE-SHEETS-08 §18](ROUTE-SHEETS-08.md#18-verificación-de-ciclos-confirmados--4-de-noviembre-de-2026).
+Sin cambios de producto ni operaciones de Git. Sección implementada localmente,
+pendiente de revisión humana. No se declara resuelto el origen de los fallos de
+reversión anteriores ni completada la generación automática moderna.
