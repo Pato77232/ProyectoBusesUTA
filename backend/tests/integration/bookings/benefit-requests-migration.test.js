@@ -54,7 +54,12 @@ test('aplica desde develop conservando reservas anteriores y solo añade la tabl
   const before = (await pool.query('SELECT * FROM bookings')).rows;
   await worker('migrate', { direction: 'up' });
   expect(await history()).toEqual(activeNames);
-  expect((await pool.query('SELECT * FROM bookings')).rows).toEqual(before);
+  // Las migraciones posteriores pueden añadir columnas vacías; las existentes no cambian.
+  const after = (await pool.query('SELECT * FROM bookings')).rows;
+  expect(
+    after.map((row) => Object.fromEntries(Object.keys(before[0]).map((key) => [key, row[key]]))),
+  ).toEqual(before);
+  expect(after.map((row) => row.guest_contact_email ?? null)).toEqual(before.map(() => null));
   expect((await pool.query('SELECT * FROM booking_benefit_requests')).rows).toEqual([]);
 });
 test('tabla vacía se revierte y reaplica sin alterar las filas existentes', async () => {

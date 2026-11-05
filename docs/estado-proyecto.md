@@ -1,5 +1,11 @@
 # Estado compartido del proyecto
 
+## Edwin — catálogo de migraciones tras BOOK-11 (INTEG-02), 5 de noviembre de 2026
+
+| Spec / responsable | Estado y evidencia | Próximo paso |
+| --- | --- | --- |
+| [INTEG-02](specs/INTEG-02.md) / Edwin | `develop` `22a77c0` rechaza su catálogo: las migraciones de invitado quedaron en mitad de la lista y con marcas repetidas. Rama `feature/INTEG-02-catalogo-migraciones`: se renumeran a `1794350000000` y `1794360000000` sin cambiar su SQL. | Integrar antes de CORREO-02 y del release; recrear bases locales que ya aplicaron los nombres anteriores. |
+
 ## Conciliación de PR #106
 
 Rama actualizada con develop `a7a4a9a`, conflictos resueltos y migraciones
