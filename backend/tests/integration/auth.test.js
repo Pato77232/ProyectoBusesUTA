@@ -1,5 +1,5 @@
 const http = require('node:http');
-const { randomUUID } = require('node:crypto');
+const { randomUUID, randomBytes, createHash } = require('node:crypto');
 const createApp = require('../../src/app');
 const {createAuthModule} = require('../../src/modules/auth');
 const {createHasher} = require('../../src/modules/auth/infrastructure/password-hasher');
@@ -123,4 +123,126 @@ test('registro rechaza CSRF ausente, escalamiento y duplicados concurrentes',asy
  const results=await Promise.all([browser.request('/api/v1/auth/register','POST',body),browser.request('/api/v1/auth/register','POST',{...body,email:' NEW@EXAMPLE.EC '})]);
  expect(results.map(r=>r.status).sort()).toEqual([201,409]);
  expect((await pool.query("SELECT * FROM users WHERE email='new@example.ec'")).rows).toHaveLength(1);
+});
+
+test('solicitud de recuperación exige CSRF y encola solo para una cuenta existente',async()=>{
+ const browser=new Browser();
+ const body={email:' CLIENT@EXAMPLE.EC '};
+ expect((await browser.request('/api/v1/auth/password-reset','POST',body)).status).toBe(403);
+ await browser.token();
+ const existing=await browser.request('/api/v1/auth/password-reset','POST',body);
+ const missing=await browser.request('/api/v1/auth/password-reset','POST',{email:'missing@example.ec'});
+ expect(existing.status).toBe(202);expect(missing.status).toBe(202);
+ expect(await existing.json()).toEqual(await missing.json());
+ const actions=await pool.query('SELECT user_id,state,token_hash FROM auth_email_actions');
+ expect(actions.rows).toEqual([{user_id:userId,state:'PENDING',token_hash:null}]);
+ const attempts=await pool.query('SELECT email,accepted FROM auth_password_reset_attempts ORDER BY id');
+ expect(attempts.rows).toEqual([
+  {email:'client@example.ec',accepted:true},
+  {email:'missing@example.ec',accepted:true},
+ ]);
+});
+
+test('enfriamiento y límite por correo no generan nuevos enlaces, también para cuentas inexistentes',async()=>{
+ const browser=new Browser();await browser.token();
+ for(const email of ['client@example.ec','missing@example.ec']) {
+  for(let i=0;i<4;i++) {
+   expect((await browser.request('/api/v1/auth/password-reset','POST',{email})).status).toBe(202);
+   await pool.query("UPDATE auth_password_reset_attempts SET requested_at=CURRENT_TIMESTAMP-INTERVAL '61 seconds' WHERE email=$1 AND accepted",[email]);
+  }
+ }
+ const accepted=await pool.query('SELECT email,count(*)::int AS count FROM auth_password_reset_attempts WHERE accepted GROUP BY email ORDER BY email');
+ expect(accepted.rows).toEqual([
+  {email:'client@example.ec',count:3},
+  {email:'missing@example.ec',count:3},
+ ]);
+ const actions=await pool.query('SELECT state,count(*)::int AS count FROM auth_email_actions GROUP BY state ORDER BY state');
+ expect(actions.rows).toEqual([{state:'PENDING',count:1},{state:'SUPERSEDED',count:2}]);
+});
+
+test('límite por IP responde 429 sin revelar existencia de cuentas',async()=>{
+ const browser=new Browser();await browser.token();
+ for(let i=0;i<10;i++) {
+  const email=i===0?'client@example.ec':`missing${i}@example.ec`;
+  expect((await browser.request('/api/v1/auth/password-reset','POST',{email})).status).toBe(202);
+ }
+ const response=await browser.request('/api/v1/auth/password-reset','POST',{email:'another@example.ec'});
+ expect(response.status).toBe(429);
+ expect((await response.json()).error.code).toBe('TOO_MANY_ATTEMPTS');
+ expect((await pool.query('SELECT count(*)::int AS count FROM auth_password_reset_attempts')).rows[0].count).toBe(10);
+});
+
+test('solicitudes concurrentes para un correo dejan una sola acción activa',async()=>{
+ const browser=new Browser();await browser.token();
+ const body={email:'client@example.ec'};
+ const responses=await Promise.all(Array.from({length:3},()=>browser.request('/api/v1/auth/password-reset','POST',body)));
+ expect(responses.map(response=>response.status)).toEqual([202,202,202]);
+ expect((await pool.query("SELECT count(*)::int AS count FROM auth_email_actions WHERE state='PENDING'")).rows[0].count).toBe(1);
+ expect((await pool.query('SELECT count(*)::int AS count FROM auth_password_reset_attempts WHERE accepted')).rows[0].count).toBe(1);
+});
+
+async function issueResetToken({forUser=userId,expires="CURRENT_TIMESTAMP+INTERVAL '20 minutes'"}={}) {
+ const token=randomBytes(32).toString('base64url');
+ const tokenHash=createHash('sha256').update(token).digest('hex');
+ await pool.query(
+  `INSERT INTO auth_email_actions(user_id,purpose,state,token_hash,token_expires_at)
+   VALUES($1,'PASSWORD_RESET','ACCEPTED',$2,${expires})`,
+  [forUser,tokenHash],
+ );
+ return token;
+}
+
+test('confirmar recuperación cambia contraseña, consume token y revoca todas las sesiones',async()=>{
+ const first=new Browser(),second=new Browser();
+ await first.token();await second.token();
+ expect((await first.login()).status).toBe(200);
+ expect((await second.login()).status).toBe(200);
+ await first.token();
+ const token=await issueResetToken();
+ const newPassword='nueva contraseña muy segura';
+ const response=await first.request('/api/v1/auth/password-reset/confirm','POST',{token,password:newPassword});
+ expect(response.status).toBe(204);expect(await response.text()).toBe('');
+ expect((await first.request('/api/v1/auth/me')).status).toBe(401);
+ expect((await second.request('/api/v1/auth/me')).status).toBe(401);
+ const actions=await pool.query('SELECT state,used_at,token_hash FROM auth_email_actions');
+ expect(actions.rows[0].state).toBe('USED');expect(actions.rows[0].used_at).toBeTruthy();
+ expect(actions.rows[0].token_hash).toBeNull();
+ const sessions=await pool.query('SELECT revoke_reason FROM auth_sessions');
+ expect(sessions.rows).toEqual([{revoke_reason:'password_reset'},{revoke_reason:'password_reset'}]);
+ const user=await pool.query('SELECT password_hash FROM users WHERE id=$1',[userId]);
+ expect(user.rows[0].password_hash).toContain('$argon2id$');
+ const fresh=new Browser();await fresh.token();
+ expect((await fresh.login('client@example.ec',newPassword)).status).toBe(200);
+ const oldBrowser=new Browser();await oldBrowser.token();
+ expect((await oldBrowser.login('client@example.ec',password)).status).toBe(401);
+});
+
+test('token vencido, usado o mal formado devuelve el mismo error genérico',async()=>{
+ const browser=new Browser();await browser.token();
+ const expired=await issueResetToken({expires:"CURRENT_TIMESTAMP-INTERVAL '1 minute'"});
+ const newPassword='nueva contraseña muy segura';
+ const route='/api/v1/auth/password-reset/confirm';
+ const invalid=await browser.request(route,'POST',{token:'x'.repeat(43),password:newPassword});
+ const old=await browser.request(route,'POST',{token:expired,password:newPassword});
+ const malformed=await browser.request(route,'POST',{token:'no-es-token',password:newPassword});
+ expect([invalid.status,old.status,malformed.status]).toEqual([400,400,400]);
+ expect(await invalid.json()).toEqual(await old.json());
+ expect(await malformed.json()).toEqual({error:{code:'INVALID_RESET_TOKEN',message:'El enlace de recuperación no es válido o ha vencido.'}});
+ await pool.query("UPDATE auth_email_actions SET state='SUPERSEDED' WHERE token_expires_at<CURRENT_TIMESTAMP");
+ const good=await issueResetToken();
+ expect((await browser.request(route,'POST',{token:good,password:newPassword})).status).toBe(204);
+ const used=await browser.request(route,'POST',{token:good,password:newPassword});
+ expect(used.status).toBe(400);
+ expect(await used.json()).toEqual({error:{code:'INVALID_RESET_TOKEN',message:'El enlace de recuperación no es válido o ha vencido.'}});
+});
+
+test('confirmación exige CSRF, contraseña válida y solo permite un consumo concurrente',async()=>{
+ const browser=new Browser();const token=await issueResetToken();
+ const route='/api/v1/auth/password-reset/confirm';
+ const body={token,password:'nueva contraseña muy segura'};
+ expect((await browser.request(route,'POST',body)).status).toBe(403);
+ await browser.token();
+ expect((await browser.request(route,'POST',{token,password:'corta'})).status).toBe(400);
+ const responses=await Promise.all([browser.request(route,'POST',body),browser.request(route,'POST',body)]);
+ expect(responses.map(res=>res.status).sort()).toEqual([204,400]);
 });

@@ -37,8 +37,12 @@ const activeNames = Object.freeze([
   '1794250000000-booking-commercial-totals',
   '1794260000000-booking-benefit-reviews',
   '1794270000000-identify-accessible-bus-spaces',
-  '1794280000000-booking-benefit-requests',
-  '1794290000000-booking-benefit-request-reviews',
+  '1794280000000-auth-password-reset-actions',
+  '1794290000000-index-password-reset-attempt-retention',
+  '1794300000000-index-password-reset-action-retention',
+  '1794310000000-create-tickets',
+  '1794320000000-booking-benefit-requests',
+  '1794330000000-booking-benefit-request-reviews',
 ]);
 const migrationsDirectory = path.join(__dirname, '../migrations');
 // node-pg-migrate ancla este patrón; preservar explícitamente su exclusión de ocultos.

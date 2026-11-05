@@ -21,7 +21,9 @@ jest.mock('../../src/modules/payments', () => ({
 jest.mock('../../src/modules/bookings', () => ({
   createBookingsModule: jest.fn(),
   createBookingOccupancyQueries: jest.fn(),
+  createBookingTicketQueries: jest.fn(),
 }));
+jest.mock('../../src/modules/tickets', () => ({ createTicketsModule: jest.fn() }));
 
 const createApp = require('../../src/app');
 const { createPool } = require('../../src/shared/database');
@@ -35,6 +37,8 @@ const { createBookingOccupancyQueries } = require('../../src/modules/bookings');
 const { createPaymentsModule } = require('../../src/modules/payments');
 const { createPaymentReceiptModule } = require('../../src/modules/payments');
 const { createBookingsModule } = require('../../src/modules/bookings');
+const { createBookingTicketQueries } = require('../../src/modules/bookings');
+const { createTicketsModule } = require('../../src/modules/tickets');
 const { start } = require('../../src/server');
 
 describe('server startup', () => {
@@ -86,6 +90,8 @@ describe('server startup', () => {
     createPaymentReceiptModule.mockReturnValue({ bookingPaymentProofNotifier: {} });
     createPaymentsModule.mockReturnValue({});
     createBookingsModule.mockReturnValue(bookings);
+    createBookingTicketQueries.mockReturnValue({ findSoldForOwner: jest.fn() });
+    createTicketsModule.mockReturnValue({ router: {} });
     createApp.mockReturnValue(app);
   });
 
@@ -134,8 +140,17 @@ describe('server startup', () => {
       bookingSaleConfirmer: bookings.saleConfirmer,
       paymentQueries: bookings.paymentQueries,
     });
+    expect(createBookingTicketQueries).toHaveBeenCalledWith({ pool });
+    expect(createTicketsModule).toHaveBeenCalledWith({
+      pool,
+      auth,
+      soldBookings: createBookingTicketQueries.mock.results[0].value,
+    });
     expect(createApp).toHaveBeenCalledWith(
       expect.objectContaining({ frequencies, routeSheets, bookings, fleet, pool, auth }),
+    );
+    expect(createApp).toHaveBeenCalledWith(
+      expect.objectContaining({ tickets: createTicketsModule.mock.results[0].value }),
     );
     expect(app.listen).toHaveBeenCalledWith(3100, expect.any(Function));
     expect(result).toEqual({ server, pool, stop: expect.any(Function) });

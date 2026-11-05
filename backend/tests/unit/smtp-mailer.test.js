@@ -14,6 +14,11 @@ const message = () => ({
   text: 'Contenido ficticio',
   notificationId: randomUUID(),
 });
+const png = () =>
+  Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9z0iMAAAAASUVORK5CYII=',
+    'base64',
+  );
 test('sin configuración falla cerrado y no se crea un transporte', async () => {
   const factory = jest.fn(),
     mailer = createSmtpMailer({}, factory);
@@ -30,6 +35,18 @@ test.each([
   expect(() => createSmtpMailer({ ...env, ...change })).toThrow(
     expect.objectContaining({ code: 'MAIL_CONFIG_INVALID' }),
   );
+});
+test('clasifica rechazo temporal devuelto por SMTP sin accepted', async () => {
+  const transport = {
+    sendMail: jest.fn().mockResolvedValue({
+      accepted: [],
+      rejectedErrors: [{ responseCode: 450, message: env.SMTP_PASSWORD }],
+    }),
+  };
+  await expect(createSmtpMailer(env, () => transport).send(message())).rejects.toMatchObject({
+    code: 'MAIL_TEMPORARY_FAILURE',
+    message: expect.not.stringContaining(env.SMTP_PASSWORD),
+  });
 });
 test('requiere TLS y comunica aceptación, sin prometer entrega ni divulgar configuración', async () => {
   const transport = {
@@ -78,6 +95,46 @@ test('rechaza cabeceras inyectadas, remitente del cliente y archivos sin enviar'
     });
   expect(transport.sendMail).not.toHaveBeenCalled();
 });
+test('adjunta un único QR PNG y copia los bytes antes de llamar al transporte', async () => {
+  const transport = {
+    sendMail: jest.fn().mockResolvedValue({ accepted: ['recipient@example.ec'] }),
+  };
+  const mailer = createSmtpMailer(env, () => transport);
+  const content = png();
+  const input = {
+    ...message(),
+    attachment: { filename: 'boleto-123.png', contentType: 'image/png', content },
+  };
+  await expect(mailer.send(input)).resolves.toMatchObject({ status: 'ACCEPTED' });
+  expect(transport.sendMail).toHaveBeenCalledWith(
+    expect.objectContaining({
+      attachments: [
+        expect.objectContaining({
+          filename: 'boleto-123.png',
+          contentType: 'image/png',
+          content: expect.any(Buffer),
+        }),
+      ],
+    }),
+  );
+  const sent = transport.sendMail.mock.calls[0][0].attachments[0].content;
+  expect(sent).toEqual(content);
+  expect(sent).not.toBe(content);
+});
+test.each([
+  { filename: '../boleto.png', contentType: 'image/png', content: png() },
+  { filename: 'boleto\r\nCc:otro@example.ec.png', contentType: 'image/png', content: png() },
+  { filename: 'boleto.png', contentType: 'image/svg+xml', content: png() },
+  { filename: 'boleto.png', contentType: 'image/png', content: Buffer.from('no es PNG') },
+  { filename: 'boleto.png', contentType: 'image/png', content: Buffer.alloc(262145) },
+  { filename: 'boleto.png', contentType: 'image/png', content: { path: '/private' } },
+])('rechaza adjuntos inválidos sin llamar a SMTP: %p', async (attachment) => {
+  const transport = { sendMail: jest.fn() };
+  await expect(
+    createSmtpMailer(env, () => transport).send({ ...message(), attachment }),
+  ).rejects.toMatchObject({ code: 'MAIL_INVALID_MESSAGE' });
+  expect(transport.sendMail).not.toHaveBeenCalled();
+});
 test('rechazo o caída no se convierten en aceptación ni exponen el error original', async () => {
   const transport = {
     sendMail: jest.fn().mockResolvedValue({ accepted: [], rejected: ['recipient@example.ec'] }),
@@ -91,6 +148,21 @@ test('rechazo o caída no se convierten en aceptación ni exponen el error origi
     message: expect.not.stringContaining(env.SMTP_PASSWORD),
   });
   await expect(mailer.verify()).rejects.toMatchObject({ code: 'MAIL_CONNECTION_FAILED' });
+});
+test.each([
+  [{ responseCode: 421 }, 'MAIL_TEMPORARY_FAILURE'],
+  [{ responseCode: 550 }, 'MAIL_PERMANENT_FAILURE'],
+  [{ code: 'ECONNECTION' }, 'MAIL_TEMPORARY_FAILURE'],
+  [{ code: 'ETIMEDOUT' }, 'MAIL_OUTCOME_UNCERTAIN'],
+])('clasifica fallos SMTP sin exponer detalles del transporte', async (failure, code) => {
+  const transport = {
+    sendMail: jest.fn().mockRejectedValue({ ...failure, message: env.SMTP_PASSWORD }),
+  };
+  const mailer = createSmtpMailer(env, () => transport);
+  await expect(mailer.send(message())).rejects.toMatchObject({
+    code,
+    message: expect.not.stringContaining(env.SMTP_PASSWORD),
+  });
 });
 test('el CLI verifica sin enviar por defecto y exige destinatario explícito para la prueba', async () => {
   const mailer = {

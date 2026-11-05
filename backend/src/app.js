@@ -18,6 +18,7 @@ function createApp({
   payments,
   bookings,
   search,
+  tickets,
   pool,
   trustProxy = false,
 } = {}) {
@@ -72,6 +73,7 @@ function createApp({
   if (bookings?.benefitReviewRouter)
     app.use(`${API_PREFIX}/booking-benefit-reviews`, bookings.benefitReviewRouter);
   if (bookings?.guestRouter) app.use(`${API_PREFIX}/guest/bookings`, bookings.guestRouter);
+  if (tickets?.router) app.use(`${API_PREFIX}/tickets`, tickets.router);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

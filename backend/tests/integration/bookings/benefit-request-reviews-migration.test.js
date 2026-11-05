@@ -41,7 +41,7 @@ afterAll(async () => {
   }
 });
 test('actualiza solicitudes B sin cambiar sus datos y mantiene historial ordenado', async () => {
-  const target = activeNames.indexOf('1794290000000-booking-benefit-request-reviews');
+  const target = activeNames.indexOf('1794330000000-booking-benefit-request-reviews');
   expect(target).toBeGreaterThan(0);
   await worker('raw', { names: activeNames.slice(0, target) });
   id = randomUUID();

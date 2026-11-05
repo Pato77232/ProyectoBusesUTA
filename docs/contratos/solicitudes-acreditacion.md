@@ -44,7 +44,7 @@ Errores no se transforman en lista vacía, éxito o acreditación. No incluyen S
 
 ## Persistencia y próximos incrementos
 
-Migración nueva 1794280000000-booking-benefit-requests, B amplió el catálogo a 31 y C añade la entrada 32, historial estricto y exclusión de ocultos preservados. down rechaza solicitudes existentes sin borrarlas. No se editan migraciones anteriores ni pgmigrations manualmente.
+Migración nueva 1794320000000-booking-benefit-requests, tras conciliar con develop, B es la entrada 35 y C añade la entrada 36, historial estricto y exclusión de ocultos preservados. down rechaza solicitudes existentes sin borrarlas. No se editan migraciones anteriores ni pgmigrations manualmente.
 
 C implementa el guardado transaccional y versionado descrito abajo; D todavía debe añadir pantalla CLERK y conexión desde el cliente. Esta API no acredita que la interfaz exista. No cambia el POST anterior /booking-benefit-reviews ni sus pruebas. Sin dependencia o frontend nuevos en B.
 
@@ -72,4 +72,4 @@ Catalogar y validar el contexto antes de bloquear evita pedir otra conexión del
 
 El dueño recibe review con fecha y decisiones de tres campos (seatId, birthDateVerified, disabilityVerified). CLERK de esa cooperativa recibe además evidencia y reviewedBy/expectedRevision en detalle; la bandeja nunca entrega evidencia, actor ni PII. El identificador interno de acreditación y la huella de intención no se exportan.
 
-Migración aditiva 1794290000000-booking-benefit-request-reviews, sin editar B ni migraciones anteriores. Protege el contexto y resultados finalizados con restricciones/trigger y rechaza down si hay resultados con evidencia. No se reabren revisiones desde C. El endpoint legado /booking-benefit-reviews conserva su comportamiento: C no promete impedir decisiones autorizadas posteriores de ese endpoint. El resumen real consulta su última acreditación vigente y revalida viaje/precio; esta revisión no bloquea asientos ni coordina escrituras de otros módulos.
+Migración aditiva 1794330000000-booking-benefit-request-reviews, sin editar B ni migraciones anteriores. Protege el contexto y resultados finalizados con restricciones/trigger y rechaza down si hay resultados con evidencia. No se reabren revisiones desde C. El endpoint legado /booking-benefit-reviews conserva su comportamiento: C no promete impedir decisiones autorizadas posteriores de ese endpoint. El resumen real consulta su última acreditación vigente y revalida viaje/precio; esta revisión no bloquea asientos ni coordina escrituras de otros módulos.

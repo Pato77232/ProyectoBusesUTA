@@ -57,7 +57,7 @@ Revisar archivos y diff antes de confirmar. Codex no crea commits salvo petició
 
 - Respetar [arquitectura](docs/architecture.md): negocio fuera de controladores, dominio independiente de infraestructura, APIs públicas entre módulos y aislamiento por cooperativa autenticada.
 - Identificadores en inglés; mensajes, comentarios y documentos en español. Aplicar [calidad](docs/calidad.md) de forma proporcional y [DESIGN.md](frontend/DESIGN.md) si cambia una pantalla.
-- No modificar migraciones existentes ni borrar/debilitar pruebas para lograr resultados verdes. No corregir incidentalmente defectos académicos autorizados; aplicar su [protocolo](docs/errores-inducidos.md).
+- No modificar migraciones existentes ni borrar/debilitar pruebas para lograr resultados verdes. v0.1.0 no incluyó defectos académicos inducidos; una actividad futura requiere autorización específica y su [protocolo](docs/errores-inducidos.md).
 - No guardar secretos, `.env`, contraseñas, tokens, comprobantes ni datos personales en Git, prompts o evidencias. Reportar hallazgos sensibles al responsable por un canal privado acordado; no publicar credenciales en un issue. Todavía no se declara una política formal `SECURITY.md`.
 - Mantener avisos de licencia/procedencia y documentar nuevas dependencias en el PR. Declaración del proyecto: `GPL-3.0-only`; avisos de terceros en sus recursos. No modificar LICENSE para incorporar nombres del equipo: el texto incluye ejemplos propios de la licencia.
 
@@ -88,7 +88,7 @@ Abrir PR desde la rama de trabajo hacia `develop` para cambios normales, con tí
 
 Preferir PRs acotados y comprensibles; dividir por comportamiento cuando facilite revisión, sin fijar un límite arbitrario de líneas. Otro integrante revisa código, pruebas y documentación. Nadie aprueba su propio PR y la revisión de IA no sustituye esa aprobación.
 
-Resolver hallazgos y comprobar los controles antes de integrar. La excepción de primera entrega cubre solo defectos académicos específicos autorizados y aceptados con evidencia; un fallo histórico inesperado no obtiene esa excepción por antigüedad.
+Resolver hallazgos y comprobar los controles antes de integrar. La primera entrega no tiene excepción por defectos académicos. Un fallo inesperado, aunque sea histórico, no obtiene una excepción por antigüedad; cualquier ejercicio futuro necesita una decisión específica y evidencia.
 
 ## Terminado y seguimiento
 

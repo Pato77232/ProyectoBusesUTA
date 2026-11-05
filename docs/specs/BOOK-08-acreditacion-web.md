@@ -183,3 +183,27 @@ La página `frontend/pages/acreditaciones.html` está implementada localmente. U
 Desde `reservas.html`, un CUSTOMER autenticado puede solicitar y volver a consultar su acreditación con la misma clave en memoria. La pantalla explica que no reserva asientos ni completa una compra; después de una revisión se solicita de nuevo el resumen al servidor. Cambiar pasajeros, asiento o tramo descarta esa solicitud local. No se persisten pasajeros, referencias o evidencias en URL, localStorage ni sessionStorage.
 
 Comprobación de D: lint y 333 pruebas frontend aprobadas. Las 13 pruebas nuevas cubren rol, paginación, conflicto, intento incierto, cambio de sesión, respuesta tardía, comprador y transporte HTTP. El recorrido de Chrome con PostgreSQL aislado aprobó solicitud desde compra, detalle con texto hostil mostrado como texto, revisión por teclado, persistencia única, resumen posterior, limpieza al cambiar de cuenta, reflujo 360/1280 y zoom CSS 200 %, sin solicitudes externas. La repetición posterior de `npm run test:integration` de backend se interrumpió por el entorno antes de producir resultado; no hay fallo de código atribuido ni se presenta como prueba aprobada. B/C conserva su validación final de 2735 pruebas porque D no modifica backend. Falta revisión humana, commit, publicación e integración.
+
+
+## Conciliación final de PR #106 con develop
+
+Por petición del solicitante, se incorpora `origin/develop a7a4a9a` a la rama
+feature de la PR #106, conservando Auth, Boletos y acreditación. Conflictos
+resueltos en catálogo, expectativas de esquema y registro compartido; vistas y
+composición conservan las funciones de ambas ramas.
+
+Las migraciones de esta PR todavía no integrada se renumeran a
+`1794320000000-booking-benefit-requests` y
+`1794330000000-booking-benefit-request-reviews`, después de las 34 migraciones
+de develop. Su contenido SQL se conserva sin cambios. Las pruebas de migración
+usan los nombres nuevos y el catálogo exige el prefijo de develop completo.
+Los nombres 179428/179429 de las secciones anteriores son históricos.
+Una base QA que ya aplicó los nombres antiguos requiere un plan explícito de
+actualización o una base QA nueva; no se modifica su historial automáticamente.
+
+Validación sobre la combinación: Node 24.22.2, 2168/2168 unitarias backend
+(123 suites) y 370/370 frontend. Lint de ambos y formato backend aprobados.
+Sin PostgreSQL/Docker: integración y recorrido real de BD siguen pendientes;
+no se sustituyen por las unitarias. Commit y publicación de la conciliación
+autorizados por la petición de dejar la rama lista para fusionar. La PR sigue
+pendiente de revisión humana; no se fusiona a develop.

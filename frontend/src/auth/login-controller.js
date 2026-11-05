@@ -10,7 +10,7 @@ const REJECTIONS = {
   TOO_MANY_ATTEMPTS: 'Se alcanzó el límite de intentos. Inténtalo más tarde.',
 };
 
-export function createLoginController({ client, view }) {
+export function createLoginController({ client, view, onAuthenticated = () => {} }) {
   let busy = false;
   let canSubmit = false;
 
@@ -23,7 +23,8 @@ export function createLoginController({ client, view }) {
     try {
       const result = await client.request(SESSION_PATH);
       if (typeof result?.user?.email !== 'string' || !result.user.email) throw new Error();
-      render('session', 'Sesión iniciada.', { email: result.user.email });
+      render('session', 'Sesión iniciada.', { email: result.user.email, role: result.user.role });
+      onAuthenticated(result.user);
     } catch (error) {
       if (error.status === 401 && !afterLogin) {
         render('form', 'Introduce tus datos para iniciar sesión.');

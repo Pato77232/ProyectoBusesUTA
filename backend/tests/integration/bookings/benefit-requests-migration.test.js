@@ -43,7 +43,7 @@ afterAll(async () => {
   }
 });
 test('aplica desde develop conservando reservas anteriores y solo añade la tabla propia', async () => {
-  const target = activeNames.indexOf('1794280000000-booking-benefit-requests');
+  const target = activeNames.indexOf('1794320000000-booking-benefit-requests');
   expect(target).toBeGreaterThan(0);
   await worker('raw', { names: activeNames.slice(0, target) });
   await pool.query("INSERT INTO booking_trip_locks VALUES('cooperativa-qa','viaje-qa')");
@@ -59,7 +59,7 @@ test('aplica desde develop conservando reservas anteriores y solo añade la tabl
 });
 test('tabla vacía se revierte y reaplica sin alterar las filas existentes', async () => {
   const before = (await pool.query('SELECT * FROM bookings')).rows;
-  const target = activeNames.indexOf('1794280000000-booking-benefit-requests');
+  const target = activeNames.indexOf('1794320000000-booking-benefit-requests');
   while ((await history()).at(-1) !== activeNames[target - 1])
     await worker('migrate', { direction: 'down' });
   expect(await history()).toEqual(activeNames.slice(0, target));
@@ -72,7 +72,7 @@ test('tabla vacía se revierte y reaplica sin alterar las filas existentes', asy
   expect(await history()).toEqual(activeNames);
 });
 test('down con solicitudes falla sin borrar filas ni cambiar historia o esquema', async () => {
-  const target = activeNames.indexOf('1794280000000-booking-benefit-requests');
+  const target = activeNames.indexOf('1794320000000-booking-benefit-requests');
   while ((await history()).at(-1) !== activeNames[target])
     await worker('migrate', { direction: 'down' });
   await pool.query(

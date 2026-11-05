@@ -6,6 +6,10 @@ class BusPhotoStorage {
   async prepare() {
     throw new Error('BusPhotoStorage.prepare debe implementarse.');
   }
+
+  async read() {
+    throw new Error('BusPhotoStorage.read debe implementarse.');
+  }
 }
 
 module.exports = BusPhotoStorage;
