@@ -29,6 +29,8 @@ async function start(env = process.env) {
   let server;
   let expirationWorker;
   let expirationStopped;
+  let passwordResetWorker;
+  let passwordResetStopped;
   const stopExpiration = () => {
     if (!expirationStopped) {
       try {
@@ -38,6 +40,16 @@ async function start(env = process.env) {
       }
     }
     return expirationStopped;
+  };
+  const stopPasswordReset = () => {
+    if (!passwordResetStopped) {
+      try {
+        passwordResetStopped = Promise.resolve(passwordResetWorker?.stop());
+      } catch (error) {
+        passwordResetStopped = Promise.reject(error);
+      }
+    }
+    return passwordResetStopped;
   };
   try {
     await pool.query('SELECT 1');
@@ -110,9 +122,16 @@ async function start(env = process.env) {
       onFailure: (failure) =>
         logger.error(failure, 'No se pudo completar la expiración de reservas.'),
     });
+    passwordResetWorker = auth.maintenance.startPasswordResetWorker({
+      onFailure: () => logger.error('No se pudo procesar la recuperación de cuenta.'),
+    });
     logger.info({ port }, 'Servidor iniciado');
   } catch (error) {
-    await Promise.allSettled([stopExpiration(), server ? closeServer(server) : Promise.resolve()]);
+    await Promise.allSettled([
+      stopExpiration(),
+      stopPasswordReset(),
+      server ? closeServer(server) : Promise.resolve(),
+    ]);
     await pool.end();
     throw error;
   }
@@ -120,9 +139,14 @@ async function start(env = process.env) {
   const stop = () => {
     if (!closing) {
       const stopping = stopExpiration();
+      const stoppingPasswordReset = stopPasswordReset();
       closing = (async () => {
         try {
-          const results = await Promise.allSettled([closeServer(server), stopping]);
+          const results = await Promise.allSettled([
+            closeServer(server),
+            stopping,
+            stoppingPasswordReset,
+          ]);
           const failure = results.find((result) => result.status === 'rejected');
           if (failure) throw failure.reason;
         } finally {
@@ -140,6 +164,9 @@ async function start(env = process.env) {
     process.removeListener('SIGTERM', onSignal);
     process.removeListener('SIGINT', onSignal);
     void stopExpiration().catch(() => logger.error('No se pudo detener la expiración.'));
+    void stopPasswordReset().catch(() =>
+      logger.error('No se pudo detener el trabajador de recuperación.'),
+    );
   });
   return { server, pool, stop };
 }

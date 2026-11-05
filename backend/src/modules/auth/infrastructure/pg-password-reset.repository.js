@@ -56,6 +56,74 @@ class PgPasswordResetRepository {
       client.release();
     }
   }
+
+  async claimNext({ claimMs }) {
+    const { rows } = await this.pool.query(
+      `WITH candidate AS (
+         SELECT id FROM auth_email_actions
+         WHERE (state='PENDING' AND available_at<=CURRENT_TIMESTAMP)
+            OR (state='SENDING' AND claimed_at<=CURRENT_TIMESTAMP-$1::int*INTERVAL '1 millisecond')
+         ORDER BY available_at,id FOR UPDATE SKIP LOCKED LIMIT 1
+       )
+       UPDATE auth_email_actions AS action
+       SET state='SENDING',claimed_at=CURRENT_TIMESTAMP,attempts=action.attempts+1,
+           token_hash=NULL,token_expires_at=NULL
+       FROM candidate WHERE action.id=candidate.id
+       RETURNING action.id,action.user_id,action.attempts`,
+      [claimMs],
+    );
+    return rows[0];
+  }
+
+  async recipient(userId) {
+    const { rows } = await this.pool.query('SELECT email FROM users WHERE id=$1', [userId]);
+    return rows[0]?.email;
+  }
+
+  async storeToken({ id, attempts, tokenHash, tokenMinutes }) {
+    const { rowCount } = await this.pool.query(
+      `UPDATE auth_email_actions
+       SET token_hash=$3,token_expires_at=CURRENT_TIMESTAMP+$4::int*INTERVAL '1 minute'
+       WHERE id=$1 AND attempts=$2 AND state='SENDING'`,
+      [id, attempts, tokenHash, tokenMinutes],
+    );
+    return rowCount === 1;
+  }
+
+  async accept({ id, attempts }) {
+    await this.pool.query(
+      `UPDATE auth_email_actions SET state='ACCEPTED',claimed_at=NULL
+       WHERE id=$1 AND attempts=$2 AND state='SENDING'`,
+      [id, attempts],
+    );
+  }
+
+  async fail({ id, attempts, retryMinutes }) {
+    await this.pool.query(
+      `UPDATE auth_email_actions
+       SET state=CASE WHEN $3::int IS NULL THEN 'FAILED' ELSE 'PENDING' END,
+           available_at=CASE WHEN $3::int IS NULL THEN available_at
+                             ELSE CURRENT_TIMESTAMP+$3::int*INTERVAL '1 minute' END,
+           claimed_at=NULL,
+           token_hash=CASE WHEN $3::int IS NULL THEN NULL ELSE token_hash END,
+           token_expires_at=CASE WHEN $3::int IS NULL THEN NULL ELSE token_expires_at END
+       WHERE id=$1 AND attempts=$2 AND state='SENDING'`,
+      [id, attempts, retryMinutes],
+    );
+  }
+
+  async pruneAttempts(retentionDays) {
+    await this.pool.query(
+      `WITH expired AS (
+         SELECT id FROM auth_password_reset_attempts
+         WHERE requested_at<CURRENT_TIMESTAMP-$1::int*INTERVAL '1 day'
+         ORDER BY requested_at,id FOR UPDATE SKIP LOCKED LIMIT 1000
+       )
+       DELETE FROM auth_password_reset_attempts AS attempt
+       USING expired WHERE attempt.id=expired.id`,
+      [retentionDays],
+    );
+  }
 }
 
 module.exports = PgPasswordResetRepository;

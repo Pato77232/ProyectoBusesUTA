@@ -10,15 +10,24 @@ const createLogin = require('./application/login.use-case');
 const PgAuthRepository = require('./infrastructure/pg-auth.repository');
 const PgPasswordResetRepository = require('./infrastructure/pg-password-reset.repository');
 const createRequestPasswordReset = require('./application/request-password-reset.use-case');
+const createSendPasswordReset = require('./application/send-password-reset.use-case');
+const startPasswordResetWorker = require('./infrastructure/password-reset-worker');
+const { readPasswordResetWorkerConfig } = require('./infrastructure/password-reset-worker-config');
+const { createSmtpMailer } = require('../../shared/mail/smtp-mailer');
 const { createHasher } = require('./infrastructure/password-hasher');
 const createTokens = require('./infrastructure/jwt-tokens');
 const createLimiter = require('./infrastructure/memory-login-limiter');
 const { readAuthConfig } = require('./infrastructure/auth-config');
 const createCsrf = require('./interfaces/csrf');
 const createRouter = require('./interfaces/auth-router');
-async function createAuthModule({ pool, env = process.env }) {
+async function createAuthModule({ pool, env = process.env, mailer }) {
   const config = readAuthConfig(env);
+  const workerConfig = readPasswordResetWorkerConfig(env);
+  const workerMailer = workerConfig.enabled ? mailer || createSmtpMailer(env) : null;
+  if (workerConfig.enabled && !workerMailer.configured)
+    throw new Error('El trabajador de recuperación requiere SMTP configurado.');
   const repository = new PgAuthRepository(pool);
+  const resetRepository = new PgPasswordResetRepository(pool);
   const hasher = await createHasher();
   const tokens = createTokens(config);
   const limiter = createLimiter(config);
@@ -41,13 +50,28 @@ async function createAuthModule({ pool, env = process.env }) {
       register: createRegisterCustomer({ repository, hasher }),
       createClerk: createClerk({ repository, hasher }),
       requestPasswordReset: createRequestPasswordReset({
-        repository: new PgPasswordResetRepository(pool),
+        repository: resetRepository,
         config,
       }),
     }),
     authenticate,
     authorize,
     csrfProtection: csrf.protect,
+    maintenance: Object.freeze({
+      startPasswordResetWorker({ onFailure = () => {} } = {}) {
+        if (!workerConfig.enabled) return null;
+        const sender = createSendPasswordReset({
+          repository: resetRepository,
+          mailer: workerMailer,
+          config: workerConfig,
+        });
+        return startPasswordResetWorker({
+          runBatch: sender.runBatch,
+          intervalMs: workerConfig.pollMs,
+          onFailure,
+        });
+      },
+    }),
   };
 }
 module.exports = { createAuthModule };
