@@ -110,12 +110,12 @@ Escenario: administrador consulta inventario, distingue carga/vacío/error y abr
 1. Contrato de inventario administrativo y lectura privada de fotos definidos en esta spec.
 2. Implementados los endpoints de listado, detalle y lectura de foto, con aislamiento por cooperativa.
 3. Implementados la pantalla de inventario y el detalle, con accesibilidad de teclado y diseño adaptable.
-4. Pruebas dirigidas backend: 11/11 unitarias aprobadas; pruebas de controlador frontend aprobadas.
-5. Frontend completo: 325/325 pruebas, lint y smoke de navegador con API simulada aprobados; escenarios de teclado, escritorio 1280 px y móvil 360 px. Evidencia visual en `docs/evidence/FLEET-10/`.
-6. Lint de archivos backend modificados aprobado. `npm run lint` global y la suite backend completa siguen bloqueados por defectos/dependencias preexistentes en esta base: duplicación de `payments` en `server.js`, pruebas HTTP con `EACCES` y módulos `busboy`/`nodemailer` ausentes. La ejecución global reportó 1894/1908 pruebas aprobadas; no atribuir esos fallos a esta tarea sin reproducirlos en base corregida.
-7. No fue posible ejecutar integración PostgreSQL: Docker Desktop no tiene daemon disponible. El smoke de navegador usa API simulada; falta verificación de extremo a extremo contra servidor y PostgreSQL reales.
-8. Formato de los archivos tocados debe verificarse tras el último ajuste. Revisión humana y PR pendientes.
+4. Pruebas dirigidas backend: 11/11 unitarias aprobadas. Suite frontend: 325/325 pruebas aprobadas.
+5. Lint completo de frontend y lint dirigido de los archivos backend modificados aprobados. El smoke de navegador con API simulada aprobó teclado, escritorio 1280 px y móvil 360 px; evidencia en `docs/evidence/FLEET-10/`.
+6. Prettier aprobó el código backend modificado, los nuevos archivos frontend y esta spec. No se reformatearon la página existente `frontend/pages/registrar-bus.html` ni el documento histórico `docs/estado-proyecto.md`; ambos muestran advertencias al comprobar formato global.
+7. `backend` `npm run test:unit`: 1894/1908 aprobadas. Fallos de base observados: declaración `payments` duplicada en `server.js`, pruebas HTTP con `EACCES` y módulos `busboy`/`nodemailer` que no están disponibles en la instalación del worktree. No se pudo ejecutar integración PostgreSQL porque Docker Desktop no tiene daemon disponible.
+8. El smoke de navegador usa API simulada; falta verificación de extremo a extremo contra servidor y PostgreSQL reales. Revisión humana y PR pendientes.
 
 ## 14. Revisión y cierre
 
-Contrato autorizado por el solicitante. Implementación local lista para revisión, con las limitaciones de validación descritas en §13. Revisión humana y PR pendientes. No se hizo commit ni publicación.
+Contrato autorizado por el solicitante. Commits locales `a5230c4`, `e84cae1` y `43869f7` en `feature/FLEET-10-listado-detalle-buses`. Implementación lista para revisión, con las limitaciones de validación descritas en §13. Revisión humana y PR pendientes; sin push ni publicación.
