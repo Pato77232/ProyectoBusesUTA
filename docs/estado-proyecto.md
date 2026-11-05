@@ -4,11 +4,14 @@
 
 En `feature/AUTH-CORREO-01-recuperacion-cuenta`, creada desde `origin/develop`
 `5ff50d9`, se prepara [AUTH-CORREO-01](specs/AUTH-CORREO-01.md). Pablo confirmó
-recuperación por correo para todos los roles, enlace de 30 minutos y revocación
-de todas las sesiones al completar el cambio. La spec separa esta tarea de la
-verificación de correo y de AUTH-WEB-02; quedan por acordar entrega/reintentos,
-reemisión y límites exactos. Cambio solo documental: sin código, pruebas de
-producto, revisión humana ni integración.
+recuperación para todos los roles, enlace de 20 minutos (reemplaza 30) y
+revocación de sesiones. Tras recibir la respuesta de Edwin, adoptó el diseño de
+trabajador, reintentos, reemisión, límites y respuestas HTTP. La spec separa
+esta tarea de verificación de correo y AUTH-WEB-02. Faltan clasificación de
+errores en el adaptador SMTP, diseño operativo del trabajador y revisión del
+cambio; `auth_email_actions` y `PUBLIC_WEB_ORIGIN` aún no existen en esta base.
+Actualización documental para la draft PR #97; sin código, pruebas de producto,
+revisión de código ni integración.
 
 ## INTEG-01 — continuación local T7, T6b y composición, 4 de noviembre de 2026
 
