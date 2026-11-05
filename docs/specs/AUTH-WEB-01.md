@@ -1,5 +1,9 @@
 # AUTH-WEB-01: Pantalla de inicio de sesión
 
+> Ampliación local de cierre/cambio de cuenta autorizada el 4 de noviembre:
+> sección 21, pendiente de revisión humana. El cierre original inferior conserva
+> su alcance histórico.
+
 - **ID local:** AUTH-WEB-01; sin ticket externo antes de la revisión académica.
 - **Responsable:** Pablo, conforme a la coordinación de autenticación y F-A6.
 - **Revisora confirmada:** Shirley.
@@ -429,3 +433,77 @@ posterior registrada con PR #65 aprobó 1772 pruebas unitarias y 564 de integrac
 Zoom nativo y lector de pantalla no fueron certificados y permanecen como límites
 de la evidencia, no como funcionalidad prometida por esta spec. AUTH-WEB-01 queda
 Cerrada sin incluir paneles por rol, recuperación de contraseña ni logout visual.
+
+## 21. Ampliación: cierre de sesión y cambio de cuenta
+
+Autorizada por el solicitante el 4 de noviembre de 2026 en la rama feature que
+administra el humano. El cierre anterior conserva su alcance histórico. No se
+ejecutan comandos de Git, incluida consulta de rama/base. No se atribuye nueva
+aprobación de Shirley/Pablo ni revisión del incremento a sus aprobaciones previas.
+
+Objetivo: con sesión confirmada mostrar «Cerrar sesión y usar otra cuenta».
+Usar `POST /api/v1/auth/logout` existente con cliente compartido y CSRF; no cambiar
+backend, cookies, dependencias ni otras pantallas. Aplicar frontend/DESIGN.md:
+botón Bootstrap existente, tipografía/colores/foco compartidos, sin nuevos tokens.
+
+- Tras pulsar, borrar correo/contraseña locales y bloquear envíos duplicados.
+- Consultar `auth/me` tras el intento de logout; únicamente 401 habilita el
+  formulario de otra cuenta. No basta con ocultar el panel ni recargar la página.
+- Si sigue autenticado, mostrar identidad confirmada y permitir otro cierre
+  explícito. No navegar por `next` mientras se intenta cambiar de cuenta.
+- Si no se puede comprobar, mostrar estado incierto y «Comprobar sesión» sin
+  repetir POST automáticamente. Una respuesta perdida puede recuperarse con GET.
+- El nuevo login conserva el retorno seguro a reservas, tras confirmar identidad.
+- Durante cierre ocultar acceso administrativo y bloquear login/comprobación.
+  Al mostrar formulario, limpiar identidad/enlace anterior y enfocar correo.
+
+Aceptación: cambio SYSTEM_ADMIN → CUSTOMER con API/DB reales; contraseña/correo
+limpios, doble clic sin duplicación, CSRF fallido, cierre con respuesta perdida,
+fallo de comprobación y recuperación por GET, sin redirección al usuario anterior.
+Teclado, foco, 360/1280 px y ampliación CSS 200 % para el control nuevo.
+
+SOLID: controlador orquesta API/estados y vista presenta; sesión/CSRF siguen en
+cliente/backend existentes. Pruebas nuevas sin debilitar las anteriores. Evidencia
+y resultados se registran al terminar; revisión humana e integración pendientes.
+
+Implementación: botón de cambio de cuenta, estado `signing-out`, limpieza de
+credenciales y control de concurrencia en el controlador; cierre por cliente
+HTTP/CSRF existente y confirmación posterior por GET. Durante recuperación se
+suprime `onAuthenticated` para no redirigir a la cuenta anterior; se restaura el
+retorno normal tras confirmar ausencia de sesión y completar un nuevo login.
+La vista limpia el enlace administrativo y usa foco violeta local en el botón.
+
+Frontend: lint y 361/361 pruebas aprobadas (nueve nuevas), formato de los archivos
+tocados aprobado. Prueba nueva `node tests/change-account-smoke.cjs`: Chrome
+headless real con imagen frontend, proxy, backend y PostgreSQL efímeros; cambio
+SYSTEM_ADMIN → CUSTOMER, 401 posterior al cierre, campos limpios, enlace retirado,
+foco por Tab/Enter, 360/1280 px, reflujo CSS 200 %, doble clic y respuesta perdida
+después de revocar, aprobados. Capturas en
+[evidencia](../evidence/AUTH-WEB-01/cambio-cuenta/README.md).
+
+Intentos iniciales del harness no aprobados: se corrigió la preparación de foco
+con Tab real y la instrumentación de fetch antes de instanciar el cliente; la
+comprobación detectó además la necesidad de aplicar foco local al botón nuevo.
+Se conservaron las expectativas de foco visible y un solo POST. La repetición
+final aprobó todos los escenarios; no se modificaron pruebas anteriores.
+
+Sin cambios de backend, dependencias, migraciones o permisos. No se certifica
+zoom nativo ni lector de pantalla. Git queda al humano, sin comandos ni diff
+ejecutados por el asistente y sin afirmar nueva base/remoto. Asistencia de Codex
+en implementación, pruebas y documentación; sin aprobación humana nueva inferida.
+
+Validación backend exigida con Node 24.22.2/Windows y PostgreSQL 16.13 aislado,
+proyecto `cambio-cuenta-backend` con `--env-file NUL`: lint y formato global
+aprobados; npm test con **2037/2037 unitarias (117 suites)** y **692/693
+integraciones (62 suites aprobadas, una fallida)**. Único fallo: timeout de 20 s
+en `fleet/bus-photo-storage.test.js`, «prepara y promueve todos los bytes sin
+conservar nombres ni rutas del cliente». Repetición aislada: 17/18 aprobadas,
+mismo timeout. No se cambia Fleet ni su prueba/límite y no se declara verde la
+regresión global. Es un fallo fuera de los archivos de este incremento; no se
+afirma su causa ni se oculta tras el resultado favorable del recorrido web.
+
+Capturas finales móvil/escritorio/200 % inspeccionadas; formato de JS, HTML, CSS
+y harness comprobado. Archivos modificados revisados por lectura, sin diff de
+Git por instrucción humana. Entornos web y base de integración retirados al
+terminar. La aprobación histórica de Shirley no cubre automáticamente esta
+ampliación; revisión humana e integración siguen pendientes.

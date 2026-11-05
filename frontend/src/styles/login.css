@@ -41,6 +41,12 @@
   box-shadow: none;
 }
 
+.login-card #change-account:focus-visible {
+  outline: 3px solid var(--color-brand);
+  outline-offset: 3px;
+  box-shadow: none;
+}
+
 .login-card .form-control:disabled {
   color: var(--color-text);
   background: var(--color-surface);
