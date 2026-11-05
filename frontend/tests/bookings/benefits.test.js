@@ -270,3 +270,71 @@ test("respuesta de revisión sin manifiesto conserva el detalle autorizado y act
   assert.deepEqual(c.state.detail.passengers, request.passengers);
   assert.equal(c.state.items[0].status, "REVIEWED");
 });
+
+test("error tardío de guardado tras cerrar la vista no repone el estado incierto", async () => {
+  const f = setup();
+  let rejectReview;
+  const c = createBenefitsController({
+    api: {
+      ...f.api,
+      review: () =>
+        new Promise((resolve, reject) => {
+          rejectReview = reject;
+        }),
+    },
+    render: () => {},
+  });
+  await c.open(id);
+  const saving = c.save(decisions);
+  await delay(0);
+  c.forget();
+  rejectReview(new ApiError("NETWORK_ERROR", "red"));
+  await saving;
+  assert.equal(c.state.uncertain, false);
+  assert.equal(c.state.detail, null);
+  assert.match(c.state.message, /Datos privados retirados/);
+});
+
+test("actualizar con guardado incierto comprueba sesión y retira datos de otra cuenta", async () => {
+  const f = setup();
+  const c = createBenefitsController({
+    api: {
+      ...f.api,
+      review: async () => {
+        throw new ApiError("NETWORK_ERROR", "red");
+      },
+    },
+    render: () => {},
+  });
+  await c.open(id);
+  await c.save(decisions);
+  assert.equal(c.state.uncertain, true);
+  f.setUser({ id: "other", role: "CLERK", cooperative_id: "coop-2" });
+  await c.load();
+  assert.equal(c.state.detail, null);
+  assert.equal(c.state.uncertain, false);
+});
+
+test("comprador no publica datos hasta confirmar la cuenta después de la respuesta", async () => {
+  let releaseSession;
+  let sessions = 0;
+  const b = createBenefitBuyer({
+    newKey: () => id,
+    api: {
+      session: async () => {
+        if (++sessions === 1)
+          return { user: { id: "customer", role: "CUSTOMER" } };
+        return new Promise((resolve) => {
+          releaseSession = resolve;
+        });
+      },
+      create: async () => ({ request }),
+    },
+  });
+  const submitting = b.submit({ tripId: id });
+  await delay(0);
+  assert.equal(b.state.request, null);
+  releaseSession({ user: { id: "customer", role: "CUSTOMER" } });
+  await submitting;
+  assert.equal(b.state.request.requestId, id);
+});

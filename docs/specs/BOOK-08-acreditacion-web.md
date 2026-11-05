@@ -3,7 +3,7 @@
 - Responsable: Leslie Coello. Referencias locales: BOOK-08-L06 y BOOK-03-L03-T1.
 - Fecha: 4 de noviembre de 2026. Base observada: origin/develop 46a96a2, con PR #98 integrada.
 - Rama: feature/BOOK-08-acreditacion-web. Sin ticket externo.
-- Estado: incrementos B y C implementados y verificados localmente; D y revisión humana pendientes. La preparación anterior se conserva como historia.
+- Estado: B/C y D publicados en la PR #106, cabeza 9ea3cdb; correcciones de recuperación/sesión preparadas localmente durante su revisión. Revisión humana e integración pendientes. La preparación anterior se conserva como historia.
 - Solicitud: Leslie acepta comenzar con la preparación de la spec. Conserva la delegación anterior de decisiones de contratos; no se atribuye aprobación de código/PR a otros integrantes. La revisión humana y la integración no quedan sustituidas por este documento.
 
 ## 1. Problema y resultado esperado

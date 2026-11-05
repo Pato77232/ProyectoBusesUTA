@@ -145,7 +145,7 @@ export function createBenefitsView(doc) {
     render(state) {
       el("benefit-status").textContent = state.message;
       el("benefit-workspace").setAttribute("aria-busy", String(state.busy));
-      el("refresh-benefits").disabled = state.busy || state.uncertain;
+      el("refresh-benefits").disabled = state.busy;
       el("next-benefits").disabled =
         state.busy || state.uncertain || !state.nextCursor;
       el("retry-benefits").hidden = !state.uncertain;

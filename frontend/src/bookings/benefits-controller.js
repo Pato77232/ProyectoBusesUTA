@@ -7,9 +7,18 @@ function guardedApi(source, generation) {
       key,
       async (...args) => {
         const before = generation();
-        const result = await operation(...args);
-        if (before !== generation())
-          throw new ApiError("REQUEST_ABORTED", "La vista privada se cerró.");
+        const ensureCurrent = () => {
+          if (before !== generation())
+            throw new ApiError("REQUEST_ABORTED", "La vista privada se cerró.");
+        };
+        let result;
+        try {
+          result = await operation(...args);
+        } catch (error) {
+          ensureCurrent();
+          throw error;
+        }
+        ensureCurrent();
         return result;
       },
     ]),
@@ -158,11 +167,11 @@ export function createBenefitsController({ api, render }) {
     },
     load(cursor = null) {
       return action(async () => {
+        const same = await authorize();
         if (pending) {
           emit({ message: "Recupera primero el guardado pendiente." });
           return;
         }
-        const same = await authorize();
         emit({ detail: null, items: [], nextCursor: null });
         const page = await api.list(same ? cursor : null);
         if (
@@ -278,7 +287,7 @@ export function createBenefitBuyer({ api, newKey }) {
           throw new ApiError("UNAUTHENTICATED", "La cuenta cambió.", 401);
         }
         attempt ||= { input: copy(input), key: newKey(), owner: user.id };
-        request = readBenefitRequest(
+        const result = readBenefitRequest(
           (
             await api.create({
               ...copy(attempt.input),
@@ -289,6 +298,7 @@ export function createBenefitBuyer({ api, newKey }) {
         const current = (await api.session()).user;
         if (current?.role !== "CUSTOMER" || current.id !== attempt?.owner)
           throw new ApiError("UNAUTHENTICATED", "La cuenta cambió.", 401);
+        request = result;
         return copy(request);
       } catch (error) {
         if (["UNAUTHENTICATED", "FORBIDDEN"].includes(error.code)) {
@@ -312,10 +322,10 @@ export function createBenefitBuyer({ api, newKey }) {
         );
         if (result.requestId !== request.requestId)
           throw new ApiError("RESPONSE_INVALID", "Solicitud inválida.");
-        request = result;
         const current = (await api.session()).user;
         if (current?.role !== "CUSTOMER" || current.id !== attempt?.owner)
           throw new ApiError("UNAUTHENTICATED", "La cuenta cambió.", 401);
+        request = result;
         return copy(request);
       } catch (error) {
         if (["UNAUTHENTICATED", "FORBIDDEN"].includes(error.code)) {
