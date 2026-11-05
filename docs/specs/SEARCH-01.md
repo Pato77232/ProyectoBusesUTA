@@ -35,7 +35,7 @@ haber vuelto a verificar rama, cambios locales o remoto en este incremento.
 | 1. Búsqueda por embarque | Prueba HTTP/PostgreSQL real de viaje nocturno: fecha local del origen y de la parada, publicación previa, tarifa explícita y frecuencia activa | SEARCH-01, contrato existente; autorizada en esta sesión |
 | 2. Ciclos confirmados | Revisar y comprobar preparación/publicación, límite de períodos e historia conservada; corregir solo defectos reproducidos dentro del contrato vigente | ROUTE-SHEETS-04/07/08; implementación autorizada posteriormente por el solicitante |
 | 3. Generación mediante renovación | Repetir el patrón con los mismos buses, revalidar y preparar borrador para publicación explícita | Decisión del solicitante registrada en ROUTE-SHEETS-08 §19; se reutiliza el flujo existente |
-| 4. Migraciones en Windows | Reproducir y diagnosticar reversiones y timeouts, con Edwin como participante propuesto, sin atribuirle aceptación | Tarea independiente; spec técnica antes de corregir, sin ampliar timeouts para ocultar fallos |
+| 4. Migraciones en Windows | Reproducir reversiones y añadir diagnóstico seguro, con Edwin como participante propuesto, sin atribuirle aceptación | INFRA-05 autorizada por el solicitante; sin ampliar timeouts ni alterar migraciones |
 
 ### Sección 1: alcance y aceptación
 
@@ -137,3 +137,22 @@ sección cambia únicamente documentación. Se contrastan sus contratos y enlace
 sin nuevas pruebas funcionales ni resultados atribuidos a este incremento. La
 evidencia de sección 2 conserva su alcance histórico. Revisión humana pendiente;
 sin comandos de Git ni declaración de cierre completo de RN-31.
+
+### Sección 4: diagnóstico de migraciones
+
+El solicitante autoriza esta sección y pide commit sugerido y texto de PR de la
+rama. [INFRA-05](INFRA-05.md) delimita la herramienta añadida: status de solo
+lectura, up mediante migrador existente y down hasta objetivo explícito, solo en
+base de prueba. Reporta etapa, nombre/lote, duración y código seguro; no revela
+SQL, URL, datos o mensajes internos. No limpia datos ni salta guards.
+
+Tres suites históricamente afectadas aprobaron 36/36 en base limpia. Se añadió
+cobertura unitaria del guard y redacción, y CLI/PostgreSQL real de up/down/up y
+rechazo protector con auditoría conservada. La reproducción controlada no prueba
+la causa de los 30 fallos históricos. No se atribuye corrección de un timeout,
+no se cambian migraciones ni se debilitan pruebas. Formato global aprobado.
+Resultado completo: lint y formato aprobados; npm test con 2029/2029 unitarias y
+688/688 integraciones aprobadas. Limitaciones y evidencia en INFRA-05; los fallos
+históricos no se reprodujeron ni se declaran corregidos. Entorno efímero retirado,
+sin comandos de Git. Revisión humana e integración pendientes. Texto de la PR
+del recorrido en [Markdown](../evidence/SEARCH-01/descripcion-pr.md).

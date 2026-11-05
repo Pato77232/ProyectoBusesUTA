@@ -1,5 +1,26 @@
 # Estado compartido del proyecto
 
+## David — INFRA-05, sección 4 del recorrido, 4 de noviembre de 2026
+
+El solicitante autoriza diagnóstico y solicita commit/texto de PR.
+[INFRA-05](specs/INFRA-05.md) añade herramienta restringida a bases `_test` con
+`NODE_ENV=test`: status de solo lectura, up y down hasta objetivo explícito.
+Registra etapa, nombre/lote, duración y código sin SQL, URL o mensajes del motor.
+No limpia datos ni elude protecciones; documentado en testing-database.md.
+
+Reproducción dirigida: 36/36 pruebas anteriores aprobadas en PostgreSQL limpio;
+12 unitarias nuevas y dos integraciones CLI reales aprobadas. Un rechazo con
+acreditaciones persistidas identifica P0001 y conserva datos. Esa reproducción
+controlada no demuestra la causa de los fallos históricos. Lint y formato global
+aprobados; npm test completo: 2029/2029 unitarias (117 suites) y 688/688
+integraciones (63 suites), aprobadas. Resultados en la spec; entorno temporal
+retirado. PR en [Markdown](evidence/SEARCH-01/descripcion-pr.md). Sin modificar
+migraciones, dependencias, límites de tiempo, negocio o pruebas anteriores.
+Git exclusivamente humano, última base conocida `d7ea282` sin nueva comprobación.
+Edwin revisor propuesto, sin aceptación ni aprobación atribuida. Implementación
+local preparada, revisión humana e integración pendientes; asistencia de Codex
+en código/pruebas/docs.
+
 ## David — generación mediante renovación, sección 3 del recorrido, 4 de noviembre de 2026
 
 El solicitante eligió expresamente «Repetir el patrón y reutilizar la renovación
