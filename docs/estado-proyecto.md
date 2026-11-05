@@ -84,6 +84,20 @@ revisión humana ni cierre de RN-31. Git queda exclusivamente a cargo del humano
 no se ejecutaron comandos de consulta, cambio de rama, commit ni publicación en
 esta sección. Última base conocida de la conversación: `d7ea282`, sin nueva
 verificación de rama/remoto. Asistencia de Codex en pruebas y documentación.
+## Pablo — AUTH-WEB-03, pantallas administrativas, 4 de noviembre de 2026
+
+En `feature/AUTH-WEB-03-administracion`, creada desde `origin/develop`
+`d7ea282`, Pablo aprobó el contrato de [AUTH-WEB-03](specs/AUTH-WEB-03.md).
+Pablo confirmó agregar consulta de cooperativas para poder asignar un
+administrador a una cooperativa ya creada. Se implementaron tres pantallas:
+alta de cooperativa y administrador por `SYSTEM_ADMIN`, y alta de oficinistas
+por `COOPERATIVE_ADMIN` con cooperativa de la sesión. El recorrido real de
+cooperativa → administrador → oficinista, rechazo por rol y móvil aprobó.
+Backend lint/formato, 2018/2018 unitarias, 687/688 integraciones y frontend
+lint, 352/352 pruebas aprobaron. La única falla global fue una reversión de
+migración de Flota, que pasó 9/9 sola con base nueva; detalles en la spec.
+En commits locales por cambio lógico; sin publicación, revisión humana ni
+integración de esta tarea.
 
 ## Pablo — AUTH-CORREO-01 publicada y conciliada con develop, 4 de noviembre de 2026
 
@@ -464,6 +478,7 @@ Antes de orientar a alguien:
 | [FLEET-07](specs/FLEET-07.md) | Edwin | T1 preparada para revisión en [PR #44](https://github.com/Pato77232/ProyectoBusesUTA/pull/44); sin integración | 3 de noviembre: VIP no ofrecido confirmado por Edwin; migración VIP renumerada con autorización y SQL intacto; reversión independiente de la última migración. Integración Linux/PostgreSQL aislado 280/280, prueba con migración posterior 5/5 y upgrade desde develop aprobados. Unitarias globales 1074 aprobadas/2 fallidas de hojas de ruta; base conservada sin merge por decisión de Edwin. Leslie y revisión humana pendientes; T2 aparte. |
 | [FLEET-09](specs/FLEET-09.md) | Edwin; David revisa | T1 en [PR #59](https://github.com/Pato77232/ProyectoBusesUTA/pull/59); conflictos con develop c95cc73 conciliados | Catálogo de 22 migraciones, Fleet renombrada a 1794080000000 sin cambiar SQL; conservadas comprobaciones de Pagos y actualización desde 21 migraciones. Node 24/PostgreSQL aislado: 1747 unitarias y 555 integraciones aprobadas; lint/formato propio aprobados, 17 avisos globales sin diferencias frente a develop. Revisión humana pendiente; timeouts históricos Windows no se declaran resueltos. No integrada ni aceptada. |
 | [FLEET-10](specs/FLEET-10.md) | Solicitante; David propuesto como revisor | Implementación local en `feature/FLEET-10-inventario-admin-hotfix`, base `origin/develop` `5c48d22`; commits `aee5b92`, `e7f55f4`, `bb86d76`, `e25779c` | 11 unitarias dirigidas y 325 pruebas frontend aprobadas; lint frontend/backend completos y smoke de navegador con API simulada aprobados. Dos suites unitarias no cargan por módulos ausentes del worktree; integración PostgreSQL y revisión humana pendientes. Sin push. |
+| [BOOK-10](specs/BOOK-10.md) | Responsable y revisores funcionales por confirmar | Borrador de contrato en `feature/BOOK-10-venta-accesible-develop`, base `origin/develop` `d7ea282`; sin aprobación ni implementación | Pendientes elegibilidad, capacidad/acompañante, precio/snapshot y compatibilidad Fleet/Route Sheets. FLEET-08 mantiene estos espacios con `offered: false`; no comenzar venta hasta acordar y aprobar la spec. |
 | [INTEG-01](specs/INTEG-01.md) | Edwin | T1 (cf285b3, 183d95b), T2 (44cd95b), T3 (3d3261f), T4 (3e6f4ef), T5 (70fcbd2, a0387dd) y T6a en ramas feature/INTEG-01-* encadenadas desde develop 64f39cd; T6b requiere decisión del equipo | T1 catálogo; T2 historial; T3 rechazo; T4 confirmador real; T5 canje de invitado; T6a creación comercial con readPurchaseTrip. 1925/1925 unitarias; integración 643/647. Quedan 4 fallos de carga autorizada 404. Acreditador real sin implementar (flujo pendiente por decisión de David). Hallazgo: server.js compone según _isMockFunction. Revisión humana pendiente. |
 | search, bookings, payments y tickets | Según propuesta inferior | Sin implementación en la base examinada | Confirmar ramas de los responsables antes de crear tareas |
 | [PAGOS-01](specs/PAGOS-01.md) | Shirley | Código integrado en `origin/develop` en `f26415d`; revisión/cierre humano no se infieren | El merge commit `f26415d` incorpora PAGOS-01 (`518c46b` como segundo padre). La evidencia de pruebas registrada corresponde a la rama de origen, no a una repetición posterior al merge. `bookings` sigue simulado conforme al alcance T4. |

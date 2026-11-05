@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#202020" />
+    <title>Cooperativas · transViaje</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+    <link
+      rel="stylesheet"
+      href="/assets/vendor/bootstrap-5.3.8/bootstrap.min.css"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+    />
+    <link rel="stylesheet" href="/src/styles/app.css" />
+    <link rel="stylesheet" href="/src/styles/admin.css" />
+  </head>
+  <body data-admin-mode="cooperatives">
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+    <header class="site-header">
+      <div
+        class="container d-flex align-items-center justify-content-between gap-3"
+      >
+        <a class="brand" href="/" aria-label="transViaje, inicio"
+          ><span class="brand-logo-frame" aria-hidden="true"
+            ><img
+              class="brand-logo"
+              src="/assets/brand/logo-transviaje.png"
+              alt=""
+              width="1600"
+              height="1446" /></span
+        ></a>
+        <a href="/pages/administrador-cooperativa.html">Administradores</a>
+      </div>
+    </header>
+    <main id="contenido" class="container admin-layout" tabindex="-1">
+      <p class="eyebrow">ADMINISTRACIÓN DEL SISTEMA</p>
+      <h1>Cooperativas</h1>
+      <p id="admin-context"></p>
+      <p
+        id="admin-status"
+        class="admin-notice"
+        role="status"
+        aria-live="polite"
+        tabindex="-1"
+      >
+        Comprobando tu sesión…
+      </p>
+      <a id="admin-login" href="/pages/login.html" hidden
+        >Ir al inicio de sesión</a
+      >
+      <noscript
+        ><p>Habilita JavaScript para administrar cooperativas.</p></noscript
+      >
+      <div class="admin-grid">
+        <section class="admin-card" aria-labelledby="create-title">
+          <h2 id="create-title">Registrar cooperativa</h2>
+          <form
+            id="admin-form"
+            method="post"
+            novalidate
+            hidden
+            aria-describedby="admin-status"
+          >
+            <fieldset disabled>
+              <div class="mb-3">
+                <label class="form-label" for="admin-name">Nombre</label
+                ><input
+                  class="form-control"
+                  id="admin-name"
+                  name="name"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="admin-ruc">RUC</label
+                ><input
+                  class="form-control"
+                  id="admin-ruc"
+                  name="ruc"
+                  inputmode="numeric"
+                  pattern="[0-9]{13}"
+                  maxlength="13"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="admin-email"
+                  >Correo de contacto (opcional)</label
+                ><input
+                  class="form-control"
+                  id="admin-email"
+                  name="email"
+                  type="email"
+                  autocomplete="email"
+                />
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="admin-phone"
+                  >Teléfono (opcional)</label
+                ><input
+                  class="form-control"
+                  id="admin-phone"
+                  name="phone"
+                  type="tel"
+                />
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="admin-address"
+                  >Dirección (opcional)</label
+                ><input
+                  class="form-control"
+                  id="admin-address"
+                  name="address"
+                />
+              </div>
+              <button class="btn btn-dark" type="submit">
+                Registrar cooperativa
+              </button>
+            </fieldset>
+          </form>
+          <div
+            id="admin-result"
+            class="admin-result"
+            aria-live="polite"
+            hidden
+          ></div>
+        </section>
+        <section class="admin-card" aria-labelledby="catalog-title">
+          <h2 id="catalog-title">Cooperativas registradas</h2>
+          <p>Elige una para asignar su administrador principal.</p>
+          <button
+            id="admin-refresh"
+            class="btn btn-outline-dark mb-3"
+            type="button"
+            hidden
+          >
+            Actualizar catálogo
+          </button>
+          <ul id="admin-list" class="admin-list"></ul>
+        </section>
+      </div>
+    </main>
+    <script type="module" src="/src/admin/admin-page.js"></script>
+  </body>
+</html>
