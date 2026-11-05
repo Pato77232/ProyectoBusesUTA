@@ -110,6 +110,7 @@ Respuesta 200, con `Cache-Control: no-store`:
     {
       "ticketId": "…",
       "code": "…",
+      "qrPayload": "TRANSVIAJE:TICKET:…",
       "issuedAt": "…",
       "seatId": "…",
       "passenger": { "fullName": "…", "identificationNumber": "…" },
@@ -159,11 +160,13 @@ No aplica: por decisión de Edwin del 4 de noviembre de 2026, la entrega no incl
 
 ## 13. Plan y evidencias
 
+T3 monta `GET /api/v1/tickets/bookings/:bookingId` en `app.js` y compone `createTicketsModule({ pool, auth, soldBookings: createBookingTicketQueries({ pool }) })` en `server.js`. El QR se dibuja en el servidor con `qrcode` 1.5.4 (SVG, corrección M, margen 2); las pruebas comprueban que el SVG coincide con el de la biblioteca para `qrPayload` y que el contenido codificado es exactamente `qrPayload`. No se usó un lector de QR independiente. `npm audit --omit=dev` no reporta avisos de `qrcode`; los avisos existentes (`body-parser`, `glob`, `minimatch`) son previos.
+
 | Incremento | Contenido                                                                                                           | Estado            |
 | ---------- | ------------------------------------------------------------------------------------------------------------------- | ----------------- |
 | T1         | Ampliación de BOOK-09: `findSoldForOwner` y `trip`                                                                  | Commit `edd96d6` |
-| T2         | Módulo `tickets`: dominio, migración, repositorio y caso de uso idempotente                                         | Local, sin commit         |
-| T3         | Endpoint HTTP, QR con `qrcode` 1.5.4 (MIT; depende de `pngjs`, `yargs` y `dijkstrajs`) y composición en `server.js` | Pendiente         |
+| T2         | Módulo `tickets`: dominio, migración, repositorio y caso de uso idempotente                                         | Commit `91f4962`         |
+| T3         | Endpoint HTTP, QR con `qrcode` 1.5.4 (MIT; depende de `pngjs`, `yargs` y `dijkstrajs`) y composición en `server.js` | Local, sin commit         |
 | T4         | Página de boletos imprimible y enlace desde «Mis reservas»                                                          | Pendiente         |
 
 Cada incremento se cierra con `npm run lint`, `npm run format:check` y `npm test` en `backend/` (integración con PostgreSQL aislado según `docs/testing-database.md`), pruebas del frontend y, en T3 y T4, arranque real.
