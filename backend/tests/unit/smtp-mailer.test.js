@@ -31,6 +31,18 @@ test.each([
     expect.objectContaining({ code: 'MAIL_CONFIG_INVALID' }),
   );
 });
+test('clasifica rechazo temporal devuelto por SMTP sin accepted', async () => {
+  const transport = {
+    sendMail: jest.fn().mockResolvedValue({
+      accepted: [],
+      rejectedErrors: [{ responseCode: 450, message: env.SMTP_PASSWORD }],
+    }),
+  };
+  await expect(createSmtpMailer(env, () => transport).send(message())).rejects.toMatchObject({
+    code: 'MAIL_TEMPORARY_FAILURE',
+    message: expect.not.stringContaining(env.SMTP_PASSWORD),
+  });
+});
 test('requiere TLS y comunica aceptación, sin prometer entrega ni divulgar configuración', async () => {
   const transport = {
     verify: jest.fn().mockResolvedValue(true),
@@ -98,7 +110,9 @@ test.each([
   [{ code: 'ECONNECTION' }, 'MAIL_TEMPORARY_FAILURE'],
   [{ code: 'ETIMEDOUT' }, 'MAIL_OUTCOME_UNCERTAIN'],
 ])('clasifica fallos SMTP sin exponer detalles del transporte', async (failure, code) => {
-  const transport = { sendMail: jest.fn().mockRejectedValue({ ...failure, message: env.SMTP_PASSWORD }) };
+  const transport = {
+    sendMail: jest.fn().mockRejectedValue({ ...failure, message: env.SMTP_PASSWORD }),
+  };
   const mailer = createSmtpMailer(env, () => transport);
   await expect(mailer.send(message())).rejects.toMatchObject({
     code,

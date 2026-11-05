@@ -104,8 +104,13 @@ function createSmtpMailer(env = {}, createTransport = nodemailer.createTransport
           (address) =>
             typeof address === 'string' && address.toLowerCase() === input.to.toLowerCase(),
         )
-      )
+      ) {
+        const rejectedError = result?.rejectedErrors?.find(
+          (error) => typeof error?.responseCode === 'number',
+        );
+        if (rejectedError) sendFailure(rejectedError);
         fail('MAIL_NOT_ACCEPTED', 'El servidor SMTP no confirmó la aceptación del aviso.');
+      }
       return Object.freeze({ notificationId: input.notificationId, status: 'ACCEPTED' });
     },
   });
