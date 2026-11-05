@@ -1,7 +1,10 @@
 jest.mock('../../src/app', () => jest.fn());
 jest.mock('../../src/shared/logger', () => ({ info: jest.fn(), error: jest.fn() }));
 jest.mock('../../src/shared/database', () => ({ createPool: jest.fn() }));
-jest.mock('../../src/modules/auth', () => ({ createAuthModule: jest.fn() }));
+jest.mock('../../src/modules/auth', () => ({
+  createAuthModule: jest.fn(),
+  createCustomerContactQueries: jest.fn(),
+}));
 jest.mock('../../src/modules/tenants', () => ({
   createTenantsModule: jest.fn(),
   createPublicCooperativeQueries: jest.fn(),
@@ -22,8 +25,10 @@ jest.mock('../../src/modules/bookings', () => ({
   createBookingsModule: jest.fn(),
   createBookingOccupancyQueries: jest.fn(),
   createBookingTicketQueries: jest.fn(),
+  createBookingNotificationQueries: jest.fn(),
 }));
 jest.mock('../../src/modules/tickets', () => ({ createTicketsModule: jest.fn() }));
+jest.mock('../../src/modules/notifications', () => ({ createNotificationsModule: jest.fn() }));
 
 const createApp = require('../../src/app');
 const { createPool } = require('../../src/shared/database');
@@ -39,6 +44,9 @@ const { createPaymentReceiptModule } = require('../../src/modules/payments');
 const { createBookingsModule } = require('../../src/modules/bookings');
 const { createBookingTicketQueries } = require('../../src/modules/bookings');
 const { createTicketsModule } = require('../../src/modules/tickets');
+const { createCustomerContactQueries } = require('../../src/modules/auth');
+const { createBookingNotificationQueries } = require('../../src/modules/bookings');
+const { createNotificationsModule } = require('../../src/modules/notifications');
 const { start } = require('../../src/server');
 
 describe('server startup', () => {
@@ -50,6 +58,7 @@ describe('server startup', () => {
   let fleet;
   let app;
   let server;
+  let notifications;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -92,6 +101,13 @@ describe('server startup', () => {
     createBookingsModule.mockReturnValue(bookings);
     createBookingTicketQueries.mockReturnValue({ findSoldForOwner: jest.fn() });
     createTicketsModule.mockReturnValue({ router: {} });
+    notifications = {
+      outbox: { enqueueWith: jest.fn() },
+      maintenance: { startWorker: jest.fn(() => null) },
+    };
+    createNotificationsModule.mockReturnValue(notifications);
+    createCustomerContactQueries.mockReturnValue({ findCustomerEmail: jest.fn() });
+    createBookingNotificationQueries.mockReturnValue({ findNotificationContext: jest.fn() });
     createApp.mockReturnValue(app);
   });
 
@@ -122,11 +138,18 @@ describe('server startup', () => {
       seatQueries: fleet.seatQueries,
       occupancyQueries,
     });
+    expect(createNotificationsModule).toHaveBeenCalledWith({
+      pool,
+      env,
+      bookingContexts: createBookingNotificationQueries.mock.results[0].value,
+      customerContacts: createCustomerContactQueries.mock.results[0].value,
+    });
     expect(createBookingsModule).toHaveBeenCalledWith({
       pool,
       auth,
       env,
       availabilityQueries: routeSheets.tripQueries,
+      notificationOutbox: notifications.outbox,
     });
     expect(createPaymentReceiptModule).toHaveBeenCalledWith({
       pool,
@@ -139,6 +162,10 @@ describe('server startup', () => {
       bookingPaymentProofNotifier: {},
       bookingSaleConfirmer: bookings.saleConfirmer,
       paymentQueries: bookings.paymentQueries,
+      notificationOutbox: notifications.outbox,
+    });
+    expect(notifications.maintenance.startWorker).toHaveBeenCalledWith({
+      onFailure: expect.any(Function),
     });
     expect(createBookingTicketQueries).toHaveBeenCalledWith({ pool });
     expect(createTicketsModule).toHaveBeenCalledWith({
@@ -201,6 +228,23 @@ describe('server startup', () => {
     release();
     await stopping;
     expect(server.close).toHaveBeenCalledTimes(1);
+    expect(pool.end).toHaveBeenCalledTimes(1);
+  });
+  it('drena el trabajador de avisos antes de cerrar el pool', async () => {
+    jest.spyOn(process, 'once').mockImplementation(() => process);
+    let release;
+    const drain = new Promise((resolve) => {
+      release = resolve;
+    });
+    const worker = { stop: jest.fn(() => drain) };
+    notifications.maintenance.startWorker.mockReturnValue(worker);
+    const running = await start({ PORT: '3100', DATABASE_URL: 'postgres://test' });
+    const stopping = running.stop();
+    await Promise.resolve();
+    expect(worker.stop).toHaveBeenCalledTimes(1);
+    expect(pool.end).not.toHaveBeenCalled();
+    release();
+    await stopping;
     expect(pool.end).toHaveBeenCalledTimes(1);
   });
   it('cierra HTTP y pool si falla el arranque del trabajador', async () => {

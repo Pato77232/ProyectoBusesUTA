@@ -4,7 +4,7 @@
 
 | Spec / responsable | Estado y evidencia | Próximo paso |
 | --- | --- | --- |
-| [CORREO-02](specs/CORREO-02.md) / Edwin | Rama `feature/CORREO-02-avisos-correo` sobre `feature/BOLETOS-01-emision-qr` (PR #103). Spec en `43c774e`. T1 en `08258ac`: tabla `email_notifications`, `enqueueWith` transaccional y lecturas de Reservas y Auth. T2 en `fc6c0bf`: trabajador de envío con reintentos, apagado por defecto. T3 en `d831755`: Pagos encola al aprobar y al rechazar, en la misma transacción. T4 local: Reservas encola al vencer una reserva. Sin push ni PR. | T5: composición en `server.js`, `.env.example` y arranque real. |
+| [CORREO-02](specs/CORREO-02.md) / Edwin | Rama `feature/CORREO-02-avisos-correo` sobre `feature/BOLETOS-01-emision-qr` (PR #103). Spec en `43c774e`. T1 en `08258ac`: tabla `email_notifications`, `enqueueWith` transaccional y lecturas de Reservas y Auth. T2 en `fc6c0bf`: trabajador de envío con reintentos, apagado por defecto. T3 en `d831755`: Pagos encola al aprobar y al rechazar, en la misma transacción. T4 en `b12084c`: Reservas encola al vencer una reserva. T5 local: composición en `server.js` y variables `NOTIFICATIONS_*`. Sin push ni PR. | Probar con un buzón SMTP real; revisión de Pablo, Shirley y Leslie; PR tras integrar #103. |
 
 ## Edwin — boletos con QR (BOLETOS-01), 4 de noviembre de 2026
 

@@ -3,7 +3,10 @@ const { EventEmitter } = require('node:events');
 jest.mock('../../../src/app', () => jest.fn());
 jest.mock('../../../src/shared/logger', () => ({ info: jest.fn(), error: jest.fn() }));
 jest.mock('../../../src/shared/database', () => ({ createPool: jest.fn() }));
-jest.mock('../../../src/modules/auth', () => ({ createAuthModule: jest.fn() }));
+jest.mock('../../../src/modules/auth', () => ({
+  createAuthModule: jest.fn(),
+  createCustomerContactQueries: jest.fn(),
+}));
 jest.mock('../../../src/modules/tenants', () => ({
   createTenantsModule: jest.fn(),
   createPublicCooperativeQueries: jest.fn(),
@@ -24,8 +27,10 @@ jest.mock('../../../src/modules/bookings', () => ({
   createBookingsModule: jest.fn(),
   createBookingOccupancyQueries: jest.fn(),
   createBookingTicketQueries: jest.fn(),
+  createBookingNotificationQueries: jest.fn(),
 }));
 jest.mock('../../../src/modules/tickets', () => ({ createTicketsModule: jest.fn() }));
+jest.mock('../../../src/modules/notifications', () => ({ createNotificationsModule: jest.fn() }));
 
 const createApp = require('../../../src/app');
 const { createPool } = require('../../../src/shared/database');
@@ -40,6 +45,7 @@ const {
   createPaymentReviewModule,
 } = require('../../../src/modules/payments');
 const { createBookingsModule } = require('../../../src/modules/bookings');
+const { createNotificationsModule } = require('../../../src/modules/notifications');
 const { start } = require('../../../src/server');
 
 test('server conecta la lectura de pagos a la API pública de reservas', async () => {
@@ -83,6 +89,11 @@ test('server conecta la lectura de pagos a la API pública de reservas', async (
   createPaymentReceiptModule.mockReturnValue(paymentReceipt);
   createPaymentReviewModule.mockReturnValue(paymentReview);
   createApp.mockReturnValue(app);
+  const notifications = {
+    outbox: { enqueueWith: jest.fn() },
+    maintenance: { startWorker: jest.fn(() => null) },
+  };
+  createNotificationsModule.mockReturnValue(notifications);
 
   const env = { DATABASE_URL: 'postgres://qa.invalid/busesuta_test' };
   const result = await start(env);
@@ -92,6 +103,7 @@ test('server conecta la lectura de pagos a la API pública de reservas', async (
     auth,
     env,
     availabilityQueries: routeSheets.tripQueries,
+    notificationOutbox: notifications.outbox,
   });
   expect(createPaymentReviewModule).toHaveBeenCalledWith({
     pool,
@@ -110,6 +122,7 @@ test('server conecta la lectura de pagos a la API pública de reservas', async (
     paymentQueries: bookings.paymentQueries,
     bookingPaymentProofNotifier: paymentReceipt.bookingPaymentProofNotifier,
     bookingSaleConfirmer: bookings.saleConfirmer,
+    notificationOutbox: notifications.outbox,
   });
   expect(createApp).toHaveBeenCalledWith(
     expect.objectContaining({ paymentReview, payments, bookings, auth, pool }),

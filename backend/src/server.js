@@ -1,7 +1,7 @@
 const createApp = require('./app');
 const logger = require('./shared/logger');
 const { createPool } = require('./shared/database');
-const { createAuthModule } = require('./modules/auth');
+const { createAuthModule, createCustomerContactQueries } = require('./modules/auth');
 const { createTenantsModule, createPublicCooperativeQueries } = require('./modules/tenants');
 const { createSearchModule } = require('./modules/search');
 const { createFleetModule } = require('./modules/fleet');
@@ -20,8 +20,10 @@ const {
   createBookingsModule,
   createBookingOccupancyQueries,
   createBookingTicketQueries,
+  createBookingNotificationQueries,
 } = require('./modules/bookings');
 const { createTicketsModule } = require('./modules/tickets');
+const { createNotificationsModule } = require('./modules/notifications');
 function closeServer(server) {
   return new Promise((resolve, reject) =>
     server.close((error) => (error ? reject(error) : resolve())),
@@ -36,6 +38,8 @@ async function start(env = process.env) {
   let expirationStopped;
   let passwordResetWorker;
   let passwordResetStopped;
+  let notificationWorker;
+  let notificationStopped;
   const stopExpiration = () => {
     if (!expirationStopped) {
       try {
@@ -55,6 +59,16 @@ async function start(env = process.env) {
       }
     }
     return passwordResetStopped;
+  };
+  const stopNotifications = () => {
+    if (!notificationStopped) {
+      try {
+        notificationStopped = Promise.resolve(notificationWorker?.stop());
+      } catch (error) {
+        notificationStopped = Promise.reject(error);
+      }
+    }
+    return notificationStopped;
   };
   try {
     await pool.query('SELECT 1');
@@ -78,11 +92,18 @@ async function start(env = process.env) {
     });
     if (typeof routeSheets.tripQueries?.findBookableForSegment !== 'function')
       throw new Error('No se pudo conectar el catálogo de viajes por tramo.');
+    const notifications = createNotificationsModule({
+      pool,
+      env,
+      bookingContexts: createBookingNotificationQueries({ pool }),
+      customerContacts: createCustomerContactQueries({ pool }),
+    });
     const bookings = createBookingsModule({
       pool,
       auth,
       env,
       availabilityQueries: routeSheets.tripQueries,
+      notificationOutbox: notifications.outbox,
     });
     const search = createSearchModule({
       tripSearch: createPublicTripSearch({ pool, tripQueries: routeSheets.tripQueries }),
@@ -99,6 +120,7 @@ async function start(env = process.env) {
       paymentQueries: bookings.paymentQueries,
       bookingPaymentProofNotifier: paymentReceipt.bookingPaymentProofNotifier,
       bookingSaleConfirmer: bookings.saleConfirmer,
+      notificationOutbox: notifications.outbox,
     });
     const paymentReview = createPaymentReviewModule({
       pool,
@@ -136,11 +158,15 @@ async function start(env = process.env) {
     passwordResetWorker = auth.maintenance?.startPasswordResetWorker?.({
       onFailure: () => logger.error('No se pudo procesar la recuperación de cuenta.'),
     });
+    notificationWorker = notifications.maintenance.startWorker({
+      onFailure: (failure) => logger.error(failure, 'No se pudo procesar los avisos por correo.'),
+    });
     logger.info({ port }, 'Servidor iniciado');
   } catch (error) {
     await Promise.allSettled([
       stopExpiration(),
       stopPasswordReset(),
+      stopNotifications(),
       server ? closeServer(server) : Promise.resolve(),
     ]);
     await pool.end();
@@ -151,12 +177,14 @@ async function start(env = process.env) {
     if (!closing) {
       const stopping = stopExpiration();
       const stoppingPasswordReset = stopPasswordReset();
+      const stoppingNotifications = stopNotifications();
       closing = (async () => {
         try {
           const results = await Promise.allSettled([
             closeServer(server),
             stopping,
             stoppingPasswordReset,
+            stoppingNotifications,
           ]);
           const failure = results.find((result) => result.status === 'rejected');
           if (failure) throw failure.reason;
@@ -177,6 +205,9 @@ async function start(env = process.env) {
     void stopExpiration().catch(() => logger.error('No se pudo detener la expiración.'));
     void stopPasswordReset().catch(() =>
       logger.error('No se pudo detener el trabajador de recuperación.'),
+    );
+    void stopNotifications().catch(() =>
+      logger.error('No se pudo detener el trabajador de avisos.'),
     );
   });
   return { server, pool, stop };

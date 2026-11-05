@@ -5,7 +5,7 @@
 - **Módulo:** `notifications` (nuevo), con cambios acotados en `payments`, `bookings` y `auth`
 - **Responsable:** Edwin
 - **Revisor propuesto / confirmado:** Pablo (correo y Auth), Shirley (Pagos) y Leslie (Reservas); sin confirmar
-- **Estado:** En desarrollo (T1 a T3 con commit; T4 local)
+- **Estado:** En revisión local (T1 a T4 con commit; T5 local)
 - **Prioridad y dependencias:** depende de [BOLETOS-01](BOLETOS-01.md) (PR #103, sin integrar) por la página `boletos.html` y la lectura de venta con tramo; reutiliza `smtp-mailer.js` de [CORREO-01](CORREO-01.md).
 - **Rama / PR / base comprobada:** `feature/CORREO-02-avisos-correo` desde `feature/BOLETOS-01-emision-qr` `2dac0c0` (incluye `origin/develop` `292bb1f`), 4 de noviembre de 2026. Sin PR.
 - **Autorización de alcance:** Edwin, 4 de noviembre de 2026: avisos de boletos listos, comprobante rechazado y reserva vencida; el correo de boletos lleva un enlace a «Mis boletos», sin QR adjunto; Pagos (y Reservas al vencer) encolan el aviso en la misma transacción que el cambio de estado. No es revisión técnica.
@@ -138,8 +138,8 @@ No aplica: por decisión de Edwin del 4 de noviembre de 2026, la entrega no incl
 | T1         | Migración `email_notifications`, `enqueueWith` y lecturas de Reservas y Auth | Commit `08258ac` |
 | T2         | Trabajador: reclamo, textos, envío, reintentos y configuración               | Commit `fc6c0bf` |
 | T3         | Encolado en la aprobación y el rechazo de Pagos                              | Commit `d831755` |
-| T4         | Encolado en el vencimiento de Reservas                                       | Local, sin commit |
-| T5         | Composición en `server.js`, `.env.example` y arranque real                   | Pendiente |
+| T4         | Encolado en el vencimiento de Reservas                                       | Commit `b12084c` |
+| T5         | Composición en `server.js`, `.env.example` y arranque real                   | Local, sin commit |
 
 Cada incremento se cierra con lint, formato y `npm test` (integración con PostgreSQL aislado y base nueva).
 
@@ -171,3 +171,10 @@ Cada incremento se cierra con lint, formato y `npm test` (integración con Postg
 - Si encolar falla, el vencimiento se revierte y los asientos siguen reservados; el trabajador de vencimientos lo reintenta en su siguiente ronda. Sin outbox, el comportamiento es el anterior.
 - `createBookingsModule({ ..., notificationOutbox })` lo entrega al repositorio. La composición en `server.js` queda para T5.
 - Ninguna prueba existente cambió.
+
+### Evidencia de T5 (5 de noviembre de 2026)
+
+- `server.js` crea Avisos antes de Reservas y Pagos, les entrega `notifications.outbox` y arranca el trabajador después de escuchar; al cerrar, lo drena junto con los de vencimiento y recuperación antes de cerrar el pool.
+- `.env.example` y `docker-compose.yml` agregan `NOTIFICATIONS_*` con el trabajador apagado por defecto.
+- Pruebas existentes modificadas: `tests/unit/server.test.js` y `tests/unit/payments/server-review-composition.test.js` agregan los mocks de Avisos y de las dos lecturas nuevas, y esperan `notificationOutbox` en Reservas y Pagos. `server.test.js` comprueba además la composición de Avisos, el arranque del trabajador y su drenaje.
+- Pendiente: probar el envío real con un buzón SMTP (las credenciales las configura quien administre el correo). `smtp-mailer.js` exige TLS válido en 465 o 587, así que un capturador local con certificado propio no sirve sin cambiar el mailer.
