@@ -10,6 +10,7 @@ const expireBooking = require('./application/expire-booking.use-case');
 const { randomUUID } = require('node:crypto');
 const PgBookingRepository = require('./infrastructure/pg-booking.repository');
 const createVerifiedCustomerIdentity = require('./infrastructure/verified-customer-identity');
+const createVerifiedGuestBuyerIdentity = require('./infrastructure/verified-guest-buyer-identity');
 const readBookingConfig = require('./infrastructure/booking-config');
 const defaultCalendarDateAt = require('./infrastructure/booking-clock');
 const getSeatAvailability = require('./application/get-seat-availability.use-case');
@@ -38,6 +39,7 @@ function createBookingsModule({
   },
   availabilityQueries = null,
   passengerVerifier,
+  guestEmailAccess,
   clock = () => new Date(),
   calendarDateAt = defaultCalendarDateAt,
   newId = randomUUID,
@@ -86,6 +88,27 @@ function createBookingsModule({
     buyerIdentity: createVerifiedCustomerIdentity(),
     ...readBookingConfig(env),
   };
+  const guestPurchase = guestEmailAccess
+    ? (() => {
+        const guestDependencies = {
+          ...dependencies,
+          buyerIdentity: createVerifiedGuestBuyerIdentity(guestEmailAccess),
+        };
+        const paymentQuery = findForPayment({ repository, clock, allowVerifiedGuest: true });
+        return Object.freeze({
+          getSummary: getBookingSummary(guestDependencies),
+          createBooking: createBooking(guestDependencies),
+          async findForPayment(query, context) {
+            const identity = await guestDependencies.buyerIdentity.resolve(context);
+            return paymentQuery(query, {
+              userId: identity.ownerId,
+              role: 'GUEST_BUYER',
+              cooperativeId: null,
+            });
+          },
+        });
+      })()
+    : undefined;
   const lifecycle = new PgBookingLifecycleRepository({ pool });
   const saleConfirmer = new PgBookingSaleConfirmer({ pool, clock });
   const guestAccess = createGuestAccess({ pool, clock });
@@ -124,6 +147,7 @@ function createBookingsModule({
     }),
     paymentQueries: Object.freeze({ findForPayment: findForPayment({ repository, clock }) }),
     saleConfirmer,
+    guestPurchase,
     guestAccess,
     guestRouter: createGuestBookingRouter({ guestAccess }),
     benefitReviewRouter: benefitReviews

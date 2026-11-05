@@ -5,7 +5,7 @@ function identifier(value) {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
-function paymentReadRequest(query, context) {
+function paymentReadRequest(query, context, { allowVerifiedGuest = false } = {}) {
   if (
     !query ||
     typeof query !== 'object' ||
@@ -27,16 +27,22 @@ function paymentReadRequest(query, context) {
     context.role === 'CUSTOMER' &&
     context.cooperativeId === null &&
     query.purpose === 'UPLOAD_PROOF';
+  const guest =
+    allowVerifiedGuest &&
+    context.role === 'GUEST_BUYER' &&
+    context.cooperativeId === null &&
+    query.purpose === 'UPLOAD_PROOF' &&
+    context.userId.startsWith('guest:');
   const clerk =
     context.role === 'CLERK' &&
     identifier(context.cooperativeId) &&
     query.purpose === 'REVIEW_PAYMENT';
-  if (!customer && !clerk) throw new BookingPaymentQueryError('FORBIDDEN');
+  if (!customer && !guest && !clerk) throw new BookingPaymentQueryError('FORBIDDEN');
   return Object.freeze({
     bookingId: query.bookingId,
     purpose: query.purpose,
     userId: context.userId,
-    cooperativeId: customer ? null : context.cooperativeId,
+    cooperativeId: customer || guest ? null : context.cooperativeId,
   });
 }
 

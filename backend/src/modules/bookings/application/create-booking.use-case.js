@@ -1,6 +1,6 @@
 const {
   copyPurchaseInput,
-  resolveOwner,
+  resolveBuyer,
   readPurchaseTrip,
   resolveSummary,
 } = require('./booking-purchase-context');
@@ -33,7 +33,8 @@ function createBooking(dependencies) {
     const requestFingerprint = requestKey
       ? bookingCreationFingerprint(request, acceptedRevision)
       : null;
-    const ownerId = await resolveOwner(dependencies.buyerIdentity, authContext);
+    const buyer = await resolveBuyer(dependencies.buyerIdentity, authContext);
+    const { ownerId, contactEmail } = buyer;
 
     const locate = async () => {
       const trip = await readPurchaseTrip(dependencies, request);
@@ -50,7 +51,7 @@ function createBooking(dependencies) {
       }
       return {
         input: Object.freeze({ ...request, summaryAccepted: true }),
-        context: { ...context, ownerId, bookingId: newId(), proofWindowSeconds },
+        context: { ...context, ownerId, contactEmail, bookingId: newId(), proofWindowSeconds },
       };
     };
     if (requestKey) {
