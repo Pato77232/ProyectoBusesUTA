@@ -24,6 +24,17 @@ Pendientes: inspección visual, revisión humana y resolución del fallo de lint
 previo de `backend/src/server.js` en la base. Sin push, PR ni integración. Las filas históricas inferiores no
 se actualizan por inferencia.
 
+## Pablo — conciliación documental de defectos académicos, 4 de noviembre de 2026
+
+En `feature/DOCS-02-politica-defectos`, conciliada con `origin/develop`
+`3695655`, [DOCS-02](specs/DOCS-02.md) alinea AGENTS.md, CONTRIBUTING.md y el
+protocolo de errores inducidos con la decisión de Edwin registrada para v0.1.0:
+la entrega no incluye defectos deliberados. Los candidatos de ACADEMICA-01
+siguen como propuestas históricas. El fallo de arranque de `server.js` no se
+reclasifica como académico. La resolución conserva tanto esta evidencia como la
+de AUTH-WEB-02 anterior. Revisión humana e integración siguen pendientes; las
+filas históricas inferiores conservan su fecha y evidencia.
+
 ## INTEG-01 — continuación local T7, T6b y composición, 4 de noviembre de 2026
 
 Edwin solicita completar las conexiones pendientes y confirma acreditación manual específica hasta el embarque. Sobre `d9ee164`, en `feature/INTEG-01-T6-compra-comercial`, quedan cambios sin commit: carga autorizada con lector público real de Reservas y reloj propagado; servidor con una sola composición sin `_isMockFunction`; revisión de nacimiento/discapacidad por CLERK, auditada por contexto y con vencimiento al embarque, sin documentos/imágenes. La compra productiva consume ese proveedor persistido; no hay autoacreditación ni verificador favorable simulado. API nueva descrita en [INTEG-01-T6b](specs/INTEG-01-T6b.md); conexiones/evidencia en [INTEG-01](specs/INTEG-01.md).
