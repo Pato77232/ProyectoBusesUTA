@@ -2,7 +2,18 @@ const express = require('express');
 const { cookieOptions } = require('./cookies');
 const validateCredentials = require('./credentials');
 const authErrors = require('./auth-errors');
-function createRouter({ login, csrf, authenticate, authorize, logout, register, createClerk }) {
+const { z } = require('zod');
+const resetRequest = z.object({ email: z.string().trim().toLowerCase().email().max(254) }).strict();
+function createRouter({
+  login,
+  csrf,
+  authenticate,
+  authorize,
+  logout,
+  register,
+  createClerk,
+  requestPasswordReset,
+}) {
   const router = express.Router();
   router.use((req, res, next) => {
     res.set('Cache-Control', 'no-store');
@@ -23,6 +34,15 @@ function createRouter({ login, csrf, authenticate, authorize, logout, register, 
   router.post('/register', csrf.protect, validateCredentials, async (req, res) => {
     await register(req.credentials);
     res.status(201).end();
+  });
+  router.post('/password-reset', csrf.protect, async (req, res) => {
+    const parsed = resetRequest.safeParse(req.body);
+    if (!parsed.success)
+      return res
+        .status(400)
+        .json({ error: { code: 'VALIDATION_ERROR', message: 'Correo inválido.' } });
+    await requestPasswordReset({ email: parsed.data.email, ip: req.ip });
+    res.status(202).json({ message: 'Si la cuenta existe, enviaremos un enlace.' });
   });
   router.post(
     '/clerks',

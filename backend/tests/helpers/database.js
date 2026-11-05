@@ -9,6 +9,6 @@ function runMigration(direction = 'up') {
 function testPool() { return createPool(assertTestDatabase()); }
 async function clearAuth(pool) {
   assertTestDatabase();
-  await pool.query('TRUNCATE auth_sessions, users');
+  await pool.query('TRUNCATE auth_password_reset_attempts, auth_email_actions, auth_sessions, users');
 }
 module.exports = {runMigration,testPool,clearAuth};

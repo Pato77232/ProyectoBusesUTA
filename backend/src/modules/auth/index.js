@@ -8,6 +8,8 @@ const createLogout = require('./application/logout.use-case');
 const createRegisterCustomer = require('./application/register-customer.use-case');
 const createLogin = require('./application/login.use-case');
 const PgAuthRepository = require('./infrastructure/pg-auth.repository');
+const PgPasswordResetRepository = require('./infrastructure/pg-password-reset.repository');
+const createRequestPasswordReset = require('./application/request-password-reset.use-case');
 const { createHasher } = require('./infrastructure/password-hasher');
 const createTokens = require('./infrastructure/jwt-tokens');
 const createLimiter = require('./infrastructure/memory-login-limiter');
@@ -38,6 +40,10 @@ async function createAuthModule({ pool, env = process.env }) {
       logout: createLogout({ repository }),
       register: createRegisterCustomer({ repository, hasher }),
       createClerk: createClerk({ repository, hasher }),
+      requestPasswordReset: createRequestPasswordReset({
+        repository: new PgPasswordResetRepository(pool),
+        config,
+      }),
     }),
     authenticate,
     authorize,

@@ -124,3 +124,59 @@ test('registro rechaza CSRF ausente, escalamiento y duplicados concurrentes',asy
  expect(results.map(r=>r.status).sort()).toEqual([201,409]);
  expect((await pool.query("SELECT * FROM users WHERE email='new@example.ec'")).rows).toHaveLength(1);
 });
+
+test('solicitud de recuperación exige CSRF y encola solo para una cuenta existente',async()=>{
+ const browser=new Browser();
+ const body={email:' CLIENT@EXAMPLE.EC '};
+ expect((await browser.request('/api/v1/auth/password-reset','POST',body)).status).toBe(403);
+ await browser.token();
+ const existing=await browser.request('/api/v1/auth/password-reset','POST',body);
+ const missing=await browser.request('/api/v1/auth/password-reset','POST',{email:'missing@example.ec'});
+ expect(existing.status).toBe(202);expect(missing.status).toBe(202);
+ expect(await existing.json()).toEqual(await missing.json());
+ const actions=await pool.query('SELECT user_id,state,token_hash FROM auth_email_actions');
+ expect(actions.rows).toEqual([{user_id:userId,state:'PENDING',token_hash:null}]);
+ const attempts=await pool.query('SELECT email,accepted FROM auth_password_reset_attempts ORDER BY id');
+ expect(attempts.rows).toEqual([
+  {email:'client@example.ec',accepted:true},
+  {email:'missing@example.ec',accepted:true},
+ ]);
+});
+
+test('enfriamiento y límite por correo no generan nuevos enlaces, también para cuentas inexistentes',async()=>{
+ const browser=new Browser();await browser.token();
+ for(const email of ['client@example.ec','missing@example.ec']) {
+  for(let i=0;i<4;i++) {
+   expect((await browser.request('/api/v1/auth/password-reset','POST',{email})).status).toBe(202);
+   await pool.query("UPDATE auth_password_reset_attempts SET requested_at=CURRENT_TIMESTAMP-INTERVAL '61 seconds' WHERE email=$1 AND accepted",[email]);
+  }
+ }
+ const accepted=await pool.query('SELECT email,count(*)::int AS count FROM auth_password_reset_attempts WHERE accepted GROUP BY email ORDER BY email');
+ expect(accepted.rows).toEqual([
+  {email:'client@example.ec',count:3},
+  {email:'missing@example.ec',count:3},
+ ]);
+ const actions=await pool.query('SELECT state,count(*)::int AS count FROM auth_email_actions GROUP BY state ORDER BY state');
+ expect(actions.rows).toEqual([{state:'PENDING',count:1},{state:'SUPERSEDED',count:2}]);
+});
+
+test('límite por IP responde 429 sin revelar existencia de cuentas',async()=>{
+ const browser=new Browser();await browser.token();
+ for(let i=0;i<10;i++) {
+  const email=i===0?'client@example.ec':`missing${i}@example.ec`;
+  expect((await browser.request('/api/v1/auth/password-reset','POST',{email})).status).toBe(202);
+ }
+ const response=await browser.request('/api/v1/auth/password-reset','POST',{email:'another@example.ec'});
+ expect(response.status).toBe(429);
+ expect((await response.json()).error.code).toBe('TOO_MANY_ATTEMPTS');
+ expect((await pool.query('SELECT count(*)::int AS count FROM auth_password_reset_attempts')).rows[0].count).toBe(10);
+});
+
+test('solicitudes concurrentes para un correo dejan una sola acción activa',async()=>{
+ const browser=new Browser();await browser.token();
+ const body={email:'client@example.ec'};
+ const responses=await Promise.all(Array.from({length:3},()=>browser.request('/api/v1/auth/password-reset','POST',body)));
+ expect(responses.map(response=>response.status)).toEqual([202,202,202]);
+ expect((await pool.query("SELECT count(*)::int AS count FROM auth_email_actions WHERE state='PENDING'")).rows[0].count).toBe(1);
+ expect((await pool.query('SELECT count(*)::int AS count FROM auth_password_reset_attempts WHERE accepted')).rows[0].count).toBe(1);
+});
