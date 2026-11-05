@@ -1,3 +1,4 @@
+const { validatePassengerContact } = require('./passenger-contact');
 const { BookingValidationError } = require('./booking-error');
 const { createAvailabilityRequest, createAvailabilityTrip } = require('./availability-request');
 const { createPassengerManifest } = require('./passenger-manifest');
@@ -88,6 +89,7 @@ function createBookingSummary(input, context) {
     throw new BookingValidationError();
   const departureDate = context.trip.departureDate;
   ageOnDate(context.onDate, departureDate);
+  manifest.forEach((passenger) => validatePassengerContact(passenger, departureDate));
   const prices = selectedPrices(context.trip, request);
   const benefits = benefitsForPassengers(context.passengerBenefits, manifest);
   const configuredQuote = context.trip.publishedPriceCents !== undefined;

@@ -10,7 +10,7 @@ const entry = (name) => ({ name, isFile: () => true });
 const files = () => activeNames.map((name) => entry(name + '.js'));
 
 test('catálogo explícito conserva la cadena de develop, Pagos, protección, renovación y totales', () => {
-  expect(activeNames).toHaveLength(30);
+  expect(activeNames).toHaveLength(38);
   expect(activeNames[16]).toBe('1793730000000-commercial-trips');
   expect(activeNames[17]).toBe('1793740000000-allow-vip-bus-seats');
   expect(activeNames[18]).toBe('1793820000000-install-bookings');
@@ -25,6 +25,14 @@ test('catálogo explícito conserva la cadena de develop, Pagos, protección, re
   expect(activeNames[27]).toBe('1794250000000-booking-commercial-totals');
   expect(activeNames[28]).toBe('1794260000000-booking-benefit-reviews');
   expect(activeNames[29]).toBe('1794270000000-identify-accessible-bus-spaces');
+  expect(activeNames[30]).toBe('1794280000000-auth-password-reset-actions');
+  expect(activeNames[31]).toBe('1794290000000-index-password-reset-attempt-retention');
+  expect(activeNames[32]).toBe('1794300000000-index-password-reset-action-retention');
+  expect(activeNames[33]).toBe('1794310000000-create-tickets');
+  expect(activeNames[34]).toBe('1794320000000-booking-benefit-requests');
+  expect(activeNames[35]).toBe('1794330000000-booking-benefit-request-reviews');
+  expect(activeNames[36]).toBe('1794350000000-auth-guest-email-access');
+  expect(activeNames[37]).toBe('1794360000000-booking-guest-contact');
   expect(() => validateHistory(activeNames.slice(0, 22))).not.toThrow();
   expect(new Set(activeNames).size).toBe(activeNames.length);
   expect([...activeNames].sort()).toEqual(activeNames);
@@ -95,5 +103,15 @@ test('adapta solo los límites del batch a savepoints y delega SQL/argumentos in
     ['SELECT $1::text', ['dato']],
     ['RELEASE SAVEPOINT migration_batch'],
     ['ROLLBACK TO SAVEPOINT migration_batch'],
+  ]);
+});
+
+test('la actualización desde develop conserva sus 34 migraciones como prefijo exacto', () => {
+  expect(() => validateHistory(activeNames.slice(0, 34))).not.toThrow();
+  expect(activeNames.slice(34)).toEqual([
+    '1794320000000-booking-benefit-requests',
+    '1794330000000-booking-benefit-request-reviews',
+    '1794350000000-auth-guest-email-access',
+    '1794360000000-booking-guest-contact',
   ]);
 });

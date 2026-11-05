@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mis reservas | transViaje</title>
+    <link
+      rel="stylesheet"
+      href="../assets/vendor/bootstrap-5.3.8/bootstrap.min.css"
+    />
+    <link rel="stylesheet" href="../src/styles/app.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+    <header class="site-header">
+      <nav class="container d-flex gap-3 flex-wrap">
+        <a href="../index.html">transViaje</a
+        ><a href="buscar-viajes.html">Buscar viajes</a
+        ><a href="boletos.html">Mis boletos</a>
+      </nav>
+    </header>
+    <main class="container py-5" id="contenido">
+      <h1>Mis reservas</h1>
+      <p>Consulta tus reservas y compras. Horarios de Ecuador continental.</p>
+      <p id="history-status" role="status" aria-live="polite" tabindex="-1">
+        Consultando…
+      </p>
+      <p id="history-login" hidden>
+        <a href="login.html">Iniciar sesión como cliente</a>
+      </p>
+      <div class="d-flex gap-3 mb-4">
+        <button id="history-refresh" type="button" class="btn btn-outline-dark">
+          Actualizar</button
+        ><button
+          id="history-next"
+          type="button"
+          class="btn btn-outline-dark"
+          hidden
+        >
+          Siguiente página
+        </button>
+      </div>
+      <ul id="history-list" class="list-unstyled" aria-busy="false"></ul>
+      <section
+        id="history-detail"
+        class="border rounded p-3"
+        tabindex="-1"
+        aria-label="Detalle de reserva"
+        hidden
+      ></section>
+    </main>
+    <script type="module" src="../src/bookings/history-page.js"></script>
+  </body>
+</html>

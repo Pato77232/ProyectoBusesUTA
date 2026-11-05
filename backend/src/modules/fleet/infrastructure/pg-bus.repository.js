@@ -137,6 +137,43 @@ function presentBusSummary(row) {
   };
 }
 
+function presentAdminBusSummary(row) {
+  return {
+    id: row.id,
+    plate: formatBusPlate(row.plate),
+    unitNumber: Number(row.unit_number),
+    busGroupId: row.bus_group_id,
+    busGroupName: row.bus_group_name,
+    capacity: row.capacity,
+    photoCount: row.photo_count,
+  };
+}
+
+function presentAdminBusDetails(row, seats, photos) {
+  return {
+    id: row.id,
+    plate: formatBusPlate(row.plate),
+    vin: row.vin,
+    unitNumber: Number(row.unit_number),
+    bodyworkBrand: row.bodywork_brand,
+    color: row.color,
+    busGroup: { id: row.bus_group_id, name: row.bus_group_name },
+    seatLayout: {
+      id: row.seat_layout_id,
+      version: row.seat_layout_version,
+      snapshot: row.seat_layout_snapshot,
+    },
+    capacity: row.capacity,
+    seats: seats.map(presentBusSeat),
+    photos: photos.map((photo) => ({
+      id: photo.id,
+      contentType: photo.content_type,
+      size: photo.size,
+      order: photo.sort_order,
+    })),
+  };
+}
+
 class PgBusRepository extends BusRepository {
   constructor(pool, { newId = randomUUID } = {}) {
     super();
@@ -214,6 +251,65 @@ class PgBusRepository extends BusRepository {
       [cooperativeId],
     );
     return rows.map(presentBusSummary);
+  }
+
+  async listAdminBuses(cooperativeId) {
+    if (!isUuid(cooperativeId)) return [];
+    const { rows } = await this.pool.query(
+      `SELECT b.id, b.bus_group_id, g.name AS bus_group_name, b.plate, b.unit_number,
+        b.capacity, COUNT(p.id)::int AS photo_count
+       FROM buses b
+       JOIN bus_groups g ON g.id = b.bus_group_id AND g.cooperative_id = b.cooperative_id
+       LEFT JOIN bus_photos p ON p.bus_id = b.id AND p.cooperative_id = b.cooperative_id
+       WHERE b.cooperative_id = $1
+       GROUP BY b.id, b.bus_group_id, g.name, b.plate, b.unit_number, b.capacity
+       ORDER BY b.unit_number, b.id`,
+      [cooperativeId],
+    );
+    return rows.map(presentAdminBusSummary);
+  }
+
+  async findAdminDetails(id, cooperativeId) {
+    if (!isUuid(id) || !isUuid(cooperativeId)) return null;
+    const { rows } = await this.pool.query(
+      `SELECT b.id, b.cooperative_id, b.bus_group_id, g.name AS bus_group_name, b.plate,
+        b.vin, b.unit_number, b.bodywork_brand, b.color, b.seat_layout_id,
+        b.seat_layout_version, b.seat_layout_snapshot, b.capacity
+       FROM buses b
+       JOIN bus_groups g ON g.id = b.bus_group_id AND g.cooperative_id = b.cooperative_id
+       WHERE b.id = $1 AND b.cooperative_id = $2`,
+      [id, cooperativeId],
+    );
+    const bus = rows[0];
+    if (!bus) return null;
+    const [seatResult, photoResult] = await Promise.all([
+      this.pool.query(
+        `SELECT id AS seat_id, layout_seat_key, label, deck, row_index, column_index, category, offered
+         FROM bus_seats WHERE bus_id = $1 AND cooperative_id = $2
+         ORDER BY deck DESC, label, id`,
+        [id, cooperativeId],
+      ),
+      this.pool.query(
+        `SELECT id, content_type, size, sort_order
+         FROM bus_photos WHERE bus_id = $1 AND cooperative_id = $2 ORDER BY sort_order, id`,
+        [id, cooperativeId],
+      ),
+    ]);
+    return presentAdminBusDetails(bus, seatResult.rows, photoResult.rows);
+  }
+
+  async findPhotoById({ busId, photoId, cooperativeId }) {
+    if (![busId, photoId, cooperativeId].every(isUuid)) return null;
+    const { rows } = await this.pool.query(
+      `SELECT storage_key, content_type, size
+       FROM bus_photos
+       WHERE id = $1 AND bus_id = $2 AND cooperative_id = $3`,
+      [photoId, busId, cooperativeId],
+    );
+    const photo = rows[0];
+    return photo
+      ? { fileKey: photo.storage_key, contentType: photo.content_type, size: photo.size }
+      : null;
   }
 
   async listByBusGroup(busGroupId, cooperativeId) {

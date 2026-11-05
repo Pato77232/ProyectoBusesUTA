@@ -74,15 +74,15 @@ async function readAllocations(client, scope) {
   );
 }
 
-async function insertBooking(client, booking, operation, proofContext) {
+async function insertBooking(client, booking, operation, proofContext, contactEmail) {
   const { summary } = booking;
   await client.query(
     `INSERT INTO bookings (id, cooperative_id, trip_id, owner_id, from_position, to_position,
        status, summary, base_price_cents, discount_cents, total_price_cents, created_at, expires_at,
        creation_request_key, creation_request_fingerprint,
        proof_window_started_at, proof_window_seconds, proof_reception_state,
-       vip_surcharge_cents,rounding_adjustment_cents)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,'NOT_RECEIVED',$18,$19)`,
+       vip_surcharge_cents,rounding_adjustment_cents,guest_contact_email)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,'NOT_RECEIVED',$18,$19,$20)`,
     [
       booking.bookingId,
       summary.cooperativeId,
@@ -103,6 +103,7 @@ async function insertBooking(client, booking, operation, proofContext) {
       proofContext.proofWindowSeconds,
       summary.totals.vipSurchargeCents ?? 0,
       summary.totals.roundingAdjustmentCents ?? 0,
+      contactEmail,
     ],
   );
   for (const passenger of summary.passengers) {
@@ -152,7 +153,13 @@ async function reserveTrip(client, target, prepare, operation) {
     allocations: await readAllocations(client, target),
   });
   if (seats.some((seat) => seat.status !== 'AVAILABLE')) throw new BookingConflictError();
-  await insertBooking(client, booking, operation, proofContext);
+  await insertBooking(
+    client,
+    booking,
+    operation,
+    proofContext,
+    prepared.context.contactEmail ?? null,
+  );
   return booking;
 }
 

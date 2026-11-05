@@ -10,6 +10,12 @@ COPY pages/buscar-viajes.html /usr/share/nginx/html/pages/buscar-viajes.html
 COPY src/search /usr/share/nginx/html/src/search
 COPY pages/registrar-bus.html /usr/share/nginx/html/pages/registrar-bus.html
 COPY pages/login.html /usr/share/nginx/html/pages/login.html
+COPY pages/recuperar-cuenta.html /usr/share/nginx/html/pages/recuperar-cuenta.html
+COPY pages/restablecer.html /usr/share/nginx/html/pages/restablecer.html
+COPY pages/registro.html /usr/share/nginx/html/pages/registro.html
+COPY pages/cooperativas.html /usr/share/nginx/html/pages/cooperativas.html
+COPY pages/administrador-cooperativa.html /usr/share/nginx/html/pages/administrador-cooperativa.html
+COPY pages/oficinistas.html /usr/share/nginx/html/pages/oficinistas.html
 COPY pages/crear-frecuencia.html /usr/share/nginx/html/pages/crear-frecuencia.html
 COPY pages/frecuencias.html /usr/share/nginx/html/pages/frecuencias.html
 COPY src/styles/frequency-list.css /usr/share/nginx/html/src/styles/frequency-list.css
@@ -19,9 +25,11 @@ COPY pages/comprobantes.html /usr/share/nginx/html/pages/comprobantes.html
 COPY src/payments /usr/share/nginx/html/src/payments
 COPY src/styles/payments.css /usr/share/nginx/html/src/styles/payments.css
 COPY src/auth /usr/share/nginx/html/src/auth
+COPY src/admin /usr/share/nginx/html/src/admin
 COPY src/fleet /usr/share/nginx/html/src/fleet
 COPY src/styles/app.css /usr/share/nginx/html/src/styles/app.css
 COPY src/styles/login.css /usr/share/nginx/html/src/styles/login.css
+COPY src/styles/admin.css /usr/share/nginx/html/src/styles/admin.css
 COPY src/api /usr/share/nginx/html/src/api
 COPY assets /usr/share/nginx/html/assets
 
@@ -40,3 +48,8 @@ COPY pages/programar-hoja.html /usr/share/nginx/html/pages/programar-hoja.html
 COPY src/styles/route-sheet-editor.css /usr/share/nginx/html/src/styles/route-sheet-editor.css
 COPY src/route-sheets /usr/share/nginx/html/src/route-sheets
 COPY src/styles/route-sheets.css /usr/share/nginx/html/src/styles/route-sheets.css
+
+# BOLETOS-01: boletos imprimibles del cliente.
+COPY pages/boletos.html /usr/share/nginx/html/pages/boletos.html
+COPY src/tickets /usr/share/nginx/html/src/tickets
+COPY src/styles/tickets.css /usr/share/nginx/html/src/styles/tickets.css

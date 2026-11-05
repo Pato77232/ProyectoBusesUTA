@@ -255,3 +255,130 @@ test('consultas paralelas liberan su snapshot antes de consultar otros módulos'
   expect(results).toHaveLength(12);
   expect(results.every((dto) => dto.tripId === tripId)).toBe(true);
 });
+
+test('búsqueda nocturna usa la fecha local de cada embarque y su tarifa explícita', async () => {
+  const frequencyId = randomUUID();
+  await pool.query(
+    "INSERT INTO frequencies(id,cooperative_id,origin,destination,departure_time,ant_resolution_number) VALUES($1,$2,'Ambato','Latacunga','23:00','ANT-NOCTURNA-QA')",
+    [frequencyId, owner.cooperativeId],
+  );
+  await pool.query(
+    "INSERT INTO frequency_stops(frequency_id,position,place) VALUES($1,0,'Salcedo')",
+    [frequencyId],
+  );
+  const activity = {
+    id: randomUUID(),
+    kind: 'SERVICE',
+    frequencyId,
+    requiredServiceId: randomUUID(),
+    departureAt: '2030-01-01T23:00:00-05:00',
+    arrivalAt: '2030-01-02T02:00:00-05:00',
+    preparationMinutes: 15,
+    points: [
+      { position: 0, departureAt: '2030-01-01T23:00:00-05:00' },
+      {
+        position: 1,
+        arrivalAt: '2030-01-02T00:15:00-05:00',
+        departureAt: '2030-01-02T00:20:00-05:00',
+      },
+      { position: 2, arrivalAt: '2030-01-02T02:00:00-05:00' },
+    ],
+  };
+  const programming = {
+    ...f.body.programming,
+    cycleLengthDays: 2,
+    requiredServices: [
+      { id: activity.requiredServiceId, frequencyId, departureAt: activity.departureAt },
+    ],
+    agendas: [
+      {
+        ...f.body.programming.agendas[0],
+        activities: [
+          activity,
+          {
+            id: randomUUID(),
+            kind: 'TRANSFER',
+            originKey: 'Latacunga',
+            destinationKey: 'Ambato',
+            departureAt: '2030-01-02T02:15:00-05:00',
+            arrivalAt: '2030-01-02T04:00:00-05:00',
+            preparationMinutes: 0,
+          },
+        ],
+      },
+    ],
+  };
+  expect(
+    (
+      await admin.request(endpoint(f, 'programming'), 'PUT', {
+        expectedRevision: 1,
+        programming,
+      })
+    ).status,
+  ).toBe(200);
+  expect(
+    (
+      await admin.request(endpoint(f, 'tariff'), 'PUT', {
+        expectedRevision: 1,
+        policy: {
+          vipSurchargeBps: 0,
+          minorDiscountBps: 0,
+          seniorDiscountBps: 0,
+          disabilityDiscountBps: 0,
+        },
+        frequencies: [
+          {
+            frequencyId,
+            prices: [
+              { fromPosition: 0, toPosition: 1, amountCents: 200 },
+              { fromPosition: 0, toPosition: 2, amountCents: 999 },
+              { fromPosition: 1, toPosition: 2, amountCents: 250 },
+            ],
+          },
+        ],
+      })
+    ).status,
+  ).toBe(200);
+
+  const search = async (date, origin = 'Salcedo') => {
+    const response = await new Browser(url).request(
+      `/api/v1/trips?origin=${origin}&destination=Latacunga&date=${date}`,
+    );
+    expect(response.status).toBe(200);
+    return response.json();
+  };
+  const empty = { trips: [], truncated: false };
+  expect(await search('2030-01-02')).toEqual(empty);
+  const tripId = await publishedTrip();
+  const before = await Promise.all(TABLES.map(count));
+  expect(await search('2030-01-01')).toEqual(empty);
+  expect(await search('2030-01-02', 'Ambato')).toEqual(empty);
+  expect(await search('2030-01-02')).toMatchObject({
+    truncated: false,
+    trips: [
+      expect.objectContaining({
+        tripId,
+        fromPosition: 1,
+        toPosition: 2,
+        boardingAt: '2030-01-02T05:20:00.000Z',
+        arrivalAt: '2030-01-02T07:00:00.000Z',
+        amountCents: 250,
+      }),
+    ],
+  });
+  expect(await search('2030-01-01', 'Ambato')).toMatchObject({
+    truncated: false,
+    trips: [
+      expect.objectContaining({
+        tripId,
+        fromPosition: 0,
+        toPosition: 2,
+        boardingAt: '2030-01-02T04:00:00.000Z',
+        amountCents: 999,
+      }),
+    ],
+  });
+  expect(await Promise.all(TABLES.map(count))).toEqual(before);
+  await pool.query("UPDATE frequencies SET status='INACTIVE' WHERE id=$1", [frequencyId]);
+  expect(await search('2030-01-02')).toEqual(empty);
+});

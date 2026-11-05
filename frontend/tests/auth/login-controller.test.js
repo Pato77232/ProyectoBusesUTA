@@ -6,11 +6,12 @@ const credentials = { email: 'cliente@qa.invalid', password: 'contraseña-solo-Q
 const reject = (error) => {
   throw error;
 };
-function setup(request) {
+function setup(request, onAuthenticated = () => {}) {
   const states = [];
   const calls = [];
   let cleared = 0;
   const controller = createLoginController({
+    onAuthenticated,
     client: {
       request: (...args) => {
         calls.push(args);
@@ -34,6 +35,19 @@ function setup(request) {
   };
 }
 const absent = () => reject({ status: 401 });
+
+test('retorno posterior se ejecuta solo tras confirmar auth/me', async () => {
+  let logged = false;
+  let returned = 0;
+  const c = setup((path) => {
+    if (path.endsWith('/login')) { logged = true; return null; }
+    return logged ? { user: { email: credentials.email } } : absent();
+  }, () => { returned += 1; });
+  await c.checkSession();
+  assert.equal(returned, 0);
+  await c.submit(credentials);
+  assert.equal(returned, 1);
+});
 
 test('401 inicial permite formulario y una sesión existente evita otro login', async () => {
   const form = setup(absent);
