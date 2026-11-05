@@ -1,10 +1,10 @@
 const { paymentReadRequest, paymentBooking } = require('../domain/payment-booking');
 const BookingPaymentQueryError = require('../domain/booking-payment-query-error');
 
-function findForPayment({ repository, clock }) {
+function findForPayment({ repository, clock, allowVerifiedGuest = false }) {
   return async (query, authContext) => {
     // Copiar y validar antes del await impide que el llamador altere el alcance.
-    const request = paymentReadRequest(query, authContext);
+    const request = paymentReadRequest(query, authContext, { allowVerifiedGuest });
     let row;
     try {
       row = await repository.findPaymentRecord(request);

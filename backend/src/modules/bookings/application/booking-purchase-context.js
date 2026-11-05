@@ -50,12 +50,19 @@ function copyPurchaseInput(input, acceptance = false) {
   });
 }
 
-async function resolveOwner(buyerIdentity, authContext) {
+async function resolveBuyer(buyerIdentity, authContext) {
   const identity = await buyerIdentity.resolve(authContext);
   if (typeof identity?.ownerId !== 'string' || !identity.ownerId.trim()) {
     throw new BookingValidationError();
   }
-  return identity.ownerId.trim();
+  return Object.freeze({
+    ownerId: identity.ownerId.trim(),
+    contactEmail: identity.contactEmail ?? null,
+  });
+}
+
+async function resolveOwner(buyerIdentity, authContext) {
+  return (await resolveBuyer(buyerIdentity, authContext)).ownerId;
 }
 
 async function readTrip(tripCatalog, request, tariffQueries) {
@@ -199,4 +206,11 @@ async function resolveSummary(request, ownerId, dependencies, trip) {
   return { summary: createBookingSummary(request, context), context };
 }
 
-module.exports = { copyPurchaseInput, resolveOwner, readTrip, readPurchaseTrip, resolveSummary };
+module.exports = {
+  copyPurchaseInput,
+  resolveBuyer,
+  resolveOwner,
+  readTrip,
+  readPurchaseTrip,
+  resolveSummary,
+};

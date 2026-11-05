@@ -15,6 +15,9 @@ const createConfirmPasswordReset = require('./application/confirm-password-reset
 const startPasswordResetWorker = require('./infrastructure/password-reset-worker');
 const { readPasswordResetWorkerConfig } = require('./infrastructure/password-reset-worker-config');
 const { createSmtpMailer } = require('../../shared/mail/smtp-mailer');
+const createGuestEmailAccess = require('./application/guest-email-access');
+const PgGuestEmailAccessRepository = require('./infrastructure/pg-guest-email-access.repository');
+const readGuestAccessConfig = require('./infrastructure/guest-access-config');
 const { createHasher } = require('./infrastructure/password-hasher');
 const createTokens = require('./infrastructure/jwt-tokens');
 const createLimiter = require('./infrastructure/memory-login-limiter');
@@ -87,3 +90,14 @@ async function bootstrapSystemAdmin({ pool, credentials }) {
   return createBootstrapAdmin({ repository: new PgBootstrapRepository(pool), hasher })(input);
 }
 module.exports.bootstrapSystemAdmin = bootstrapSystemAdmin;
+module.exports.createGuestEmailAccess = function createGuestAccessModule({
+  pool,
+  env = process.env,
+  clock,
+} = {}) {
+  return createGuestEmailAccess({
+    repository: new PgGuestEmailAccessRepository(pool),
+    config: readGuestAccessConfig(env),
+    clock,
+  });
+};
