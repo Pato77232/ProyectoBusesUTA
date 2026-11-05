@@ -147,6 +147,82 @@ test('arranque real registra bus con fotos privadas e identidades de asientos co
   expect((await browser.request(`/buses/${bus.id}/photos/${stored.storage_key}`)).status).toBe(404);
 });
 
+test('administra inventario de su cooperativa y lee fotos sin exponer la ruta privada', async () => {
+  const browser = new Browser();
+  await browser.signIn();
+  const created = await (await browser.upload(data())).json();
+
+  const listResponse = await browser.request('/api/v1/buses');
+  expect(listResponse.status).toBe(200);
+  expect(listResponse.headers.get('cache-control')).toBe('private, no-store');
+  const list = await listResponse.json();
+  expect(list.buses).toEqual([
+    expect.objectContaining({
+      id: created.bus.id,
+      unitNumber: 1,
+      plate: 'TBM-0013',
+      busGroupId: fixtures.first.busGroupId,
+      busGroupName: 'Rutas largas',
+      capacity: 42,
+      photoCount: 1,
+    }),
+  ]);
+  expect(JSON.stringify(list)).not.toContain(fixtures.first.cooperativeId);
+
+  const detailResponse = await browser.request(`/api/v1/buses/${created.bus.id}`);
+  expect(detailResponse.status).toBe(200);
+  const { bus } = await detailResponse.json();
+  expect(bus).toMatchObject({
+    id: created.bus.id,
+    vin: 'VIN0013',
+    bodyworkBrand: 'Marca de prueba',
+    busGroup: { id: fixtures.first.busGroupId, name: 'Rutas largas' },
+    seatLayout: { id: 'SINGLE_DECK_2_2', version: 1 },
+    capacity: 42,
+  });
+  expect(bus.seats).toHaveLength(42);
+  expect(bus.photos).toHaveLength(1);
+  expect(JSON.stringify(bus)).not.toContain(root);
+  expect(JSON.stringify(bus)).not.toContain('storage_key');
+
+  const photoResponse = await browser.request(
+    `/api/v1/buses/${created.bus.id}/photos/${bus.photos[0].id}`,
+  );
+  expect(photoResponse.status).toBe(200);
+  expect(photoResponse.headers.get('content-type')).toBe('image/png');
+  expect(photoResponse.headers.get('cache-control')).toBe('private, no-store');
+  expect(Buffer.from(await photoResponse.arrayBuffer())).toEqual(png);
+});
+
+test('oculta buses y fotos de otra cooperativa con el mismo 404', async () => {
+  const owner = new Browser();
+  await owner.signIn();
+  const { bus } = await (await owner.upload(data())).json();
+  const photoId = bus.photos[0].id;
+  await pool.query('UPDATE users SET cooperative_id = $1 WHERE email = $2', [
+    fixtures.second.cooperativeId,
+    'cooperative_admin@example.ec',
+  ]);
+
+  const otherAdmin = new Browser();
+  await otherAdmin.signIn();
+  expect((await (await otherAdmin.request('/api/v1/buses')).json()).buses).toEqual([]);
+  const detail = await otherAdmin.request(`/api/v1/buses/${bus.id}`);
+  const photo = await otherAdmin.request(`/api/v1/buses/${bus.id}/photos/${photoId}`);
+  expect(detail.status).toBe(404);
+  expect(photo.status).toBe(404);
+  expect(await detail.json()).toEqual(await photo.json());
+});
+
+test('exige sesión y rol de administrador para leer el inventario', async () => {
+  const anonymous = await new Browser().request('/api/v1/buses');
+  expect(anonymous.status).toBe(401);
+  expect(anonymous.headers.get('cache-control')).toBe('private, no-store');
+  const clerk = new Browser();
+  await clerk.signIn('CLERK');
+  expect((await clerk.request('/api/v1/buses')).status).toBe(403);
+});
+
 test('acepta diez imágenes y conserva su orden', async () => {
   const browser = new Browser();
   await browser.signIn();

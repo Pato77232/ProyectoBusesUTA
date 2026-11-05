@@ -15,6 +15,9 @@ const listBusSeats = require('./application/list-bus-seats.use-case');
 const PgBusRepository = require('./infrastructure/pg-bus.repository');
 const LocalBusPhotoStorage = require('./infrastructure/local-bus-photo-storage');
 const createBusRouter = require('./interfaces/bus-router');
+const listBuses = require('./application/list-buses.use-case');
+const getBusDetails = require('./application/get-bus-details.use-case');
+const getBusPhoto = require('./application/get-bus-photo.use-case');
 
 function createFleetModule({ pool, auth, env = process.env }) {
   if (env.NODE_ENV === 'production' && !env.BUS_PHOTO_STORAGE_DIR)
@@ -35,6 +38,9 @@ function createFleetModule({ pool, auth, env = process.env }) {
     busRouter: createBusRouter({
       auth,
       createBus: createBus({ catalog, persist, newId: randomUUID }),
+      listBuses: listBuses({ repository: busRepository }),
+      getBusDetails: getBusDetails({ repository: busRepository }),
+      getBusPhoto: getBusPhoto({ repository: busRepository, storage }),
     }),
     seatLayoutRouter: createSeatLayoutRouter({ auth, listSeatLayouts: listLayouts }),
     seatLayoutQueries: { list: listLayouts },
