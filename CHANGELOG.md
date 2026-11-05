@@ -5,6 +5,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-04
+
+### Corregido
+
+- El backend no arrancaba: el merge `26d0c7e` duplicó la composición de Pagos en `server.js` (`SyntaxError: Identifier 'payments' has already been declared`). Se retira el bloque duplicado, junto con la fila de estado y la línea de la spec INTEG-01 que también se duplicaron.
+
 ## [0.1.0] - 2026-11-04
 
 Primera versión entregada. Detalle, recorrido y limitaciones: [docs/releases/v0.1.0.md](docs/releases/v0.1.0.md).
