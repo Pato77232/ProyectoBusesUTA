@@ -41,6 +41,7 @@ function createBookingsModule({
   clock = () => new Date(),
   calendarDateAt = defaultCalendarDateAt,
   newId = randomUUID,
+  notificationOutbox,
 } = {}) {
   if (
     !pool ||
@@ -86,7 +87,7 @@ function createBookingsModule({
     buyerIdentity: createVerifiedCustomerIdentity(),
     ...readBookingConfig(env),
   };
-  const lifecycle = new PgBookingLifecycleRepository({ pool });
+  const lifecycle = new PgBookingLifecycleRepository({ pool, notificationOutbox });
   const saleConfirmer = new PgBookingSaleConfirmer({ pool, clock });
   const guestAccess = createGuestAccess({ pool, clock });
   const expirationConfig = readExpirationConfig(env);

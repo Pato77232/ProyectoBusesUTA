@@ -5,7 +5,7 @@
 - **Módulo:** `notifications` (nuevo), con cambios acotados en `payments`, `bookings` y `auth`
 - **Responsable:** Edwin
 - **Revisor propuesto / confirmado:** Pablo (correo y Auth), Shirley (Pagos) y Leslie (Reservas); sin confirmar
-- **Estado:** En desarrollo (T1 y T2 con commit; T3 local)
+- **Estado:** En desarrollo (T1 a T3 con commit; T4 local)
 - **Prioridad y dependencias:** depende de [BOLETOS-01](BOLETOS-01.md) (PR #103, sin integrar) por la página `boletos.html` y la lectura de venta con tramo; reutiliza `smtp-mailer.js` de [CORREO-01](CORREO-01.md).
 - **Rama / PR / base comprobada:** `feature/CORREO-02-avisos-correo` desde `feature/BOLETOS-01-emision-qr` `2dac0c0` (incluye `origin/develop` `292bb1f`), 4 de noviembre de 2026. Sin PR.
 - **Autorización de alcance:** Edwin, 4 de noviembre de 2026: avisos de boletos listos, comprobante rechazado y reserva vencida; el correo de boletos lleva un enlace a «Mis boletos», sin QR adjunto; Pagos (y Reservas al vencer) encolan el aviso en la misma transacción que el cambio de estado. No es revisión técnica.
@@ -137,8 +137,8 @@ No aplica: por decisión de Edwin del 4 de noviembre de 2026, la entrega no incl
 | ---------- | ---------------------------------------------------------------------------- | --------- |
 | T1         | Migración `email_notifications`, `enqueueWith` y lecturas de Reservas y Auth | Commit `08258ac` |
 | T2         | Trabajador: reclamo, textos, envío, reintentos y configuración               | Commit `fc6c0bf` |
-| T3         | Encolado en la aprobación y el rechazo de Pagos                              | Local, sin commit |
-| T4         | Encolado en el vencimiento de Reservas                                       | Pendiente |
+| T3         | Encolado en la aprobación y el rechazo de Pagos                              | Commit `d831755` |
+| T4         | Encolado en el vencimiento de Reservas                                       | Local, sin commit |
 | T5         | Composición en `server.js`, `.env.example` y arranque real                   | Pendiente |
 
 Cada incremento se cierra con lint, formato y `npm test` (integración con PostgreSQL aislado y base nueva).
@@ -163,4 +163,11 @@ Cada incremento se cierra con lint, formato y `npm test` (integración con Postg
 - `PgPaymentProofRepository(pool, { notificationOutbox })`: con outbox, `markApprovedIfPending` y `markRejectedIfPending` abren una transacción, actualizan el comprobante y encolan `TICKETS_READY` o `PROOF_REJECTED` solo si el cambio se aplicó. Si encolar falla, el cambio de Pagos se revierte. Sin outbox, el comportamiento es el anterior.
 - `createPaymentsModule({ ..., notificationOutbox })` lo entrega al repositorio; `createPaymentReviewModule` (solo lectura) no cambia. La composición en `server.js` queda para T5.
 - Pagos no limita la longitud de la justificación: el aviso lleva hasta `outbox.maxJustificationLength` (1000) caracteres y Pagos conserva la justificación completa. Así un texto largo no impide rechazar.
+- Ninguna prueba existente cambió.
+
+### Evidencia de T4 (5 de noviembre de 2026)
+
+- `PgBookingLifecycleRepository({ pool, notificationOutbox })`: el único punto que marca una reserva `EXPIRED` encola `BOOKING_EXPIRED` en la misma transacción. Cubre el vencimiento programado y el comprobante que llega fuera de plazo (`REJECTED_EXPIRED`).
+- Si encolar falla, el vencimiento se revierte y los asientos siguen reservados; el trabajador de vencimientos lo reintenta en su siguiente ronda. Sin outbox, el comportamiento es el anterior.
+- `createBookingsModule({ ..., notificationOutbox })` lo entrega al repositorio. La composición en `server.js` queda para T5.
 - Ninguna prueba existente cambió.

@@ -68,7 +68,7 @@ async function lockedBooking(client, bookingId) {
     })),
   };
 }
-async function expire(client, booking, at) {
+async function expire(client, booking, at, notificationOutbox) {
   if (booking.status === 'EXPIRED') return;
   await client.query(
     "UPDATE booking_seat_allocations SET active=false WHERE booking_id=$1 AND status='RESERVED' AND active",
@@ -78,6 +78,12 @@ async function expire(client, booking, at) {
     booking.bookingId,
     at,
   ]);
+  // El aviso al comprador se confirma o se revierte junto con el vencimiento.
+  await notificationOutbox?.enqueueWith(client, {
+    kind: 'BOOKING_EXPIRED',
+    bookingId: booking.bookingId,
+    cooperativeId: booking.cooperativeId,
+  });
 }
 function safe(error) {
   if (error instanceof BookingLifecycleError) return error;
@@ -88,8 +94,12 @@ function safe(error) {
   );
 }
 class PgBookingLifecycleRepository {
-  constructor({ pool }) {
+  /** `notificationOutbox` (API pública de Avisos) es opcional; sin él no se encolan avisos. */
+  constructor({ pool, notificationOutbox }) {
+    if (notificationOutbox !== undefined && typeof notificationOutbox?.enqueueWith !== 'function')
+      throw new TypeError('El outbox de avisos no es válido.');
     this.pool = pool;
+    this.notificationOutbox = notificationOutbox;
   }
   async transaction(execute) {
     let client, connectionFailure;
@@ -175,7 +185,7 @@ class PgBookingLifecycleRepository {
           "UPDATE bookings SET proof_reception_state='RECEIVED',accepted_proof_id=$2,proof_received_at=$3 WHERE id=$1",
           [target.bookingId, target.paymentProofId, at],
         );
-      } else await expire(client, booking, at);
+      } else await expire(client, booking, at, this.notificationOutbox);
       await client.query(
         `INSERT INTO booking_proof_receipt_results(payment_proof_id,booking_id,cooperative_id,trip_id,outcome,decided_at)
         VALUES($1,$2,$3,$4,$5,$6)`,
@@ -199,7 +209,8 @@ class PgBookingLifecycleRepository {
           ? undefined
           : clock();
       const result = expireDecision(booking, allocations, now);
-      if (result.outcome === 'EXPIRED') await expire(client, booking, result.expiredAt);
+      if (result.outcome === 'EXPIRED')
+        await expire(client, booking, result.expiredAt, this.notificationOutbox);
       return result;
     });
   }
