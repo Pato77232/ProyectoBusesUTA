@@ -1,5 +1,11 @@
 # Estado compartido del proyecto
 
+## Edwin — boletos con QR (BOLETOS-01), 4 de noviembre de 2026
+
+| Spec / responsable | Estado y evidencia | Próximo paso |
+| --- | --- | --- |
+| [BOLETOS-01](specs/BOLETOS-01.md) / Edwin | Rama `feature/BOLETOS-01-emision-qr` desde `origin/develop` `3695655`. Spec en borrador con las decisiones de Edwin. T1 local: `findSoldForOwner` en la lectura de BOOK-09, con el tramo congelado; `findSoldForTicket` no cambia. Pruebas nuevas unitarias y de integración. Sin push ni PR. | Avisar a Leslie de la ampliación de su contrato; seguir con T2 (módulo `tickets`). |
+
 ## Pablo — pantalla de registro de clientes, 4 de noviembre de 2026
 
 En `feature/AUTH-WEB-02-registro-cliente`, creada desde `origin/develop`

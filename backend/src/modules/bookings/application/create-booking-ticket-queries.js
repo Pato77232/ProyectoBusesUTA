@@ -1,4 +1,9 @@
-const { request, soldBookingTicket } = require('../domain/sold-booking-ticket');
+const {
+  request,
+  ownerRequest,
+  soldBookingTicket,
+  soldBookingTicketForOwner,
+} = require('../domain/sold-booking-ticket');
 const ErrorType = require('../domain/booking-ticket-error');
 const TEMPORARY = new Set([
   'ECONNRESET',
@@ -13,22 +18,36 @@ const TEMPORARY = new Set([
   '40P01',
   '53300',
 ]);
+async function classified(read) {
+  try {
+    return await read();
+  } catch (error) {
+    if (error instanceof ErrorType) throw error;
+    throw new ErrorType(
+      TEMPORARY.has(error?.code)
+        ? 'BOOKING_TICKET_QUERY_UNAVAILABLE'
+        : 'BOOKING_TICKET_DATA_INTEGRITY_ERROR',
+    );
+  }
+}
 function createBookingTicketQueries({ reader }) {
-  if (typeof reader?.findSoldCandidate !== 'function')
+  if (
+    typeof reader?.findSoldCandidate !== 'function' ||
+    typeof reader?.findSoldCandidateForOwner !== 'function'
+  )
     throw new TypeError('Se requiere una fuente persistida de ventas.');
   return Object.freeze({
     async findSoldForTicket(input) {
       const target = request(input);
-      try {
-        return soldBookingTicket(await reader.findSoldCandidate(target), target);
-      } catch (error) {
-        if (error instanceof ErrorType) throw error;
-        throw new ErrorType(
-          TEMPORARY.has(error?.code)
-            ? 'BOOKING_TICKET_QUERY_UNAVAILABLE'
-            : 'BOOKING_TICKET_DATA_INTEGRITY_ERROR',
-        );
-      }
+      return classified(async () =>
+        soldBookingTicket(await reader.findSoldCandidate(target), target),
+      );
+    },
+    async findSoldForOwner(input) {
+      const target = ownerRequest(input);
+      return classified(async () =>
+        soldBookingTicketForOwner(await reader.findSoldCandidateForOwner(target), target),
+      );
     },
   });
 }

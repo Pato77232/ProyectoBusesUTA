@@ -111,4 +111,52 @@ function soldBookingTicket(row, target) {
     passengers,
   });
 }
-module.exports = { request, soldBookingTicket };
+function ownerRequest(input) {
+  if (
+    !input ||
+    typeof input !== 'object' ||
+    Array.isArray(input) ||
+    Object.keys(input).length !== 2 ||
+    !['bookingId', 'ownerId'].every((key) => Object.hasOwn(input, key) && nonEmpty(input[key]))
+  )
+    throw new ErrorType('BOOKING_TICKET_QUERY_INVALID');
+  return Object.freeze({ bookingId: input.bookingId, ownerId: input.ownerId });
+}
+const INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,3})?)?(Z|[+-]\d{2}:\d{2})$/;
+function instant(value) {
+  assert(typeof value === 'string' && INSTANT.test(value) && Number.isFinite(Date.parse(value)));
+  return value;
+}
+function routePoint(points, position, timeField) {
+  const point = points[position];
+  assert(point && point.position === position && nonEmpty(point.locationKey));
+  return Object.freeze({
+    position,
+    locationKey: point.locationKey,
+    [timeField]: instant(point[timeField]),
+  });
+}
+function frozenTrip(summary, sale) {
+  const points = summary.commercial?.routePoints;
+  assert(
+    Array.isArray(points) &&
+      sale.toPosition < points.length &&
+      typeof summary.departureDate === 'string' &&
+      /^\d{4}-\d{2}-\d{2}$/.test(summary.departureDate),
+  );
+  const origin = routePoint(points, sale.fromPosition, 'departureAt');
+  const destination = routePoint(points, sale.toPosition, 'arrivalAt');
+  assert(Date.parse(origin.departureAt) < Date.parse(destination.arrivalAt));
+  return Object.freeze({ departureDate: summary.departureDate, origin, destination });
+}
+function soldBookingTicketForOwner(row, target) {
+  if (row === null) return null;
+  assert(row && row.bookingId === target.bookingId && row.ownerId === target.ownerId);
+  const sale = soldBookingTicket(row, {
+    bookingId: target.bookingId,
+    cooperativeId: row.cooperativeId,
+  });
+  if (sale === null) return null;
+  return Object.freeze({ ...sale, trip: frozenTrip(row.summary, sale) });
+}
+module.exports = { request, ownerRequest, soldBookingTicket, soldBookingTicketForOwner };

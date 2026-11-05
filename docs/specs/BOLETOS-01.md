@@ -57,17 +57,17 @@ Que el cliente que compró pasajes vea e imprima un boleto por pasajero, con un 
 
 Nueva operación `findSoldForOwner({ bookingId, ownerId })` en `createBookingTicketQueries`, con las mismas validaciones y errores que `findSoldForTicket`. Devuelve null indistinguible si la reserva no existe, es de otro propietario o no está vendida.
 
-Ambas operaciones agregan al resultado un campo `trip`, tomado del resumen comercial congelado (`schemaVersion` 2), sin consultar la tarifa ni el viaje actuales:
+Solo esta operación nueva agrega el campo `trip`, tomado del resumen comercial congelado (`schemaVersion` 2), sin consultar la tarifa ni el viaje actuales. `findSoldForTicket` conserva su forma para no cambiar el contrato publicado de BOOK-09.
 
 ```js
 trip: {
-  departureDate,             // fecha de servicio del resumen
-  origin: { locationKey, departureAt },      // punto fromPosition
-  destination: { locationKey, arrivalAt },   // punto toPosition
+  departureDate,                                   // AAAA-MM-DD del resumen
+  origin: { position, locationKey, departureAt },  // punto fromPosition
+  destination: { position, locationKey, arrivalAt }, // punto toPosition
 }
 ```
 
-Si faltan esos datos en una venta `SOLD`, se lanza `BOOKING_TICKET_DATA_INTEGRITY_ERROR`, como hoy con los demás campos.
+Si faltan esos datos, o la llegada no es posterior a la salida, en una venta `SOLD` se lanza `BOOKING_TICKET_DATA_INTEGRITY_ERROR`, como con los demás campos. Una reserva no vendida devuelve null antes de revisar el tramo.
 
 ### Tabla `tickets` (migración nueva)
 
@@ -157,11 +157,11 @@ No aplica: por decisión de Edwin del 4 de noviembre de 2026, la entrega no incl
 
 ## 13. Plan y evidencias
 
-| Incremento | Contenido                                                                                                           | Estado    |
-| ---------- | ------------------------------------------------------------------------------------------------------------------- | --------- |
-| T1         | Ampliación de BOOK-09: `findSoldForOwner` y `trip`                                                                  | Pendiente |
-| T2         | Módulo `tickets`: dominio, migración, repositorio y caso de uso idempotente                                         | Pendiente |
-| T3         | Endpoint HTTP, QR con `qrcode` 1.5.4 (MIT; depende de `pngjs`, `yargs` y `dijkstrajs`) y composición en `server.js` | Pendiente |
-| T4         | Página de boletos imprimible y enlace desde «Mis reservas»                                                          | Pendiente |
+| Incremento | Contenido                                                                                                           | Estado            |
+| ---------- | ------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| T1         | Ampliación de BOOK-09: `findSoldForOwner` y `trip`                                                                  | Local, sin commit |
+| T2         | Módulo `tickets`: dominio, migración, repositorio y caso de uso idempotente                                         | Pendiente         |
+| T3         | Endpoint HTTP, QR con `qrcode` 1.5.4 (MIT; depende de `pngjs`, `yargs` y `dijkstrajs`) y composición en `server.js` | Pendiente         |
+| T4         | Página de boletos imprimible y enlace desde «Mis reservas»                                                          | Pendiente         |
 
 Cada incremento se cierra con `npm run lint`, `npm run format:check` y `npm test` en `backend/` (integración con PostgreSQL aislado según `docs/testing-database.md`), pruebas del frontend y, en T3 y T4, arranque real.
