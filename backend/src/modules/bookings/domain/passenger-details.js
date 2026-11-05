@@ -2,7 +2,14 @@ const { BookingValidationError } = require('./booking-error');
 const { createPassenger } = require('./passenger');
 const { createEcuadorianIdentification } = require('./ecuadorian-identification');
 
-const FIELDS = Object.freeze(['seatId', 'identificationNumber', 'fullName', 'birthDate']);
+const { contact } = require('./passenger-contact');
+const FIELDS = Object.freeze([
+  'seatId',
+  'identificationNumber',
+  'fullName',
+  'birthDate',
+  'contact',
+]);
 const CALENDAR_DATE_PATTERN = /^(?!0000)\d{4}-\d{2}-\d{2}$/;
 const CONTROL_CHARACTERS = /[\u0000-\u001f\u007f]/;
 
@@ -42,7 +49,12 @@ function createPassengerDetails(input, context) {
     identificationNumber: createEcuadorianIdentification(input.identificationNumber),
   });
 
-  return Object.freeze({ ...passenger, fullName: passengerName(input.fullName), birthDate });
+  return Object.freeze({
+    ...passenger,
+    fullName: passengerName(input.fullName),
+    birthDate,
+    ...(input.contact !== undefined ? { contact: contact(input.contact) } : {}),
+  });
 }
 
 module.exports = { createPassengerDetails };
