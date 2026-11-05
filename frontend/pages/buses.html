@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#202020" />
+    <title>Buses · transViaje</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+    <link
+      rel="stylesheet"
+      href="/assets/vendor/bootstrap-5.3.8/bootstrap.min.css"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+    />
+    <link rel="stylesheet" href="/src/styles/app.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+    <header class="site-header">
+      <div
+        class="container d-flex align-items-center justify-content-between gap-3"
+      >
+        <a class="brand" href="/" aria-label="transViaje, inicio">
+          <span class="brand-logo-frame" aria-hidden="true">
+            <img
+              class="brand-logo"
+              src="/assets/brand/logo-transviaje.png"
+              alt=""
+              width="1600"
+              height="1446"
+            />
+          </span>
+        </a>
+        <a class="btn btn-outline-dark" href="/pages/registrar-bus.html"
+          >Registrar un bus</a
+        >
+      </div>
+    </header>
+    <main id="contenido" class="container py-4" tabindex="-1">
+      <p class="eyebrow">FLOTA</p>
+      <h1 id="inventory-title">Buses de tu cooperativa</h1>
+      <p>
+        Consulta los datos, fotografías y configuración de los buses
+        registrados.
+      </p>
+      <p
+        id="inventory-status"
+        class="form-status"
+        role="status"
+        aria-live="polite"
+        data-tone="info"
+      >
+        Cargando inventario…
+      </p>
+      <button
+        id="inventory-retry"
+        class="btn btn-dark mb-3"
+        type="button"
+        hidden
+      >
+        Reintentar
+      </button>
+      <div id="bus-inventory" aria-live="polite"></div>
+    </main>
+    <script type="module" src="/src/fleet/bus-inventory-page.js"></script>
+  </body>
+</html>
