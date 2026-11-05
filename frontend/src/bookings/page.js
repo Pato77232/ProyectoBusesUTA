@@ -210,6 +210,8 @@ function renderSeats() {
     button.dataset.seatId = seat.seatId;
     button.dataset.status = seat.status;
     button.setAttribute("aria-pressed", String(chosen));
+    const label =
+      seat.category === "ACCESSIBLE" ? "Espacio accesible " : "Asiento ";
     const status =
       seat.status === "AVAILABLE"
         ? chosen
@@ -218,8 +220,8 @@ function renderSeats() {
         : seat.status === "SOLD"
           ? "× Vendido"
           : "× Reservado";
-    button.setAttribute("aria-label", "Asiento " + seat.seatId + ", " + status);
-    button.append(node("span", seat.seatId), node("small", status));
+    button.setAttribute("aria-label", label + seat.seatId + ", " + status);
+    button.append(node("span", label + seat.seatId), node("small", status));
     list.append(button);
   }
   element("selection-count").textContent = selected.size
@@ -395,6 +397,7 @@ function sync() {
   element("receipt-panel").hidden = !state.booking;
   element("retry-attempt").hidden = !state.canRetry;
   element("refresh-seats").disabled = locked || !context;
+  element("include-accessible").disabled = locked || !context;
   element("retry-availability").hidden =
     !context ||
     seats.length > 0 ||
@@ -455,6 +458,18 @@ async function loadSeats() {
   sync();
   try {
     const result = await api.availability(context);
+    if (element("include-accessible").checked) {
+      const accessible = await api.accessibleAvailability(context);
+      if (
+        !Array.isArray(accessible?.seats) ||
+        accessible.seats.some((seat) => seat.category !== "ACCESSIBLE")
+      )
+        throw new ApiError(
+          "RESPONSE_INVALID",
+          "Inventario accesible inválido.",
+        );
+      result.seats = [...result.seats, ...accessible.seats];
+    }
     if (
       !Array.isArray(result?.seats) ||
       result.seats.some(
@@ -596,6 +611,7 @@ element("refresh-booking").addEventListener("click", () =>
   run(() => flow.recover()),
 );
 element("refresh-seats").addEventListener("click", loadSeats);
+element("include-accessible").addEventListener("change", loadSeats);
 element("retry-availability").addEventListener("click", loadSeats);
 element("finish-booking").addEventListener("click", (event) => {
   try {
