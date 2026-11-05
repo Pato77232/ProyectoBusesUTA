@@ -23,8 +23,8 @@ export function createLoginController({ client, view, onAuthenticated = () => {}
     try {
       const result = await client.request(SESSION_PATH);
       if (typeof result?.user?.email !== 'string' || !result.user.email) throw new Error();
-      render('session', 'Sesión iniciada.', { email: result.user.email });
-      onAuthenticated();
+      render('session', 'Sesión iniciada.', { email: result.user.email, role: result.user.role });
+      onAuthenticated(result.user);
     } catch (error) {
       if (error.status === 401 && !afterLogin) {
         render('form', 'Introduce tus datos para iniciar sesión.');

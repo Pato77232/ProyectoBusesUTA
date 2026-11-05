@@ -13,6 +13,9 @@ COPY pages/login.html /usr/share/nginx/html/pages/login.html
 COPY pages/recuperar-cuenta.html /usr/share/nginx/html/pages/recuperar-cuenta.html
 COPY pages/restablecer.html /usr/share/nginx/html/pages/restablecer.html
 COPY pages/registro.html /usr/share/nginx/html/pages/registro.html
+COPY pages/cooperativas.html /usr/share/nginx/html/pages/cooperativas.html
+COPY pages/administrador-cooperativa.html /usr/share/nginx/html/pages/administrador-cooperativa.html
+COPY pages/oficinistas.html /usr/share/nginx/html/pages/oficinistas.html
 COPY pages/crear-frecuencia.html /usr/share/nginx/html/pages/crear-frecuencia.html
 COPY pages/frecuencias.html /usr/share/nginx/html/pages/frecuencias.html
 COPY src/styles/frequency-list.css /usr/share/nginx/html/src/styles/frequency-list.css
@@ -22,9 +25,11 @@ COPY pages/comprobantes.html /usr/share/nginx/html/pages/comprobantes.html
 COPY src/payments /usr/share/nginx/html/src/payments
 COPY src/styles/payments.css /usr/share/nginx/html/src/styles/payments.css
 COPY src/auth /usr/share/nginx/html/src/auth
+COPY src/admin /usr/share/nginx/html/src/admin
 COPY src/fleet /usr/share/nginx/html/src/fleet
 COPY src/styles/app.css /usr/share/nginx/html/src/styles/app.css
 COPY src/styles/login.css /usr/share/nginx/html/src/styles/login.css
+COPY src/styles/admin.css /usr/share/nginx/html/src/styles/admin.css
 COPY src/api /usr/share/nginx/html/src/api
 COPY assets /usr/share/nginx/html/assets
 

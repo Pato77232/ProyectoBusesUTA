@@ -6,8 +6,13 @@ export function createLoginView(root) {
   const password = root.querySelector('#login-password');
   const check = root.querySelector('#check-session');
   const identity = root.querySelector('#session-email');
+  const administration = root.querySelector('#administration-link');
+  const destinations = {
+    SYSTEM_ADMIN: { href: '/pages/cooperativas.html', label: 'Administrar cooperativas' },
+    COOPERATIVE_ADMIN: { href: '/pages/oficinistas.html', label: 'Crear oficinistas' },
+  };
 
-  function render({ mode, message, email: userEmail, errorField }) {
+  function render({ mode, message, email: userEmail, role, errorField }) {
     const wasHidden = form.hidden;
     const lostFocus = form.contains(root.activeElement) || check === root.activeElement;
     const busy = mode === 'checking' || mode === 'submitting';
@@ -19,6 +24,12 @@ export function createLoginView(root) {
     check.hidden = mode !== 'uncertain';
     identity.hidden = mode !== 'session';
     identity.textContent = mode === 'session' ? userEmail : '';
+    const destination = mode === 'session' ? destinations[role] : null;
+    administration.hidden = !destination;
+    if (destination) {
+      administration.href = destination.href;
+      administration.textContent = destination.label;
+    }
     root.querySelector('main').setAttribute('aria-busy', String(busy));
     for (const input of [email, password]) {
       input.removeAttribute('aria-invalid');

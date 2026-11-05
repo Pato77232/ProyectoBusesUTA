@@ -5,8 +5,12 @@ const ERRORS = {
   FORBIDDEN: [403, 'Acceso no permitido.'],
   COOPERATIVE_ALREADY_EXISTS: [409, 'Ya existe una cooperativa con ese RUC.'],
 };
-function createRouter({ createCooperative, auth }) {
+function createRouter({ createCooperative, listCooperatives, auth }) {
   const router = express.Router();
+  router.get('/', auth.authenticate, auth.authorize('SYSTEM_ADMIN'), async (req, res) => {
+    const cooperatives = await listCooperatives(req.auth.user);
+    res.set('Cache-Control', 'no-store').json({ cooperatives });
+  });
   router.post(
     '/',
     auth.authenticate,

@@ -33,6 +33,11 @@ function createApp({
       next();
     });
   }
+  if (bookings?.benefitRequestRouter)
+    app.use(API_PREFIX + '/booking-benefit-requests', (req, res, next) => {
+      res.set('Cache-Control', 'no-store');
+      next();
+    });
   // El alta de Fleet autentica antes de consumir cualquier cuerpo, incluido JSON inválido.
   if (fleet?.busRouter) app.use(`${API_PREFIX}/buses`, fleet.busRouter);
   app.use(express.json());
@@ -63,6 +68,8 @@ function createApp({
 
   if (bookings) app.use(`${API_PREFIX}/bookings`, bookings.router);
   if (search) app.use(`${API_PREFIX}/trips`, search.router);
+  if (bookings?.benefitRequestRouter)
+    app.use(API_PREFIX + '/booking-benefit-requests', bookings.benefitRequestRouter);
   if (bookings?.benefitReviewRouter)
     app.use(`${API_PREFIX}/booking-benefit-reviews`, bookings.benefitReviewRouter);
   if (bookings?.guestRouter) app.use(`${API_PREFIX}/guest/bookings`, bookings.guestRouter);
