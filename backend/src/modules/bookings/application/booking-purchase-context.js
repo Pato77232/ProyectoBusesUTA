@@ -1,3 +1,4 @@
+const { contact } = require('../domain/passenger-contact');
 const {
   createAvailabilityRequest,
   createAvailabilityTrip,
@@ -36,12 +37,15 @@ function copyPurchaseInput(input, acceptance = false) {
       !passenger ||
       typeof passenger !== 'object' ||
       Array.isArray(passenger) ||
-      Object.keys(passenger).some((key) => !PASSENGER_FIELDS.includes(key)) ||
+      Object.keys(passenger).some((key) => ![...PASSENGER_FIELDS, 'contact'].includes(key)) ||
       PASSENGER_FIELDS.some((key) => typeof passenger[key] !== 'string')
     ) {
       throw new BookingValidationError();
     }
-    return Object.freeze({ ...passenger });
+    return Object.freeze({
+      ...passenger,
+      ...(passenger.contact !== undefined ? { contact: contact(passenger.contact) } : {}),
+    });
   });
   return Object.freeze({
     ...request,
