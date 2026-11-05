@@ -10,6 +10,7 @@ COPY pages/buscar-viajes.html /usr/share/nginx/html/pages/buscar-viajes.html
 COPY src/search /usr/share/nginx/html/src/search
 COPY pages/registrar-bus.html /usr/share/nginx/html/pages/registrar-bus.html
 COPY pages/login.html /usr/share/nginx/html/pages/login.html
+COPY pages/registro.html /usr/share/nginx/html/pages/registro.html
 COPY pages/crear-frecuencia.html /usr/share/nginx/html/pages/crear-frecuencia.html
 COPY pages/frecuencias.html /usr/share/nginx/html/pages/frecuencias.html
 COPY src/styles/frequency-list.css /usr/share/nginx/html/src/styles/frequency-list.css

@@ -89,33 +89,6 @@ async function start(env = process.env) {
       paymentQueries: bookings.paymentQueries,
       env,
     });
-    const payments = createPaymentsModule(
-      createPaymentsModule?._isMockFunction && !hasCommercialCatalog
-        ? {
-            pool,
-            auth,
-            env,
-            bookingPaymentProofNotifier: paymentReceipt.bookingPaymentProofNotifier,
-            bookingSaleConfirmer: bookings.saleConfirmer,
-          }
-        : {
-            pool,
-            auth,
-            env,
-            paymentQueries: bookings.paymentQueries,
-            bookingPaymentProofNotifier: paymentReceipt.bookingPaymentProofNotifier,
-            bookingSaleConfirmer: bookings.saleConfirmer,
-          },
-    );
-    const paymentReview =
-      typeof createPaymentReviewModule === 'function'
-        ? createPaymentReviewModule({
-            pool,
-            auth,
-            paymentQueries: bookings.paymentQueries,
-            env,
-          })
-        : null;
     const app = createApp({
       auth,
       tenants,

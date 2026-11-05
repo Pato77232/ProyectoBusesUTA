@@ -2,7 +2,7 @@
 
 - **Responsable:** Pablo.
 - **Estado:** En desarrollo documental; revisión humana pendiente.
-- **Base:** `origin/develop` `5ff50d9`, 4 de noviembre de 2026.
+- **Base conciliada:** `origin/develop` `3695655`, 4 de noviembre de 2026.
 - **Rama:** `feature/DOCS-02-politica-defectos`.
 - **Fuente de decisión:** Edwin indicó que v0.1.0 no requiere errores
   inducidos, según `docs/releases/v0.1.0.md` §3 y el mensaje del equipo
@@ -24,6 +24,8 @@ e integración se registrarán después de ocurrir; no se infieren de esta edici
 ## Verificación local
 
 `git diff --check` aprobado; referencias principales presentes y búsqueda de
-mandatos antiguos en los tres documentos sin coincidencias. No se ejecutaron
-lint ni pruebas de producto porque el cambio es exclusivamente documental.
-Sin push, PR, revisión humana ni integración.
+mandatos antiguos en los tres documentos sin coincidencias. Al conciliar con
+`origin/develop` `3695655`, el único conflicto en `docs/estado-proyecto.md` se
+resolvió conservando la evidencia de DOCS-02 y la entrada previa de AUTH-WEB-02.
+No se ejecutaron lint ni pruebas de producto porque el cambio es exclusivamente
+documental. Revisión humana e integración pendientes.

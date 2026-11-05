@@ -1,14 +1,39 @@
 # Estado compartido del proyecto
 
+## Pablo — pantalla de registro de clientes, 4 de noviembre de 2026
+
+En `feature/AUTH-WEB-02-registro-cliente`, creada desde `origin/develop`
+`5ff50d9`, se implementó localmente [AUTH-WEB-02](specs/AUTH-WEB-02.md): página
+pública de registro de CUSTOMER que usa el endpoint AUTH-04 existente, el cliente
+HTTP/CSRF compartido y la identidad visual de transViaje. Pablo confirmó
+confirmación de contraseña, paso al login con correo precargado y retorno a la
+reserva tras confirmar `auth/me`; no hay login automático ni redirección externa.
+Los errores conocidos son genéricos y una respuesta incierta no reenvía el POST.
+Navegación e imagen frontend incluyen la página. La suite frontend aprobó 331
+pruebas; el lint dirigido pasó, Docker construyó la imagen final y Chrome
+recorrió el flujo con API simulada.
+El smoke existente de portada aprobó escritorio, móvil, teclado, destinos y
+zoom CSS 200 %; el enlace de login no reprodujo un fallo en esta ejecución.
+
+Una comprobación posterior con copia temporal de PR #94 (`1eb0210`) y esta
+pantalla aprobó el recorrido real de registro, login y retorno a reservas con
+PostgreSQL/Nginx/backend saludables. No acredita el arranque de `main` ni
+`develop` antes de integrar el hotfix; detalles en la spec.
+
+Pendientes: inspección visual, revisión humana y resolución del fallo de lint
+previo de `backend/src/server.js` en la base. Sin push, PR ni integración. Las filas históricas inferiores no
+se actualizan por inferencia.
+
 ## Pablo — conciliación documental de defectos académicos, 4 de noviembre de 2026
 
-En `feature/DOCS-02-politica-defectos`, sobre `origin/develop` `5ff50d9`,
-[DOCS-02](specs/DOCS-02.md) alinea AGENTS.md, CONTRIBUTING.md y el protocolo de
-errores inducidos con la decisión de Edwin registrada para v0.1.0: la entrega no
-incluye defectos deliberados. Los candidatos de ACADEMICA-01 siguen como
-propuestas históricas. El fallo de arranque de `server.js` no se reclasifica
-como académico. Cambio solo documental, sin publicación, revisión
-humana ni integración. Las filas anteriores conservan su fecha y evidencia.
+En `feature/DOCS-02-politica-defectos`, conciliada con `origin/develop`
+`3695655`, [DOCS-02](specs/DOCS-02.md) alinea AGENTS.md, CONTRIBUTING.md y el
+protocolo de errores inducidos con la decisión de Edwin registrada para v0.1.0:
+la entrega no incluye defectos deliberados. Los candidatos de ACADEMICA-01
+siguen como propuestas históricas. El fallo de arranque de `server.js` no se
+reclasifica como académico. La resolución conserva tanto esta evidencia como la
+de AUTH-WEB-02 anterior. Revisión humana e integración siguen pendientes; las
+filas históricas inferiores conservan su fecha y evidencia.
 
 ## INTEG-01 — continuación local T7, T6b y composición, 4 de noviembre de 2026
 
@@ -300,7 +325,6 @@ Antes de orientar a alguien:
 | [FLEET-07](specs/FLEET-07.md) | Edwin | T1 preparada para revisión en [PR #44](https://github.com/Pato77232/ProyectoBusesUTA/pull/44); sin integración | 3 de noviembre: VIP no ofrecido confirmado por Edwin; migración VIP renumerada con autorización y SQL intacto; reversión independiente de la última migración. Integración Linux/PostgreSQL aislado 280/280, prueba con migración posterior 5/5 y upgrade desde develop aprobados. Unitarias globales 1074 aprobadas/2 fallidas de hojas de ruta; base conservada sin merge por decisión de Edwin. Leslie y revisión humana pendientes; T2 aparte. |
 | [FLEET-09](specs/FLEET-09.md) | Edwin; David revisa | T1 en [PR #59](https://github.com/Pato77232/ProyectoBusesUTA/pull/59); conflictos con develop c95cc73 conciliados | Catálogo de 22 migraciones, Fleet renombrada a 1794080000000 sin cambiar SQL; conservadas comprobaciones de Pagos y actualización desde 21 migraciones. Node 24/PostgreSQL aislado: 1747 unitarias y 555 integraciones aprobadas; lint/formato propio aprobados, 17 avisos globales sin diferencias frente a develop. Revisión humana pendiente; timeouts históricos Windows no se declaran resueltos. No integrada ni aceptada. |
 | [INTEG-01](specs/INTEG-01.md) | Edwin | T1 (cf285b3, 183d95b), T2 (44cd95b), T3 (3d3261f), T4 (3e6f4ef), T5 (70fcbd2, a0387dd) y T6a en ramas feature/INTEG-01-* encadenadas desde develop 64f39cd; T6b requiere decisión del equipo | T1 catálogo; T2 historial; T3 rechazo; T4 confirmador real; T5 canje de invitado; T6a creación comercial con readPurchaseTrip. 1925/1925 unitarias; integración 643/647. Quedan 4 fallos de carga autorizada 404. Acreditador real sin implementar (flujo pendiente por decisión de David). Hallazgo: server.js compone según _isMockFunction. Revisión humana pendiente. |
-| [INTEG-01](specs/INTEG-01.md) | Edwin | T1 (cf285b3, 183d95b), T2 (44cd95b), T3 (3d3261f), T4 (3e6f4ef) y T5 en ramas feature/INTEG-01-* encadenadas desde develop 64f39cd; T6 sin empezar | T1 catálogo; T2 historial; T3 rechazo; T4 confirmador real; T5 canje de invitado conectado con 3 pruebas HTTP. 1925/1925 unitarias; integración 637/647. Quedan 10 fallos: compra comercial (T6) y carga autorizada 404. Hallazgo: server.js compone según _isMockFunction. Revisión humana pendiente. |
 | search, bookings, payments y tickets | Según propuesta inferior | Sin implementación en la base examinada | Confirmar ramas de los responsables antes de crear tareas |
 | [PAGOS-01](specs/PAGOS-01.md) | Shirley | Código integrado en `origin/develop` en `f26415d`; revisión/cierre humano no se infieren | El merge commit `f26415d` incorpora PAGOS-01 (`518c46b` como segundo padre). La evidencia de pruebas registrada corresponde a la rama de origen, no a una repetición posterior al merge. `bookings` sigue simulado conforme al alcance T4. |
 | [PAGOS-02](specs/PAGOS-02.md) | Shirley; Pablo (@PabloToapanta) revisor aceptado; Leslie complementaria propuesta | En desarrollo; adaptador no conectado y pruebas verificadas, descripción detallada de PR sin publicación | Rama `feature/PAGOS-02-aprobar-comprobante`, base común `518c46b`; rutas con Reservas simulado. Nuevo adaptador de contrato con 74 casos; suite global 668 unitarias + 134 integraciones aprobadas (802). Lint/formato propio aprobados; formato global fallido en 48 ajenos. Conexión real, versiones/importe observado y combinación con develop pendientes. [Evidencia](evidence/PAGOS-02/2026-11-02-adaptador-lector.md). |
@@ -737,3 +761,7 @@ tokens internos; la emisión recibe un puerto de correo para entregar el enlace.
 
 La cobertura específica y la validación del catálogo aprobaron 18/18 pruebas.
 Revisión humana, push, PR e integración siguen pendientes.
+
+## Leslie — lectura de venta para boletos, 4 de noviembre de 2026
+
+Rama feature/BOOK-09-lectura-venta-boletos actualizada por fast-forward a 5c48d22, hotfix #94 integrado. [Spec](specs/BOOK-09-lectura-boletos.md), [contrato interno](contratos/bookings-lectura-boletos.md) y [evidencia histórica y vigente](evidence/BOOK-09/2026-11-04-lectura-boletos.md). Implementados lector privado de venta SOLD y proyección desde snapshot comercial schemaVersion 2, con coherencia de pasajeros, precio y asignaciones y lectura sin efectos. Verificación final tras sincronizar dependencias existentes: npm test aprobado, 1990 unitarias + 662 integraciones, 2652 pruebas/172 suites. Lint, formato global y diff --check aprobados; arranque real health 200 y stop ordenado. Pendientes: revisión humana y consumidor de boletos de Shirley. Leslie autoriza crear commit y publicar esta rama. PR, revisión humana y conexión con Tickets pendientes; funcionalidad no integrada. Cambios previos y respaldo del lector conservados en los stashes documentados. Los fallos anteriores permanecen en evidencia con su base y fecha; no describen el resultado final actual.
