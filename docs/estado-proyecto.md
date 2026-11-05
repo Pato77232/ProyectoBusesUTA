@@ -1,5 +1,89 @@
 # Estado compartido del proyecto
 
+## David — INFRA-05, sección 4 del recorrido, 4 de noviembre de 2026
+
+El solicitante autoriza diagnóstico y solicita commit/texto de PR.
+[INFRA-05](specs/INFRA-05.md) añade herramienta restringida a bases `_test` con
+`NODE_ENV=test`: status de solo lectura, up y down hasta objetivo explícito.
+Registra etapa, nombre/lote, duración y código sin SQL, URL o mensajes del motor.
+No limpia datos ni elude protecciones; documentado en testing-database.md.
+
+Reproducción dirigida: 36/36 pruebas anteriores aprobadas en PostgreSQL limpio;
+12 unitarias nuevas y dos integraciones CLI reales aprobadas. Un rechazo con
+acreditaciones persistidas identifica P0001 y conserva datos. Esa reproducción
+controlada no demuestra la causa de los fallos históricos. Lint y formato global
+aprobados; npm test completo: 2029/2029 unitarias (117 suites) y 688/688
+integraciones (63 suites), aprobadas. Resultados en la spec; entorno temporal
+retirado. PR en [Markdown](evidence/SEARCH-01/descripcion-pr.md). Sin modificar
+migraciones, dependencias, límites de tiempo, negocio o pruebas anteriores.
+Git exclusivamente humano, última base conocida `d7ea282` sin nueva comprobación.
+Edwin revisor propuesto, sin aceptación ni aprobación atribuida. Implementación
+local preparada, revisión humana e integración pendientes; asistencia de Codex
+en código/pruebas/docs.
+
+## David — generación mediante renovación, sección 3 del recorrido, 4 de noviembre de 2026
+
+El solicitante eligió expresamente «Repetir el patrón y reutilizar la renovación
+existente». [ROUTE-SHEETS-08 §19](specs/ROUTE-SHEETS-08.md#19-sección-3-del-recorrido-repetir-el-patrón-mediante-renovación)
+registra la decisión y el contrato; [SEARCH-01](specs/SEARCH-01.md) actualiza el
+plan. Se reutilizan caso de uso, endpoint y pantalla existentes: copia del patrón
+con mismos buses, desplazamiento de L días, identidades nuevas, revalidación y
+destino DRAFT. Solo publicar explícitamente habilita el período comercial.
+No se crea un generador duplicado ni se habilitan rotación, scheduler u optimización.
+
+Sección documental preparada; código/contratos y enlaces locales contrastados.
+Sin nuevas ejecuciones de lint, formato, pruebas o arranque al no modificar
+producto/pruebas. Los resultados de sección 2 conservan su alcance histórico.
+Revisión humana e integración pendientes, sin cierre completo de RN-31.
+Git exclusivamente a cargo del humano, sin comandos ejecutados por el asistente.
+Última base conocida `d7ea282`, sin nueva consulta de rama/remoto. Asistencia de
+Codex en contraste y documentación. Próximo trabajo independiente del plan:
+diagnóstico de migraciones de la sección 4, sin atribuir aceptación de Edwin.
+
+## David — ciclos confirmados, sección 2 del recorrido, 4 de noviembre de 2026
+
+El solicitante autorizó continuar con la sección 2 del plan de
+[SEARCH-01](specs/SEARCH-01.md), bajo los contratos ROUTE-SHEETS-04/07/08.
+Dos recorridos nuevos en la suite de renovación comprueban búsqueda/horizonte
+antes y después de publicar, publicaciones simultáneas sin duplicación, rechazo
+del tercer período sin cupo y liberación exacta al fin exclusivo del primero.
+La preparación del tercer borrador usa reloj inyectado y PostgreSQL reales; no
+publica ni renumera los ciclos anteriores. La publicación vuelve a validar el
+límite con su reloj. Viajes, inventarios, ciclos y serie previos se conservan
+iguales; no se crean reservas/ventas para esta cobertura.
+
+Suite dirigida: 14/14 integraciones con arranque real aprobadas. Lint y formato
+backend aprobados; 2017/2017 unitarias y repetición completa de integración
+686/686 (62 suites) aprobadas. La primera fase global de integración se detuvo
+sin resumen y se repitió; detalle y límites de la evidencia en
+[ROUTE-SHEETS-08](specs/ROUTE-SHEETS-08.md). Sin cambios de producto, migraciones,
+dependencias o pantallas. Los fallos de reversión de la sección 1 no se
+reprodujeron; no se atribuye una corrección ni diagnóstico nuevo. Entorno
+temporal retirado. Git exclusivamente a cargo del humano, sin comandos
+ejecutados por el asistente. Última base conocida de esta conversación `d7ea282`,
+sin nueva verificación de rama/remoto. Revisión humana e integración pendientes.
+
+## David — SEARCH-01, sección 1 de verificación del recorrido, 4 de noviembre de 2026
+
+El solicitante autorizó dividir ciclos/búsqueda en secciones e implementar solo la
+primera. [SEARCH-01](specs/SEARCH-01.md) registra el plan: búsqueda por embarque,
+ciclos confirmados, contrato de generación automática moderna y deuda técnica de
+migraciones. Las secciones posteriores no se implementan en este incremento.
+
+Se añade una prueba de integración de viaje nocturno a la suite de consultas
+comerciales: borrador fuera de venta, publicación real, fecha local distinta en
+origen/parada, tarifa explícita no aditiva, lecturas sin nuevos viajes/ciclos y
+frecuencia inactiva excluida. La suite dirigida aprobó 7/7 con servidor real y
+PostgreSQL 16.13 aislado. Backend lint y formato global aprobaron; 2017/2017
+unitarias aprobaron. Integración general: 654/684 aprobadas, 30 fallos en siete
+suites al ejecutar `migrate.js down`; causa pendiente de diagnóstico, sin atribuir
+a timeout. Resultado global fallido; detalle en la spec. Entorno temporal retirado.
+
+Sin cambios de producto, migraciones, dependencias declaradas o pantallas; sin
+revisión humana ni cierre de RN-31. Git queda exclusivamente a cargo del humano:
+no se ejecutaron comandos de consulta, cambio de rama, commit ni publicación en
+esta sección. Última base conocida de la conversación: `d7ea282`, sin nueva
+verificación de rama/remoto. Asistencia de Codex en pruebas y documentación.
 ## Boletos y correo — preparación de BOLETOS-02, 4 de noviembre de 2026
 
 En `feature/BOLETOS-02-envio-correo`, basada en `origin/develop` `c9d14bf`,
