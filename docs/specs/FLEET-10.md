@@ -1,13 +1,13 @@
 # FLEET-10: Consultar el inventario de buses de una cooperativa
 
-- **ID local:** FLEET-10; no existe una spec previa con este ID en la base `origin/develop` local `5ff50d9` (4 de noviembre de 2026).
+- **ID local:** FLEET-10; no existe una spec previa con este ID en `origin/develop` `5c48d22` (5 de noviembre de 2026).
 - **Ticket externo:** no aplica antes de decidir el gestor tras la primera revisión.
 - **Módulo:** `fleet` y su pantalla de inventario en `frontend`.
-- **Responsable:** Edwin (tarea intercambiada por confirmación del solicitante el 4 de noviembre de 2026).
+- **Responsable:** solicitante.
 - **Revisor propuesto / confirmado:** David, según revisión habitual de Fleet; aceptación pendiente.
-- **Estado:** En desarrollo; el solicitante autorizó inventario administrativo, pantalla y ficha con fotos en el chat del 4 de noviembre de 2026. Revisión humana de código pendiente.
-- **Prioridad y dependencias:** la base `origin/develop` local `5ff50d9` contiene el backend de registro, lectura de asientos y clasificación ACCESSIBLE. La pantalla requiere comprobar la integración del login y cliente HTTP vigentes. No se actualizó la referencia desde GitHub por fallo de red.
-- **Rama / PR / base comprobada:** `feature/FLEET-10-listado-detalle-buses`, checkout separado creado desde `origin/develop` local `5ff50d9`; no se pudo consultar GitHub directamente para actualizar la referencia remota.
+- **Estado:** Implementación local en rama basada en el hotfix 0.1.1 integrado a `develop`; revisión humana pendiente.
+- **Prioridad y dependencias:** la base `origin/develop` `5c48d22` contiene el backend de registro, lectura de asientos y clasificación ACCESSIBLE. La pantalla usa el cliente HTTP y la sesión vigentes.
+- **Rama / PR / base comprobada:** `feature/FLEET-10-inventario-admin-hotfix`, basada en `origin/develop` `5c48d22`; no hay PR.
 - **Autorización de alcance:** el solicitante confirmó el inventario administrativo de buses el 4 de noviembre de 2026 y delegó la decisión sobre las fotos. Se adopta lectura privada de fotos con autenticación y aislamiento por cooperativa.
 
 ## 1. Objetivo
@@ -113,9 +113,9 @@ Escenario: administrador consulta inventario, distingue carga/vacío/error y abr
 4. Pruebas dirigidas backend: 11/11 unitarias aprobadas. Suite frontend: 325/325 pruebas aprobadas.
 5. Lint completo de frontend y lint dirigido de los archivos backend modificados aprobados. El smoke de navegador con API simulada aprobó teclado, escritorio 1280 px y móvil 360 px; evidencia en `docs/evidence/FLEET-10/`.
 6. Prettier aprobó el código backend modificado, los nuevos archivos frontend y esta spec. No se reformatearon la página existente `frontend/pages/registrar-bus.html` ni el documento histórico `docs/estado-proyecto.md`; ambos muestran advertencias al comprobar formato global.
-7. `backend` `npm run test:unit`: 1894/1908 aprobadas. Fallos de base observados: declaración `payments` duplicada en `server.js`, pruebas HTTP con `EACCES` y módulos `busboy`/`nodemailer` que no están disponibles en la instalación del worktree. No se pudo ejecutar integración PostgreSQL porque Docker Desktop no tiene daemon disponible.
+7. `backend` `npm run lint` completo aprobado sobre la base actualizada. `backend` `npm run test:unit`: 111 suites y 1915 pruebas aprobadas; dos suites no pudieron cargar porque `busboy` y `nodemailer` no están disponibles en `node_modules` del worktree (sí figuran en `package.json`).
 8. El smoke de navegador usa API simulada; falta verificación de extremo a extremo contra servidor y PostgreSQL reales. Revisión humana y PR pendientes.
 
 ## 14. Revisión y cierre
 
-Contrato autorizado por el solicitante. Commits locales `a5230c4`, `e84cae1` y `43869f7` en `feature/FLEET-10-listado-detalle-buses`. Implementación lista para revisión, con las limitaciones de validación descritas en §13. Revisión humana y PR pendientes; sin push ni publicación.
+Contrato autorizado por el solicitante. Commits locales `aee5b92`, `e7f55f4`, `bb86d76` y `e25779c` en `feature/FLEET-10-inventario-admin-hotfix`. Implementación lista para revisión, con las limitaciones de validación descritas en §13. Revisión humana y PR pendientes; sin push ni publicación.
