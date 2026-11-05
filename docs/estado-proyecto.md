@@ -5,6 +5,25 @@
 | Spec / responsable | Estado y evidencia | Próximo paso |
 | --- | --- | --- |
 | [BOLETOS-01](specs/BOLETOS-01.md) / Edwin | Rama `feature/BOLETOS-01-emision-qr` desde `origin/develop` `3695655`. Spec en borrador con las decisiones de Edwin. T1 en `edd96d6`: `findSoldForOwner` en la lectura de BOOK-09, con el tramo congelado; `findSoldForTicket` no cambia. T2 en `91f4962`: módulo `tickets`, migración `1794310000000-create-tickets` y emisión idempotente por propietario. T3 en `172f005`: `GET /api/v1/tickets/bookings/:bookingId` para el CUSTOMER propietario, QR SVG con `qrcode` 1.5.4 y composición en `server.js`. T4 local: `pages/boletos.html` imprimible y enlace desde Reservas; recorrido real y QR decodificado con lector independiente. Sin push ni PR. | Revisión visual en escritorio, móvil e impresión; avisar a Leslie; abrir PR hacia `develop`. |
+## Boletos y correo — preparación de BOLETOS-02, 4 de noviembre de 2026
+
+En `feature/BOLETOS-02-envio-correo`, basada en `origin/develop` `c9d14bf`,
+se preparó el [borrador BOLETOS-02](specs/BOLETOS-02.md) para entregar boletos y
+avisos por correo. `smtp-mailer.js` existe, pero CORREO-01 no tiene cola ni
+trabajador compartido. La rama remota BOLETOS-01 (`2dac0c0`) emite QR y excluye
+correo; no está en la base comprobada. Bookings no guarda los correos por
+pasajero/responsable y Pagos no expone aún el evento de corrección. Faltan los
+acuerdos con Shirley, Leslie, Edwin y Pablo indicados en la spec.
+El solicitante confirmó emitir al confirmar la venta, adjuntar el QR como imagen
+e incluir el aviso de corrección. Son decisiones funcionales registradas en la
+spec; no equivalen a aprobación técnica de los módulos afectados.
+El solicitante autorizó el primer incremento de Pablo: SMTP admite un único PNG
+validado sin cambiar el envío de texto. Pruebas dirigidas 21/21, lint y formato
+backend aprobados. Suite global: 2025 unitarias aprobadas y 687/688
+integraciones; la reversión de migración de Flota falló también sola (8/9).
+Contrato en `9f138a3`; puerto y pruebas en `c4f001a`.
+Pendientes revisión humana e integración de BOLETOS-02.
+
 ## Pablo — AUTH-WEB-03, pantallas administrativas, 4 de noviembre de 2026
 
 En `feature/AUTH-WEB-03-administracion`, creada desde `origin/develop`
