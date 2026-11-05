@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Recupera el acceso a tu cuenta de transViaje."
+    />
+    <meta name="theme-color" content="#202020" />
+    <title>Recuperar cuenta · transViaje</title>
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+    <link
+      rel="stylesheet"
+      href="../assets/vendor/bootstrap-5.3.8/bootstrap.min.css"
+    />
+    <link rel="stylesheet" href="../src/styles/app.css" />
+    <link rel="stylesheet" href="../src/styles/login.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+    <header class="site-header">
+      <div
+        class="container d-flex flex-wrap align-items-center justify-content-between gap-3"
+      >
+        <a class="brand" href="../index.html" aria-label="transViaje, inicio">
+          <span class="brand-logo-frame" aria-hidden="true">
+            <img
+              class="brand-logo"
+              src="../assets/brand/logo-transviaje.png"
+              alt=""
+              width="1600"
+              height="1446"
+            />
+          </span>
+        </a>
+        <a href="login.html">Iniciar sesión</a>
+      </div>
+    </header>
+    <main id="contenido" class="login-layout container" tabindex="-1">
+      <section class="login-card" aria-labelledby="reset-title">
+        <p class="eyebrow">RECUPERACIÓN DE CUENTA</p>
+        <h1 id="reset-title">Recuperar acceso</h1>
+        <p>
+          Escribe el correo de tu cuenta. Si existe, te enviaremos un enlace
+          para cambiar la contraseña.
+        </p>
+        <p
+          id="reset-status"
+          class="login-notice"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          tabindex="-1"
+        >
+          Introduce tu correo para continuar.
+        </p>
+        <noscript
+          ><p>Habilita JavaScript para solicitar el enlace.</p></noscript
+        >
+        <form
+          id="request-form"
+          method="post"
+          novalidate
+          aria-describedby="reset-status"
+        >
+          <div class="mb-4">
+            <label for="reset-email" class="form-label"
+              >Correo electrónico</label
+            >
+            <input
+              id="reset-email"
+              class="form-control"
+              name="email"
+              type="email"
+              autocomplete="username"
+              maxlength="254"
+              required
+            />
+          </div>
+          <button class="btn btn-primary w-100" type="submit">
+            Enviar enlace
+          </button>
+        </form>
+        <p class="mt-4 mb-0">
+          <a href="login.html">Volver al inicio de sesión</a>
+        </p>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="container">
+        <p class="mb-0">
+          transViaje <span aria-hidden="true">·</span> Proyecto académico
+        </p>
+      </div>
+    </footer>
+    <script type="module" src="../src/auth/password-reset-page.js"></script>
+  </body>
+</html>

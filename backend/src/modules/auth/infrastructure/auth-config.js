@@ -26,6 +26,23 @@ function readAuthConfig(env = process.env) {
       positiveInteger(env.LOGIN_ATTEMPT_WINDOW_MINUTES, 15, 'LOGIN_ATTEMPT_WINDOW_MINUTES') * 60000,
     lockMs:
       positiveInteger(env.LOGIN_ACCOUNT_LOCK_MINUTES, 15, 'LOGIN_ACCOUNT_LOCK_MINUTES') * 60000,
+    resetIpMax: positiveInteger(env.PASSWORD_RESET_IP_MAX, 10, 'PASSWORD_RESET_IP_MAX'),
+    resetEmailMax: positiveInteger(env.PASSWORD_RESET_EMAIL_MAX, 3, 'PASSWORD_RESET_EMAIL_MAX'),
+    resetWindowMinutes: positiveInteger(
+      env.PASSWORD_RESET_WINDOW_MINUTES,
+      15,
+      'PASSWORD_RESET_WINDOW_MINUTES',
+    ),
+    resetCooldownSeconds: positiveInteger(
+      env.PASSWORD_RESET_COOLDOWN_SECONDS,
+      60,
+      'PASSWORD_RESET_COOLDOWN_SECONDS',
+    ),
+    resetResponseFloorMs: positiveInteger(
+      env.PASSWORD_RESET_RESPONSE_FLOOR_MS,
+      300,
+      'PASSWORD_RESET_RESPONSE_FLOOR_MS',
+    ),
   };
 }
 module.exports = { readAuthConfig };

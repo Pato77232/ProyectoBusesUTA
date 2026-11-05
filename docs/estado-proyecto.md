@@ -6,6 +6,60 @@
 | --- | --- | --- |
 | [BOLETOS-01](specs/BOLETOS-01.md) / Edwin | Rama `feature/BOLETOS-01-emision-qr` desde `origin/develop` `3695655`. Spec en borrador con las decisiones de Edwin. T1 en `edd96d6`: `findSoldForOwner` en la lectura de BOOK-09, con el tramo congelado; `findSoldForTicket` no cambia. T2 en `91f4962`: módulo `tickets`, migración `1794310000000-create-tickets` y emisión idempotente por propietario. T3 en `172f005`: `GET /api/v1/tickets/bookings/:bookingId` para el CUSTOMER propietario, QR SVG con `qrcode` 1.5.4 y composición en `server.js`. T4 local: `pages/boletos.html` imprimible y enlace desde Reservas; recorrido real y QR decodificado con lector independiente. Sin push ni PR. | Revisión visual en escritorio, móvil e impresión; avisar a Leslie; abrir PR hacia `develop`. |
 
+## Pablo — AUTH-CORREO-01 publicada y conciliada con develop, 4 de noviembre de 2026
+
+La rama `feature/AUTH-CORREO-01-recuperacion-cuenta` contiene la solicitud
+durable, el trabajador reintentable, enlace de 20 minutos, confirmación atómica,
+revocación de sesiones y dos pantallas enlazadas desde login. Los cambios
+están publicados en commits atómicos en la PR #97; sin integración.
+El trabajador está apagado por defecto y exige SMTP y `PUBLIC_WEB_ORIGIN` para
+habilitarlo. La respuesta 202 mantiene un tiempo mínimo configurable de 300 ms
+para reducir diferencias observables entre cuentas. No se envió correo real.
+Validación dirigida, frontend 326/326 y recorrido de navegador con backend/DB
+reales aprobaron; el token QA del recorrido se insertó como hash para simular
+el correo. Las acciones terminadas se purgan a los siete días, sin borrar
+enlaces vigentes. Backend lint/formato, 1962/1962 unitarias y 666/666 integraciones
+con PostgreSQL aislado aprobaron. [Detalle](specs/AUTH-CORREO-01.md).
+La rama incorpora `origin/develop` `432ae27`, incluyendo AUTH-WEB-02 y DOCS-02;
+el login conserva ambos enlaces y la imagen incluye las tres pantallas.
+La conciliación aprobó lint y formato backend, lint frontend, 2006/2006 pruebas
+unitarias y 677/677 integraciones con PostgreSQL aislado, 338/338 pruebas
+frontend y la construcción de la imagen frontend.
+Pendientes: configurar y comprobar SMTP con buzón propio, revisión humana
+e integración.
+
+## Pablo — AUTH-CORREO-01, primer incremento histórico, 4 de noviembre de 2026
+
+Pablo cerró el contrato y autorizó implementar. En
+`feature/AUTH-CORREO-01-recuperacion-cuenta` existe un primer incremento sin
+commit ni publicación nueva: migración de acciones/contadores, endpoint público
+`POST /api/v1/auth/password-reset` con CSRF, 202 uniforme, límites por IP y
+correo y enfriamiento. Solicitudes concurrentes se serializan en PostgreSQL.
+La petición no envía correo ni genera token. Auth dirigido: 16/16 integraciones
+aprobadas; backend lint y formato aprobaron. Suite global con PostgreSQL aislado:
+1946/1946 unitarias y 655/655 integraciones aprobadas. Arranque real con base
+de prueba: `/api/v1/health` respondió 200 y cierre ordenado.
+Pendientes: trabajador SMTP, token y consumo atómico, revocación de sesiones,
+pantallas, revisión humana e integración.
+
+## Pablo — borrador de recuperación de cuenta, 4 de noviembre de 2026
+
+En `feature/AUTH-CORREO-01-recuperacion-cuenta`, creada desde `origin/develop`
+`5ff50d9`, se prepara [AUTH-CORREO-01](specs/AUTH-CORREO-01.md). Pablo confirmó
+recuperación para todos los roles, enlace de 20 minutos (reemplaza 30) y
+revocación de sesiones. Tras recibir la respuesta de Edwin, adoptó el diseño de
+trabajador, reintentos, reemisión, límites y respuestas HTTP. La spec separa
+esta tarea de verificación de correo y AUTH-WEB-02. Faltan clasificación de
+errores en el adaptador SMTP, diseño operativo del trabajador y revisión del
+cambio; `auth_email_actions` y `PUBLIC_WEB_ORIGIN` aún no existen en esta base.
+Actualización documental para la draft PR #97; `origin/develop` `5c48d22` se
+incorporó localmente en `cf200e3`, sin conflictos. Backend lint/formato y
+1946/1946 unitarias aprobaron; 650/651 integraciones aprobaron y la reversión
+de migración de Fleet falló también al repetirla sola. Frontend lint y 319/319
+pruebas aprobaron; el backend arrancó y health respondió 200 con PostgreSQL
+aislado, luego retirado. Detalles en la spec. Sin código propio, revisión humana
+ni integración de esta PR.
+
 ## Pablo — pantalla de registro de clientes, 4 de noviembre de 2026
 
 En `feature/AUTH-WEB-02-registro-cliente`, creada desde `origin/develop`
@@ -29,6 +83,17 @@ PostgreSQL/Nginx/backend saludables. No acredita el arranque de `main` ni
 Pendientes: inspección visual, revisión humana y resolución del fallo de lint
 previo de `backend/src/server.js` en la base. Sin push, PR ni integración. Las filas históricas inferiores no
 se actualizan por inferencia.
+
+## Pablo — conciliación documental de defectos académicos, 4 de noviembre de 2026
+
+En `feature/DOCS-02-politica-defectos`, conciliada con `origin/develop`
+`3695655`, [DOCS-02](specs/DOCS-02.md) alinea AGENTS.md, CONTRIBUTING.md y el
+protocolo de errores inducidos con la decisión de Edwin registrada para v0.1.0:
+la entrega no incluye defectos deliberados. Los candidatos de ACADEMICA-01
+siguen como propuestas históricas. El fallo de arranque de `server.js` no se
+reclasifica como académico. La resolución conserva tanto esta evidencia como la
+de AUTH-WEB-02 anterior. Revisión humana e integración siguen pendientes; las
+filas históricas inferiores conservan su fecha y evidencia.
 
 ## INTEG-01 — continuación local T7, T6b y composición, 4 de noviembre de 2026
 
@@ -319,6 +384,8 @@ Antes de orientar a alguien:
 | [FLEET-06](specs/FLEET-06.md) | Edwin | T1 en [PR #41](https://github.com/Pato77232/ProyectoBusesUTA/pull/41) en borrador; implementación 7d6353a sobre 1fb0ade | listByBus entrega todos los asientos con identidad propia, layoutSeatKey y offered; confirmación de Leslie pendiente. 21 pruebas específicas aprobadas. Global: 1066 unitarias aprobadas/2 fallidas; integración 274 aprobadas/1 timeout en user-cooperative-integrity. Versión por hoja, VIP y accesibilidad pendientes; detalles en la spec. |
 | [FLEET-07](specs/FLEET-07.md) | Edwin | T1 preparada para revisión en [PR #44](https://github.com/Pato77232/ProyectoBusesUTA/pull/44); sin integración | 3 de noviembre: VIP no ofrecido confirmado por Edwin; migración VIP renumerada con autorización y SQL intacto; reversión independiente de la última migración. Integración Linux/PostgreSQL aislado 280/280, prueba con migración posterior 5/5 y upgrade desde develop aprobados. Unitarias globales 1074 aprobadas/2 fallidas de hojas de ruta; base conservada sin merge por decisión de Edwin. Leslie y revisión humana pendientes; T2 aparte. |
 | [FLEET-09](specs/FLEET-09.md) | Edwin; David revisa | T1 en [PR #59](https://github.com/Pato77232/ProyectoBusesUTA/pull/59); conflictos con develop c95cc73 conciliados | Catálogo de 22 migraciones, Fleet renombrada a 1794080000000 sin cambiar SQL; conservadas comprobaciones de Pagos y actualización desde 21 migraciones. Node 24/PostgreSQL aislado: 1747 unitarias y 555 integraciones aprobadas; lint/formato propio aprobados, 17 avisos globales sin diferencias frente a develop. Revisión humana pendiente; timeouts históricos Windows no se declaran resueltos. No integrada ni aceptada. |
+| [FLEET-10](specs/FLEET-10.md) | Solicitante; David propuesto como revisor | Implementación local en `feature/FLEET-10-inventario-admin-hotfix`, base `origin/develop` `5c48d22`; commits `aee5b92`, `e7f55f4`, `bb86d76`, `e25779c` | 11 unitarias dirigidas y 325 pruebas frontend aprobadas; lint frontend/backend completos y smoke de navegador con API simulada aprobados. Dos suites unitarias no cargan por módulos ausentes del worktree; integración PostgreSQL y revisión humana pendientes. Sin push. |
+| [BOOK-10](specs/BOOK-10.md) | Responsable y revisores funcionales por confirmar | Borrador de contrato en `feature/BOOK-10-venta-accesible-develop`, base `origin/develop` `d7ea282`; sin aprobación ni implementación | Pendientes elegibilidad, capacidad/acompañante, precio/snapshot y compatibilidad Fleet/Route Sheets. FLEET-08 mantiene estos espacios con `offered: false`; no comenzar venta hasta acordar y aprobar la spec. |
 | [INTEG-01](specs/INTEG-01.md) | Edwin | T1 (cf285b3, 183d95b), T2 (44cd95b), T3 (3d3261f), T4 (3e6f4ef), T5 (70fcbd2, a0387dd) y T6a en ramas feature/INTEG-01-* encadenadas desde develop 64f39cd; T6b requiere decisión del equipo | T1 catálogo; T2 historial; T3 rechazo; T4 confirmador real; T5 canje de invitado; T6a creación comercial con readPurchaseTrip. 1925/1925 unitarias; integración 643/647. Quedan 4 fallos de carga autorizada 404. Acreditador real sin implementar (flujo pendiente por decisión de David). Hallazgo: server.js compone según _isMockFunction. Revisión humana pendiente. |
 | search, bookings, payments y tickets | Según propuesta inferior | Sin implementación en la base examinada | Confirmar ramas de los responsables antes de crear tareas |
 | [PAGOS-01](specs/PAGOS-01.md) | Shirley | Código integrado en `origin/develop` en `f26415d`; revisión/cierre humano no se infieren | El merge commit `f26415d` incorpora PAGOS-01 (`518c46b` como segundo padre). La evidencia de pruebas registrada corresponde a la rama de origen, no a una repetición posterior al merge. `bookings` sigue simulado conforme al alcance T4. |

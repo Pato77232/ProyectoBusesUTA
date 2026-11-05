@@ -67,6 +67,34 @@ class LocalBusPhotoStorage extends BusPhotoStorage {
     }
   }
 
+  async read({ busId, fileKey, size }) {
+    assertId(busId);
+    assertId(fileKey);
+    const photosDirectory = path.join(this.root, 'buses', busId, 'photos');
+    const directories = [
+      this.root,
+      path.join(this.root, 'buses'),
+      path.join(this.root, 'buses', busId),
+      photosDirectory,
+    ];
+    const filePath = path.join(photosDirectory, fileKey);
+    try {
+      for (const directory of directories) {
+        const stat = await this.io.lstat(directory);
+        if (!stat.isDirectory() || stat.isSymbolicLink())
+          throw new Error('La fotografía no está en almacenamiento privado válido.');
+      }
+      const stat = await this.io.lstat(filePath);
+      if (!stat.isFile() || stat.isSymbolicLink() || stat.size !== size)
+        throw new Error('La fotografía almacenada no coincide con sus metadatos.');
+      const bytes = await this.io.readFile(filePath);
+      if (bytes.length !== size) throw new Error('La fotografía almacenada está incompleta.');
+      return bytes;
+    } catch (cause) {
+      throw new BusPhotoStorageError({ busId, cause });
+    }
+  }
+
   createSession(busId, operationId, references) {
     const io = this.io;
     const staged = path.join(this.root, '.staging', operationId);
