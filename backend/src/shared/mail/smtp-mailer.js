@@ -7,6 +7,17 @@ const MAX_TEXT_LENGTH = 50000;
 const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 const EMAIL = /^[^\s<>@,;]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
 const isEmail = (value) => typeof value === 'string' && EMAIL.test(value);
+function sendFailure(error) {
+  if (Number.isInteger(error?.responseCode)) {
+    if (error.responseCode >= 500 && error.responseCode < 600)
+      fail('MAIL_PERMANENT_FAILURE', 'El servidor SMTP rechazó el aviso.');
+    if (error.responseCode >= 400 && error.responseCode < 500)
+      fail('MAIL_TEMPORARY_FAILURE', 'El servidor SMTP pospuso el aviso.');
+  }
+  if (['ECONNECTION', 'ESOCKET', 'ECONNREFUSED', 'ENOTFOUND'].includes(error?.code))
+    fail('MAIL_TEMPORARY_FAILURE', 'No se pudo establecer la conexión SMTP.');
+  fail('MAIL_OUTCOME_UNCERTAIN', 'No se pudo confirmar la aceptación SMTP del aviso.');
+}
 const fail = (code, message) => {
   throw new DomainError(message, code, 503);
 };
@@ -84,8 +95,8 @@ function createSmtpMailer(env = {}, createTransport = nodemailer.createTransport
           text: input.text,
           messageId: `<${input.notificationId}@transviaje.local>`,
         });
-      } catch {
-        fail('MAIL_OUTCOME_UNCERTAIN', 'No se pudo confirmar la aceptación SMTP del aviso.');
+      } catch (error) {
+        sendFailure(error);
       }
       if (
         !Array.isArray(result?.accepted) ||
@@ -93,8 +104,13 @@ function createSmtpMailer(env = {}, createTransport = nodemailer.createTransport
           (address) =>
             typeof address === 'string' && address.toLowerCase() === input.to.toLowerCase(),
         )
-      )
+      ) {
+        const rejectedError = result?.rejectedErrors?.find(
+          (error) => typeof error?.responseCode === 'number',
+        );
+        if (rejectedError) sendFailure(rejectedError);
         fail('MAIL_NOT_ACCEPTED', 'El servidor SMTP no confirmó la aceptación del aviso.');
+      }
       return Object.freeze({ notificationId: input.notificationId, status: 'ACCEPTED' });
     },
   });

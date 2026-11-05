@@ -1,5 +1,59 @@
 # Estado compartido del proyecto
 
+## Pablo — AUTH-CORREO-01 publicada y conciliada con develop, 4 de noviembre de 2026
+
+La rama `feature/AUTH-CORREO-01-recuperacion-cuenta` contiene la solicitud
+durable, el trabajador reintentable, enlace de 20 minutos, confirmación atómica,
+revocación de sesiones y dos pantallas enlazadas desde login. Los cambios
+están publicados en commits atómicos en la PR #97; sin integración.
+El trabajador está apagado por defecto y exige SMTP y `PUBLIC_WEB_ORIGIN` para
+habilitarlo. La respuesta 202 mantiene un tiempo mínimo configurable de 300 ms
+para reducir diferencias observables entre cuentas. No se envió correo real.
+Validación dirigida, frontend 326/326 y recorrido de navegador con backend/DB
+reales aprobaron; el token QA del recorrido se insertó como hash para simular
+el correo. Las acciones terminadas se purgan a los siete días, sin borrar
+enlaces vigentes. Backend lint/formato, 1962/1962 unitarias y 666/666 integraciones
+con PostgreSQL aislado aprobaron. [Detalle](specs/AUTH-CORREO-01.md).
+La rama incorpora `origin/develop` `432ae27`, incluyendo AUTH-WEB-02 y DOCS-02;
+el login conserva ambos enlaces y la imagen incluye las tres pantallas.
+La conciliación aprobó lint y formato backend, lint frontend, 2006/2006 pruebas
+unitarias y 677/677 integraciones con PostgreSQL aislado, 338/338 pruebas
+frontend y la construcción de la imagen frontend.
+Pendientes: configurar y comprobar SMTP con buzón propio, revisión humana
+e integración.
+
+## Pablo — AUTH-CORREO-01, primer incremento histórico, 4 de noviembre de 2026
+
+Pablo cerró el contrato y autorizó implementar. En
+`feature/AUTH-CORREO-01-recuperacion-cuenta` existe un primer incremento sin
+commit ni publicación nueva: migración de acciones/contadores, endpoint público
+`POST /api/v1/auth/password-reset` con CSRF, 202 uniforme, límites por IP y
+correo y enfriamiento. Solicitudes concurrentes se serializan en PostgreSQL.
+La petición no envía correo ni genera token. Auth dirigido: 16/16 integraciones
+aprobadas; backend lint y formato aprobaron. Suite global con PostgreSQL aislado:
+1946/1946 unitarias y 655/655 integraciones aprobadas. Arranque real con base
+de prueba: `/api/v1/health` respondió 200 y cierre ordenado.
+Pendientes: trabajador SMTP, token y consumo atómico, revocación de sesiones,
+pantallas, revisión humana e integración.
+
+## Pablo — borrador de recuperación de cuenta, 4 de noviembre de 2026
+
+En `feature/AUTH-CORREO-01-recuperacion-cuenta`, creada desde `origin/develop`
+`5ff50d9`, se prepara [AUTH-CORREO-01](specs/AUTH-CORREO-01.md). Pablo confirmó
+recuperación para todos los roles, enlace de 20 minutos (reemplaza 30) y
+revocación de sesiones. Tras recibir la respuesta de Edwin, adoptó el diseño de
+trabajador, reintentos, reemisión, límites y respuestas HTTP. La spec separa
+esta tarea de verificación de correo y AUTH-WEB-02. Faltan clasificación de
+errores en el adaptador SMTP, diseño operativo del trabajador y revisión del
+cambio; `auth_email_actions` y `PUBLIC_WEB_ORIGIN` aún no existen en esta base.
+Actualización documental para la draft PR #97; `origin/develop` `5c48d22` se
+incorporó localmente en `cf200e3`, sin conflictos. Backend lint/formato y
+1946/1946 unitarias aprobaron; 650/651 integraciones aprobaron y la reversión
+de migración de Fleet falló también al repetirla sola. Frontend lint y 319/319
+pruebas aprobaron; el backend arrancó y health respondió 200 con PostgreSQL
+aislado, luego retirado. Detalles en la spec. Sin código propio, revisión humana
+ni integración de esta PR.
+
 ## Pablo — pantalla de registro de clientes, 4 de noviembre de 2026
 
 En `feature/AUTH-WEB-02-registro-cliente`, creada desde `origin/develop`
