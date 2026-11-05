@@ -14,6 +14,11 @@ const message = () => ({
   text: 'Contenido ficticio',
   notificationId: randomUUID(),
 });
+const png = () =>
+  Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9z0iMAAAAASUVORK5CYII=',
+    'base64',
+  );
 test('sin configuración falla cerrado y no se crea un transporte', async () => {
   const factory = jest.fn(),
     mailer = createSmtpMailer({}, factory);
@@ -88,6 +93,46 @@ test('rechaza cabeceras inyectadas, remitente del cliente y archivos sin enviar'
     await expect(mailer.send({ ...message(), ...change })).rejects.toMatchObject({
       code: 'MAIL_INVALID_MESSAGE',
     });
+  expect(transport.sendMail).not.toHaveBeenCalled();
+});
+test('adjunta un único QR PNG y copia los bytes antes de llamar al transporte', async () => {
+  const transport = {
+    sendMail: jest.fn().mockResolvedValue({ accepted: ['recipient@example.ec'] }),
+  };
+  const mailer = createSmtpMailer(env, () => transport);
+  const content = png();
+  const input = {
+    ...message(),
+    attachment: { filename: 'boleto-123.png', contentType: 'image/png', content },
+  };
+  await expect(mailer.send(input)).resolves.toMatchObject({ status: 'ACCEPTED' });
+  expect(transport.sendMail).toHaveBeenCalledWith(
+    expect.objectContaining({
+      attachments: [
+        expect.objectContaining({
+          filename: 'boleto-123.png',
+          contentType: 'image/png',
+          content: expect.any(Buffer),
+        }),
+      ],
+    }),
+  );
+  const sent = transport.sendMail.mock.calls[0][0].attachments[0].content;
+  expect(sent).toEqual(content);
+  expect(sent).not.toBe(content);
+});
+test.each([
+  { filename: '../boleto.png', contentType: 'image/png', content: png() },
+  { filename: 'boleto\r\nCc:otro@example.ec.png', contentType: 'image/png', content: png() },
+  { filename: 'boleto.png', contentType: 'image/svg+xml', content: png() },
+  { filename: 'boleto.png', contentType: 'image/png', content: Buffer.from('no es PNG') },
+  { filename: 'boleto.png', contentType: 'image/png', content: Buffer.alloc(262145) },
+  { filename: 'boleto.png', contentType: 'image/png', content: { path: '/private' } },
+])('rechaza adjuntos inválidos sin llamar a SMTP: %p', async (attachment) => {
+  const transport = { sendMail: jest.fn() };
+  await expect(
+    createSmtpMailer(env, () => transport).send({ ...message(), attachment }),
+  ).rejects.toMatchObject({ code: 'MAIL_INVALID_MESSAGE' });
   expect(transport.sendMail).not.toHaveBeenCalled();
 });
 test('rechazo o caída no se convierten en aceptación ni exponen el error original', async () => {
