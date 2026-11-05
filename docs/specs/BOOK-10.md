@@ -2,9 +2,9 @@
 
 - **ID local:** BOOK-10; borrador de contrato, sin aprobación funcional registrada.
 - **Módulo:** Bookings consume el inventario público de Fleet y el snapshot de Route Sheets.
-- **Responsabilidad propuesta:** Pablo (intercambio confirmado por el usuario); revisión de reglas con Leslie y David pendiente.
+- **Responsabilidad propuesta:** solicitante; revisión de reglas con Leslie y David pendiente.
 - **Estado:** diseño pendiente. Esta spec no autoriza implementar ventas.
-- **Base local:** `origin/develop` `5ff50d9` (4 de noviembre de 2026); no se pudo actualizar la referencia remota por fallo de red.
+- **Base local:** `origin/develop` `d7ea282` (4 de noviembre de 2026), incluye el commit de FLEET-10 `d7ea282`.
 
 ## 1. Objetivo
 
