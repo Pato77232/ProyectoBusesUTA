@@ -211,6 +211,7 @@ test('copia de develop con datos conserva cada fila/definición y añade tablas 
     ).toEqual([
       'auth_email_actions',
       'auth_password_reset_attempts',
+      'booking_benefit_requests',
       'booking_benefit_reviews',
       'booking_guest_access_tokens',
       'booking_proof_receipt_results',

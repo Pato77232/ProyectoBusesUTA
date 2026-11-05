@@ -10,7 +10,7 @@ const entry = (name) => ({ name, isFile: () => true });
 const files = () => activeNames.map((name) => entry(name + '.js'));
 
 test('catálogo explícito conserva la cadena de develop, Pagos, protección, renovación y totales', () => {
-  expect(activeNames).toHaveLength(34);
+  expect(activeNames).toHaveLength(36);
   expect(activeNames[16]).toBe('1793730000000-commercial-trips');
   expect(activeNames[17]).toBe('1793740000000-allow-vip-bus-seats');
   expect(activeNames[18]).toBe('1793820000000-install-bookings');
@@ -29,6 +29,8 @@ test('catálogo explícito conserva la cadena de develop, Pagos, protección, re
   expect(activeNames[31]).toBe('1794290000000-index-password-reset-attempt-retention');
   expect(activeNames[32]).toBe('1794300000000-index-password-reset-action-retention');
   expect(activeNames[33]).toBe('1794310000000-create-tickets');
+  expect(activeNames[34]).toBe('1794320000000-booking-benefit-requests');
+  expect(activeNames[35]).toBe('1794330000000-booking-benefit-request-reviews');
   expect(() => validateHistory(activeNames.slice(0, 22))).not.toThrow();
   expect(new Set(activeNames).size).toBe(activeNames.length);
   expect([...activeNames].sort()).toEqual(activeNames);
@@ -99,5 +101,13 @@ test('adapta solo los límites del batch a savepoints y delega SQL/argumentos in
     ['SELECT $1::text', ['dato']],
     ['RELEASE SAVEPOINT migration_batch'],
     ['ROLLBACK TO SAVEPOINT migration_batch'],
+  ]);
+});
+
+test('la actualización desde develop conserva sus 34 migraciones como prefijo exacto', () => {
+  expect(() => validateHistory(activeNames.slice(0, 34))).not.toThrow();
+  expect(activeNames.slice(34)).toEqual([
+    '1794320000000-booking-benefit-requests',
+    '1794330000000-booking-benefit-request-reviews',
   ]);
 });

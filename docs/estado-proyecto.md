@@ -1,5 +1,26 @@
 # Estado compartido del proyecto
 
+## Conciliación de PR #106
+
+Rama actualizada con develop `a7a4a9a`, conflictos resueltos y migraciones
+propias renumeradas a 179432/179433 sin alterar SQL. Node 24.22.2:
+2168 unitarias backend y 370 frontend aprobadas; lint/formato aprobados.
+Integración PostgreSQL y revisión humana pendientes. Véase la
+[evidencia final](evidence/BOOK-08/2026-11-04-revision-pr106.md).
+La sección anterior de revisión se conserva como fotografía previa.
+
+## Revisión actual de BOOK-08 / PR #106 — 4 de noviembre de 2026
+
+B/C y pantalla D publicados en `9ea3cdb`; PR #106 abierta, sin integrar.
+Correcciones locales de respuestas tardías, cambio de sesión con guardado
+incierto y publicación del resultado del comprador tras verificar identidad.
+Frontend 336/336, backend 2049/2049 unitarias, lint de ambos y formato backend
+aprobados con Node 26.4.0 (requiere repetición en Node 24). Sin PostgreSQL/Docker
+para repetir integración. Conflictos con develop `a7a4a9a` y conciliación del
+catálogo pendientes. [Evidencia y límites](evidence/BOOK-08/2026-11-04-revision-pr106.md).
+Sin commits/publicación nuevos ni revisión humana; las filas anteriores son
+históricas cuando contradicen esta comprobación remota.
+
 ## Edwin — boletos con QR (BOLETOS-01), 4 de noviembre de 2026
 
 | Spec / responsable | Estado y evidencia | Próximo paso |
@@ -944,3 +965,11 @@ Revisión humana, push, PR e integración siguen pendientes.
 ## Leslie — lectura de venta para boletos, 4 de noviembre de 2026
 
 Rama feature/BOOK-09-lectura-venta-boletos actualizada por fast-forward a 5c48d22, hotfix #94 integrado. [Spec](specs/BOOK-09-lectura-boletos.md), [contrato interno](contratos/bookings-lectura-boletos.md) y [evidencia histórica y vigente](evidence/BOOK-09/2026-11-04-lectura-boletos.md). Implementados lector privado de venta SOLD y proyección desde snapshot comercial schemaVersion 2, con coherencia de pasajeros, precio y asignaciones y lectura sin efectos. Verificación final tras sincronizar dependencias existentes: npm test aprobado, 1990 unitarias + 662 integraciones, 2652 pruebas/172 suites. Lint, formato global y diff --check aprobados; arranque real health 200 y stop ordenado. Pendientes: revisión humana y consumidor de boletos de Shirley. Leslie autoriza crear commit y publicar esta rama. PR, revisión humana y conexión con Tickets pendientes; funcionalidad no integrada. Cambios previos y respaldo del lector conservados en los stashes documentados. Los fallos anteriores permanecen en evidencia con su base y fecha; no describen el resultado final actual.
+
+## Leslie — acreditación, incrementos B y C, 4 de noviembre de 2026
+
+Rama feature/BOOK-08-acreditacion-web desde 46a96a2; origin/develop observado en 432ae27 sin incorporar. [Spec](specs/BOOK-08-acreditacion-web.md), [contrato B/C](contratos/solicitudes-acreditacion.md), [evidencia B](evidence/BOOK-08/2026-11-04-solicitudes-acreditacion.md) y [evidencia C](evidence/BOOK-08/2026-11-04-revision-acreditacion.md). Solicitudes propias idempotentes, bandeja/detalle por rol y cooperativa y guardado CLERK transaccional con evidencia privada, versión, control de concurrencia y recuperación de respuesta perdida. La revisión alimenta la fuente real del resumen y no crea reserva ni ocupa asientos. Migraciones nuevas B/C al final del catálogo (32), sin alterar previas ni desactivar validación de historia. npm test final aprobado: 2049 unitarias + 686 integraciones, 2735 pruebas/177 suites. Lint, formato global y diff --check aprobados; arranque real health 200, listado/revisión sin sesión 401 y no-store, cierre ordenado. Pendientes: D (pantalla/flujo web conforme a DESIGN.md), revisión humana e integración. Sin commit/push/PR. La API anterior de acreditación mantiene su semántica; no se afirma serializar sus revisiones posteriores. La API de boletos de PR #98 está integrada en 46a96a2; no acredita emisión QR/correo.
+
+Actualización posterior BOOK-08: Leslie autoriza commit y push de B/C en feature/BOOK-08-acreditacion-web. Se mantienen los resultados comprobados y los pendientes D/revisión humana/integración; no se declara PR creada.
+
+Actualización D: pantalla local de acreditación implementada, sin commit/push/PR. [Evidencia de pantalla](evidence/BOOK-08/2026-11-04-pantalla-acreditacion.md): lint frontend y 333 pruebas aprobadas; Chrome/PostgreSQL aislado aprobó solicitud desde compra, bandeja CLERK, revisión por teclado, privacidad, reflujo y resumen posterior. El intento de repetir integraciones backend en otra base temporal fue interrumpido por el entorno sin resultado, por lo que no se presenta como aprobado; D no modifica backend y conserva la evidencia B/C. Pendientes: revisión humana e integración.
