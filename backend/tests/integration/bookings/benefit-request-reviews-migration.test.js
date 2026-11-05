@@ -20,6 +20,12 @@ async function worker(action, input = {}) {
 }
 const history = async () =>
   (await pool.query('SELECT name FROM pgmigrations ORDER BY id')).rows.map((r) => r.name);
+const REVIEWS = '1794330000000-booking-benefit-request-reviews';
+const throughReviews = activeNames.slice(0, activeNames.indexOf(REVIEWS) + 1);
+// Revierte las migraciones posteriores para que el down pruebe la de revisiones.
+async function revertAfterReviews() {
+  while ((await history()).at(-1) !== REVIEWS) await worker('migrate', { direction: 'down' });
+}
 beforeAll(async () => {
   const target = new URL(assertTestDatabase());
   admin = testPool();
@@ -72,8 +78,9 @@ test('revierte y reaplica con solicitudes pendientes conservando su contenido', 
       'SELECT id,purchase,status,revision,created_at,expires_at FROM booking_benefit_requests',
     )
   ).rows;
+  await revertAfterReviews();
   await worker('migrate', { direction: 'down' });
-  expect(await history()).toEqual(activeNames.slice(0, -1));
+  expect(await history()).toEqual(throughReviews.slice(0, -1));
   expect(
     (
       await pool.query(
@@ -113,10 +120,13 @@ test('resultado con evidencia impide down sin borrar solicitud, acreditación o 
   );
   const before = (await pool.query('SELECT * FROM booking_benefit_requests')).rows;
   const reviews = (await pool.query('SELECT * FROM booking_benefit_reviews')).rows;
+  await revertAfterReviews();
   await expect(worker('migrate', { direction: 'down' })).rejects.toThrow(
     'Las revisiones requieren un plan',
   );
   expect((await pool.query('SELECT * FROM booking_benefit_requests')).rows).toEqual(before);
   expect((await pool.query('SELECT * FROM booking_benefit_reviews')).rows).toEqual(reviews);
+  expect(await history()).toEqual(throughReviews);
+  await worker('migrate', { direction: 'up' });
   expect(await history()).toEqual(activeNames);
 });
