@@ -11,7 +11,8 @@ habilitarlo. La respuesta 202 mantiene un tiempo mínimo configurable de 300 ms
 para reducir diferencias observables entre cuentas. No se envió correo real.
 Validación dirigida, frontend 326/326 y recorrido de navegador con backend/DB
 reales aprobaron; el token QA del recorrido se insertó como hash para simular
-el correo. Backend lint/formato, 1962/1962 unitarias y 665/665 integraciones
+el correo. Las acciones terminadas se purgan a los siete días, sin borrar
+enlaces vigentes. Backend lint/formato, 1962/1962 unitarias y 666/666 integraciones
 con PostgreSQL aislado aprobaron. [Detalle](specs/AUTH-CORREO-01.md).
 Pendientes: configurar y comprobar SMTP con buzón propio, revisión humana,
 publicación e integración.

@@ -93,12 +93,15 @@ El trabajador se habilita expresamente con `PASSWORD_RESET_WORKER_ENABLED=true`
 y exige SMTP completo y `PUBLIC_WEB_ORIGIN` válido. El origen debe ser HTTPS,
 salvo loopback en desarrollo. La configuración permite ajustar sondeo, reclamo
 de acciones abandonadas, vigencia del token (20 minutos por defecto), cinco
-intentos, demoras de 1/5/15/15 minutos y retención de contadores de un día.
+intentos, demoras de 1/5/15/15 minutos, retención de contadores de un día y
+retención de acciones terminadas de siete días.
 Las acciones se reclaman con `FOR UPDATE SKIP LOCKED`; cada intento sustituye
 el hash del token. El correo se construye en memoria y solo el hash queda en
 PostgreSQL. El adaptador distingue rechazos SMTP 4xx, 5xx y resultados inciertos.
-Los contadores antiguos se purgan en lotes; el emisor comprueba que la cuenta
-todavía existe. `ACCEPTED` indica aceptación SMTP, no entrega.
+Los contadores y las acciones terminadas antiguas se purgan en lotes; los
+enlaces vigentes se conservan y una solicitud nueva borra el hash anterior.
+El emisor comprueba que la cuenta todavía existe. `ACCEPTED` indica aceptación
+SMTP, no entrega.
 
 `POST /api/v1/auth/password-reset/confirm` exige CSRF, valida la misma política
 de contraseña que el registro y devuelve 204 al consumir el token. La transacción
@@ -121,6 +124,6 @@ y reflujo a 360 px. El recorrido insertó un hash QA para simular la aceptación
 del correo; no se contactó SMTP externo ni se comprobó llegada a un buzón.
 El backend arrancó con el trabajador habilitado y un transporte SMTP simulado,
 respondió 200 en `/api/v1/health` y cerró ordenadamente sin enviar mensajes.
-La suite backend completa aprobó lint, formato, 1962/1962 unitarias y 665/665
+La suite backend completa aprobó lint, formato, 1962/1962 unitarias y 666/666
 integraciones con PostgreSQL aislado. La activación operativa requiere configurar
 SMTP y el origen público en su entorno, seguido de prueba con un buzón propio.
