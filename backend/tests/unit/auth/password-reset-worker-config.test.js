@@ -16,6 +16,7 @@ test('trabajador apagado por defecto y contrato configurado al habilitarlo', () 
     maxAttempts: 5,
     delays: [1, 5, 15, 15],
     retentionDays: 1,
+    actionRetentionDays: 7,
   });
 });
 
@@ -60,5 +61,8 @@ test('valida número de reintentos y configuración numérica', () => {
   expect(() => readPasswordResetWorkerConfig({ ...base, PASSWORD_RESET_CLAIM_MS: '0' })).toThrow();
   expect(() =>
     readPasswordResetWorkerConfig({ ...base, PASSWORD_RESET_ATTEMPT_RETENTION_DAYS: '0' }),
+  ).toThrow();
+  expect(() =>
+    readPasswordResetWorkerConfig({ ...base, PASSWORD_RESET_ACTION_RETENTION_DAYS: '0' }),
   ).toThrow();
 });

@@ -40,6 +40,7 @@ function createSendPasswordReset({ repository, mailer, config }) {
 
   async function runBatch() {
     await repository.pruneAttempts(config.retentionDays);
+    await repository.pruneActions(config.actionRetentionDays);
     for (let processed = 0; processed < 10; processed += 1) {
       if (!(await processNext())) return;
     }

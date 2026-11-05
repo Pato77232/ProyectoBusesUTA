@@ -62,6 +62,11 @@ function readPasswordResetWorkerConfig(env = process.env) {
       1,
       'PASSWORD_RESET_ATTEMPT_RETENTION_DAYS',
     ),
+    actionRetentionDays: positiveInteger(
+      env.PASSWORD_RESET_ACTION_RETENTION_DAYS,
+      7,
+      'PASSWORD_RESET_ACTION_RETENTION_DAYS',
+    ),
     maxAttempts,
     delays,
   });

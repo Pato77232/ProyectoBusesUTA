@@ -8,6 +8,7 @@ const config = {
   origin: 'https://pasajes.example.ec',
   tokenMinutes: 20,
   retentionDays: 1,
+  actionRetentionDays: 7,
   maxAttempts: 5,
   delays: [1, 5, 15, 15],
 };
@@ -123,7 +124,9 @@ test('una solicitud nueva sustituye un envío en curso sin reactivar el enlace a
   };
   await request();
   await sender(mailer).processNext();
-  expect((await actions()).map((action) => action.state).sort()).toEqual(['PENDING', 'SUPERSEDED']);
+  const updated = await actions();
+  expect(updated.map((action) => action.state).sort()).toEqual(['PENDING', 'SUPERSEDED']);
+  expect(updated.find((action) => action.state === 'SUPERSEDED').token_hash).toBeNull();
 });
 
 test('SKIP LOCKED deja reclamar otra acción mientras una está bloqueada', async () => {
@@ -158,4 +161,25 @@ test('el trabajador elimina contadores anteriores a la retención configurada', 
     (await pool.query('SELECT count(*)::int AS count FROM auth_password_reset_attempts')).rows[0]
       .count,
   ).toBe(0);
+});
+
+test('el trabajador retira acciones terminadas antiguas y conserva enlaces vigentes', async () => {
+  const mailer = { send: jest.fn().mockResolvedValue({ status: 'ACCEPTED' }) };
+  await request();
+  await sender(mailer).processNext();
+  await pool.query(
+    "UPDATE auth_email_actions SET requested_at=CURRENT_TIMESTAMP-INTERVAL '8 days',token_expires_at=CURRENT_TIMESTAMP-INTERVAL '1 day'",
+  );
+  await sender(mailer).runBatch();
+  expect(await actions()).toEqual([]);
+  await pool.query(
+    "UPDATE auth_password_reset_attempts SET requested_at=CURRENT_TIMESTAMP-INTERVAL '61 seconds'",
+  );
+  await request();
+  await sender(mailer).processNext();
+  await pool.query(
+    "UPDATE auth_email_actions SET requested_at=CURRENT_TIMESTAMP-INTERVAL '8 days'",
+  );
+  await sender(mailer).runBatch();
+  expect((await actions())[0].state).toBe('ACCEPTED');
 });

@@ -37,7 +37,7 @@ class PgPasswordResetRepository {
       );
       if (eligible && user.rows[0]) {
         await client.query(
-          `UPDATE auth_email_actions SET state='SUPERSEDED'
+          `UPDATE auth_email_actions SET state='SUPERSEDED',token_hash=NULL,token_expires_at=NULL
            WHERE user_id=$1 AND purpose='PASSWORD_RESET'
              AND state IN ('PENDING','SENDING','ACCEPTED') AND used_at IS NULL`,
           [user.rows[0].id],
@@ -121,6 +121,21 @@ class PgPasswordResetRepository {
        )
        DELETE FROM auth_password_reset_attempts AS attempt
        USING expired WHERE attempt.id=expired.id`,
+      [retentionDays],
+    );
+  }
+
+  async pruneActions(retentionDays) {
+    await this.pool.query(
+      `WITH expired AS (
+         SELECT id FROM auth_email_actions
+         WHERE requested_at<CURRENT_TIMESTAMP-$1::int*INTERVAL '1 day'
+           AND (state IN ('FAILED','SUPERSEDED','USED')
+             OR (state='ACCEPTED' AND token_expires_at<CURRENT_TIMESTAMP))
+         ORDER BY requested_at,id FOR UPDATE SKIP LOCKED LIMIT 1000
+       )
+       DELETE FROM auth_email_actions AS action
+       USING expired WHERE action.id=expired.id`,
       [retentionDays],
     );
   }
