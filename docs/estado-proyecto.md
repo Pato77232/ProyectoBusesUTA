@@ -1,11 +1,11 @@
 # Estado compartido del proyecto
 
-## Pablo — AUTH-CORREO-01 implementada localmente, 4 de noviembre de 2026
+## Pablo — AUTH-CORREO-01 publicada y conciliada con develop, 4 de noviembre de 2026
 
 La rama `feature/AUTH-CORREO-01-recuperacion-cuenta` contiene la solicitud
 durable, el trabajador reintentable, enlace de 20 minutos, confirmación atómica,
 revocación de sesiones y dos pantallas enlazadas desde login. Los cambios
-están en commits atómicos locales frente a la PR #97; sin push ni integración.
+están publicados en commits atómicos en la PR #97; sin integración.
 El trabajador está apagado por defecto y exige SMTP y `PUBLIC_WEB_ORIGIN` para
 habilitarlo. La respuesta 202 mantiene un tiempo mínimo configurable de 300 ms
 para reducir diferencias observables entre cuentas. No se envió correo real.
@@ -14,8 +14,13 @@ reales aprobaron; el token QA del recorrido se insertó como hash para simular
 el correo. Las acciones terminadas se purgan a los siete días, sin borrar
 enlaces vigentes. Backend lint/formato, 1962/1962 unitarias y 666/666 integraciones
 con PostgreSQL aislado aprobaron. [Detalle](specs/AUTH-CORREO-01.md).
-Pendientes: configurar y comprobar SMTP con buzón propio, revisión humana,
-publicación e integración.
+La rama incorpora `origin/develop` `432ae27`, incluyendo AUTH-WEB-02 y DOCS-02;
+el login conserva ambos enlaces y la imagen incluye las tres pantallas.
+La conciliación aprobó lint y formato backend, lint frontend, 2006/2006 pruebas
+unitarias y 677/677 integraciones con PostgreSQL aislado, 338/338 pruebas
+frontend y la construcción de la imagen frontend.
+Pendientes: configurar y comprobar SMTP con buzón propio, revisión humana
+e integración.
 
 ## Pablo — AUTH-CORREO-01, primer incremento histórico, 4 de noviembre de 2026
 
@@ -48,6 +53,41 @@ de migración de Fleet falló también al repetirla sola. Frontend lint y 319/31
 pruebas aprobaron; el backend arrancó y health respondió 200 con PostgreSQL
 aislado, luego retirado. Detalles en la spec. Sin código propio, revisión humana
 ni integración de esta PR.
+
+## Pablo — pantalla de registro de clientes, 4 de noviembre de 2026
+
+En `feature/AUTH-WEB-02-registro-cliente`, creada desde `origin/develop`
+`5ff50d9`, se implementó localmente [AUTH-WEB-02](specs/AUTH-WEB-02.md): página
+pública de registro de CUSTOMER que usa el endpoint AUTH-04 existente, el cliente
+HTTP/CSRF compartido y la identidad visual de transViaje. Pablo confirmó
+confirmación de contraseña, paso al login con correo precargado y retorno a la
+reserva tras confirmar `auth/me`; no hay login automático ni redirección externa.
+Los errores conocidos son genéricos y una respuesta incierta no reenvía el POST.
+Navegación e imagen frontend incluyen la página. La suite frontend aprobó 331
+pruebas; el lint dirigido pasó, Docker construyó la imagen final y Chrome
+recorrió el flujo con API simulada.
+El smoke existente de portada aprobó escritorio, móvil, teclado, destinos y
+zoom CSS 200 %; el enlace de login no reprodujo un fallo en esta ejecución.
+
+Una comprobación posterior con copia temporal de PR #94 (`1eb0210`) y esta
+pantalla aprobó el recorrido real de registro, login y retorno a reservas con
+PostgreSQL/Nginx/backend saludables. No acredita el arranque de `main` ni
+`develop` antes de integrar el hotfix; detalles en la spec.
+
+Pendientes: inspección visual, revisión humana y resolución del fallo de lint
+previo de `backend/src/server.js` en la base. Sin push, PR ni integración. Las filas históricas inferiores no
+se actualizan por inferencia.
+
+## Pablo — conciliación documental de defectos académicos, 4 de noviembre de 2026
+
+En `feature/DOCS-02-politica-defectos`, conciliada con `origin/develop`
+`3695655`, [DOCS-02](specs/DOCS-02.md) alinea AGENTS.md, CONTRIBUTING.md y el
+protocolo de errores inducidos con la decisión de Edwin registrada para v0.1.0:
+la entrega no incluye defectos deliberados. Los candidatos de ACADEMICA-01
+siguen como propuestas históricas. El fallo de arranque de `server.js` no se
+reclasifica como académico. La resolución conserva tanto esta evidencia como la
+de AUTH-WEB-02 anterior. Revisión humana e integración siguen pendientes; las
+filas históricas inferiores conservan su fecha y evidencia.
 
 ## INTEG-01 — continuación local T7, T6b y composición, 4 de noviembre de 2026
 
@@ -775,3 +815,7 @@ tokens internos; la emisión recibe un puerto de correo para entregar el enlace.
 
 La cobertura específica y la validación del catálogo aprobaron 18/18 pruebas.
 Revisión humana, push, PR e integración siguen pendientes.
+
+## Leslie — lectura de venta para boletos, 4 de noviembre de 2026
+
+Rama feature/BOOK-09-lectura-venta-boletos actualizada por fast-forward a 5c48d22, hotfix #94 integrado. [Spec](specs/BOOK-09-lectura-boletos.md), [contrato interno](contratos/bookings-lectura-boletos.md) y [evidencia histórica y vigente](evidence/BOOK-09/2026-11-04-lectura-boletos.md). Implementados lector privado de venta SOLD y proyección desde snapshot comercial schemaVersion 2, con coherencia de pasajeros, precio y asignaciones y lectura sin efectos. Verificación final tras sincronizar dependencias existentes: npm test aprobado, 1990 unitarias + 662 integraciones, 2652 pruebas/172 suites. Lint, formato global y diff --check aprobados; arranque real health 200 y stop ordenado. Pendientes: revisión humana y consumidor de boletos de Shirley. Leslie autoriza crear commit y publicar esta rama. PR, revisión humana y conexión con Tickets pendientes; funcionalidad no integrada. Cambios previos y respaldo del lector conservados en los stashes documentados. Los fallos anteriores permanecen en evidencia con su base y fecha; no describen el resultado final actual.

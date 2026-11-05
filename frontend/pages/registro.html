@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Crea tu cuenta de cliente en transViaje."
+    />
+    <meta name="theme-color" content="#202020" />
+    <title>Crear cuenta · transViaje</title>
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+    <link
+      rel="stylesheet"
+      href="../assets/vendor/bootstrap-5.3.8/bootstrap.min.css"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+    />
+    <link rel="stylesheet" href="../src/styles/app.css" />
+    <link rel="stylesheet" href="../src/styles/login.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+    <header class="site-header">
+      <div
+        class="container d-flex flex-wrap align-items-center justify-content-between gap-3"
+      >
+        <a class="brand" href="../index.html" aria-label="transViaje, inicio">
+          <span class="brand-logo-frame" aria-hidden="true"
+            ><img
+              class="brand-logo"
+              src="../assets/brand/logo-transviaje.png"
+              alt=""
+              width="1600"
+              height="1446"
+          /></span>
+        </a>
+        <a href="../index.html">Volver al inicio</a>
+      </div>
+    </header>
+    <main id="contenido" class="login-layout container" tabindex="-1">
+      <section class="login-card" aria-labelledby="register-title">
+        <p class="eyebrow">BIENVENIDO A TRANSVIAJE</p>
+        <h1 id="register-title">Crear cuenta</h1>
+        <p>Regístrate como cliente con tu correo electrónico.</p>
+        <p
+          id="register-status"
+          class="login-notice"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          tabindex="-1"
+        >
+          Introduce tus datos para crear una cuenta.
+        </p>
+        <noscript><p>Habilita JavaScript para crear tu cuenta.</p></noscript>
+        <form
+          method="post"
+          novalidate
+          aria-label="Registro de cliente"
+          aria-describedby="register-status"
+        >
+          <fieldset>
+            <legend class="visually-hidden">Datos de la cuenta</legend>
+            <div class="mb-4">
+              <label for="register-email" class="form-label"
+                >Correo electrónico</label
+              >
+              <input
+                id="register-email"
+                class="form-control"
+                name="email"
+                type="email"
+                autocomplete="email"
+                maxlength="254"
+                required
+              />
+            </div>
+            <div class="mb-4">
+              <label for="register-password" class="form-label"
+                >Contraseña</label
+              >
+              <input
+                id="register-password"
+                class="form-control"
+                name="password"
+                type="password"
+                autocomplete="new-password"
+                aria-describedby="password-help"
+                required
+              />
+              <p id="password-help" class="form-text">
+                Entre 15 y 128 caracteres. Puedes usar un gestor de contraseñas.
+              </p>
+            </div>
+            <div class="mb-4">
+              <label for="register-confirmation" class="form-label"
+                >Confirmar contraseña</label
+              >
+              <input
+                id="register-confirmation"
+                class="form-control"
+                name="confirmation"
+                type="password"
+                autocomplete="new-password"
+                required
+              />
+            </div>
+            <button class="btn btn-primary w-100" type="submit">
+              Crear cuenta
+            </button>
+          </fieldset>
+        </form>
+        <p class="mt-4 mb-0">
+          ¿Ya tienes una cuenta? <a href="./login.html">Iniciar sesión</a>
+        </p>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="container">
+        <p class="mb-0">
+          transViaje <span aria-hidden="true">·</span> Proyecto académico
+        </p>
+      </div>
+    </footer>
+    <script type="module" src="../src/auth/register-page.js"></script>
+  </body>
+</html>

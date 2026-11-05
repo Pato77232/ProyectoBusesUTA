@@ -1,15 +1,15 @@
 # AUTH-CORREO-01: recuperar el acceso mediante correo
 
 - **Responsable de preparación:** Pablo. **Revisión de contrato:** Edwin respondió las preguntas por mensaje comunicado por Pablo; revisión del cambio documental y del código pendiente.
-- **Estado:** contrato cerrado por Pablo el 4 de noviembre de 2026; recuperación implementada localmente, sin integración ni prueba SMTP real.
-- **Base comprobada:** `origin/develop` `5ff50d9`, 4 de noviembre de 2026; rama `feature/AUTH-CORREO-01-recuperacion-cuenta`.
+- **Estado:** contrato cerrado por Pablo el 4 de noviembre de 2026; recuperación publicada en la PR #97 y conciliada con `origin/develop` `432ae27`, sin integración ni prueba SMTP real.
+- **Base comprobada:** `origin/develop` `432ae27`, 4 de noviembre de 2026; rama `feature/AUTH-CORREO-01-recuperacion-cuenta`. Base inicial `5ff50d9`.
 - **Reglas y decisiones:** RN-01/03 en [business-rules](../business-rules.md), [ADR 0004](../adr/0004-autenticacion-sesiones-credenciales.md), [CORREO-01](CORREO-01.md), [calidad](../calidad.md) y `frontend/DESIGN.md`.
 
 ## Objetivo y límites
 
 Una persona que olvidó su contraseña solicita desde el login un enlace temporal al correo de su cuenta, establece una nueva contraseña y luego inicia sesión normalmente. Pablo confirmó el 4 de noviembre de 2026: **todos los roles**, vigencia del enlace de **20 minutos** (reemplaza su decisión anterior de 30 minutos) y **revocación de todas las sesiones abiertas** al completar el cambio. La recuperación no crea sesión ni cambia el rol, correo o cooperativa de la cuenta.
 
-La verificación inicial de correo, cambio de correo, MFA y recuperación cuando ya no se controla el buzón necesitan contratos separados. No se usarán preguntas de seguridad ni se enviarán contraseñas por correo. La pantalla de registro de `AUTH-WEB-02` puede integrarse antes o después: esta tarea parte del login ya existente en `develop`; al combinar ramas se revisarán los enlaces de `frontend/pages/login.html`.
+La verificación inicial de correo, cambio de correo, MFA y recuperación cuando ya no se controla el buzón necesitan contratos separados. No se usarán preguntas de seguridad ni se enviarán contraseñas por correo. La pantalla de registro de `AUTH-WEB-02` ya está en `develop`; la conciliación conservó ambos enlaces de `frontend/pages/login.html`.
 
 El SMTP compartido (`backend/src/shared/mail/smtp-mailer.js`) solo informa aceptación del proveedor, no entrega. `CORREO-01` excluye expresamente la recuperación. La prueba real del buzón y la configuración del operador no están acreditadas por esta spec.
 
@@ -127,3 +127,15 @@ respondió 200 en `/api/v1/health` y cerró ordenadamente sin enviar mensajes.
 La suite backend completa aprobó lint, formato, 1962/1962 unitarias y 666/666
 integraciones con PostgreSQL aislado. La activación operativa requiere configurar
 SMTP y el origen público en su entorno, seguido de prueba con un buzón propio.
+
+## Conciliación para revisión, 4 de noviembre de 2026
+
+Se incorporó `origin/develop` `432ae27` a la rama. Los conflictos de
+`frontend/pages/login.html` y `frontend/Dockerfile` se resolvieron conservando
+los enlaces de registro y recuperación y copiando sus tres páginas a la imagen.
+`docs/estado-proyecto.md` conserva las evidencias de AUTH-CORREO-01,
+AUTH-WEB-02 y DOCS-02. La imagen frontend se construyó correctamente; lint
+backend y frontend, formato backend y 338/338 pruebas frontend aprobaron.
+La suite backend completa con PostgreSQL aislado aprobó 2006/2006 unitarias
+y 677/677 integraciones.
+La prueba SMTP con buzón propio y la revisión humana siguen pendientes.
