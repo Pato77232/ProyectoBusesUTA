@@ -40,6 +40,7 @@ const activeNames = Object.freeze([
   '1794280000000-auth-password-reset-actions',
   '1794290000000-index-password-reset-attempt-retention',
   '1794300000000-index-password-reset-action-retention',
+  '1794310000000-create-tickets',
 ]);
 const migrationsDirectory = path.join(__dirname, '../migrations');
 // node-pg-migrate ancla este patrón; preservar explícitamente su exclusión de ocultos.

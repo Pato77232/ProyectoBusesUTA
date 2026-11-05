@@ -23,7 +23,9 @@ jest.mock('../../../src/modules/payments', () => ({
 jest.mock('../../../src/modules/bookings', () => ({
   createBookingsModule: jest.fn(),
   createBookingOccupancyQueries: jest.fn(),
+  createBookingTicketQueries: jest.fn(),
 }));
+jest.mock('../../../src/modules/tickets', () => ({ createTicketsModule: jest.fn() }));
 
 const createApp = require('../../../src/app');
 const { createPool } = require('../../../src/shared/database');

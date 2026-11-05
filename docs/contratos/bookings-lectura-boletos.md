@@ -31,6 +31,28 @@ Objeto, lista y pasajeros son copias congeladas. Orden de pasajeros conservado d
 
 null es indistinguible para reserva inexistente, de otra cooperativa o no vendida. No es una confirmación de pago ni un rechazo de pago. SOLD con snapshot histórico incompleto falla explícitamente, sin inventar importes, pasajeros o fechas.
 
+## Lectura por propietario (BOLETOS-01)
+
+Ampliación del 4 de noviembre de 2026 para el emisor de boletos, ver [BOLETOS-01](../specs/BOLETOS-01.md).
+
+```js
+const sale = await bookingTicketQueries.findSoldForOwner({ bookingId, ownerId });
+```
+
+Entrada: exactamente bookingId y ownerId, cadenas no vacías; ownerId sale de la sesión autenticada del cliente, nunca del body. La cooperativa se toma de la reserva persistida. Devuelve null indistinguible si la reserva no existe, es de otro propietario o no está vendida.
+
+Resultado: el mismo de findSoldForTicket más `trip`, copiado del resumen comercial congelado:
+
+```js
+trip: {
+  departureDate, // AAAA-MM-DD
+  origin: { position, locationKey, departureAt },
+  destination: { position, locationKey, arrivalAt },
+}
+```
+
+No se expone ownerId. Una venta SOLD sin fecha de servicio, sin puntos del recorrido o con horas inválidas falla con BOOKING_TICKET_DATA_INTEGRITY_ERROR. findSoldForTicket no cambia.
+
 ## Datos confiables y coherencia
 
 Una sola sentencia PostgreSQL obtiene la reserva y sus asignaciones activas desde tablas propias. Se verifica identidad, estado, formato comercial schemaVersion 2, moneda, tramo, fecha de venta, total persistido, correspondencia exacta de asientos SOLD y suma de precios individuales. No se consulta la tarifa actual ni tablas privadas de otros módulos. Ningún fallo técnico o dato incoherente se convierte en null.
