@@ -163,3 +163,23 @@ Guardado de revisión CLERK implementado con evidencia privada y versión, recup
 ## 14. Publicación autorizada
 
 Leslie solicita expresamente crear commit y hacer push de B/C en feature/BOOK-08-acreditacion-web. Se conserva la validación final anterior: no hay cambios funcionales posteriores. Publicación no equivale a revisión humana, pantalla D o integración.
+
+## 15. Incremento D autorizado: pantalla y solicitud desde compra
+
+Leslie solicita «listo hagamos eso» tras publicar B/C en 9c045c5. Se autoriza implementar D en la misma rama, sin commit/push nuevos hasta petición. Se observa origin/develop 292bb1f sin incorporarlo; la rama INTEG-01-T6b-acreditacion-beneficios ya contiene la API anterior y no añade pantallas de acreditación frente a la base local. No se rehace esa API.
+
+Aplicación explícita de frontend/DESIGN.md: marca/recursos locales, Bootstrap existente, tokens compartidos, blanco/negro/violeta, foco visible, navegación y estados escritos. Añadir estilos acotados a la página, sin cambiar tokens globales ni instalar dependencias. Separar cliente HTTP, controlador de estado y vista. Añadir acceso desde Comprobantes al área de acreditaciones; autenticar/autorizar realmente en backend y comprobar /auth/me en cada acción privada del controlador.
+
+Comprador: solicitar revisión con el manifiesto ya introducido y requestKey aleatoria mantenida solo en memoria. Mostrar que no reserva asientos y que debe presentar documentos a la cooperativa. Consultar únicamente su solicitud; mostrar resultado sin evidencia/actor; conservar el mismo intento ante error incierto y bloquear otra intención hasta resolverlo. Cambiar datos crea otro contexto: limpiar la referencia de acreditación en memoria y solicitar nuevamente si corresponde. El resumen sigue siendo una operación explícita posterior, nunca éxito de compra por acreditar.
+
+CLERK: bandeja paginada, detalle privado por selección y formulario inicialmente sin verificaciones. Por pasajero: fecha verificada con IDENTITY/BIRTH_RECORD y referencia opaca; discapacidad con DISABILITY y referencia. Revisar el contexto antes de enviar mediante casilla de confirmación. Usar expectedRevision persistida, bloquear edición durante envío o resultado incierto y permitir reintentar exactamente la misma intención. Conflicto obliga a recargar detalle. Sesión vencida/cambio de cuenta limpia información privada; no guardar pasajeros/evidencia en URL o storage. No subir archivos, prometer correo o exigir copiar IDs/JSON.
+
+Verificación D: pruebas de controlador/cliente para autorización, paginación, conflictos, reintentos y cambio de sesión; suites/lint frontend; recorrido con navegador real y PostgreSQL aislado usando proveedores reales de B/C, compra → solicitud → revisión → nuevo resumen. Teclado, 360/1280 px, zoom 200 %, payload como texto y ausencia de datos privados en storage/URL. Registrar fallos y límites; no sustituye revisión humana. No cambia composición ni negocio backend; conservar las 2735 pruebas de B/C como evidencia histórica si no cambia backend.
+
+## 16. Implementación local de D
+
+La página `frontend/pages/acreditaciones.html` está implementada localmente. Un CLERK de la cooperativa autenticada consulta la bandeja, abre el detalle privado, acredita edad y discapacidad mediante referencias opacas de documentos, confirma el contexto y guarda una sola revisión. La página no muestra evidencia en la bandeja, no permite escoger cooperativa y retira datos si cambia la sesión o se abandona la vista.
+
+Desde `reservas.html`, un CUSTOMER autenticado puede solicitar y volver a consultar su acreditación con la misma clave en memoria. La pantalla explica que no reserva asientos ni completa una compra; después de una revisión se solicita de nuevo el resumen al servidor. Cambiar pasajeros, asiento o tramo descarta esa solicitud local. No se persisten pasajeros, referencias o evidencias en URL, localStorage ni sessionStorage.
+
+Comprobación de D: lint y 333 pruebas frontend aprobadas. Las 13 pruebas nuevas cubren rol, paginación, conflicto, intento incierto, cambio de sesión, respuesta tardía, comprador y transporte HTTP. El recorrido de Chrome con PostgreSQL aislado aprobó solicitud desde compra, detalle con texto hostil mostrado como texto, revisión por teclado, persistencia única, resumen posterior, limpieza al cambiar de cuenta, reflujo 360/1280 y zoom CSS 200 %, sin solicitudes externas. La repetición posterior de `npm run test:integration` de backend se interrumpió por el entorno antes de producir resultado; no hay fallo de código atribuido ni se presenta como prueba aprobada. B/C conserva su validación final de 2735 pruebas porque D no modifica backend. Falta revisión humana, commit, publicación e integración.

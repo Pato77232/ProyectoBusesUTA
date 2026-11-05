@@ -1,0 +1,104 @@
+.benefit-layout {
+  padding-block: 3rem 5rem;
+}
+.benefit-layout h1 {
+  max-width: 18ch;
+  font-size: clamp(2.3rem, 5vw, 3.8rem);
+  letter-spacing: -0.04em;
+}
+.benefit-lead {
+  max-width: 48rem;
+  font-size: 1.2rem;
+}
+.benefit-columns {
+  display: grid;
+  grid-template-columns: minmax(15rem, 1fr) minmax(0, 2fr);
+  gap: 2rem;
+  align-items: start;
+}
+.benefit-list {
+  display: grid;
+  gap: 0.75rem;
+}
+.benefit-item {
+  display: grid;
+  gap: 0.4rem;
+  text-align: left;
+  width: 100%;
+  padding: 1rem;
+  border: 1px solid var(--color-muted);
+  border-radius: 12px;
+  color: var(--color-text);
+  background: var(--color-canvas);
+  overflow-wrap: anywhere;
+}
+.benefit-item:hover {
+  background: var(--color-accent-surface);
+}
+.benefit-detail {
+  background: var(--color-surface);
+  padding: 1.5rem;
+  border-radius: 20px;
+  overflow-wrap: anywhere;
+}
+.benefit-passenger {
+  border: 0;
+  border-top: 1px solid var(--color-muted);
+  padding-block: 1.5rem;
+  min-width: 0;
+}
+.benefit-passenger legend {
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+.benefit-field {
+  display: grid;
+  gap: 0.4rem;
+  margin-block: 0.8rem;
+}
+.benefit-field:has(input[type="checkbox"]) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+.benefit-field input:not([type="checkbox"]),
+.benefit-field select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--color-muted);
+  border-radius: 8px;
+  background: var(--color-canvas);
+  padding: 0.7rem;
+  color: var(--color-text);
+}
+.benefit-field input[type="checkbox"],
+.benefit-confirmation input {
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: var(--color-brand);
+}
+.benefit-status {
+  padding: 1rem;
+  border-radius: 12px;
+  background: var(--color-accent-surface);
+}
+.benefit-confirmation {
+  display: block;
+  line-height: 1.7;
+}
+.benefits-page :focus-visible {
+  outline: 3px solid var(--color-brand);
+  outline-offset: 3px;
+}
+.benefits-page [hidden] {
+  display: none !important;
+}
+@media (max-width: 800px) {
+  .benefit-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .benefit-detail {
+    padding: 1rem;
+  }
+}
