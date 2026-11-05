@@ -63,7 +63,7 @@ La aprobación de este borrador exige confirmar las decisiones compartidas relev
 
 ## Primer incremento y verificación local
 
-El solicitante aprobó expresamente empezar por el puerto PNG de Pablo. `smtp-mailer.js` conserva los mensajes de texto y acepta un único `attachment` opcional con nombre seguro, MIME `image/png`, Buffer de hasta 256 KiB y estructura básica PNG (firma, IHDR y cierre IEND). Copia los bytes antes del envío; mantiene deshabilitado el acceso a rutas y URL de Nodemailer. No se añadió dependencia ni se configuró SMTP real.
+El solicitante aprobó expresamente empezar por el puerto PNG de Pablo. Contrato en `9f138a3`; puerto y pruebas en `c4f001a`. `smtp-mailer.js` conserva los mensajes de texto y acepta un único `attachment` opcional con nombre seguro, MIME `image/png`, Buffer de hasta 256 KiB y estructura básica PNG (firma, IHDR y cierre IEND). Copia los bytes antes del envío; mantiene deshabilitado el acceso a rutas y URL de Nodemailer. No se añadió dependencia ni se configuró SMTP real.
 
 Pruebas del adaptador: 21/21 aprobadas. Backend `npm run lint` y `npm run format:check`: aprobados. Suite completa con PostgreSQL temporal aislado: 2025/2025 unitarias y 687/688 integraciones; falló `fleet/bus-seat-immutability.test.js` al revertir una migración de Flota. Repetición dirigida de esa suite: 8/9 aprobadas, mismo fallo. No se editaron pruebas ni migraciones. El resultado global no se presenta como aprobado.
 

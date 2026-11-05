@@ -1,5 +1,24 @@
 # Estado compartido del proyecto
 
+## Boletos y correo — preparación de BOLETOS-02, 4 de noviembre de 2026
+
+En `feature/BOLETOS-02-envio-correo`, basada en `origin/develop` `c9d14bf`,
+se preparó el [borrador BOLETOS-02](specs/BOLETOS-02.md) para entregar boletos y
+avisos por correo. `smtp-mailer.js` existe, pero CORREO-01 no tiene cola ni
+trabajador compartido. La rama remota BOLETOS-01 (`2dac0c0`) emite QR y excluye
+correo; no está en la base comprobada. Bookings no guarda los correos por
+pasajero/responsable y Pagos no expone aún el evento de corrección. Faltan los
+acuerdos con Shirley, Leslie, Edwin y Pablo indicados en la spec.
+El solicitante confirmó emitir al confirmar la venta, adjuntar el QR como imagen
+e incluir el aviso de corrección. Son decisiones funcionales registradas en la
+spec; no equivalen a aprobación técnica de los módulos afectados.
+El solicitante autorizó el primer incremento de Pablo: SMTP admite un único PNG
+validado sin cambiar el envío de texto. Pruebas dirigidas 21/21, lint y formato
+backend aprobados. Suite global: 2025 unitarias aprobadas y 687/688
+integraciones; la reversión de migración de Flota falló también sola (8/9).
+Contrato en `9f138a3`; puerto y pruebas en `c4f001a`.
+Pendientes revisión humana e integración de BOLETOS-02.
+
 ## Pablo — AUTH-WEB-03, pantallas administrativas, 4 de noviembre de 2026
 
 En `feature/AUTH-WEB-03-administracion`, creada desde `origin/develop`
