@@ -1,5 +1,43 @@
 # Estado compartido del proyecto
 
+## OPS-WEB-01 — acceso a operaciones de cooperativa, 4 de noviembre de 2026
+
+En `feature/AUTH-WEB-01-cierre-sesion-cambio-cuenta`, sobre commit
+`1f15756`, el solicitante eligió agregar un menú para el rol
+`COOPERATIVE_ADMIN`. Login ahora enlaza a `/pages/operaciones-cooperativa.html`;
+la página valida `/api/v1/auth/me` antes de mostrar enlaces a registrar bus,
+frecuencias, hojas de ruta y crear oficinistas. Se explicita que Flota aún
+requiere un grupo y no hay pantalla para crearlo. La página y su módulo se
+incluyen en la imagen Nginx. No hubo cambios backend ni dependencias.
+
+Pruebas: frontend 366/366, lint, Prettier, build Docker y recorrido
+`test:admin` con Chrome y stack aislado aprobados. El smoke confirmó enlaces
+HTTP 200, rol denegado y reflujo a 360 px. El entorno de QA se retiró; el
+entorno temporal que el usuario ya tenía activo no se detuvo. La evidencia y
+los límites constan en [OPS-WEB-01](specs/OPS-WEB-01.md). Pendientes: revisión
+humana e integración. Sin commit, push o merge.
+
+## AUTH-WEB-01 — ampliación de cierre y cambio de cuenta, 4 de noviembre de 2026
+
+El solicitante autorizó implementar en su rama feature administrada por él.
+Login muestra «Cerrar sesión y usar otra cuenta» para sesión confirmada. Reutiliza
+logout/CSRF existentes y solo muestra el formulario tras GET me = 401. Borra
+correo/contraseña y enlace anterior, bloquea doble clic y recupera resultados
+inciertos mediante lectura sin repetir POST ni redirigir a la cuenta anterior.
+Backend, migraciones y dependencias intactos. DESIGN.md aplicado con estilo/foco local.
+
+Frontend lint, formato propio y 361/361 pruebas aprobadas (nueve nuevas).
+Chrome con frontend/proxy/backend/PostgreSQL efímeros reales aprobó administrador
+a cliente, teclado/foco, móvil/escritorio, reflujo CSS 200 %, respuesta perdida y
+doble clic. [Spec §21](specs/AUTH-WEB-01.md),
+[evidencia y límites](evidence/AUTH-WEB-01/cambio-cuenta/README.md).
+Backend lint/formato aprobados, 2037/2037 unitarias y 692/693 integraciones:
+único fallo por timeout de fotografías Fleet, repetido aisladamente (17/18), sin
+modificar esa prueba ni su límite. Regresión global fallida; detalle en spec.
+Entornos web y PostgreSQL temporales retirados. No se ejecutaron comandos de Git; rama/remoto
+sin nueva verificación. Revisión humana e integración pendientes, sin reabrir
+por inferencia el cierre del alcance original. Asistencia de Codex.
+
 ## Edwin — catálogo de migraciones tras BOOK-11 (INTEG-02), 5 de noviembre de 2026
 
 | Spec / responsable | Estado y evidencia | Próximo paso |
@@ -529,7 +567,7 @@ Antes de orientar a alguien:
 | [FLEET-07](specs/FLEET-07.md) | Edwin | T1 preparada para revisión en [PR #44](https://github.com/Pato77232/ProyectoBusesUTA/pull/44); sin integración | 3 de noviembre: VIP no ofrecido confirmado por Edwin; migración VIP renumerada con autorización y SQL intacto; reversión independiente de la última migración. Integración Linux/PostgreSQL aislado 280/280, prueba con migración posterior 5/5 y upgrade desde develop aprobados. Unitarias globales 1074 aprobadas/2 fallidas de hojas de ruta; base conservada sin merge por decisión de Edwin. Leslie y revisión humana pendientes; T2 aparte. |
 | [FLEET-09](specs/FLEET-09.md) | Edwin; David revisa | T1 en [PR #59](https://github.com/Pato77232/ProyectoBusesUTA/pull/59); conflictos con develop c95cc73 conciliados | Catálogo de 22 migraciones, Fleet renombrada a 1794080000000 sin cambiar SQL; conservadas comprobaciones de Pagos y actualización desde 21 migraciones. Node 24/PostgreSQL aislado: 1747 unitarias y 555 integraciones aprobadas; lint/formato propio aprobados, 17 avisos globales sin diferencias frente a develop. Revisión humana pendiente; timeouts históricos Windows no se declaran resueltos. No integrada ni aceptada. |
 | [FLEET-10](specs/FLEET-10.md) | Solicitante; David propuesto como revisor | Implementación local en `feature/FLEET-10-inventario-admin-hotfix`, base `origin/develop` `5c48d22`; commits `aee5b92`, `e7f55f4`, `bb86d76`, `e25779c` | 11 unitarias dirigidas y 325 pruebas frontend aprobadas; lint frontend/backend completos y smoke de navegador con API simulada aprobados. Dos suites unitarias no cargan por módulos ausentes del worktree; integración PostgreSQL y revisión humana pendientes. Sin push. |
-| [BOOK-10](specs/BOOK-10.md) | Responsable y revisores funcionales por confirmar | Borrador de contrato en `feature/BOOK-10-venta-accesible-develop`, base `origin/develop` `d7ea282`; sin aprobación ni implementación | Pendientes elegibilidad, capacidad/acompañante, precio/snapshot y compatibilidad Fleet/Route Sheets. FLEET-08 mantiene estos espacios con `offered: false`; no comenzar venta hasta acordar y aprobar la spec. |
+| [BOOK-10](specs/BOOK-10.md) | Responsable y revisores funcionales por confirmar | Borrador de contrato en `feature/BOOK-10-venta-accesible-develop`, base `origin/develop` `d7ea282`; sin aprobación ni implementación | Pendientes elegibilidad, capacidad/acompañante, precio/snapshot y compatibilidad Fleet/Route Sheets. FLEET-08 mantiene estos espacios con `offered: false`; no comenzar venta hasta acordar y aprobar la spec. | Consumidor de Leslie preparado por separado en [BOOK-10-consumidor-reservas](specs/BOOK-10-consumidor-reservas.md); requiere productor versionado y revisión funcional, no habilita venta real con el proveedor actual.
 | [INTEG-01](specs/INTEG-01.md) | Edwin | T1 (cf285b3, 183d95b), T2 (44cd95b), T3 (3d3261f), T4 (3e6f4ef), T5 (70fcbd2, a0387dd) y T6a en ramas feature/INTEG-01-* encadenadas desde develop 64f39cd; T6b requiere decisión del equipo | T1 catálogo; T2 historial; T3 rechazo; T4 confirmador real; T5 canje de invitado; T6a creación comercial con readPurchaseTrip. 1925/1925 unitarias; integración 643/647. Quedan 4 fallos de carga autorizada 404. Acreditador real sin implementar (flujo pendiente por decisión de David). Hallazgo: server.js compone según _isMockFunction. Revisión humana pendiente. |
 | search, bookings, payments y tickets | Según propuesta inferior | Sin implementación en la base examinada | Confirmar ramas de los responsables antes de crear tareas |
 | [PAGOS-01](specs/PAGOS-01.md) | Shirley | Código integrado en `origin/develop` en `f26415d`; revisión/cierre humano no se infieren | El merge commit `f26415d` incorpora PAGOS-01 (`518c46b` como segundo padre). La evidencia de pruebas registrada corresponde a la rama de origen, no a una repetición posterior al merge. `bookings` sigue simulado conforme al alcance T4. |

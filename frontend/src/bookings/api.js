@@ -28,6 +28,12 @@ export function createBookingsApi(fetchImpl) {
       const query = new URLSearchParams(context);
       return send("/api/v1/bookings/availability?" + query);
     },
+    accessibleAvailability(context) {
+      return send(
+        "/api/v1/bookings/accessible-availability?" +
+          new URLSearchParams(context),
+      );
+    },
     async summary(data) {
       return send("/api/v1/bookings/summary", {
         method: "POST",

@@ -114,8 +114,33 @@ async function main() {
       await browser.evaluate(
         `document.querySelector('#administration-link').getAttribute('href')`,
       ),
-      "/pages/oficinistas.html",
+      "/pages/operaciones-cooperativa.html",
     );
+    await navigate("/pages/operaciones-cooperativa.html");
+    await wait(
+      browser,
+      `!document.querySelector('#operations-content').hidden`,
+    );
+    const operationLinks = await browser.evaluate(
+      `Array.from(document.querySelectorAll('#operations-content a'), link => link.getAttribute('href'))`,
+    );
+    assert.deepEqual(operationLinks, [
+      "/pages/registrar-bus.html",
+      "/pages/crear-frecuencia.html",
+      "/pages/frecuencias.html",
+      "/pages/hojas-ruta.html",
+      "/pages/oficinistas.html",
+    ]);
+    assert.match(
+      await browser.evaluate(
+        `document.querySelector('#operations-content').textContent`,
+      ),
+      /crear grupos todavía no está disponible/u,
+    );
+    for (const path of operationLinks) {
+      assert.equal((await fetch(origin + path)).status, 200);
+    }
+
     await navigate("/pages/oficinistas.html");
     await wait(
       browser,
@@ -144,6 +169,17 @@ async function main() {
     );
     assert.equal(
       await browser.evaluate(`document.querySelector('#admin-form').hidden`),
+      true,
+    );
+    await navigate("/pages/operaciones-cooperativa.html");
+    await wait(
+      browser,
+      `document.querySelector('#operations-status')?.textContent.includes('solo para administradores')`,
+    );
+    assert.equal(
+      await browser.evaluate(
+        `document.querySelector('#operations-content').hidden`,
+      ),
       true,
     );
     await browser.send("Emulation.setDeviceMetricsOverride", {
@@ -178,9 +214,13 @@ async function main() {
   }
 }
 
-main().catch(() => {
+main().catch((error) => {
+  const location = (error.stack || "")
+    .split("\n")
+    .filter((line) => line.includes("admin-browser-smoke.cjs"))
+    .join("\n");
   process.stderr.write(
-    "Falló el recorrido QA de administración; detalles sensibles omitidos.\n",
+    `${error.name} ${location}\nFalló el recorrido QA de administración; detalles sensibles omitidos.\n`,
   );
   process.exitCode = 1;
 });

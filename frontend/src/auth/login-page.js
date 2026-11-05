@@ -1,7 +1,10 @@
-import { createApiClient } from '../api/api-client.js';
-import { createLoginController } from './login-controller.js';
-import { createLoginView } from './login-view.js';
-import { readReservationReturn, takeRegistrationEmail } from './registration-navigation.js';
+import { createApiClient } from "../api/api-client.js";
+import { createLoginController } from "./login-controller.js";
+import { createLoginView } from "./login-view.js";
+import {
+  readReservationReturn,
+  takeRegistrationEmail,
+} from "./registration-navigation.js";
 
 let registeredEmail = null;
 try {
@@ -9,7 +12,8 @@ try {
 } catch {
   // El login sigue disponible sin precarga.
 }
-if (registeredEmail) document.querySelector('#login-email').value = registeredEmail;
+if (registeredEmail)
+  document.querySelector("#login-email").value = registeredEmail;
 const next = readReservationReturn(document.defaultView.location.search);
 
 const controller = createLoginController({
@@ -19,12 +23,17 @@ const controller = createLoginController({
     if (next) document.defaultView.location.assign(next);
   },
 });
-document.querySelector('form').addEventListener('submit', (event) => {
+document.querySelector("form").addEventListener("submit", (event) => {
   event.preventDefault();
   controller.submit({
-    email: document.querySelector('#login-email').value,
-    password: document.querySelector('#login-password').value,
+    email: document.querySelector("#login-email").value,
+    password: document.querySelector("#login-password").value,
   });
 });
-document.querySelector('#check-session').addEventListener('click', () => controller.checkSession());
+document
+  .querySelector("#check-session")
+  .addEventListener("click", () => controller.checkSession());
+document
+  .querySelector("#change-account")
+  .addEventListener("click", () => controller.changeAccount());
 controller.checkSession();

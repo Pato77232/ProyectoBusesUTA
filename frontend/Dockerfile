@@ -16,6 +16,7 @@ COPY pages/registro.html /usr/share/nginx/html/pages/registro.html
 COPY pages/cooperativas.html /usr/share/nginx/html/pages/cooperativas.html
 COPY pages/administrador-cooperativa.html /usr/share/nginx/html/pages/administrador-cooperativa.html
 COPY pages/oficinistas.html /usr/share/nginx/html/pages/oficinistas.html
+COPY pages/operaciones-cooperativa.html /usr/share/nginx/html/pages/operaciones-cooperativa.html
 COPY pages/crear-frecuencia.html /usr/share/nginx/html/pages/crear-frecuencia.html
 COPY pages/frecuencias.html /usr/share/nginx/html/pages/frecuencias.html
 COPY src/styles/frequency-list.css /usr/share/nginx/html/src/styles/frequency-list.css
