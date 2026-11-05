@@ -1,5 +1,29 @@
 # Estado compartido del proyecto
 
+## Pablo — pantalla de registro de clientes, 4 de noviembre de 2026
+
+En `feature/AUTH-WEB-02-registro-cliente`, creada desde `origin/develop`
+`5ff50d9`, se implementó localmente [AUTH-WEB-02](specs/AUTH-WEB-02.md): página
+pública de registro de CUSTOMER que usa el endpoint AUTH-04 existente, el cliente
+HTTP/CSRF compartido y la identidad visual de transViaje. Pablo confirmó
+confirmación de contraseña, paso al login con correo precargado y retorno a la
+reserva tras confirmar `auth/me`; no hay login automático ni redirección externa.
+Los errores conocidos son genéricos y una respuesta incierta no reenvía el POST.
+Navegación e imagen frontend incluyen la página. La suite frontend aprobó 331
+pruebas; el lint dirigido pasó, Docker construyó la imagen final y Chrome
+recorrió el flujo con API simulada.
+El smoke existente de portada aprobó escritorio, móvil, teclado, destinos y
+zoom CSS 200 %; el enlace de login no reprodujo un fallo en esta ejecución.
+
+Una comprobación posterior con copia temporal de PR #94 (`1eb0210`) y esta
+pantalla aprobó el recorrido real de registro, login y retorno a reservas con
+PostgreSQL/Nginx/backend saludables. No acredita el arranque de `main` ni
+`develop` antes de integrar el hotfix; detalles en la spec.
+
+Pendientes: inspección visual, revisión humana y resolución del fallo de lint
+previo de `backend/src/server.js` en la base. Sin push, PR ni integración. Las filas históricas inferiores no
+se actualizan por inferencia.
+
 ## INTEG-01 — continuación local T7, T6b y composición, 4 de noviembre de 2026
 
 Edwin solicita completar las conexiones pendientes y confirma acreditación manual específica hasta el embarque. Sobre `d9ee164`, en `feature/INTEG-01-T6-compra-comercial`, quedan cambios sin commit: carga autorizada con lector público real de Reservas y reloj propagado; servidor con una sola composición sin `_isMockFunction`; revisión de nacimiento/discapacidad por CLERK, auditada por contexto y con vencimiento al embarque, sin documentos/imágenes. La compra productiva consume ese proveedor persistido; no hay autoacreditación ni verificador favorable simulado. API nueva descrita en [INTEG-01-T6b](specs/INTEG-01-T6b.md); conexiones/evidencia en [INTEG-01](specs/INTEG-01.md).

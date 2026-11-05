@@ -9,6 +9,11 @@ const access = createBookingAccess({ api });
 let loginRequired = false;
 let hasCustomerSession = false;
 const context = readTripContext(window.location.search);
+const reservationReturn =
+  "/pages/reservas.html" +
+  (context ? "?" + new URLSearchParams(context) : "");
+element("register-customer").href =
+  "/pages/registro.html?" + new URLSearchParams({ next: reservationReturn });
 const selected = new Set();
 const drafts = new Map();
 let seats = [];
