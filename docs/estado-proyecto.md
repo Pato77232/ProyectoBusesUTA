@@ -1,5 +1,24 @@
 # Estado compartido del proyecto
 
+## David — generación mediante renovación, sección 3 del recorrido, 4 de noviembre de 2026
+
+El solicitante eligió expresamente «Repetir el patrón y reutilizar la renovación
+existente». [ROUTE-SHEETS-08 §19](specs/ROUTE-SHEETS-08.md#19-sección-3-del-recorrido-repetir-el-patrón-mediante-renovación)
+registra la decisión y el contrato; [SEARCH-01](specs/SEARCH-01.md) actualiza el
+plan. Se reutilizan caso de uso, endpoint y pantalla existentes: copia del patrón
+con mismos buses, desplazamiento de L días, identidades nuevas, revalidación y
+destino DRAFT. Solo publicar explícitamente habilita el período comercial.
+No se crea un generador duplicado ni se habilitan rotación, scheduler u optimización.
+
+Sección documental preparada; código/contratos y enlaces locales contrastados.
+Sin nuevas ejecuciones de lint, formato, pruebas o arranque al no modificar
+producto/pruebas. Los resultados de sección 2 conservan su alcance histórico.
+Revisión humana e integración pendientes, sin cierre completo de RN-31.
+Git exclusivamente a cargo del humano, sin comandos ejecutados por el asistente.
+Última base conocida `d7ea282`, sin nueva consulta de rama/remoto. Asistencia de
+Codex en contraste y documentación. Próximo trabajo independiente del plan:
+diagnóstico de migraciones de la sección 4, sin atribuir aceptación de Edwin.
+
 ## David — ciclos confirmados, sección 2 del recorrido, 4 de noviembre de 2026
 
 El solicitante autorizó continuar con la sección 2 del plan de

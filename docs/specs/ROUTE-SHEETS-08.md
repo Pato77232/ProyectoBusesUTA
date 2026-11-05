@@ -285,3 +285,117 @@ declarar integración/cierre del módulo.
 
 Commit sugerido: `test(hojas-ruta): verifica publicación y límites de ciclos`,
 con `Refs: docs/specs/ROUTE-SHEETS-08.md`.
+
+## 19. Sección 3 del recorrido: repetir el patrón mediante renovación
+
+### Decisión de alcance confirmada — 4 de noviembre de 2026
+
+- **Estado:** Acordada por el solicitante para el alcance de su tarea; no implica
+  aprobación de PR, nueva integración ni aceptación individual de otros miembros.
+- **Solicitud:** realizar la sección 3 del plan de SEARCH-01 y sugerir commit.
+  Esa sección prepara el contrato de generación de borradores, no un optimizador.
+- **Pregunta:** repetir el patrón con los mismos buses o reasignar/rotar servicios.
+- **Respuesta humana literal:** «Repetir el patrón y reutilizar la renovación existente».
+- **Decisión:** la generación del siguiente borrador reutiliza íntegramente el
+  caso de uso, repositorio, endpoint y flujo web de renovación existentes. No se
+  crea otra spec, endpoint, modo de generación o servicio para duplicarlos.
+- **Responsable:** David por la tarea solicitada. Leslie sigue como revisora
+  propuesta, sin atribuirle confirmación nueva. Edwin/Leslie serían participantes
+  de un futuro acuerdo de rotación, que no se abre por esta decisión.
+- **Fuentes:** RN-02/20–23/30–32, contratos ROUTE-SHEETS-04/06/07/08,
+  ROUTE-SHEETS-WEB-03 y ADR 0006. No se cambia una regla de negocio.
+
+### Contrato adoptado
+
+«Automático» describe la copia y desplazamiento del patrón a petición del
+administrador. No significa ejecución periódica ni publicación por reloj.
+
+1. COOPERATIVE_ADMIN solicita renovar el último ciclo publicado de su serie.
+   Actor/cooperativa proceden de identidad verificada. El navegador no elige
+   fechas, buses, tenant, duración ni inventario autoritativos para la copia.
+2. El servidor conserva duración L en días y prepara el intervalo inmediatamente
+   posterior. Mantiene busId/frecuenciaId de cada servicio; crea identidades
+   nuevas para hoja, servicios requeridos, actividades y bloqueos.
+3. Desplaza L días las salidas, llegadas y horarios de paradas, disponibilidad
+   declarada, traslados y bloqueos REST/MAINTENANCE/STANDBY existentes. No calcula
+   tiempos desde distancias ni presupone disponibilidad por haber copiado datos.
+4. Revalida fuentes actuales, continuidad, cobertura, ubicación, preparación,
+   bloqueos y compromisos de otras hojas bajo la serialización vigente. Un bus
+   que ya no sirve bloquea la renovación; no se sustituye automáticamente.
+5. Copia la tarifa congelada como tarifa editable del borrador. No copia viajes
+   vendibles, inventarios comerciales, reservas, ventas ni pasajeros. La historia
+   anterior conserva identidades e importes.
+6. Respeta las restricciones vigentes: dos períodos no terminados confirmados,
+   conteo conservador de borradores programados y rechazo del siguiente intervalo
+   completamente pasado. No salta fechas ni crea series paralelas para eludir cupo.
+7. Persiste el borrador y su procedencia atómicamente. El administrador revisa el
+   destino y publica explícitamente mediante el caso de uso existente, que vuelve
+   a comprobar revisiones, cupo, fuentes e intervalo antes de crear viajes.
+
+### API y recuperación existentes
+
+| Acción | Contrato adoptado |
+|---|---|
+| Preparar siguiente borrador | `POST /api/v1/route-sheets/:id/renewals`, COOPERATIVE_ADMIN y CSRF |
+| Cuerpo | `expectedProgrammingRevision`, `expectedTariffRevision` y `requestKey` UUID; `:id` identifica la hoja origen |
+| Resultado inicial | 201, `{ renewal, replayed: false }`, destino DRAFT, período, serie y revisiones |
+| Recuperación | Repetir exactamente clave y solicitud recupera el recibo con 200 y `replayed: true`; otra intención requiere otra clave |
+| Publicar | `POST /api/v1/route-sheets/:id/publish` sobre el destino, con las revisiones vigentes según ROUTE-SHEETS-07/08 y el cliente existente |
+
+Entrada inválida 400; sesión/rol/CSRF 401/403; origen inexistente o ajeno 404;
+conflicto de fuente/revisión/cupo/agenda/clave 409; fuente técnica no disponible
+o resultado incierto 503, según códigos vigentes. No convertir errores en ausencia
+de compromisos ni generar otra clave ante una respuesta perdida. El recibo
+reproducido describe el resultado original: consultar el destino para conocer su
+estado actual, porque podría estar publicado después.
+
+La pantalla de ROUTE-SHEETS-WEB-03 ya usa este endpoint. No se modifica su
+presentación en esta sección. `generate-cycles` y `purchase-window` legados no son
+el contrato de generación/horizonte moderno; sus guards permanecen intactos.
+Retirar o migrar ese legado exige otra tarea con inventario de consumidores.
+
+### Trazabilidad técnica y aceptación
+
+- [Solicitud y validación HTTP](../../backend/src/modules/route-sheets/interfaces/http/prepare-renewal.controller.js).
+- [Caso de uso](../../backend/src/modules/route-sheets/application/use-cases/prepare-route-sheet-renewal.use-case.js).
+- [Desplazamiento del patrón](../../backend/src/modules/route-sheets/domain/services/renewal-programming.js).
+- [Plan y límites](../../backend/src/modules/route-sheets/domain/services/plan-route-sheet-renewal.js).
+- [Persistencia](../../backend/src/modules/route-sheets/infrastructure/repositories/pg-route-sheet-renewal-repository.js).
+- [Acción web](../../frontend/src/route-sheets/lifecycle-actions.js).
+- [Pruebas de dominio](../../backend/tests/unit/route-sheets/domain/plan-route-sheet-renewal.test.js)
+  y [pruebas de integración](../../backend/tests/integration/route-sheets/renewals.test.js).
+
+| Dado / cuando | Resultado exigido | Evidencia existente |
+|---|---|---|
+| Patrón publicado válido / preparar siguiente | Mismos buses/frecuencias, fechas desplazadas, identidades nuevas y tarifa editable | Dominio de renovación y copia íntegra PostgreSQL |
+| Borrador preparado / consultar búsqueda u horizonte | Sin nuevos viajes vendibles ni ampliación hasta publicar | §18, sección 2 del recorrido |
+| Dos períodos pendientes / preparar tercero antes del fin del primero | Conflicto sin resultados parciales; en el límite exacto puede prepararse si cumple las demás validaciones | §18 y pruebas de límites del dominio |
+| Solicitudes simultáneas o respuesta perdida / recuperar | Un destino y recibo estable, sin duplicación | Pruebas de concurrencia, clave y commit incierto |
+| Patrón con fuente inválida o conflicto / renovar | Rechazo con historia intacta, sin sustitución o datos simulados | Pruebas de fuentes y rollback |
+
+La tabla identifica cobertura existente; no es una nueva ejecución ni aprobación
+humana. La sección 2 registró 14/14 integraciones de renovación, 2017/2017 unitarias
+y 686/686 integraciones generales aprobadas. Esos totales conservan su fecha y
+alcance: no se reutilizan como pruebas de un algoritmo nuevo de rotación.
+
+### Alcance de este incremento y cierre documental
+
+Solo documentación: esta decisión reutiliza código existente, no requiere nueva
+implementación funcional, persistencia o dependencias. SOLID: se conserva un único
+caso de uso de renovación con puertos inyectados; no se duplica la lógica. Sin
+cambios visuales, sin nueva comprobación de usabilidad ni scheduler.
+
+Rotación/equidad de kilómetros, reasignación entre buses, optimización y creación
+de un patrón inicial desde cero quedan fuera. Si se solicitan, requieren contrato
+y criterios aprobados de cobertura, compatibilidad, desempate y ausencia de
+solución; esta decisión no los autoriza ni declara RN-31 íntegramente cerrada.
+
+Git queda exclusivamente a cargo del humano, también para consulta y revisión
+del diff. Última base conocida `d7ea282`, sin nueva verificación de rama/remoto.
+Sin aprobación de PR, integración ni cierre del módulo inferidos. Asistencia de
+Codex en contraste de código y documentación. Validación documental y enlaces
+locales comprobados; no se ejecutan lint, formato, suites o arranque porque no
+hay cambios de producto/pruebas en esta sección.
+
+Commit sugerido: `docs(hojas-ruta): define la generación mediante renovación`,
+con `Refs: docs/specs/ROUTE-SHEETS-08.md`.

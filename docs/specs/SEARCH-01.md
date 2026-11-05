@@ -34,7 +34,7 @@ haber vuelto a verificar rama, cambios locales o remoto en este incremento.
 |---|---|---|
 | 1. Búsqueda por embarque | Prueba HTTP/PostgreSQL real de viaje nocturno: fecha local del origen y de la parada, publicación previa, tarifa explícita y frecuencia activa | SEARCH-01, contrato existente; autorizada en esta sesión |
 | 2. Ciclos confirmados | Revisar y comprobar preparación/publicación, límite de períodos e historia conservada; corregir solo defectos reproducidos dentro del contrato vigente | ROUTE-SHEETS-04/07/08; implementación autorizada posteriormente por el solicitante |
-| 3. Generación automática moderna | Preparar contrato para generación de borradores compatible con programación en días, continuidad y confirmación humana antes de venta | Requiere spec y decisiones; el generador legado no acredita este recorrido |
+| 3. Generación mediante renovación | Repetir el patrón con los mismos buses, revalidar y preparar borrador para publicación explícita | Decisión del solicitante registrada en ROUTE-SHEETS-08 §19; se reutiliza el flujo existente |
 | 4. Migraciones en Windows | Reproducir y diagnosticar reversiones y timeouts, con Edwin como participante propuesto, sin atribuirle aceptación | Tarea independiente; spec técnica antes de corregir, sin ampliar timeouts para ocultar fallos |
 
 ### Sección 1: alcance y aceptación
@@ -117,3 +117,23 @@ interrumpió sin resumen; no se le atribuyen totales. Evidencia y límites en
 Sin cambios de producto ni operaciones de Git. Sección implementada localmente,
 pendiente de revisión humana. No se declara resuelto el origen de los fallos de
 reversión anteriores ni completada la generación automática moderna.
+
+### Sección 3: contrato de generación mediante renovación
+
+Ante la pregunta entre repetir el patrón o rotar/reasignar servicios, el
+solicitante confirmó: «Repetir el patrón y reutilizar la renovación existente».
+Se completa la sección documental adoptando el contrato existente de
+[ROUTE-SHEETS-08 §19](ROUTE-SHEETS-08.md#19-sección-3-del-recorrido-repetir-el-patrón-mediante-renovación).
+No se crea otra spec ni otro generador para la misma acción.
+
+La copia automática ocurre a petición del administrador, conserva los buses y
+desplaza el patrón L días con IDs nuevos y validaciones actuales. Produce DRAFT;
+solo la publicación humana explícita amplía ventas. Se mantienen idempotencia,
+aislamiento, continuidad, cupo y tarifas editables del destino. No se habilita
+scheduler, optimización ni rotación de buses, y no se usa `generate-cycles` legado.
+
+El código backend y la acción web existentes satisfacen este alcance; esta
+sección cambia únicamente documentación. Se contrastan sus contratos y enlaces,
+sin nuevas pruebas funcionales ni resultados atribuidos a este incremento. La
+evidencia de sección 2 conserva su alcance histórico. Revisión humana pendiente;
+sin comandos de Git ni declaración de cierre completo de RN-31.
