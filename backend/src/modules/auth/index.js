@@ -11,6 +11,7 @@ const PgAuthRepository = require('./infrastructure/pg-auth.repository');
 const PgPasswordResetRepository = require('./infrastructure/pg-password-reset.repository');
 const createRequestPasswordReset = require('./application/request-password-reset.use-case');
 const createSendPasswordReset = require('./application/send-password-reset.use-case');
+const createConfirmPasswordReset = require('./application/confirm-password-reset.use-case');
 const startPasswordResetWorker = require('./infrastructure/password-reset-worker');
 const { readPasswordResetWorkerConfig } = require('./infrastructure/password-reset-worker-config');
 const { createSmtpMailer } = require('../../shared/mail/smtp-mailer');
@@ -53,6 +54,7 @@ async function createAuthModule({ pool, env = process.env, mailer }) {
         repository: resetRepository,
         config,
       }),
+      confirmPasswordReset: createConfirmPasswordReset({ repository: resetRepository, hasher }),
     }),
     authenticate,
     authorize,

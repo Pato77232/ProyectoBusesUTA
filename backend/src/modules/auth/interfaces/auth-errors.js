@@ -6,6 +6,7 @@ const ERRORS = {
   TOO_MANY_ATTEMPTS: [429, 'Demasiados intentos. Intenta más tarde.'],
   COOPERATIVE_NOT_FOUND: [404, 'Cooperativa no encontrada.'],
   REGISTRATION_CONFLICT: [409, 'No se pudo completar el registro.'],
+  INVALID_RESET_TOKEN: [400, 'El enlace de recuperación no es válido o ha vencido.'],
 };
 function authErrors(error, req, res, next) {
   if (!(error instanceof AuthError) || !ERRORS[error.code]) return next(error);

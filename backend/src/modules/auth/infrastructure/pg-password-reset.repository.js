@@ -124,6 +124,68 @@ class PgPasswordResetRepository {
       [retentionDays],
     );
   }
+
+  async findUsableToken(tokenHash) {
+    const { rowCount } = await this.pool.query(
+      `SELECT id FROM auth_email_actions
+       WHERE token_hash=$1 AND token_expires_at>CURRENT_TIMESTAMP
+         AND used_at IS NULL AND state IN ('PENDING','SENDING','ACCEPTED')`,
+      [tokenHash],
+    );
+    return rowCount === 1;
+  }
+
+  async consumeToken({ tokenHash, passwordHash }) {
+    const client = await this.pool.connect();
+    try {
+      await client.query('BEGIN');
+      const { rows } = await client.query(
+        `SELECT id,user_id FROM auth_email_actions
+         WHERE token_hash=$1 AND token_expires_at>CURRENT_TIMESTAMP
+           AND used_at IS NULL AND state IN ('PENDING','SENDING','ACCEPTED')
+         FOR UPDATE`,
+        [tokenHash],
+      );
+      const action = rows[0];
+      if (!action) {
+        await client.query('ROLLBACK');
+        return false;
+      }
+      const changed = await client.query(
+        'UPDATE users SET password_hash=$2,updated_at=CURRENT_TIMESTAMP WHERE id=$1',
+        [action.user_id, passwordHash],
+      );
+      if (changed.rowCount !== 1) {
+        await client.query('ROLLBACK');
+        return false;
+      }
+      await client.query(
+        `UPDATE auth_email_actions
+         SET state='SUPERSEDED',token_hash=NULL,token_expires_at=NULL
+         WHERE user_id=$1 AND purpose='PASSWORD_RESET' AND id<>$2
+           AND state IN ('PENDING','SENDING','ACCEPTED')`,
+        [action.user_id, action.id],
+      );
+      await client.query(
+        `UPDATE auth_email_actions
+         SET state='USED',used_at=CURRENT_TIMESTAMP,token_hash=NULL,token_expires_at=NULL
+         WHERE id=$1`,
+        [action.id],
+      );
+      await client.query(
+        `UPDATE auth_sessions SET revoked_at=CURRENT_TIMESTAMP,revoke_reason='password_reset'
+         WHERE user_id=$1 AND revoked_at IS NULL`,
+        [action.user_id],
+      );
+      await client.query('COMMIT');
+      return true;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
 }
 
 module.exports = PgPasswordResetRepository;

@@ -2,8 +2,16 @@ const express = require('express');
 const { cookieOptions } = require('./cookies');
 const validateCredentials = require('./credentials');
 const authErrors = require('./auth-errors');
+const AuthError = require('../domain/auth-error');
 const { z } = require('zod');
 const resetRequest = z.object({ email: z.string().trim().toLowerCase().email().max(254) }).strict();
+const RESET_TOKEN = /^[A-Za-z0-9_-]{43}$/;
+const resetConfirmation = z
+  .object({
+    token: z.string(),
+    password: z.string().refine((value) => [...value].length >= 15 && [...value].length <= 128),
+  })
+  .strict();
 function createRouter({
   login,
   csrf,
@@ -13,6 +21,7 @@ function createRouter({
   register,
   createClerk,
   requestPasswordReset,
+  confirmPasswordReset,
 }) {
   const router = express.Router();
   router.use((req, res, next) => {
@@ -43,6 +52,17 @@ function createRouter({
         .json({ error: { code: 'VALIDATION_ERROR', message: 'Correo inválido.' } });
     await requestPasswordReset({ email: parsed.data.email, ip: req.ip });
     res.status(202).json({ message: 'Si la cuenta existe, enviaremos un enlace.' });
+  });
+  router.post('/password-reset/confirm', csrf.protect, async (req, res) => {
+    if (typeof req.body?.token !== 'string' || !RESET_TOKEN.test(req.body.token))
+      throw new AuthError('INVALID_RESET_TOKEN');
+    const parsed = resetConfirmation.safeParse(req.body);
+    if (!parsed.success)
+      return res.status(400).json({
+        error: { code: 'VALIDATION_ERROR', message: 'Datos de recuperación inválidos.' },
+      });
+    await confirmPasswordReset(parsed.data);
+    res.status(204).end();
   });
   router.post(
     '/clerks',
