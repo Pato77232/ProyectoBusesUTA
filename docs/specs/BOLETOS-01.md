@@ -80,7 +80,9 @@ Si faltan esos datos, o la llegada no es posterior a la salida, en una venta `SO
 | `code`           | text UNIQUE   | 128 bits aleatorios en base32, sin datos personales                |
 | `issued_at`      | timestamptz   | hora de la primera emisión                                         |
 
-Restricción única `(booking_id, seat_id)`. El `down` se bloquea si hay boletos emitidos.
+Restricción única `(booking_id, seat_id)` y formato del código validado en la base (`^[A-Z2-7]{26}$`). Migración `1794290000000-create-tickets`; el `down` se bloquea si hay boletos emitidos.
+
+El repositorio inserta los boletos que falten con `ON CONFLICT (booking_id, seat_id) DO NOTHING` y luego lee los guardados; así, consultas repetidas o simultáneas devuelven siempre los mismos códigos. La API pública del módulo es `createTicketsModule({ pool, soldBookings, clock })`, que expone `issueOwnerTickets({ bookingId, ownerId })`.
 
 ### Contenido del QR
 
@@ -159,8 +161,8 @@ No aplica: por decisión de Edwin del 4 de noviembre de 2026, la entrega no incl
 
 | Incremento | Contenido                                                                                                           | Estado            |
 | ---------- | ------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| T1         | Ampliación de BOOK-09: `findSoldForOwner` y `trip`                                                                  | Local, sin commit |
-| T2         | Módulo `tickets`: dominio, migración, repositorio y caso de uso idempotente                                         | Pendiente         |
+| T1         | Ampliación de BOOK-09: `findSoldForOwner` y `trip`                                                                  | Commit `edd96d6` |
+| T2         | Módulo `tickets`: dominio, migración, repositorio y caso de uso idempotente                                         | Local, sin commit         |
 | T3         | Endpoint HTTP, QR con `qrcode` 1.5.4 (MIT; depende de `pngjs`, `yargs` y `dijkstrajs`) y composición en `server.js` | Pendiente         |
 | T4         | Página de boletos imprimible y enlace desde «Mis reservas»                                                          | Pendiente         |
 

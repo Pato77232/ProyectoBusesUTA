@@ -216,9 +216,11 @@ test('copia de develop con datos conserva cada fila/definición y añade solamen
       'booking_trip_locks',
       'bookings',
       'route_sheet_renewals',
+      'tickets',
     ]);
     expect(after.data.bookings).toEqual([]);
     expect(after.data.route_sheet_renewals).toEqual([]);
+    expect(after.data.tickets).toEqual([]);
   });
 });
 
