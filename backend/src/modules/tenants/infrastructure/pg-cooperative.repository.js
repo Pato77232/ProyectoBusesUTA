@@ -19,5 +19,12 @@ class PgCooperativeRepository extends CooperativeRepository {
       throw error;
     }
   }
+
+  async listSummary() {
+    const { rows } = await this.pool.query(
+      'SELECT id, name, ruc FROM cooperatives ORDER BY name, id',
+    );
+    return rows;
+  }
 }
 module.exports = PgCooperativeRepository;
