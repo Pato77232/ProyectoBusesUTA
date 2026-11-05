@@ -5,6 +5,20 @@
 | Spec / responsable | Estado y evidencia | Próximo paso |
 | --- | --- | --- |
 | [BOLETOS-01](specs/BOLETOS-01.md) / Edwin | Rama `feature/BOLETOS-01-emision-qr` desde `origin/develop` `3695655`. Spec en borrador con las decisiones de Edwin. T1 en `edd96d6`: `findSoldForOwner` en la lectura de BOOK-09, con el tramo congelado; `findSoldForTicket` no cambia. T2 en `91f4962`: módulo `tickets`, migración `1794310000000-create-tickets` y emisión idempotente por propietario. T3 en `172f005`: `GET /api/v1/tickets/bookings/:bookingId` para el CUSTOMER propietario, QR SVG con `qrcode` 1.5.4 y composición en `server.js`. T4 local: `pages/boletos.html` imprimible y enlace desde Reservas; recorrido real y QR decodificado con lector independiente. Sin push ni PR. | Revisión visual en escritorio, móvil e impresión; avisar a Leslie; abrir PR hacia `develop`. |
+## Pablo — AUTH-WEB-03, pantallas administrativas, 4 de noviembre de 2026
+
+En `feature/AUTH-WEB-03-administracion`, creada desde `origin/develop`
+`d7ea282`, Pablo aprobó el contrato de [AUTH-WEB-03](specs/AUTH-WEB-03.md).
+Pablo confirmó agregar consulta de cooperativas para poder asignar un
+administrador a una cooperativa ya creada. Se implementaron tres pantallas:
+alta de cooperativa y administrador por `SYSTEM_ADMIN`, y alta de oficinistas
+por `COOPERATIVE_ADMIN` con cooperativa de la sesión. El recorrido real de
+cooperativa → administrador → oficinista, rechazo por rol y móvil aprobó.
+Backend lint/formato, 2018/2018 unitarias, 687/688 integraciones y frontend
+lint, 352/352 pruebas aprobaron. La única falla global fue una reversión de
+migración de Flota, que pasó 9/9 sola con base nueva; detalles en la spec.
+En commits locales por cambio lógico; sin publicación, revisión humana ni
+integración de esta tarea.
 
 ## Pablo — AUTH-CORREO-01 publicada y conciliada con develop, 4 de noviembre de 2026
 
