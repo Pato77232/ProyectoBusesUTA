@@ -10,7 +10,7 @@ const entry = (name) => ({ name, isFile: () => true });
 const files = () => activeNames.map((name) => entry(name + '.js'));
 
 test('catálogo explícito conserva la cadena de develop, Pagos, protección, renovación y totales', () => {
-  expect(activeNames).toHaveLength(33);
+  expect(activeNames).toHaveLength(35);
   expect(activeNames[16]).toBe('1793730000000-commercial-trips');
   expect(activeNames[17]).toBe('1793740000000-allow-vip-bus-seats');
   expect(activeNames[18]).toBe('1793820000000-install-bookings');
@@ -28,6 +28,8 @@ test('catálogo explícito conserva la cadena de develop, Pagos, protección, re
   expect(activeNames[30]).toBe('1794280000000-auth-password-reset-actions');
   expect(activeNames[31]).toBe('1794290000000-index-password-reset-attempt-retention');
   expect(activeNames[32]).toBe('1794300000000-index-password-reset-action-retention');
+  expect(activeNames[33]).toBe('1794330000000-auth-guest-email-access');
+  expect(activeNames[34]).toBe('1794340000000-booking-guest-contact');
   expect(() => validateHistory(activeNames.slice(0, 22))).not.toThrow();
   expect(new Set(activeNames).size).toBe(activeNames.length);
   expect([...activeNames].sort()).toEqual(activeNames);
