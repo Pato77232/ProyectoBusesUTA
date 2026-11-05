@@ -139,3 +139,13 @@ backend y frontend, formato backend y 338/338 pruebas frontend aprobaron.
 La suite backend completa con PostgreSQL aislado aprobó 2006/2006 unitarias
 y 677/677 integraciones.
 La prueba SMTP con buzón propio y la revisión humana siguen pendientes.
+
+## Prueba SMTP real, 10 de noviembre de 2026
+
+Edwin activó el SMTP real en la pila QA local de `feature/FRONT-02-cierre-flujo-web`, basada en `origin/develop` `162c80b`, que ya incluye esta recuperación. Configuró las cinco variables SMTP (puerto 587), `PASSWORD_RESET_WORKER_ENABLED=true` y `PUBLIC_WEB_ORIGIN` con el origen HTTPS de un túnel temporal de Cloudflare. Los valores quedaron solo en su entorno local; no se registran aquí.
+
+- El backend arrancó con el trabajador habilitado y sin errores.
+- Pablo pidió la recuperación de su cuenta desde el túnel. La acción quedó `ACCEPTED` en el primer intento.
+- Edwin confirmó que el correo llegó y que el enlace permitió restablecer la contraseña.
+
+Límites de esta evidencia: el origen del túnel cambia cada vez que se reinicia, así que `PUBLIC_WEB_ORIGIN` debe actualizarse y el backend reiniciarse con él. No hay un despliegue estable. La revisión humana del código sigue según la PR #97.

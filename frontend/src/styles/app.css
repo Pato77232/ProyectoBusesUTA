@@ -134,6 +134,9 @@ p {
   font-size: 0.875rem;
   font-weight: 600;
 }
+.nav-list a[aria-current='page'] {
+  background: var(--color-surface);
+}
 .nav-list a:hover {
   background: var(--color-surface);
   text-decoration: underline;
@@ -639,6 +642,30 @@ p {
   grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
   gap: 12px;
 }
+.booking-page .booking-seat-map {
+  display: grid;
+  gap: 20px;
+}
+.booking-page .booking-deck-title {
+  margin: 0 0 8px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+/* FRONT-02: la cuadrícula del piso se desplaza por dentro, no la página. */
+.booking-page .booking-deck-grid {
+  display: grid;
+  grid-auto-columns: minmax(56px, 72px);
+  grid-auto-rows: minmax(64px, auto);
+  gap: 8px;
+  overflow-x: auto;
+  padding: 12px;
+  border: 1px solid #d4d4dc;
+  border-radius: 16px;
+}
+.booking-page .booking-seat[data-category='VIP'] {
+  border-width: 2px;
+  border-color: var(--color-text);
+}
 .booking-page .booking-seat {
   min-height: 74px;
   padding: 12px 4px;
@@ -874,4 +901,26 @@ p {
 }
 .booking-page .booking-login form {
   margin-top: 24px;
+}
+
+/* FRONT-02 T10: panel del cliente. */
+.dashboard-trips {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dashboard-trip {
+  padding: 16px;
+  border: 1px solid #d4d4dc;
+  border-radius: 16px;
+  background: white;
+}
+.dashboard-trip[data-status='SOLD'] {
+  border-left: 4px solid var(--color-text);
+}
+.dashboard-trip-meta {
+  font-size: 0.875rem;
+  color: #585862;
 }

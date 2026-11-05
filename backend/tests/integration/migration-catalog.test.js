@@ -423,11 +423,15 @@ test('actualiza develop con Reservas existentes sin perder plazos ni ocupaciones
           const booking = JSON.parse(row);
           expect(booking.expired_at).toBeNull();
           expect(booking.guest_contact_email).toBeNull();
+          expect(booking.sold_by).toBeNull();
+          expect(booking.cash_receipt_id).toBeNull();
           expect(booking).toMatchObject({ vip_surcharge_cents: 0, rounding_adjustment_cents: 0 });
           delete booking.expired_at;
           delete booking.vip_surcharge_cents;
           delete booking.rounding_adjustment_cents;
           delete booking.guest_contact_email;
+          delete booking.sold_by;
+          delete booking.cash_receipt_id;
           delete booking.sold_at;
           delete booking.rejected_at;
           delete booking.rejection_justification;

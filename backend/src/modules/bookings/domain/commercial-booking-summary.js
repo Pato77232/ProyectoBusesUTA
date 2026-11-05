@@ -76,6 +76,7 @@ module.exports = function commercialBookingSummary(request, manifest, context) {
     totals: Object.freeze(totals),
     commercial: Object.freeze({
       ...Object.fromEntries(REFERENCE_FIELDS.map((key) => [key, trip[key]])),
+      ...(trip.accessibleInventoryVersion === 2 ? { accessibleInventoryVersion: 2 } : {}),
       unitPriceCents: trip.amountCents,
       policy: trip.policy,
       routePoints: trip.routePoints,

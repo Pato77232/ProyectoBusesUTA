@@ -10,6 +10,7 @@ Inventario del checkout `64f39cd`, 4 de noviembre de 2026. Tener un archivo de p
 |---|---|
 | `/` | Bienvenida pública, marca y enlaces |
 | `/pages/login.html` | Acceso con sesión/CSRF y recuperación de resultado incierto |
+| `/pages/operaciones-cooperativa.html` | Menú autenticado para COOPERATIVE_ADMIN con accesos a Flota, Frecuencias, Hojas de ruta y Oficinistas |
 | `/pages/registrar-bus.html` | Registro de bus |
 | `/pages/crear-frecuencia.html` | Alta de frecuencia con resolución ANT |
 | `/pages/frecuencias.html` | Consulta, detalle y cambio de estado |

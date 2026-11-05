@@ -1,5 +1,6 @@
 import { createApiClient } from "../api/api-client.js";
 import { createHistoryController } from "./history-controller.js";
+import { passengerSeatText } from "./booking-outcome.js";
 const el = (id) => document.getElementById(id);
 const states = {
   PENDING_PAYMENT: "Pendiente de pago",
@@ -65,7 +66,12 @@ const controller = createHistoryController({
       if (b.expiresAt)
         panel.append(node("p", "Plazo registrado: " + date(b.expiresAt)));
       for (const p of b.summary.passengers)
-        panel.append(node("p", p.fullName + " · asiento " + p.seatId));
+        panel.append(
+          node(
+            "p",
+            p.fullName + " · " + passengerSeatText(p.seatId, state.seatLabels),
+          ),
+        );
       if (b.status === "SOLD") {
         const link = node("a", "Ver mis boletos");
         link.href =

@@ -16,6 +16,7 @@ COPY pages/registro.html /usr/share/nginx/html/pages/registro.html
 COPY pages/cooperativas.html /usr/share/nginx/html/pages/cooperativas.html
 COPY pages/administrador-cooperativa.html /usr/share/nginx/html/pages/administrador-cooperativa.html
 COPY pages/oficinistas.html /usr/share/nginx/html/pages/oficinistas.html
+COPY pages/operaciones-cooperativa.html /usr/share/nginx/html/pages/operaciones-cooperativa.html
 COPY pages/crear-frecuencia.html /usr/share/nginx/html/pages/crear-frecuencia.html
 COPY pages/frecuencias.html /usr/share/nginx/html/pages/frecuencias.html
 COPY src/styles/frequency-list.css /usr/share/nginx/html/src/styles/frequency-list.css
@@ -52,4 +53,15 @@ COPY src/styles/route-sheets.css /usr/share/nginx/html/src/styles/route-sheets.c
 # BOLETOS-01: boletos imprimibles del cliente.
 COPY pages/boletos.html /usr/share/nginx/html/pages/boletos.html
 COPY src/tickets /usr/share/nginx/html/src/tickets
+COPY src/counter /usr/share/nginx/html/src/counter
+COPY src/styles/counter.css /usr/share/nginx/html/src/styles/counter.css
+COPY pages/boleteria.html /usr/share/nginx/html/pages/boleteria.html
 COPY src/styles/tickets.css /usr/share/nginx/html/src/styles/tickets.css
+
+# FRONT-02: páginas existentes que la imagen no servía.
+COPY pages/acreditaciones.html /usr/share/nginx/html/pages/acreditaciones.html
+COPY src/styles/benefits.css /usr/share/nginx/html/src/styles/benefits.css
+COPY pages/historial-reservas.html /usr/share/nginx/html/pages/historial-reservas.html
+COPY pages/buses.html /usr/share/nginx/html/pages/buses.html
+COPY pages/grupos-buses.html /usr/share/nginx/html/pages/grupos-buses.html
+COPY pages/mi-cuenta.html /usr/share/nginx/html/pages/mi-cuenta.html

@@ -1,8 +1,11 @@
+const getAccessibleAvailability = require('./application/get-accessible-availability.use-case');
 const createBenefitRequests = require('./application/benefit-requests');
 const PgBenefitRequestRepository = require('./infrastructure/pg-benefit-request.repository');
 const createBenefitRequestRouter = require('./interfaces/benefit-request-router');
 const routeSheetAvailabilityCatalog = require('./infrastructure/route-sheet-availability-catalog');
 const routeSheetPurchaseCatalog = require('./infrastructure/route-sheet-purchase-catalog');
+const routeSheetSeatMapCatalog = require('./infrastructure/route-sheet-seat-map-catalog');
+const getSeatMap = require('./application/get-seat-map.use-case');
 const expireDueBookings = require('./application/expire-due-bookings.use-case');
 const readExpirationConfig = require('./infrastructure/expiration-worker-config');
 const startExpirationWorker = require('./infrastructure/booking-expiration-worker');
@@ -30,6 +33,9 @@ const PgBookingSaleConfirmer = require('./infrastructure/pg-booking-sale-confirm
 const PgBenefitReviewRepository = require('./infrastructure/pg-benefit-review.repository');
 const createBenefitReviews = require('./application/benefit-reviews');
 const createBenefitReviewRouter = require('./interfaces/benefit-review-router');
+const { createCounterSales } = require('./application/counter-sales');
+const PgCounterCashSales = require('./infrastructure/pg-counter-cash-sales');
+const createCounterRouter = require('./interfaces/counter-router');
 
 function createBookingsModule({
   pool,
@@ -115,6 +121,28 @@ function createBookingsModule({
   const lifecycle = new PgBookingLifecycleRepository({ pool });
   const saleConfirmer = new PgBookingSaleConfirmer({ pool, clock });
   const guestAccess = createGuestAccess({ pool, clock });
+  const seatAvailability = getSeatAvailability({
+    tripCatalog,
+    segmentCatalog,
+    allocationReader: repository,
+  });
+  const seatMap = getSeatMap({
+    seatMapCatalog: purchaseCatalog
+      ? routeSheetSeatMapCatalog({ tripQueries: availabilityQueries })
+      : null,
+  });
+  // BOOK-CAJA-02: boletería solo con viajes comerciales, donde se conoce la cooperativa.
+  const counterRouter = purchaseCatalog
+    ? createCounterRouter({
+        auth,
+        getSeatAvailability: seatAvailability,
+        getSeatMap: seatMap,
+        counterSales: createCounterSales({
+          dependencies,
+          cashSales: new PgCounterCashSales({ pool, clock }),
+        }),
+      })
+    : undefined;
   const expirationConfig = readExpirationConfig(env);
   const expire = expireBooking({ repository: lifecycle, clock });
   const coordinator = (onFailure) =>
@@ -167,13 +195,15 @@ function createBookingsModule({
     benefitReviewRouter: benefitReviews
       ? createBenefitReviewRouter({ auth, reviews: benefitReviews })
       : undefined,
+    counterRouter,
     router: createRouter({
       auth,
-      getSeatAvailability: getSeatAvailability({
-        tripCatalog,
-        segmentCatalog,
+      getSeatAvailability: seatAvailability,
+      getAccessibleAvailability: getAccessibleAvailability({
+        purchaseCatalog,
         allocationReader: repository,
       }),
+      getSeatMap: seatMap,
       getBookingSummary: getBookingSummary(dependencies),
       createBooking: createBooking(dependencies),
       getBookingAttempt: getBookingAttempt(dependencies),

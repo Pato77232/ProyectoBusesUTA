@@ -336,3 +336,53 @@ describe('Cobertura y repetición del patrón de ruta', () => {
     expect(result.agendas[0].activities[0].originKey).toBe('Ambato');
   });
 });
+
+describe('Mensajes que indican qué traslado falta', () => {
+  const conflict = (input) => {
+    try {
+      validateRoutePattern(input);
+    } catch (error) {
+      return error;
+    }
+    throw new Error('Se esperaba un conflicto de agenda.');
+  };
+
+  test('al repetir el ciclo nombra dónde termina el bus y dónde vuelve a empezar', () => {
+    const error = conflict(
+      pattern({
+        requiredServices: [required(service())],
+        agendas: [agenda({ activities: [service()] })],
+      }),
+    );
+    expect(error).toBeInstanceOf(BusAgendaConflictError);
+    expect(error.code).toBe('BUS_AGENDA_LOCATION_CONFLICT');
+    expect(error.message).toMatch(/se repite cada ciclo/);
+    expect(error.message).toMatch(/termina en Latacunga/);
+    expect(error.message).toMatch(/traslado de Latacunga a Ambato/);
+  });
+
+  test('entre dos actividades nombra el lugar de llegada y el de la siguiente salida', () => {
+    const error = conflict(
+      pattern({
+        agendas: [agenda({ activities: [service(), back({ originKey: 'Quito' })] })],
+      }),
+    );
+    expect(error.code).toBe('BUS_AGENDA_LOCATION_CONFLICT');
+    expect(error.message).toBe(
+      'El bus llega a Latacunga y su siguiente actividad sale de Quito. Añade un traslado de Latacunga a Quito.',
+    );
+  });
+
+  test('si la ubicación inicial no coincide, propone cambiarla o trasladar el bus', () => {
+    const error = conflict(
+      pattern({
+        agendas: [
+          agenda({ initialAvailability: { locationKey: 'Quito', availableAt: at('06:00') } }),
+        ],
+      }),
+    );
+    expect(error.code).toBe('BUS_AGENDA_LOCATION_CONFLICT');
+    expect(error.message).toMatch(/empieza en Quito/);
+    expect(error.message).toMatch(/Cambia la ubicación inicial a Ambato/);
+  });
+});

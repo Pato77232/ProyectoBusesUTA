@@ -217,11 +217,28 @@ async function prepared(execute, { birthDateVerified = true } = {}) {
     await new Promise((resolve) => server.close(resolve));
   }
 }
-test('producción mantiene la compra bloqueada sin acreditación y no escribe reservas', async () => {
+// BOOK-BENEF-02: sin revisión se cotiza sin descuento por discapacidad y sin escribir reservas.
+test('producción cotiza sin acreditación, sin descuento por discapacidad ni reservas', async () => {
   const response = await customer.request('/api/v1/bookings/summary', 'POST', input());
-  expect(response.status).toBe(409);
-  expect((await response.json()).error.code).toBe('BOOKING_BENEFIT_REVIEW_REQUIRED');
+  expect(response.status).toBe(200);
+  const { summary } = await response.json();
+  expect(summary.totals.discountCents).toBe(0);
   expect(await count()).toEqual({ bookings: 0, allocations: 0 });
+});
+
+test('producción aplica sola el descuento de tercera edad declarado', async () => {
+  const regular = await (
+    await customer.request('/api/v1/bookings/summary', 'POST', input())
+  ).json();
+  const response = await customer.request(
+    '/api/v1/bookings/summary',
+    'POST',
+    input({ birthDate: '1950-01-01' }),
+  );
+  expect(response.status).toBe(200);
+  const { summary } = await response.json();
+  expect(summary.totals.discountCents).toBeGreaterThan(0);
+  expect(summary.totals.totalPriceCents).toBeLessThan(regular.summary.totals.totalPriceCents);
 });
 test('CLERK acredita el contexto real, otra revisión conserva auditoría y permite comprar sin dobles', async () => {
   const endpoint = '/api/v1/booking-benefit-reviews';
@@ -262,18 +279,20 @@ test('CLERK acredita el contexto real, otra revisión conserva auditoría y perm
   expect((await quote.json()).summary.passengers[0].quote.appliedCategories).toContain(
     'DISABILITY',
   );
+  // BOOK-BENEF-02: otro pasajero u otro tramo no reutilizan la acreditación; se cotizan sin
+  // descuento por discapacidad en lugar de bloquearse.
+  const appliedFor = async (body) => {
+    const response = await customer.request('/api/v1/bookings/summary', 'POST', body);
+    expect(response.status).toBe(200);
+    return (await response.json()).summary.passengers[0].quote.appliedCategories;
+  };
   expect(
-    (
-      await customer.request('/api/v1/bookings/summary', 'POST', {
-        ...purchase,
-        passengers: [{ ...purchase.passengers[0], fullName: 'Otra Persona' }],
-      })
-    ).status,
-  ).toBe(409);
-  expect(
-    (await customer.request('/api/v1/bookings/summary', 'POST', { ...purchase, toPosition: 1 }))
-      .status,
-  ).toBe(409);
+    await appliedFor({
+      ...purchase,
+      passengers: [{ ...purchase.passengers[0], fullName: 'Otra Persona' }],
+    }),
+  ).not.toContain('DISABILITY');
+  expect(await appliedFor({ ...purchase, toPosition: 1 })).not.toContain('DISABILITY');
   expect(
     (
       await clerk.request(endpoint, 'POST', {
@@ -282,7 +301,8 @@ test('CLERK acredita el contexto real, otra revisión conserva auditoría y perm
       })
     ).status,
   ).toBe(201);
-  expect((await customer.request('/api/v1/bookings/summary', 'POST', purchase)).status).toBe(409);
+  // BOOK-BENEF-02: la fecha sin acreditar ya no bloquea; la discapacidad acreditada se conserva.
+  expect(await appliedFor(purchase)).toContain('DISABILITY');
   expect((await clerk.request(endpoint, 'POST', review)).status).toBe(201);
   const accepted = await accept(customer, purchase);
   const saved = await reserve(customer, accepted.body);
@@ -376,12 +396,13 @@ test('resumen alterado revierte toda escritura y exige nueva aceptación', async
     expect(await count()).toEqual({ bookings: 0, allocations: 0 });
   });
 });
-test('fecha no acreditada bloquea el total incluso para una persona adulta', async () => {
+// BOOK-BENEF-02: la fecha no acreditada ya no bloquea el total de una persona adulta.
+test('fecha no acreditada no bloquea el total de una persona adulta', async () => {
   await prepared(
     async (browser) => {
       const response = await browser.request('/api/v1/bookings/summary', 'POST', input());
-      expect(response.status).toBe(409);
-      expect((await response.json()).error.code).toBe('BOOKING_BENEFIT_REVIEW_REQUIRED');
+      expect(response.status).toBe(200);
+      expect((await response.json()).summary.totals.discountCents).toBe(0);
       expect(await count()).toEqual({ bookings: 0, allocations: 0 });
     },
     { birthDateVerified: false },

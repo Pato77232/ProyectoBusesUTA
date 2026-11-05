@@ -1,4 +1,5 @@
 import { ApiError } from "../api/api-error.js";
+import { seatLabels } from "./booking-outcome.js";
 const STATES = new Set(["PENDING_PAYMENT", "SOLD", "EXPIRED", "REJECTED"]);
 function booking(value) {
   if (
@@ -22,6 +23,7 @@ export function createHistoryController({ api, render }) {
     busy: false,
     items: [],
     detail: null,
+    seatLabels: new Map(),
     cursor: null,
     message: "",
     login: false,
@@ -30,7 +32,22 @@ export function createHistoryController({ api, render }) {
     state = { ...state, ...patch };
     render(state);
   };
-  const clear = () => emit({ items: [], detail: null, cursor: null });
+  const clear = () =>
+    emit({ items: [], detail: null, seatLabels: new Map(), cursor: null });
+  // FRONT-02 T13: el número visible sale del mapa del viaje; sin él no se
+  // muestra el identificador interno del asiento.
+  async function seatLabelsFor(detail) {
+    const { tripId, fromPosition, toPosition } = detail.summary;
+    try {
+      const result = await api.request(
+        "/api/v1/bookings/seat-map?" +
+          new URLSearchParams({ tripId, fromPosition, toPosition }),
+      );
+      return seatLabels(result?.seats);
+    } catch {
+      return new Map();
+    }
+  }
   async function session(generation) {
     const { user } = await api.request("/api/v1/auth/me");
     if (generation !== epoch)
@@ -113,7 +130,11 @@ export function createHistoryController({ api, render }) {
         );
         if (detail.bookingId !== id)
           throw new ApiError("RESPONSE_INVALID", "Detalle inválido.");
-        return { detail, message: "Detalle actualizado desde el servidor." };
+        return {
+          detail,
+          seatLabels: await seatLabelsFor(detail),
+          message: "Detalle actualizado desde el servidor.",
+        };
       });
     },
     forget() {

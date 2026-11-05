@@ -105,7 +105,20 @@
   }
 }
 
+/* BOLETOS-03: botón de Google Wallet por boleto */
+.ticket-wallet {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+.ticket-wallet-status:empty {
+  display: none;
+}
+
 @media print {
+  .ticket-wallet,
   .site-header,
   .skip-link,
   .tickets-intro,

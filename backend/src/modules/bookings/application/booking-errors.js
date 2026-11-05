@@ -8,4 +8,5 @@ module.exports = {
   BookingPurchaseError: require('../domain/booking-purchase-error'),
   BookingTripUnavailableError: require('../domain/booking-trip-unavailable-error'),
   BookingServiceUnavailableError: require('../domain/booking-service-unavailable-error'),
+  BookingCashError: require('../domain/booking-cash-error'),
 };

@@ -84,16 +84,48 @@ test.each(
   await expect(execute(input)).rejects.toMatchObject({ code: 'BOOKING_VALIDATION_ERROR' });
 });
 
+// BOOK-BENEF-02 (aprobado el 11 de noviembre de 2026): la edad declarada aplica el descuento
+// sin revisión asistida; la cédula se comprueba al embarcar.
 test.each(['2010-01-01', '1950-01-01'])(
-  'edad declarada %s sin acreditar solicita revisión asistida',
+  'edad declarada %s aplica el descuento sin revisión asistida',
   async (birthDate) => {
     const { execute, input, dependencies } = setup();
     input.passengers[0].birthDate = birthDate;
     const entries = await dependencies.passengerVerifier.verify();
     entries[0].birthDateVerified = false;
-    await expect(execute(input)).rejects.toMatchObject({ code: 'BOOKING_BENEFIT_REVIEW_REQUIRED' });
+    dependencies.passengerVerifier.verify.mockResolvedValue(entries);
+    const result = await execute(input);
+    const [passenger] = result.summary.passengers.filter(
+      (p) => p.seatId === input.passengers[0].seatId,
+    );
+    expect(passenger.quote.eligibleCategories).toContain(
+      birthDate === '2010-01-01' ? 'MINOR' : 'SENIOR',
+    );
+    expect(passenger.quote.discountCents).toBeGreaterThan(0);
   },
 );
+
+test('sin revisión vigente cotiza sin descuento por discapacidad', async () => {
+  const { execute, input, dependencies } = setup();
+  const reviewRequired = Object.assign(new Error('sin revisión'), {
+    code: 'BOOKING_BENEFIT_REVIEW_REQUIRED',
+  });
+  dependencies.passengerVerifier.verify.mockRejectedValue(reviewRequired);
+  const result = await execute(input);
+  expect(
+    result.summary.passengers.every((p) => !p.quote.eligibleCategories.includes('DISABILITY')),
+  ).toBe(true);
+});
+
+test('otros fallos del verificador no se convierten en una compra sin revisión', async () => {
+  const { execute, input, dependencies } = setup();
+  dependencies.passengerVerifier.verify.mockRejectedValue(
+    Object.assign(new Error('caído'), { code: 'BOOKING_BENEFIT_SERVICE_UNAVAILABLE' }),
+  );
+  await expect(execute(input)).rejects.toMatchObject({
+    code: 'BOOKING_BENEFIT_SERVICE_UNAVAILABLE',
+  });
+});
 
 test('adulto sin beneficio por edad puede comprar sin afirmar que está acreditado', async () => {
   const { execute, input, dependencies } = setup();

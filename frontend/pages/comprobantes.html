@@ -28,9 +28,15 @@
               height="1446"
           /></span>
         </a>
-        <div class="d-flex flex-wrap align-items-center gap-4">
-          <a href="acreditaciones.html">Acreditar beneficios</a><span class="payment-workspace">Área de cooperativa</span
-          ><a href="login.html">Mi sesión</a>
+        <div class="d-flex flex-wrap align-items-center gap-3">
+          <nav aria-label="Navegación del oficinista">
+            <ul class="nav-list">
+              <li><a href="boleteria.html">Vender en boletería</a></li>
+              <li><a href="comprobantes.html" aria-current="page">Comprobantes</a></li>
+              <li><a href="acreditaciones.html">Acreditar beneficios</a></li>
+            </ul>
+          </nav>
+          <button type="button" class="btn btn-outline-dark btn-sm" data-logout>Cerrar sesión</button>
         </div>
       </div>
     </header>
@@ -90,10 +96,10 @@
         </nav>
       </section>
       <aside class="payment-scope">
-        <h2>Consulta de comprobantes</h2>
+        <h2>Revisión de comprobantes</h2>
         <p>
-          Esta pantalla permite consultar archivos. La aprobación, el rechazo y las correcciones
-          estarán disponibles cuando su integración esté lista.
+          Abre el archivo y compáralo con el total. Al aprobar, se emiten los boletos del
+          cliente; para rechazar, escribe el motivo. Ambas decisiones quedan registradas.
         </p>
       </aside>
       <noscript><p>Activa JavaScript para comprobar tu sesión y consultar la bandeja.</p></noscript>
@@ -102,5 +108,6 @@
       <span>transViaje</span><span>Gestión de pagos de tu cooperativa</span>
     </footer>
     <script type="module" src="../src/payments/pending-page.js"></script>
+    <script type="module" src="../src/auth/logout-page.js"></script>
   </body>
 </html>

@@ -382,3 +382,124 @@ test('búsqueda nocturna usa la fecha local de cada embarque y su tarifa explíc
   await pool.query("UPDATE frequencies SET status='INACTIVE' WHERE id=$1", [frequencyId]);
   expect(await search('2030-01-02')).toEqual(empty);
 });
+
+test('SEARCH-02: próximas salidas listan el recorrido completo por fecha y cooperativa', async () => {
+  const frequencyId = randomUUID();
+  await pool.query(
+    "INSERT INTO frequencies(id,cooperative_id,origin,destination,departure_time,ant_resolution_number) VALUES($1,$2,'Ambato','Latacunga','23:00','ANT-NOCTURNA-QA')",
+    [frequencyId, owner.cooperativeId],
+  );
+  await pool.query(
+    "INSERT INTO frequency_stops(frequency_id,position,place) VALUES($1,0,'Salcedo')",
+    [frequencyId],
+  );
+  const activity = {
+    id: randomUUID(),
+    kind: 'SERVICE',
+    frequencyId,
+    requiredServiceId: randomUUID(),
+    departureAt: '2030-01-01T23:00:00-05:00',
+    arrivalAt: '2030-01-02T02:00:00-05:00',
+    preparationMinutes: 15,
+    points: [
+      { position: 0, departureAt: '2030-01-01T23:00:00-05:00' },
+      {
+        position: 1,
+        arrivalAt: '2030-01-02T00:15:00-05:00',
+        departureAt: '2030-01-02T00:20:00-05:00',
+      },
+      { position: 2, arrivalAt: '2030-01-02T02:00:00-05:00' },
+    ],
+  };
+  const programming = {
+    ...f.body.programming,
+    cycleLengthDays: 2,
+    requiredServices: [
+      { id: activity.requiredServiceId, frequencyId, departureAt: activity.departureAt },
+    ],
+    agendas: [
+      {
+        ...f.body.programming.agendas[0],
+        activities: [
+          activity,
+          {
+            id: randomUUID(),
+            kind: 'TRANSFER',
+            originKey: 'Latacunga',
+            destinationKey: 'Ambato',
+            departureAt: '2030-01-02T02:15:00-05:00',
+            arrivalAt: '2030-01-02T04:00:00-05:00',
+            preparationMinutes: 0,
+          },
+        ],
+      },
+    ],
+  };
+  expect(
+    (
+      await admin.request(endpoint(f, 'programming'), 'PUT', {
+        expectedRevision: 1,
+        programming,
+      })
+    ).status,
+  ).toBe(200);
+  expect(
+    (
+      await admin.request(endpoint(f, 'tariff'), 'PUT', {
+        expectedRevision: 1,
+        policy: {
+          vipSurchargeBps: 0,
+          minorDiscountBps: 0,
+          seniorDiscountBps: 0,
+          disabilityDiscountBps: 0,
+        },
+        frequencies: [
+          {
+            frequencyId,
+            prices: [
+              { fromPosition: 0, toPosition: 1, amountCents: 200 },
+              { fromPosition: 0, toPosition: 2, amountCents: 999 },
+              { fromPosition: 1, toPosition: 2, amountCents: 250 },
+            ],
+          },
+        ],
+      })
+    ).status,
+  ).toBe(200);
+
+  const upcoming = async (query = '') => {
+    const response = await new Browser(url).request(`/api/v1/trips/upcoming${query}`);
+    return { status: response.status, body: await response.json() };
+  };
+  const tripId = await publishedTrip();
+  const day = await upcoming('?date=2030-01-01');
+  expect(day.status).toBe(200);
+  expect(day.body).toMatchObject({
+    truncated: false,
+    days: 7,
+    trips: [
+      expect.objectContaining({
+        tripId,
+        fromPosition: 0,
+        toPosition: 2,
+        origin: 'Ambato',
+        destination: 'Latacunga',
+        stopCount: 1,
+        boardingAt: '2030-01-02T04:00:00.000Z',
+        arrivalAt: '2030-01-02T07:00:00.000Z',
+        amountCents: 999,
+      }),
+    ],
+  });
+  expect(day.body.trips).toHaveLength(1);
+  expect((await upcoming('?date=2030-01-02')).body.trips).toEqual([]);
+  expect(
+    (await upcoming(`?date=2030-01-01&cooperativeId=${owner.cooperativeId}`)).body.trips,
+  ).toHaveLength(1);
+  expect((await upcoming(`?date=2030-01-01&cooperativeId=${randomUUID()}`)).body.trips).toEqual([]);
+  expect((await upcoming()).body.trips).toEqual([]);
+  expect((await upcoming('?date=2030-02-30')).status).toBe(400);
+  expect((await upcoming('?origin=Ambato')).status).toBe(400);
+  await pool.query("UPDATE frequencies SET status='INACTIVE' WHERE id=$1", [frequencyId]);
+  expect((await upcoming('?date=2030-01-01')).body.trips).toEqual([]);
+});

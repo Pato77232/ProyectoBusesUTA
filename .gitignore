@@ -18,3 +18,10 @@ uploads/
 
 # Sistema
 .DS_Store
+
+# Claves privadas (certificados, cuentas de servicio como Google Wallet)
+secrets/
+*.pem
+*.key
+*.p12
+*.pfx

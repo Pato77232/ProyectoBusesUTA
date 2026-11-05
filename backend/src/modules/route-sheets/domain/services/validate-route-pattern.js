@@ -9,6 +9,7 @@ const {
   assertContext,
 } = require('../value-objects/programming-input');
 const { RouteProgrammingConflictError } = require('../errors/route-programming-errors');
+const { BusAgendaConflictError } = require('../errors/bus-agenda-errors');
 
 const serviceKey = (service) => JSON.stringify([service.frequencyId, service.departureAt]);
 
@@ -45,6 +46,34 @@ function assertRepeatable(agenda, period) {
   if (!agenda.activities.length) return;
   const shift = (value) => toScheduledIso(Date.parse(value) + period.durationMs);
   const last = agenda.activities[agenda.activities.length - 1];
+  try {
+    validateRepeatedAgenda(agenda, shift, last);
+  } catch (error) {
+    throw repetitionError(error, agenda.activities[0], last);
+  }
+}
+
+// Al repetir el ciclo, explica que el problema está en el paso de un ciclo al siguiente.
+function repetitionError(error, first, last) {
+  if (!(error instanceof BusAgendaConflictError)) return error;
+  if (error.code === 'BUS_AGENDA_LOCATION_CONFLICT')
+    return new BusAgendaConflictError(
+      error.code,
+      `La programación se repite cada ciclo: el bus termina en ${last.destinationKey} y el ciclo siguiente empieza saliendo de ${first.originKey}. Añade, dentro del ciclo, un traslado de ${last.destinationKey} a ${first.originKey}.`,
+      error.activityId,
+      error.relatedId,
+    );
+  if (error.code === 'BUS_AGENDA_TIME_CONFLICT')
+    return new BusAgendaConflictError(
+      error.code,
+      'La programación se repite cada ciclo: el bus no termina ni queda listo a tiempo para la primera salida del ciclo siguiente. Adelanta su última actividad o amplía la duración del ciclo.',
+      error.activityId,
+      error.relatedId,
+    );
+  return error;
+}
+
+function validateRepeatedAgenda(agenda, shift, last) {
   validateBusAgenda({
     ...agenda,
     initialAvailability: { availableAt: last.readyAt, locationKey: last.destinationKey },

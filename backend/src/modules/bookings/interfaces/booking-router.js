@@ -45,6 +45,8 @@ function availabilityInput(query) {
 function createBookingRouter({
   auth,
   getSeatAvailability,
+  getAccessibleAvailability,
+  getSeatMap,
   getBookingSummary,
   createBooking,
   getBookingAttempt,
@@ -58,6 +60,14 @@ function createBookingRouter({
   router.use(auth.authenticate, auth.authorize('CUSTOMER'));
   router.get('/availability', async (req, res) => {
     const seats = await getSeatAvailability(availabilityInput(req.query));
+    res.json({ seats });
+  });
+  router.get('/accessible-availability', async (req, res) => {
+    const seats = await getAccessibleAvailability(availabilityInput(req.query));
+    res.json({ seats });
+  });
+  router.get('/seat-map', async (req, res) => {
+    const seats = await getSeatMap(availabilityInput(req.query));
     res.json({ seats });
   });
   router.get('/attempts/:requestKey', async (req, res) => {

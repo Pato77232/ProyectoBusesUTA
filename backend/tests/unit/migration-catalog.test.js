@@ -10,7 +10,7 @@ const entry = (name) => ({ name, isFile: () => true });
 const files = () => activeNames.map((name) => entry(name + '.js'));
 
 test('catálogo explícito conserva la cadena de develop, Pagos, protección, renovación y totales', () => {
-  expect(activeNames).toHaveLength(38);
+  expect(activeNames).toHaveLength(39);
   expect(activeNames[16]).toBe('1793730000000-commercial-trips');
   expect(activeNames[17]).toBe('1793740000000-allow-vip-bus-seats');
   expect(activeNames[18]).toBe('1793820000000-install-bookings');
@@ -33,6 +33,7 @@ test('catálogo explícito conserva la cadena de develop, Pagos, protección, re
   expect(activeNames[35]).toBe('1794330000000-booking-benefit-request-reviews');
   expect(activeNames[36]).toBe('1794350000000-auth-guest-email-access');
   expect(activeNames[37]).toBe('1794360000000-booking-guest-contact');
+  expect(activeNames[38]).toBe('1794370000000-booking-counter-cash-sales');
   expect(() => validateHistory(activeNames.slice(0, 22))).not.toThrow();
   expect(new Set(activeNames).size).toBe(activeNames.length);
   expect([...activeNames].sort()).toEqual(activeNames);
@@ -113,5 +114,6 @@ test('la actualización desde develop conserva sus 34 migraciones como prefijo e
     '1794330000000-booking-benefit-request-reviews',
     '1794350000000-auth-guest-email-access',
     '1794360000000-booking-guest-contact',
+    '1794370000000-booking-counter-cash-sales',
   ]);
 });

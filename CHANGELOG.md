@@ -5,6 +5,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-11-05
+
+### Añadido
+
+- **Autenticación:** cerrar sesión y cambiar de cuenta (#115).
+- **Infraestructura web:** menú de operaciones para cooperativas (#115).
+- **Reservas:** preparación del consumo de espacios accesibles (#112).
+
 ## [0.2.0] - 2026-11-05
 
 Segunda versión entregada.

@@ -19,7 +19,7 @@ function commercialPassengerQuote({
     !Number.isSafeInteger(amountCents) ||
     amountCents <= 0 ||
     amountCents > MAX_BASE_PRICE_CENTS ||
-    !['NORMAL', 'VIP'].includes(category) ||
+    !['NORMAL', 'VIP', 'ACCESSIBLE'].includes(category) ||
     typeof disabilityVerified !== 'boolean' ||
     policy?.discountStrategy !== 'MAX_ELIGIBLE' ||
     ['vipSurchargeBps', 'minorDiscountBps', 'seniorDiscountBps', 'disabilityDiscountBps'].some(

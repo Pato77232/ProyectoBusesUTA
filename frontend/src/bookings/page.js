@@ -3,6 +3,15 @@ import { createBenefitBuyer } from "./benefits-controller.js";
 import { createBookingAccess } from "./access.js";
 import { createBookingsApi, readTripContext } from "./api.js";
 import { createAttemptStore, createBookingFlow } from "./flow.js";
+import { combineSeatMap, groupByDeck, seatName } from "./seat-map.js";
+import { bookingOutcome } from "./booking-outcome.js";
+import { cedulaProblem } from "./cedula.js";
+import {
+  isUploadedProof,
+  proofFormData,
+  proofMessage,
+  validateProofFile,
+} from "./payment-proof.js";
 import { ApiError } from "../api/api-error.js";
 
 const element = (id) => document.getElementById(id);
@@ -27,6 +36,7 @@ function purchaseInput() {
         deliveryEmail,
         guardianFullName,
         guardianBirthDate,
+        disabilityClaim: _disabilityClaim,
         ...passenger
       } = drafts.get(seatId);
       return {
@@ -91,6 +101,8 @@ const drafts = new Map();
 let seats = [];
 let flow;
 let loadingSeats = false;
+let proofBusy = false;
+const sentProofs = new Set();
 let countdown;
 const usd = new Intl.NumberFormat("es-EC", {
   style: "currency",
@@ -186,7 +198,7 @@ function message(error) {
   if (error.code === "BOOKING_REQUEST_KEY_REUSED")
     return "La referencia está vinculada a otros datos de compra. Consulta su resultado; no inicies otra compra para reemplazarla.";
   if (error.code === "BOOKING_BENEFIT_REVIEW_REQUIRED")
-    return "La tarifa preferencial necesita revisión de la acreditación. Tus datos siguen en esta pantalla.";
+    return "El descuento por discapacidad necesita la revisión de la cooperativa. Tus datos siguen en esta pantalla.";
   if (error.code === "FORBIDDEN")
     return "Esta reserva requiere una sesión de cliente.";
   if (
@@ -200,27 +212,69 @@ function message(error) {
     return "La reserva todavía no está disponible. Intenta consultar de nuevo más tarde.";
   return error.message || "No se pudo completar la acción. Inténtalo de nuevo.";
 }
+function seatTitle(seatId) {
+  const seat = seats.find((candidate) => candidate.seatId === seatId);
+  return seat ? seatName(seat) : "Asiento elegido";
+}
+function seatButton(seat) {
+  const chosen = selected.has(seat.seatId);
+  const button = node("button", undefined, "booking-seat");
+  button.type = "button";
+  button.dataset.seatId = seat.seatId;
+  button.dataset.status = seat.status;
+  if (seat.category === "VIP") button.dataset.category = "VIP";
+  button.setAttribute("aria-pressed", String(chosen));
+  const status =
+    seat.status === "AVAILABLE"
+      ? chosen
+        ? "✓ Elegido"
+        : "Libre"
+      : seat.status === "SOLD"
+        ? "× Vendido"
+        : "× Reservado";
+  const name = seatName(seat);
+  button.setAttribute("aria-label", name + ", " + status);
+  button.append(
+    node("span", seat.category === "ACCESSIBLE" ? name : String(seat.label)),
+    node("small", status),
+  );
+  return button;
+}
 function renderSeats() {
   const list = element("seat-list");
   list.replaceChildren();
-  for (const seat of seats) {
-    const chosen = selected.has(seat.seatId);
-    const button = node("button", undefined, "booking-seat");
-    button.type = "button";
-    button.dataset.seatId = seat.seatId;
-    button.dataset.status = seat.status;
-    button.setAttribute("aria-pressed", String(chosen));
-    const status =
-      seat.status === "AVAILABLE"
-        ? chosen
-          ? "✓ Elegido"
-          : "Libre"
-        : seat.status === "SOLD"
-          ? "× Vendido"
-          : "× Reservado";
-    button.setAttribute("aria-label", "Asiento " + seat.seatId + ", " + status);
-    button.append(node("span", seat.seatId), node("small", status));
-    list.append(button);
+  const decks = groupByDeck(seats);
+  for (const { deck, seats: deckSeats } of decks) {
+    const section = node("section", undefined, "booking-deck");
+    const title =
+      decks.length > 1
+        ? deck === 2
+          ? "Piso superior"
+          : "Piso inferior"
+        : "Distribución del bus";
+    section.setAttribute("aria-label", title);
+    section.append(node("h3", title, "booking-deck-title"));
+    const grid = node("div", undefined, "booking-deck-grid");
+    for (const seat of deckSeats) {
+      const button = seatButton(seat);
+      button.style.gridRowStart = String(seat.row + 1);
+      button.style.gridColumnStart = String(seat.column + 1);
+      grid.append(button);
+    }
+    section.append(grid);
+    list.append(section);
+  }
+  const accessible = seats.filter((seat) => seat.category === "ACCESSIBLE");
+  if (accessible.length) {
+    const section = node("section", undefined, "booking-deck");
+    section.setAttribute("aria-label", "Espacios para silla de ruedas");
+    section.append(
+      node("h3", "Espacios para silla de ruedas", "booking-deck-title"),
+    );
+    const grid = node("div", undefined, "booking-seats");
+    for (const seat of accessible) grid.append(seatButton(seat));
+    section.append(grid);
+    list.append(section);
   }
   element("selection-count").textContent = selected.size
     ? selected.size +
@@ -240,10 +294,11 @@ function renderPassengers() {
         deliveryEmail: "",
         guardianFullName: "",
         guardianBirthDate: "",
+        disabilityClaim: false,
       });
     const draft = drafts.get(seatId);
     const fieldset = node("fieldset", undefined, "booking-passenger");
-    fieldset.append(node("legend", "Asiento " + seatId));
+    fieldset.append(node("legend", seatTitle(seatId)));
     const grid = node("div", undefined, "booking-field-grid");
     for (const [field, label, type] of [
       ["fullName", "Nombre completo", "text"],
@@ -283,12 +338,31 @@ function renderPassengers() {
         input.pattern = "[0-9]{10}";
         input.maxLength = 10;
         input.inputMode = "numeric";
+        if (input.value) input.setCustomValidity(cedulaProblem(input.value) ?? "");
       }
       wrapper.append(caption, input);
       if (field === "fullName") fieldset.append(wrapper);
       else grid.append(wrapper);
     }
     fieldset.append(grid);
+    // BOOK-BENEF-02: la edad se descuenta sola; solo la discapacidad pide revisión.
+    const claim = node("div", undefined, "form-check mt-2");
+    const box = node("input", undefined, "form-check-input");
+    Object.assign(box, {
+      id: "passenger-" + index + "-disabilityClaim",
+      type: "checkbox",
+      checked: draft.disabilityClaim === true,
+    });
+    box.dataset.seatId = seatId;
+    box.dataset.field = "disabilityClaim";
+    const boxLabel = node(
+      "label",
+      "Tengo una discapacidad acreditada (requiere revisión de la cooperativa)",
+      "form-check-label",
+    );
+    boxLabel.htmlFor = box.id;
+    claim.append(box, boxLabel);
+    fieldset.append(claim);
     container.append(fieldset);
   });
 }
@@ -300,7 +374,7 @@ function renderSummary(target, summary) {
   for (const passenger of summary.passengers) {
     const item = node("li");
     item.append(
-      node("strong", passenger.fullName + " · asiento " + passenger.seatId),
+      node("strong", passenger.fullName + " · " + seatTitle(passenger.seatId)),
       node(
         "small",
         "Cédula " +
@@ -352,6 +426,8 @@ function tick() {
           ":" +
           String(remaining % 60).padStart(2, "0")
         : "El plazo indicado terminó. Actualiza el estado antes de continuar.";
+  // Al terminar el plazo se retira el formulario sin esperar otra acción.
+  if (remaining === 0 && !element("proof-form").hidden) sync();
 }
 function sync() {
   if (!flow) return;
@@ -385,7 +461,10 @@ function sync() {
   element("passenger-form").hidden =
     !selected.size || !!state.reference || !!state.booking;
   element("benefit-request-panel").hidden =
-    !selected.size || !!state.reference || !!state.booking;
+    !selected.size ||
+    !!state.reference ||
+    !!state.booking ||
+    ![...selected].some((id) => drafts.get(id)?.disabilityClaim === true);
   element("request-benefit").disabled = locked || !selected.size;
   element("refresh-benefit").disabled = locked || !benefitBuyer.state.request;
   element("refresh-benefit").hidden = !benefitBuyer.state.request;
@@ -395,6 +474,7 @@ function sync() {
   element("receipt-panel").hidden = !state.booking;
   element("retry-attempt").hidden = !state.canRetry;
   element("refresh-seats").disabled = locked || !context;
+  element("include-accessible").disabled = locked || !context;
   element("retry-availability").hidden =
     !context ||
     seats.length > 0 ||
@@ -407,21 +487,25 @@ function sync() {
   element("accept-summary").disabled = locked;
   element("confirm-booking").disabled =
     locked || !element("accept-summary").checked || !state.review;
+  element("confirm-hint").hidden = element("accept-summary").checked;
   for (const id of ["recover-attempt", "retry-attempt", "refresh-booking"])
     element(id).disabled = busy;
   if (state.review)
     renderSummary(element("summary-content"), state.review.summary);
   if (state.booking) {
     const booking = state.booking;
+    const outcome = bookingOutcome(booking);
+    element("receipt-title").textContent = outcome.title;
     element("booking-reference").textContent = booking.bookingId;
-    element("booking-status").textContent =
-      booking.status === "PENDING_PAYMENT"
-        ? "Estado: pendiente de comprobante."
-        : booking.status === "SOLD"
-          ? "Estado: compra aprobada. Tus boletos ya están disponibles."
-          : "Estado pendiente de actualización.";
-    element("booking-tickets").hidden = booking.status !== "SOLD";
-    element("booking-not-ticket").hidden = booking.status === "SOLD";
+    element("booking-status").textContent = outcome.status;
+    element("booking-tickets").hidden = !outcome.showTickets;
+    element("proof-form").hidden =
+      !outcome.canUploadProof || sentProofs.has(booking.bookingId);
+    element("proof-submit").disabled = proofBusy || busy;
+    element("booking-not-ticket").hidden = outcome.showTickets;
+    element("restart-booking").hidden = !outcome.restart;
+    element("restart-booking").href =
+      window.location.pathname + window.location.search;
     element("booking-tickets-link").href =
       "boletos.html?" + new URLSearchParams({ reserva: booking.bookingId });
     element("booking-expiry").dateTime = booking.expiresAt;
@@ -455,6 +539,18 @@ async function loadSeats() {
   sync();
   try {
     const result = await api.availability(context);
+    if (element("include-accessible").checked) {
+      const accessible = await api.accessibleAvailability(context);
+      if (
+        !Array.isArray(accessible?.seats) ||
+        accessible.seats.some((seat) => seat.category !== "ACCESSIBLE")
+      )
+        throw new ApiError(
+          "RESPONSE_INVALID",
+          "Inventario accesible inválido.",
+        );
+      result.seats = [...result.seats, ...accessible.seats];
+    }
     if (
       !Array.isArray(result?.seats) ||
       result.seats.some(
@@ -471,10 +567,11 @@ async function loadSeats() {
         "No se pudo leer la disponibilidad del viaje.",
       );
     }
+    const map = await api.seatMap(context);
     loginRequired = false;
     hasCustomerSession = true;
     element("booking-login").open = false;
-    seats = result.seats;
+    seats = combineSeatMap(map, result.seats);
     for (const seatId of selected) {
       if (
         !seats.some(
@@ -552,15 +649,21 @@ element("passenger-form").addEventListener("input", (event) => {
       "deliveryEmail",
       "guardianFullName",
       "guardianBirthDate",
+      "disabilityClaim",
     ].includes(field)
   )
     return;
-  drafts.get(seatId)[field] = event.target.value;
+  drafts.get(seatId)[field] =
+    field === "disabilityClaim" ? event.target.checked : event.target.value;
+  // La cédula se comprueba como en el servidor para no enviar un dato que será rechazado.
+  if (field === "identificationNumber")
+    event.target.setCustomValidity(cedulaProblem(event.target.value) ?? "");
   invalidate();
   sync();
 });
 element("passenger-form").addEventListener("submit", (event) => {
   event.preventDefault();
+  // Una cédula inválida marca su campo (setCustomValidity) y el navegador muestra el motivo.
   if (!selected.size || flow.state.locked || !event.target.reportValidity())
     return;
   const input = purchaseInput();
@@ -596,8 +699,41 @@ element("refresh-booking").addEventListener("click", () =>
   run(() => flow.recover()),
 );
 element("refresh-seats").addEventListener("click", loadSeats);
+element("include-accessible").addEventListener("change", loadSeats);
 element("retry-availability").addEventListener("click", loadSeats);
-element("finish-booking").addEventListener("click", (event) => {
+element("proof-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const booking = flow.state.booking;
+  const file = element("proof-file").files[0];
+  const status = element("proof-status");
+  if (!booking || proofBusy) return;
+  const invalid = validateProofFile(file);
+  if (invalid) {
+    status.textContent = invalid;
+    return;
+  }
+  proofBusy = true;
+  status.textContent = "Subiendo el comprobante…";
+  sync();
+  try {
+    const result = await api.uploadPaymentProof(
+      proofFormData(booking.bookingId, file),
+    );
+    if (!isUploadedProof(result)) throw new ApiError("RESPONSE_INVALID", "");
+    sentProofs.add(booking.bookingId);
+    status.textContent =
+      "Comprobante recibido. La cooperativa lo revisará; consulta Mis reservas o pulsa Actualizar estado para ver tus boletos.";
+  } catch (error) {
+    if (error?.code === "PAYMENT_PROOF_ALREADY_UPLOADED")
+      sentProofs.add(booking.bookingId);
+    status.textContent = proofMessage(error);
+  } finally {
+    proofBusy = false;
+    sync();
+    status.focus?.();
+  }
+});
+function finishAttempt(event) {
   try {
     flow.finish();
   } catch (error) {
@@ -606,7 +742,9 @@ element("finish-booking").addEventListener("click", (event) => {
     notice(message(error), "error", true);
     sync();
   }
-});
+}
+element("finish-booking").addEventListener("click", finishAttempt);
+element("restart-booking").addEventListener("click", finishAttempt);
 
 element("login-form").addEventListener("submit", async (event) => {
   event.preventDefault();
