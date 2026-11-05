@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#202020" />
+    <title>Operaciones de cooperativa · transViaje</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+    <link
+      rel="stylesheet"
+      href="/assets/vendor/bootstrap-5.3.8/bootstrap.min.css"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+    />
+    <link rel="stylesheet" href="/src/styles/app.css" />
+    <link rel="stylesheet" href="/src/styles/admin.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+    <header class="site-header">
+      <div
+        class="container d-flex align-items-center justify-content-between gap-3"
+      >
+        <a class="brand" href="/" aria-label="transViaje, inicio">
+          <span class="brand-logo-frame" aria-hidden="true">
+            <img
+              class="brand-logo"
+              src="/assets/brand/logo-transviaje.png"
+              alt=""
+              width="1600"
+              height="1446"
+            />
+          </span>
+        </a>
+        <a href="/pages/login.html">Mi cuenta</a>
+      </div>
+    </header>
+    <main id="contenido" class="container admin-layout" tabindex="-1">
+      <p class="eyebrow">ADMINISTRACIÓN DE COOPERATIVA</p>
+      <h1>Operaciones</h1>
+      <p
+        id="operations-status"
+        class="admin-notice"
+        role="status"
+        aria-live="polite"
+        tabindex="-1"
+      >
+        Comprobando tu sesión…
+      </p>
+      <a id="operations-login" href="/pages/login.html" hidden>
+        Ir al inicio de sesión
+      </a>
+      <section
+        id="operations-content"
+        hidden
+        aria-labelledby="operations-title"
+      >
+        <h2 id="operations-title" class="visually-hidden">
+          Herramientas de la cooperativa
+        </h2>
+        <div class="admin-grid">
+          <section class="admin-card" aria-labelledby="fleet-title">
+            <h2 id="fleet-title">Flota</h2>
+            <p>
+              Registra un bus para tu cooperativa. Debes elegir un grupo de
+              buses existente.
+            </p>
+            <p class="admin-notice">
+              La pantalla para crear grupos todavía no está disponible. Si la
+              lista de grupos está vacía, no podrás completar el registro desde
+              aquí.
+            </p>
+            <a class="btn btn-dark" href="/pages/registrar-bus.html">
+              Registrar bus
+            </a>
+          </section>
+          <section class="admin-card" aria-labelledby="frequency-title">
+            <h2 id="frequency-title">Frecuencias</h2>
+            <p>Registra recorridos autorizados y consulta sus estados.</p>
+            <p class="admin-list">
+              <a href="/pages/crear-frecuencia.html">Crear frecuencia</a>
+            </p>
+            <a class="btn btn-outline-dark" href="/pages/frecuencias.html">
+              Consultar frecuencias
+            </a>
+          </section>
+          <section class="admin-card" aria-labelledby="sheets-title">
+            <h2 id="sheets-title">Hojas de ruta</h2>
+            <p>
+              Crea borradores y programa los servicios con buses y frecuencias
+              existentes.
+            </p>
+            <a class="btn btn-dark" href="/pages/hojas-ruta.html">
+              Consultar hojas de ruta
+            </a>
+          </section>
+          <section class="admin-card" aria-labelledby="clerks-title">
+            <h2 id="clerks-title">Personal</h2>
+            <p>Registra una cuenta de oficinista vinculada a tu cooperativa.</p>
+            <a class="btn btn-outline-dark" href="/pages/oficinistas.html">
+              Crear oficinista
+            </a>
+          </section>
+        </div>
+      </section>
+      <noscript>
+        <p>
+          Activa JavaScript para comprobar tu sesión y ver estas operaciones.
+        </p>
+      </noscript>
+    </main>
+    <script type="module" src="/src/admin/operations-page.js"></script>
+  </body>
+</html>

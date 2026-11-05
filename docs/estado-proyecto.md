@@ -1,5 +1,43 @@
 # Estado compartido del proyecto
 
+## OPS-WEB-01 — acceso a operaciones de cooperativa, 4 de noviembre de 2026
+
+En `feature/AUTH-WEB-01-cierre-sesion-cambio-cuenta`, sobre commit
+`1f15756`, el solicitante eligió agregar un menú para el rol
+`COOPERATIVE_ADMIN`. Login ahora enlaza a `/pages/operaciones-cooperativa.html`;
+la página valida `/api/v1/auth/me` antes de mostrar enlaces a registrar bus,
+frecuencias, hojas de ruta y crear oficinistas. Se explicita que Flota aún
+requiere un grupo y no hay pantalla para crearlo. La página y su módulo se
+incluyen en la imagen Nginx. No hubo cambios backend ni dependencias.
+
+Pruebas: frontend 366/366, lint, Prettier, build Docker y recorrido
+`test:admin` con Chrome y stack aislado aprobados. El smoke confirmó enlaces
+HTTP 200, rol denegado y reflujo a 360 px. El entorno de QA se retiró; el
+entorno temporal que el usuario ya tenía activo no se detuvo. La evidencia y
+los límites constan en [OPS-WEB-01](specs/OPS-WEB-01.md). Pendientes: revisión
+humana e integración. Sin commit, push o merge.
+
+## AUTH-WEB-01 — ampliación de cierre y cambio de cuenta, 4 de noviembre de 2026
+
+El solicitante autorizó implementar en su rama feature administrada por él.
+Login muestra «Cerrar sesión y usar otra cuenta» para sesión confirmada. Reutiliza
+logout/CSRF existentes y solo muestra el formulario tras GET me = 401. Borra
+correo/contraseña y enlace anterior, bloquea doble clic y recupera resultados
+inciertos mediante lectura sin repetir POST ni redirigir a la cuenta anterior.
+Backend, migraciones y dependencias intactos. DESIGN.md aplicado con estilo/foco local.
+
+Frontend lint, formato propio y 361/361 pruebas aprobadas (nueve nuevas).
+Chrome con frontend/proxy/backend/PostgreSQL efímeros reales aprobó administrador
+a cliente, teclado/foco, móvil/escritorio, reflujo CSS 200 %, respuesta perdida y
+doble clic. [Spec §21](specs/AUTH-WEB-01.md),
+[evidencia y límites](evidence/AUTH-WEB-01/cambio-cuenta/README.md).
+Backend lint/formato aprobados, 2037/2037 unitarias y 692/693 integraciones:
+único fallo por timeout de fotografías Fleet, repetido aisladamente (17/18), sin
+modificar esa prueba ni su límite. Regresión global fallida; detalle en spec.
+Entornos web y PostgreSQL temporales retirados. No se ejecutaron comandos de Git; rama/remoto
+sin nueva verificación. Revisión humana e integración pendientes, sin reabrir
+por inferencia el cierre del alcance original. Asistencia de Codex.
+
 ## Edwin — catálogo de migraciones tras BOOK-11 (INTEG-02), 5 de noviembre de 2026
 
 | Spec / responsable | Estado y evidencia | Próximo paso |

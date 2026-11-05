@@ -18,7 +18,9 @@
   <body>
     <a class="skip-link" href="#contenido">Saltar al contenido</a>
     <header class="site-header">
-      <div class="container d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div
+        class="container d-flex flex-wrap align-items-center justify-content-between gap-3"
+      >
         <a class="brand" href="../index.html" aria-label="transViaje, inicio">
           <span class="brand-logo-frame" aria-hidden="true">
             <img
@@ -49,8 +51,25 @@
           Comprobando tu sesión…
         </p>
         <p id="session-email" hidden></p>
-        <a id="administration-link" class="btn btn-outline-dark mb-3" hidden></a>
-        <button id="check-session" class="btn btn-primary mb-4" type="button" hidden>
+        <a
+          id="administration-link"
+          class="btn btn-outline-dark mb-3"
+          hidden
+        ></a>
+        <button
+          id="change-account"
+          class="btn btn-outline-dark mb-3"
+          type="button"
+          hidden
+        >
+          Cerrar sesión y usar otra cuenta
+        </button>
+        <button
+          id="check-session"
+          class="btn btn-primary mb-4"
+          type="button"
+          hidden
+        >
           Comprobar sesión
         </button>
         <noscript><p>Habilita JavaScript para iniciar sesión.</p></noscript>
@@ -64,7 +83,9 @@
           <fieldset disabled>
             <legend class="visually-hidden">Datos de acceso</legend>
             <div class="mb-4">
-              <label for="login-email" class="form-label">Correo electrónico</label>
+              <label for="login-email" class="form-label"
+                >Correo electrónico</label
+              >
               <input
                 id="login-email"
                 class="form-control"
@@ -86,16 +107,24 @@
                 required
               />
             </div>
-            <button class="btn btn-primary w-100" type="submit" disabled>Iniciar sesión</button>
+            <button class="btn btn-primary w-100" type="submit" disabled>
+              Iniciar sesión
+            </button>
           </fieldset>
         </form>
-        <p class="mt-4 mb-0">¿Aún no tienes cuenta? <a href="./registro.html">Crear cuenta</a></p>
-        <p class="mt-2 mb-0"><a href="./recuperar-cuenta.html">¿Olvidaste tu contraseña?</a></p>
+        <p class="mt-4 mb-0">
+          ¿Aún no tienes cuenta? <a href="./registro.html">Crear cuenta</a>
+        </p>
+        <p class="mt-2 mb-0">
+          <a href="./recuperar-cuenta.html">¿Olvidaste tu contraseña?</a>
+        </p>
       </section>
     </main>
     <footer class="site-footer">
       <div class="container">
-        <p class="mb-0">transViaje <span aria-hidden="true">·</span> Proyecto académico</p>
+        <p class="mb-0">
+          transViaje <span aria-hidden="true">·</span> Proyecto académico
+        </p>
       </div>
     </footer>
     <script type="module" src="../src/auth/login-page.js"></script>
