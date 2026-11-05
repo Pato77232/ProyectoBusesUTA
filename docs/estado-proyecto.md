@@ -1,5 +1,11 @@
 # Estado compartido del proyecto
 
+## Edwin — avisos por correo (CORREO-02), 5 de noviembre de 2026
+
+| Spec / responsable | Estado y evidencia | Próximo paso |
+| --- | --- | --- |
+| [CORREO-02](specs/CORREO-02.md) / Edwin | Rama `feature/CORREO-02-avisos-correo` sobre `feature/BOLETOS-01-emision-qr` (PR #103). Spec en `43c774e`. T1 local: tabla `email_notifications`, `enqueueWith` transaccional y lecturas de Reservas y Auth. Sin push ni PR. | T2: trabajador de envío con reintentos. |
+
 ## Edwin — boletos con QR (BOLETOS-01), 4 de noviembre de 2026
 
 | Spec / responsable | Estado y evidencia | Próximo paso |

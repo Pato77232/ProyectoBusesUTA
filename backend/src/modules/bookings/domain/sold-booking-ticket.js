@@ -159,4 +159,10 @@ function soldBookingTicketForOwner(row, target) {
   if (sale === null) return null;
   return Object.freeze({ ...sale, trip: frozenTrip(row.summary, sale) });
 }
-module.exports = { request, ownerRequest, soldBookingTicket, soldBookingTicketForOwner };
+module.exports = {
+  request,
+  ownerRequest,
+  soldBookingTicket,
+  soldBookingTicketForOwner,
+  frozenTrip,
+};

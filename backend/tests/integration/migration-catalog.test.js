@@ -217,12 +217,14 @@ test('copia de develop con datos conserva cada fila/definición y añade tablas 
       'booking_seat_allocations',
       'booking_trip_locks',
       'bookings',
+      'email_notifications',
       'route_sheet_renewals',
       'tickets',
     ]);
     expect(after.data.bookings).toEqual([]);
     expect(after.data.route_sheet_renewals).toEqual([]);
     expect(after.data.tickets).toEqual([]);
+    expect(after.data.email_notifications).toEqual([]);
   });
 });
 

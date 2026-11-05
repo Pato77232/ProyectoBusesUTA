@@ -5,7 +5,7 @@
 - **Módulo:** `notifications` (nuevo), con cambios acotados en `payments`, `bookings` y `auth`
 - **Responsable:** Edwin
 - **Revisor propuesto / confirmado:** Pablo (correo y Auth), Shirley (Pagos) y Leslie (Reservas); sin confirmar
-- **Estado:** Borrador
+- **Estado:** En desarrollo (T1 local)
 - **Prioridad y dependencias:** depende de [BOLETOS-01](BOLETOS-01.md) (PR #103, sin integrar) por la página `boletos.html` y la lectura de venta con tramo; reutiliza `smtp-mailer.js` de [CORREO-01](CORREO-01.md).
 - **Rama / PR / base comprobada:** `feature/CORREO-02-avisos-correo` desde `feature/BOLETOS-01-emision-qr` `2dac0c0` (incluye `origin/develop` `292bb1f`), 4 de noviembre de 2026. Sin PR.
 - **Autorización de alcance:** Edwin, 4 de noviembre de 2026: avisos de boletos listos, comprobante rechazado y reserva vencida; el correo de boletos lleva un enlace a «Mis boletos», sin QR adjunto; Pagos (y Reservas al vencer) encolan el aviso en la misma transacción que el cambio de estado. No es revisión técnica.
@@ -135,10 +135,18 @@ No aplica: por decisión de Edwin del 4 de noviembre de 2026, la entrega no incl
 
 | Incremento | Contenido                                                                    | Estado    |
 | ---------- | ---------------------------------------------------------------------------- | --------- |
-| T1         | Migración `email_notifications`, `enqueueWith` y lecturas de Reservas y Auth | Pendiente |
+| T1         | Migración `email_notifications`, `enqueueWith` y lecturas de Reservas y Auth | Local, sin commit |
 | T2         | Trabajador: reclamo, textos, envío, reintentos y configuración               | Pendiente |
 | T3         | Encolado en la aprobación y el rechazo de Pagos                              | Pendiente |
 | T4         | Encolado en el vencimiento de Reservas                                       | Pendiente |
 | T5         | Composición en `server.js`, `.env.example` y arranque real                   | Pendiente |
 
 Cada incremento se cierra con lint, formato y `npm test` (integración con PostgreSQL aislado y base nueva).
+
+### Evidencia de T1 (5 de noviembre de 2026)
+
+- Migración `1794320000000-create-email-notifications`, después de `1794310000000-create-tickets` de BOLETOS-01. La base valida estados, reclamo (`SENDING` exige `claimed_at`) y cierre (`ACCEPTED`, `FAILED` y `SKIPPED` exigen `finished_at`).
+- `createNotificationsModule().outbox.enqueueWith(client, aviso)`: valida el aviso, inserta con `ON CONFLICT (kind, booking_id) DO NOTHING` y devuelve `{ queued }`. Las pruebas comprueban que el aviso se confirma o desaparece con la transacción del llamador.
+- Reservas: `createBookingNotificationQueries({ pool }).findNotificationContext(...)`, separado de BOOK-09; si la reserva no tiene tramo congelado devuelve `trip: null` en lugar de fallar.
+- Auth: `createCustomerContactQueries({ pool }).findCustomerEmail(userId)`; solo `CUSTOMER` y solo identificadores UUID.
+- Pruebas existentes modificadas: las listas esperadas del catálogo de migraciones (unitaria e integración) incorporan la migración y la tabla nuevas.

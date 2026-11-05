@@ -1,4 +1,5 @@
 const { runMigration, testPool } = require('../../helpers/database');
+const { rollbackBefore } = require('../../helpers/migration-target');
 const { assertTestDatabase } = require('../../../scripts/test-database');
 const { createBookingTicketQueries } = require('../../../src/modules/bookings');
 const PgBookingSaleConfirmer = require('../../../src/modules/bookings/infrastructure/pg-booking-sale-confirmer');
@@ -129,6 +130,7 @@ test('la base rechaza códigos inválidos y la reversión se bloquea con boletos
   ).rejects.toMatchObject({ code: '23514' });
   await confirm();
   await tickets.issueOwnerTickets(target);
+  await rollbackBefore(pool, '1794310000000-create-tickets');
   expect(() => runMigration('down')).toThrow();
   expect(await storedTickets()).toHaveLength(2);
   await pool.query('TRUNCATE tickets');

@@ -21,6 +21,7 @@ const createLimiter = require('./infrastructure/memory-login-limiter');
 const { readAuthConfig } = require('./infrastructure/auth-config');
 const createCsrf = require('./interfaces/csrf');
 const createRouter = require('./interfaces/auth-router');
+const createCustomerContactQueries = require('./infrastructure/pg-customer-contact.queries');
 async function createAuthModule({ pool, env = process.env, mailer }) {
   const config = readAuthConfig(env);
   const workerConfig = readPasswordResetWorkerConfig(env);
@@ -76,7 +77,7 @@ async function createAuthModule({ pool, env = process.env, mailer }) {
     }),
   };
 }
-module.exports = { createAuthModule };
+module.exports = { createAuthModule, createCustomerContactQueries };
 
 async function bootstrapSystemAdmin({ pool, credentials }) {
   const parseCredentials = require('./interfaces/bootstrap-credentials');
