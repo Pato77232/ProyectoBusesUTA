@@ -25,7 +25,7 @@ test('catálogo explícito conserva la cadena de develop, Pagos, protección, re
   expect(activeNames[27]).toBe('1794250000000-booking-commercial-totals');
   expect(activeNames[28]).toBe('1794260000000-booking-benefit-reviews');
   expect(activeNames[29]).toBe('1794270000000-identify-accessible-bus-spaces');
-  expect(activeNames[30]).toBe('1794290000000-create-tickets');
+  expect(activeNames[30]).toBe('1794310000000-create-tickets');
   expect(() => validateHistory(activeNames.slice(0, 22))).not.toThrow();
   expect(new Set(activeNames).size).toBe(activeNames.length);
   expect([...activeNames].sort()).toEqual(activeNames);

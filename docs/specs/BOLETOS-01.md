@@ -80,7 +80,7 @@ Si faltan esos datos, o la llegada no es posterior a la salida, en una venta `SO
 | `code`           | text UNIQUE   | 128 bits aleatorios en base32, sin datos personales                |
 | `issued_at`      | timestamptz   | hora de la primera emisión                                         |
 
-Restricción única `(booking_id, seat_id)` y formato del código validado en la base (`^[A-Z2-7]{26}$`). Migración `1794290000000-create-tickets`; el `down` se bloquea si hay boletos emitidos.
+Restricción única `(booking_id, seat_id)` y formato del código validado en la base (`^[A-Z2-7]{26}$`). Migración `1794310000000-create-tickets`; el `down` se bloquea si hay boletos emitidos.
 
 El repositorio inserta los boletos que falten con `ON CONFLICT (booking_id, seat_id) DO NOTHING` y luego lee los guardados; así, consultas repetidas o simultáneas devuelven siempre los mismos códigos. La API pública del módulo es `createTicketsModule({ pool, soldBookings, clock })`, que expone `issueOwnerTickets({ bookingId, ownerId })`.
 
