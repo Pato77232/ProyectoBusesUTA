@@ -432,14 +432,15 @@ test('misma clave con otro pasajero responde conflicto específico sin otra rese
   expect(await counts()).toEqual({ bookings: 1, allocations: 2 });
 });
 
-test('beneficio por edad sin acreditar pide revisión y no permite escribir una reserva', async () => {
+// BOOK-BENEF-02: la fecha sin acreditar ya no bloquea; cotizar sigue sin escribir reservas.
+test('beneficio por edad sin acreditar se cotiza y no escribe una reserva', async () => {
   const browser = await customer();
   passengerVerifier.verify.mockResolvedValue(
     summaryContext().passengerBenefits.map((entry) => ({ ...entry, birthDateVerified: false })),
   );
   const response = await browser.request('/api/v1/bookings/summary', 'POST', summaryInput());
-  expect(response.status).toBe(409);
-  expect((await response.json()).error.code).toBe('BOOKING_BENEFIT_REVIEW_REQUIRED');
+  expect(response.status).toBe(200);
+  expect((await response.json()).summaryRevision).toMatch(/^[a-f0-9]{64}$/);
   expect(await counts()).toEqual({ bookings: 0, allocations: 0 });
 });
 

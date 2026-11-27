@@ -146,7 +146,8 @@
               La disponibilidad se vuelve a comprobar al confirmar la reserva.
             </p>
             <div class="booking-legend" aria-label="Estados de los asientos">
-              <span>□ Libre</span><span>✓ Elegido</span><span>× Ocupado</span>
+              <span>□ Libre</span><span>✓ Elegido</span><span>× Ocupado</span
+              ><span>Borde grueso: VIP</span>
             </div>
             <label class="d-block mb-3"
               ><input id="include-accessible" type="checkbox" /> Consultar
@@ -155,7 +156,7 @@
             >
             <div
               id="seat-list"
-              class="booking-seats"
+              class="booking-seat-map"
               role="group"
               aria-label="Asientos del viaje"
             ></div>
@@ -186,12 +187,13 @@
             hidden
             aria-labelledby="benefit-request-title"
           >
-            <h2 id="benefit-request-title">Acredita tus beneficios</h2>
+            <h2 id="benefit-request-title">Revisión de discapacidad</h2>
             <p>
-              Antes de aceptar el total, un oficinista de la cooperativa debe
-              contrastar los documentos de tus pasajeros. Presenta documento de
-              identidad o nacimiento y, si corresponde, la acreditación de
-              discapacidad.
+              Los descuentos de menores y de tercera edad se aplican solos según
+              la fecha de nacimiento; la cédula se presenta al embarcar. El
+              descuento por discapacidad lo acredita la cooperativa: solicita la
+              revisión y presenta el carnet. Sin revisión, el total sale sin ese
+              descuento.
             </p>
             <p>
               La solicitud no reserva asientos. Conserva esta pestaña abierta
@@ -256,10 +258,14 @@
               El plazo de pago empieza al crear la reserva. Verás su vencimiento
               exacto al confirmar.
             </p>
+            <p id="confirm-hint" class="booking-small">
+              Marca la casilla de aceptación para habilitar «Confirmar reserva».
+            </p>
             <button
               id="confirm-booking"
               class="booking-button"
               type="button"
+              aria-describedby="confirm-hint"
               disabled
             >
               Confirmar reserva
@@ -318,6 +324,35 @@
               class="booking-countdown"
               aria-live="off"
             ></p>
+            <form id="proof-form" class="booking-proof" hidden novalidate>
+              <h3 class="h5">Sube tu comprobante de pago</h3>
+              <p class="booking-small">
+                Deposita o transfiere el total y sube la foto o el PDF del
+                comprobante antes del vencimiento. Formatos: JPG, PNG o PDF,
+                hasta 5 MB.
+              </p>
+              <label class="d-block mb-2" for="proof-file"
+                >Archivo del comprobante</label
+              >
+              <input
+                id="proof-file"
+                name="file"
+                type="file"
+                class="form-control mb-2"
+                accept="application/pdf,image/jpeg,image/png"
+                aria-describedby="proof-status"
+              />
+              <button id="proof-submit" type="submit" class="booking-button">
+                Subir comprobante
+              </button>
+            </form>
+            <p
+              id="proof-status"
+              tabindex="-1"
+              class="booking-small"
+              role="status"
+              aria-live="polite"
+            ></p>
             <div id="receipt-content"></div>
             <p id="booking-not-ticket" class="booking-small">
               La reserva todavía no es un boleto ni una venta aprobada.
@@ -330,6 +365,9 @@
               >
                 Actualizar estado
               </button>
+              <a id="restart-booking" class="booking-button" href="" hidden
+                >Elegir asientos de nuevo</a
+              >
               <a id="finish-booking" class="booking-button" href="/"
                 >Finalizar y volver al inicio</a
               >

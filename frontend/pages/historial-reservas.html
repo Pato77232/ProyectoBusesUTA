@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Mis reservas | transViaje</title>
+    <link rel="icon" href="../assets/favicon.svg" />
     <link
       rel="stylesheet"
       href="../assets/vendor/bootstrap-5.3.8/bootstrap.min.css"
@@ -13,11 +14,27 @@
   <body>
     <a class="skip-link" href="#contenido">Saltar al contenido</a>
     <header class="site-header">
-      <nav class="container d-flex gap-3 flex-wrap">
-        <a href="../index.html">transViaje</a
-        ><a href="buscar-viajes.html">Buscar viajes</a
-        ><a href="boletos.html">Mis boletos</a>
-      </nav>
+      <div class="container d-flex align-items-center justify-content-between gap-3 flex-wrap">
+        <a class="brand" href="../index.html" aria-label="transViaje, inicio">
+          <span class="brand-logo-frame" aria-hidden="true">
+            <img
+              class="brand-logo"
+              src="../assets/brand/logo-transviaje.png"
+              alt=""
+              width="1600"
+              height="1446"
+            />
+          </span>
+        </a>
+        <nav aria-label="Navegación del cliente">
+          <ul class="nav-list">
+            <li><a href="buscar-viajes.html">Buscar viajes</a></li>
+            <li><a href="historial-reservas.html" aria-current="page">Mis reservas</a></li>
+            <li><a href="boletos.html">Mis boletos</a></li>
+            <li><a href="login.html" data-session-link>Iniciar sesión</a></li>
+          </ul>
+        </nav>
+      </div>
     </header>
     <main class="container py-5" id="contenido">
       <h1>Mis reservas</h1>
@@ -50,5 +67,6 @@
       ></section>
     </main>
     <script type="module" src="../src/bookings/history-page.js"></script>
+    <script type="module" src="../src/auth/session-link-page.js"></script>
   </body>
 </html>

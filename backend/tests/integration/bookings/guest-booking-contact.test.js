@@ -68,17 +68,22 @@ test('fija el correo acreditado en la reserva y Pagos solo consulta la compra de
     owner_id: expect.stringMatching(/^guest:[a-f0-9-]{36}$/),
     guest_contact_email: 'invitada@example.ec',
   });
-  const rollback = spawnSync(
-    process.execPath,
-    [
-      '-e',
-      "const {migrate}=require(process.argv[1]);migrate(process.env.DATABASE_URL,'down').catch(error=>{process.stdout.write(error.code||'UNKNOWN');process.exitCode=1})",
-      require.resolve('../../../scripts/migrate'),
-    ],
-    { env: process.env, encoding: 'utf8' },
-  );
+  const rollbackOnce = () =>
+    spawnSync(
+      process.execPath,
+      [
+        '-e',
+        "const {migrate}=require(process.argv[1]);migrate(process.env.DATABASE_URL,'down').catch(error=>{process.stdout.write(error.code||'UNKNOWN');process.exitCode=1})",
+        require.resolve('../../../scripts/migrate'),
+      ],
+      { env: process.env, encoding: 'utf8' },
+    );
+  // BOOK-CAJA-02 quedó después: sin ventas de boletería, su reversión pasa primero.
+  expect(rollbackOnce().status).toBe(0);
+  const rollback = rollbackOnce();
   expect(rollback.status).toBe(1);
   expect(rollback.stdout).toBe('P0001');
+  runMigration();
   expect(
     (await pool.query('SELECT guest_contact_email FROM bookings WHERE id=$1', [booking.bookingId]))
       .rows[0].guest_contact_email,

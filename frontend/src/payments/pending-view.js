@@ -15,6 +15,41 @@ export function createPendingView(document) {
     if (text !== undefined) node.textContent = text;
     return node;
   }
+  // FRONT-02 T7: la decisión exige revisión explícita o un motivo escrito.
+  function decision(item) {
+    const box = element('div', 'payment-decision');
+    const reviewId = `review-${item.id}`;
+    const review = element('input', 'form-check-input');
+    Object.assign(review, { type: 'checkbox', id: reviewId });
+    review.dataset.role = 'reviewed';
+    const reviewLabel = element(
+      'label',
+      'form-check-label',
+      `Revisé el archivo y coincide con el total de ${money.format(item.totalCents / 100)}.`,
+    );
+    reviewLabel.htmlFor = reviewId;
+    const check = element('div', 'form-check mb-2');
+    check.append(review, reviewLabel);
+    const approve = element('button', 'btn btn-dark', 'Aprobar pago');
+    Object.assign(approve, { type: 'button' });
+    approve.dataset.action = 'approve';
+    const reasonId = `reason-${item.id}`;
+    const reasonLabel = element('label', 'form-label', 'Motivo del rechazo (obligatorio)');
+    reasonLabel.htmlFor = reasonId;
+    const reason = element('textarea', 'form-control mb-2');
+    Object.assign(reason, { id: reasonId, rows: 2 });
+    reason.dataset.role = 'justification';
+    const reject = element('button', 'btn btn-outline-danger', 'Rechazar comprobante');
+    Object.assign(reject, { type: 'button' });
+    reject.dataset.action = 'reject';
+    const rejectBox = element('details', 'mt-3');
+    rejectBox.append(element('summary', '', 'Rechazar con motivo'), reasonLabel, reason, reject);
+    const result = element('p', 'payment-decision-status');
+    result.setAttribute('role', 'status');
+    result.tabIndex = -1;
+    box.append(check, approve, rejectBox, result);
+    return box;
+  }
   function card(item) {
     const article = element('article', 'payment-proof');
     const heading = element('div', 'payment-proof-heading');
@@ -42,10 +77,33 @@ export function createPendingView(document) {
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
     link.setAttribute('aria-label', `Abrir ${item.fileName} en otra pestaña`);
-    article.append(heading, details, link);
+    article.dataset.proofId = item.id;
+    article.append(heading, details, link, decision(item));
     return article;
   }
+  const cardFor = (id) =>
+    [...list.querySelectorAll('article')].find((node) => node.dataset.proofId === id);
+  function report(id, message) {
+    const status = cardFor(id)?.querySelector('.payment-decision-status');
+    if (!status) return;
+    status.textContent = message;
+    status.focus();
+  }
   return {
+    busy(id, value) {
+      for (const control of cardFor(id)?.querySelectorAll('button, input, textarea') ?? [])
+        control.disabled = value;
+    },
+    failed: report,
+    decided(id, message) {
+      report(id, message);
+      cardFor(id)
+        ?.querySelector('.payment-decision')
+        ?.replaceChildren(
+          Object.assign(element('p', 'payment-decision-status', message), { tabIndex: -1 }),
+        );
+      find('#status').textContent = message;
+    },
     render({
       mode,
       message,

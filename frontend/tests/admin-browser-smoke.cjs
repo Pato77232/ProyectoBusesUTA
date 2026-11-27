@@ -125,6 +125,7 @@ async function main() {
       `Array.from(document.querySelectorAll('#operations-content a'), link => link.getAttribute('href'))`,
     );
     assert.deepEqual(operationLinks, [
+      "/pages/grupos-buses.html",
       "/pages/registrar-bus.html",
       "/pages/crear-frecuencia.html",
       "/pages/frecuencias.html",
@@ -135,7 +136,7 @@ async function main() {
       await browser.evaluate(
         `document.querySelector('#operations-content').textContent`,
       ),
-      /crear grupos todavía no está disponible/u,
+      /Crea los grupos de buses de tu cooperativa/u,
     );
     for (const path of operationLinks) {
       assert.equal((await fetch(origin + path)).status, 200);

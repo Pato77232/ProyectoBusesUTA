@@ -1,6 +1,6 @@
 import { createApiClient } from "../api/api-client.js";
 import { createLoginController } from "./login-controller.js";
-import { createLoginView } from "./login-view.js";
+import { createLoginView, loginDestination } from "./login-view.js";
 import {
   readReservationReturn,
   takeRegistrationEmail,
@@ -19,8 +19,16 @@ const next = readReservationReturn(document.defaultView.location.search);
 const controller = createLoginController({
   client: createApiClient(),
   view: createLoginView(document),
-  onAuthenticated() {
-    if (next) document.defaultView.location.assign(next);
+  onAuthenticated(user, { afterLogin = false } = {}) {
+    if (next) {
+      document.defaultView.location.assign(next);
+      return;
+    }
+    // Con una sesión previa solo se redirige a destinos que ofrecen su propio
+    // cierre de sesión; los demás conservan aquí «Cambiar cuenta».
+    const destination = loginDestination(user?.role);
+    if (destination && (afterLogin || destination.withActiveSession))
+      document.defaultView.location.assign(destination.href);
   },
 });
 document.querySelector("form").addEventListener("submit", (event) => {

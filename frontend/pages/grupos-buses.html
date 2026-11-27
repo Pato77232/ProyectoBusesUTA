@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#202020" />
+    <title>Grupos de buses · transViaje</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+    <link
+      rel="stylesheet"
+      href="/assets/vendor/bootstrap-5.3.8/bootstrap.min.css"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+    />
+    <link rel="stylesheet" href="/src/styles/app.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+    <header class="site-header">
+      <div
+        class="container d-flex flex-wrap align-items-center justify-content-between gap-3"
+      >
+        <a class="brand" href="/" aria-label="transViaje, inicio">
+          <span class="brand-logo-frame" aria-hidden="true">
+            <img
+              class="brand-logo"
+              src="/assets/brand/logo-transviaje.png"
+              alt=""
+              width="1600"
+              height="1446"
+            />
+          </span>
+        </a>
+        <div class="d-flex flex-wrap align-items-center gap-3">
+          <a
+            class="btn btn-outline-dark"
+            href="/pages/operaciones-cooperativa.html"
+            >Volver a operaciones</a
+          >
+          <button type="button" class="btn btn-outline-dark btn-sm" data-logout>
+            Cerrar sesión
+          </button>
+        </div>
+      </div>
+    </header>
+    <main id="contenido" class="container py-4" tabindex="-1">
+      <p class="eyebrow">FLOTA</p>
+      <h1>Grupos de buses</h1>
+      <p>
+        Agrupa los buses de tu cooperativa según el tipo de ruta. Cada bus y
+        cada hoja de ruta pertenecen a un grupo.
+      </p>
+      <p
+        id="group-status"
+        class="form-status"
+        role="status"
+        aria-live="polite"
+        data-tone="info"
+        tabindex="-1"
+      >
+        Comprobando tu sesión…
+      </p>
+      <a id="group-login" href="/pages/login.html" hidden
+        >Ir al inicio de sesión</a
+      >
+      <div id="group-content" class="row gy-4" hidden>
+        <section class="col-lg-5" aria-labelledby="group-form-title">
+          <h2 id="group-form-title" class="h4">Crear grupo</h2>
+          <form id="group-form" novalidate>
+            <fieldset disabled>
+              <div class="mb-3">
+                <label class="form-label" for="group-name">Nombre</label>
+                <input
+                  id="group-name"
+                  class="form-control"
+                  name="name"
+                  type="text"
+                  required
+                  autocomplete="off"
+                  aria-describedby="group-name-help"
+                />
+                <p id="group-name-help" class="form-text">
+                  Por ejemplo, «Rutas largas». No puede repetirse en tu
+                  cooperativa.
+                </p>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="group-category">Categoría</label>
+                <select
+                  id="group-category"
+                  class="form-select"
+                  name="category"
+                  required
+                >
+                  <option value="">Elige una categoría</option>
+                </select>
+              </div>
+              <button class="btn btn-dark" type="submit">Crear grupo</button>
+            </fieldset>
+          </form>
+        </section>
+        <section class="col-lg-7" aria-labelledby="group-list-title">
+          <h2 id="group-list-title" class="h4">Grupos de tu cooperativa</h2>
+          <p id="group-empty" hidden>
+            Aún no hay grupos. Crea el primero para registrar buses.
+          </p>
+          <ul id="group-list" class="list-group mb-3" aria-live="polite"></ul>
+          <a class="btn btn-outline-dark" href="/pages/registrar-bus.html"
+            >Registrar un bus</a
+          >
+        </section>
+      </div>
+      <noscript>
+        <p>Activa JavaScript para administrar los grupos de buses.</p>
+      </noscript>
+    </main>
+    <script type="module" src="/src/fleet/bus-group-page.js"></script>
+    <script type="module" src="/src/auth/logout-page.js"></script>
+  </body>
+</html>

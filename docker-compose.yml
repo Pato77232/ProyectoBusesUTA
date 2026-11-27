@@ -26,6 +26,9 @@ services:
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-30m}
       PORT: 3000
       BUS_PHOTO_STORAGE_DIR: /home/node/fleet-photos
+      PAYMENT_PROOF_STORAGE_DIR: /home/node/payment-proofs
+      # RN: plazo para subir el comprobante, de 180 a 300 segundos (3 a 5 minutos).
+      BOOKING_PROOF_WINDOW_SECONDS: ${BOOKING_PROOF_WINDOW_SECONDS:-300}
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-}
       SMTP_USER: ${SMTP_USER:-}
@@ -34,6 +37,13 @@ services:
       PASSWORD_RESET_WORKER_ENABLED: ${PASSWORD_RESET_WORKER_ENABLED:-false}
       PASSWORD_RESET_RESPONSE_FLOOR_MS: ${PASSWORD_RESET_RESPONSE_FLOOR_MS:-300}
       PUBLIC_WEB_ORIGIN: ${PUBLIC_WEB_ORIGIN:-}
+      # BOLETOS-03: Google Wallet. Sin estas variables queda deshabilitado; la clave se monta
+      # como archivo de solo lectura con un override local, nunca en el repositorio.
+      GOOGLE_WALLET_ISSUER_ID: ${GOOGLE_WALLET_ISSUER_ID:-}
+      GOOGLE_WALLET_CLASS_SUFFIX: ${GOOGLE_WALLET_CLASS_SUFFIX:-}
+      GOOGLE_WALLET_SERVICE_ACCOUNT_EMAIL: ${GOOGLE_WALLET_SERVICE_ACCOUNT_EMAIL:-}
+      GOOGLE_WALLET_PRIVATE_KEY_FILE: ${GOOGLE_WALLET_PRIVATE_KEY_FILE:-}
+      GOOGLE_WALLET_ORIGINS: ${GOOGLE_WALLET_ORIGINS:-}
       PASSWORD_RESET_TOKEN_MINUTES: ${PASSWORD_RESET_TOKEN_MINUTES:-20}
       PASSWORD_RESET_POLL_MS: ${PASSWORD_RESET_POLL_MS:-5000}
       PASSWORD_RESET_CLAIM_MS: ${PASSWORD_RESET_CLAIM_MS:-120000}
@@ -43,6 +53,7 @@ services:
       PASSWORD_RESET_ACTION_RETENTION_DAYS: ${PASSWORD_RESET_ACTION_RETENTION_DAYS:-7}
     volumes:
       - fleet_photos:/home/node/fleet-photos
+      - payment_proofs:/home/node/payment-proofs
     ports:
       - "127.0.0.1:3000:3000"
     depends_on:
@@ -51,3 +62,4 @@ services:
 volumes:
   database:
   fleet_photos:
+  payment_proofs:

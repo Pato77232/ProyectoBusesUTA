@@ -1,5 +1,6 @@
 import { createApiClient } from '../api/api-client.js';
 import { createTicketsController } from './tickets-controller.js';
+import { createGoogleWalletAction } from './google-wallet.js';
 
 const $ = (selector) => document.querySelector(selector);
 const status = $('#tickets-status');
@@ -73,8 +74,41 @@ function ticketCard(sheet, ticket, index) {
   qr.append(qrImage(ticket), node('figcaption', ticket.code, 'ticket-code'));
   body.append(data, qr);
   card.append(header, body, node('p', `Reserva ${sheet.bookingId}`, 'ticket-reference'));
+  if (walletEnabled) card.append(walletControl(sheet, ticket, index));
   return card;
 }
+
+// BOLETOS-03 T3: un botón por boleto; se oculta al imprimir.
+const WALLET_LABEL = 'Agregar a Google Wallet';
+function walletControl(sheet, ticket, index) {
+  const box = node('div', undefined, 'ticket-wallet');
+  const button = node('button', WALLET_LABEL, 'btn btn-dark');
+  button.type = 'button';
+  button.setAttribute(
+    'aria-label',
+    `${WALLET_LABEL}: boleto ${index + 1} de ${sheet.tickets.length}`,
+  );
+  const message = node('p', '', 'ticket-wallet-status');
+  message.setAttribute('role', 'status');
+  button.addEventListener('click', async () => {
+    button.disabled = true;
+    button.textContent = 'Abriendo Google Wallet…';
+    message.textContent = '';
+    const result = await wallet.open(sheet.bookingId, ticket.ticketId);
+    if (result.ok) return;
+    button.disabled = false;
+    button.textContent = WALLET_LABEL;
+    if (result.message) message.textContent = result.message;
+  });
+  box.append(button, message);
+  return box;
+}
+
+const wallet = createGoogleWalletAction({
+  client: createApiClient(),
+  leave: (url) => window.location.assign(url),
+});
+let walletEnabled = false;
 
 function soldItem(booking) {
   const item = node('li');
@@ -123,4 +157,8 @@ const bookingId = new URLSearchParams(window.location.search).get('reserva');
 $('#tickets-print').addEventListener('click', () => window.print());
 more.addEventListener('click', () => controller.listSold(nextCursor));
 if (bookingId === null) controller.listSold();
-else controller.showSheet(bookingId);
+else
+  wallet.enabled().then((enabled) => {
+    walletEnabled = enabled;
+    controller.showSheet(bookingId);
+  });

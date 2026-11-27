@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Vende boletos en la boletería de tu cooperativa en transViaje."
+    />
+    <meta name="theme-color" content="#202020" />
+    <title>Vender en boletería · transViaje</title>
+    <link rel="icon" href="../assets/favicon.svg" />
+    <link
+      rel="stylesheet"
+      href="../assets/vendor/bootstrap-5.3.8/bootstrap.min.css"
+    />
+    <link rel="stylesheet" href="../src/styles/app.css" />
+    <link rel="stylesheet" href="../src/styles/counter.css" />
+  </head>
+  <body class="booking-page counter-page">
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+    <header class="site-header">
+      <div
+        class="container d-flex flex-wrap align-items-center justify-content-between gap-3"
+      >
+        <a class="brand" href="../index.html" aria-label="transViaje, inicio">
+          <span class="brand-logo-frame" aria-hidden="true"
+            ><img
+              class="brand-logo"
+              src="../assets/brand/logo-transviaje.png"
+              alt=""
+              width="1600"
+              height="1446"
+          /></span>
+        </a>
+        <div class="d-flex flex-wrap align-items-center gap-3">
+          <nav aria-label="Navegación del oficinista">
+            <ul class="nav-list">
+              <li>
+                <a href="boleteria.html" aria-current="page"
+                  >Vender en boletería</a
+                >
+              </li>
+              <li><a href="comprobantes.html">Comprobantes</a></li>
+              <li><a href="acreditaciones.html">Acreditar beneficios</a></li>
+            </ul>
+          </nav>
+          <button
+            type="button"
+            class="btn btn-outline-dark btn-sm"
+            data-logout
+          >
+            Cerrar sesión
+          </button>
+        </div>
+      </div>
+    </header>
+    <main id="contenido" class="container counter-main" tabindex="-1">
+      <p class="eyebrow">BOLETERÍA · OFICINISTA</p>
+      <h1>Vender en boletería</h1>
+      <p class="counter-lead">
+        Vende a una persona sin cuenta: busca el viaje, elige asientos, registra
+        a cada pasajero con su cédula a la vista y cobra en efectivo.
+      </p>
+      <p
+        id="counter-status"
+        class="counter-status"
+        role="status"
+        aria-live="polite"
+        tabindex="-1"
+      >
+        Comprobando tu sesión…
+      </p>
+      <a id="counter-login" class="btn btn-dark" href="login.html" hidden
+        >Iniciar sesión</a
+      >
+
+      <section
+        id="search-section"
+        class="counter-step"
+        aria-labelledby="search-title"
+        hidden
+      >
+        <h2 id="search-title"><span>1</span> Elegir el viaje</h2>
+        <div class="counter-day" role="group" aria-label="Día de los viajes">
+          <button id="day-previous" class="btn btn-outline-dark btn-sm" type="button">
+            ← Día anterior
+          </button>
+          <label class="visually-hidden" for="day-date">Fecha de los viajes</label>
+          <input id="day-date" class="form-control form-control-sm" type="date" />
+          <button id="day-next" class="btn btn-outline-dark btn-sm" type="button">
+            Día siguiente →
+          </button>
+          <button id="day-today" class="btn btn-link btn-sm" type="button">Hoy</button>
+        </div>
+        <p id="trip-caption" class="counter-muted"></p>
+        <div class="counter-table-wrap">
+          <table class="counter-table">
+            <caption class="visually-hidden">Viajes de tu cooperativa</caption>
+            <thead>
+              <tr>
+                <th scope="col">Salida</th>
+                <th scope="col">Llegada</th>
+                <th scope="col">Recorrido</th>
+                <th scope="col">Paradas</th>
+                <th scope="col">Tarifa base</th>
+                <th scope="col"><span class="visually-hidden">Acción</span></th>
+              </tr>
+            </thead>
+            <tbody id="trip-list"></tbody>
+          </table>
+        </div>
+        <details class="counter-segment">
+          <summary>Vender un tramo con parada intermedia</summary>
+          <form id="search-form" class="counter-search" novalidate>
+            <div>
+              <label class="form-label" for="search-origin">Origen</label>
+              <input
+                id="search-origin"
+                class="form-control"
+                name="origin"
+                required
+                autocomplete="off"
+              />
+            </div>
+            <div>
+              <label class="form-label" for="search-destination">Destino</label>
+              <input
+                id="search-destination"
+                class="form-control"
+                name="destination"
+                required
+                autocomplete="off"
+              />
+            </div>
+            <div>
+              <label class="form-label" for="search-date">Fecha de embarque</label>
+              <input
+                id="search-date"
+                class="form-control"
+                name="date"
+                type="date"
+                required
+              />
+            </div>
+            <button id="search-submit" class="btn btn-dark" type="submit">
+              Buscar tramo
+            </button>
+          </form>
+        </details>
+      </section>
+
+      <section
+        id="seat-section"
+        class="counter-step"
+        aria-labelledby="seat-title"
+        hidden
+      >
+        <div class="counter-step-head">
+          <h2 id="seat-title"><span>2</span> Elegir asientos</h2>
+          <button id="refresh-seats" class="btn btn-outline-dark btn-sm" type="button">
+            Actualizar mapa
+          </button>
+        </div>
+        <p id="seat-trip" class="counter-muted"></p>
+        <div id="seat-list" class="booking-seat-map"></div>
+      </section>
+
+      <form
+        id="passenger-form"
+        class="counter-step"
+        aria-labelledby="passenger-title"
+        novalidate
+        hidden
+      >
+        <h2 id="passenger-title"><span>3</span> Pasajeros</h2>
+        <p class="counter-muted">
+          Copia los datos de la cédula física. No se buscan pasajeros anteriores.
+        </p>
+        <div id="passenger-list" class="counter-passengers"></div>
+        <button id="review-submit" class="btn btn-dark" type="submit">
+          Calcular total
+        </button>
+      </form>
+
+      <section
+        id="review-section"
+        class="counter-step"
+        aria-labelledby="review-title"
+        hidden
+      >
+        <h2 id="review-title"><span>4</span> Revisar y reservar</h2>
+        <div id="review-content"></div>
+        <div class="counter-actions">
+          <button id="edit-sale" class="btn btn-outline-dark" type="button">
+            Modificar datos
+          </button>
+          <button id="confirm-sale" class="btn btn-dark" type="button">
+            Confirmar y reservar asientos
+          </button>
+        </div>
+      </section>
+
+      <section
+        id="pay-section"
+        class="counter-step"
+        aria-labelledby="pay-title"
+        hidden
+      >
+        <h2 id="pay-title"><span>5</span> Cobrar en efectivo</h2>
+        <p class="counter-total">
+          Total a cobrar: <strong id="pay-total"></strong>
+        </p>
+        <p class="counter-muted">
+          Reserva <span id="pay-reference"></span>. Registra el cobro antes de
+          <time id="pay-expiry"></time>; después los asientos se liberan.
+        </p>
+        <button id="pay-cash" class="btn btn-dark" type="button">
+          Registrar cobro en efectivo
+        </button>
+      </section>
+
+      <section
+        id="tickets-section"
+        class="counter-step"
+        aria-labelledby="tickets-title"
+        hidden
+      >
+        <div class="counter-step-head">
+          <h2 id="tickets-title"><span>6</span> Boletos</h2>
+          <div class="counter-actions">
+            <button id="print-tickets" class="btn btn-dark" type="button">
+              Imprimir boletos
+            </button>
+            <button id="new-sale" class="btn btn-outline-dark" type="button">
+              Nueva venta
+            </button>
+          </div>
+        </div>
+        <div id="ticket-list" class="counter-tickets"></div>
+      </section>
+    </main>
+    <script type="module" src="../src/counter/counter-page.js"></script>
+    <script type="module" src="../src/auth/logout-page.js"></script>
+  </body>
+</html>

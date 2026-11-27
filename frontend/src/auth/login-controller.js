@@ -39,7 +39,7 @@ export function createLoginController({
           : "Sesión iniciada.",
         { email: result.user.email, role: result.user.role },
       );
-      if (!changingAccount) onAuthenticated(result.user);
+      if (!changingAccount) onAuthenticated(result.user, { afterLogin });
     } catch (error) {
       if (error.status === 401 && !afterLogin) {
         render(

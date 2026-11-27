@@ -72,12 +72,14 @@ test('cambio de tarifa rechaza aceptación y revierte sin reserva, asientos ni b
   expect(await counts()).toEqual({ bookings: 1, allocations: 2 });
 });
 
-test('falta de acreditación de tarifa preferencial revierte la transacción', async () => {
+// BOOK-BENEF-02: la fecha declarada ya no exige acreditación; la reserva se guarda con su total.
+test('fecha no acreditada de tarifa preferencial no bloquea la reserva', async () => {
   const { execute, request, dependencies } = await setup();
   const entries = await dependencies.passengerVerifier.verify();
   entries.find((entry) => entry.seatId === '02').birthDateVerified = false;
-  await expect(execute(request)).rejects.toMatchObject({ code: 'BOOKING_BENEFIT_REVIEW_REQUIRED' });
-  expect(await counts()).toEqual({ bookings: 0, allocations: 0 });
+  dependencies.passengerVerifier.verify.mockResolvedValue(entries);
+  await execute(request);
+  expect(await counts()).toEqual({ bookings: 1, allocations: 2 });
 });
 
 test('fallo del verificador bajo bloqueo no deja transacción abierta ni asientos ocupados', async () => {

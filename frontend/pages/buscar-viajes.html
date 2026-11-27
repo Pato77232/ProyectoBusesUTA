@@ -11,10 +11,10 @@
   <body>
     <a class="skip-link" href="#contenido">Saltar al contenido</a>
     <header class="site-header">
-      <nav class="container">
+      <nav class="container d-flex align-items-center justify-content-between gap-3">
         <a class="brand" href="../index.html"
           ><img src="../assets/brand/logo-transviaje.png" alt="transViaje" width="140" /></a
-        ><a href="login.html">Iniciar sesión</a>
+        ><a class="btn btn-outline-dark" href="login.html" data-session-link>Iniciar sesión</a>
       </nav>
     </header>
     <main class="container py-5" id="contenido">
@@ -39,14 +39,28 @@
         <button class="btn btn-primary" type="submit">Buscar viajes</button>
       </form>
       <p id="search-status" role="status" aria-live="polite" tabindex="-1">
-        Introduce las ciudades y la fecha.
+        Elige una de las próximas salidas o busca por ciudades y fecha.
       </p>
       <p>
         Los resultados no bloquean asientos. La disponibilidad y el importe final se confirman al
         reservar.
       </p>
       <ul id="search-results" class="list-unstyled" aria-busy="false"></ul>
+      <button id="show-upcoming" class="btn btn-outline-dark mb-4" type="button" hidden>
+        Ver todas las próximas salidas
+      </button>
+      <section id="upcoming-section" class="upcoming" aria-labelledby="upcoming-title">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+          <h2 id="upcoming-title" class="h4 m-0">Próximas salidas</h2>
+          <button id="upcoming-refresh" class="btn btn-outline-dark btn-sm" type="button">
+            Actualizar
+          </button>
+        </div>
+        <p id="upcoming-status" role="status" aria-live="polite">Consultando las próximas salidas…</p>
+        <div id="upcoming-list" aria-busy="false"></div>
+      </section>
     </main>
     <script type="module" src="../src/search/search-page.js"></script>
+    <script type="module" src="../src/auth/session-link-page.js"></script>
   </body>
 </html>

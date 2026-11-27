@@ -89,9 +89,14 @@ function assertContinuation(activity, previous) {
     );
   }
   if (activity.originKey !== previous.destinationKey) {
+    // El mensaje nombra los lugares para que se sepa qué traslado añadir.
+    const from = previous.destinationKey;
+    const to = activity.originKey;
     throw new BusAgendaConflictError(
       'BUS_AGENDA_LOCATION_CONFLICT',
-      'El bus requiere un traslado explícito hasta el siguiente origen.',
+      previous.id === null
+        ? `El bus empieza en ${from} y su primera actividad sale de ${to}. Cambia la ubicación inicial a ${to} o añade un traslado de ${from} a ${to}.`
+        : `El bus llega a ${from} y su siguiente actividad sale de ${to}. Añade un traslado de ${from} a ${to}.`,
       activity.id,
       previous.id,
     );

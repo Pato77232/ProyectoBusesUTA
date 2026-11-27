@@ -96,9 +96,13 @@ export function mountBusForm(form, { busGroups, seatLayouts, onValid }) {
   if (busGroups.length === 0) {
     showStatus(
       status,
-      'Tu cooperativa aún no tiene grupos de buses. Necesitas uno para registrar un bus.',
+      'Tu cooperativa aún no tiene grupos de buses. Necesitas uno para registrar un bus. ',
       'error',
     );
+    const createGroup = document.createElement('a');
+    createGroup.href = '/pages/grupos-buses.html';
+    createGroup.textContent = 'Crear un grupo de buses';
+    status.append(createGroup);
     return;
   }
   addOptions(form.elements.busGroupId, busGroups, (group) => group.name);

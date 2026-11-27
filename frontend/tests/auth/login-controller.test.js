@@ -175,3 +175,27 @@ test('POST exitoso seguido de fallo en me permite recuperación sin repetir POST
   await c.checkSession();
   assert.equal(c.states.at(-1).mode, 'session');
 });
+
+// FRONT-02 T9: la página redirige por rol solo cuando el aviso viene del inicio de sesión.
+test('distingue el inicio de sesión de una sesión previa al avisar', async () => {
+  let logged = false;
+  const notices = [];
+  const user = { email: credentials.email, role: 'CUSTOMER' };
+  const c = setup(
+    (path) => {
+      if (path.endsWith('/login')) {
+        logged = true;
+        return null;
+      }
+      return logged ? { user } : absent();
+    },
+    (value, options) => notices.push([value, options]),
+  );
+  await c.checkSession();
+  await c.submit(credentials);
+  await c.checkSession();
+  assert.deepEqual(notices, [
+    [user, { afterLogin: true }],
+    [user, { afterLogin: false }],
+  ]);
+});

@@ -7,6 +7,18 @@ const destinations = {
     href: "/pages/operaciones-cooperativa.html",
     label: "Operaciones de cooperativa",
   },
+  // FRONT-02 T9: cada rol tiene un punto de entrada dentro de la aplicación.
+  CLERK: {
+    href: "/pages/comprobantes.html",
+    label: "Comprobantes pendientes",
+  },
+  // T10: el panel tiene su propio cierre de sesión, así que también se entra
+  // directamente cuando la sesión ya estaba abierta.
+  CUSTOMER: {
+    href: "/pages/mi-cuenta.html",
+    label: "Mi cuenta",
+    withActiveSession: true,
+  },
 };
 
 export function createLoginView(root) {

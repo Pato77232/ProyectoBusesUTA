@@ -343,8 +343,10 @@ function faultRequests(fault) {
 }
 test('C: revisión real permite resumen con descuento sin dobles y conserva evidencia privada', async () => {
   const { id, purchase } = await pendingRequest();
+  // BOOK-BENEF-02: antes de la revisión se cotiza, pero sin descuento por discapacidad.
   const initial = await customer.request('/api/v1/bookings/summary', 'POST', purchase);
-  expect(initial.status).toBe(409);
+  expect(initial.status).toBe(200);
+  expect((await initial.json()).summary.totals.totalPriceCents).toBeGreaterThan(225);
   const response = await clerk.request(endpoint + '/' + id + '/review', 'POST', reviewCommand());
   expect(response.status).toBe(200);
   const result = (await response.json()).request;
@@ -430,16 +432,20 @@ test('C: dos oficinistas no sobrescriben una revisión', async () => {
       .reviewed_by,
   ).toBe(user.id);
 });
-test('C: verificación falsa se registra sin acreditar ni liberar reservas', async () => {
+test('C: verificación falsa se registra sin acreditar discapacidad ni liberar reservas', async () => {
   const { id, purchase } = await pendingRequest();
   const command = {
     expectedRevision: 1,
     decisions: [{ seatId, birthDateVerified: false, disabilityVerified: false, evidence: [] }],
   };
   expect((await clerk.request(endpoint + '/' + id + '/review', 'POST', command)).status).toBe(200);
+  // BOOK-BENEF-02: la fecha no acreditada ya no bloquea; solo se niega el descuento por discapacidad.
   const summary = await customer.request('/api/v1/bookings/summary', 'POST', purchase);
-  expect(summary.status).toBe(409);
-  expect((await summary.json()).error.code).toBe('BOOKING_BENEFIT_REVIEW_REQUIRED');
+  expect(summary.status).toBe(200);
+  const quoted = await summary.json();
+  expect(
+    quoted.summary.passengers.every((p) => !p.quote.appliedCategories.includes('DISABILITY')),
+  ).toBe(true);
   expect(await reviewCount()).toBe(1);
 });
 test('C: fallo entre insertar acreditación y guardar resultado revierte todo', async () => {

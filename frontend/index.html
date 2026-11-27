@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Conoce transViaje, una plataforma en preparación para consultar y comprar pasajes interprovinciales en Ecuador."
+      content="transViaje: consulta viajes y compra pasajes interprovinciales en Ecuador."
     />
     <meta name="theme-color" content="#202020" />
     <title>transViaje · Tu próximo viaje, sin tantas vueltas</title>
@@ -35,10 +35,10 @@
         </a>
         <nav aria-label="Navegación principal">
           <ul class="nav-list">
-            <li><a href="#como-funciona">Cómo funcionará</a></li>
+            <li><a href="#como-funciona">Cómo funciona</a></li>
             <li><a href="#preguntas">Preguntas frecuentes</a></li>
-            <li><a href="./pages/login.html">Iniciar sesión</a></li>
-            <li><a href="./pages/registro.html">Crear cuenta</a></li>
+            <li><a href="./pages/login.html" data-session-link>Iniciar sesión</a></li>
+            <li data-guest-only><a href="./pages/registro.html">Crear cuenta</a></li>
             <li><a href="./pages/buscar-viajes.html">Buscar viajes</a></li>
           </ul>
         </nav>
@@ -55,14 +55,14 @@
             </h1>
             <p class="hero-description">
               Una forma más sencilla de encontrar tu ruta, elegir tu asiento y llevar tu boleto
-              contigo. Estamos preparando el camino.
+              contigo.
             </p>
             <p class="availability-note">
               <span class="status-dot" aria-hidden="true"></span>
-              En preparación. La búsqueda y compra aún no están disponibles.
+              Ya puedes buscar viajes y reservar tus asientos como cliente registrado.
             </p>
-            <a class="btn btn-primary" href="#como-funciona">
-              Conoce cómo funcionará <span aria-hidden="true">↗</span>
+            <a class="btn btn-primary" href="./pages/buscar-viajes.html">
+              Buscar viajes <span aria-hidden="true">↗</span>
             </a>
           </div>
 
@@ -70,10 +70,10 @@
             <aside class="journey-preview" aria-labelledby="preview-title">
               <div class="preview-header">
                 <span class="preview-label">transViaje</span>
-                <span class="preview-badge">Próximamente</span>
+                <span class="preview-badge">Disponible</span>
               </div>
               <h2 id="preview-title">Tu viaje.<br />Todo en un lugar.</h2>
-              <p class="preview-description">Una vista de lo que estamos preparando para ti.</p>
+              <p class="preview-description">Lo que puedes hacer en transViaje.</p>
               <ol class="preview-list list-unstyled">
                 <li>
                   <span class="preview-icon" aria-hidden="true">↗</span>
@@ -97,7 +97,7 @@
                   </div>
                 </li>
               </ol>
-              <p class="preview-caption">Funciones previstas · Todavía no disponibles</p>
+              <p class="preview-caption">Búsqueda, reserva y boleto digital</p>
             </aside>
           </div>
         </div>
@@ -106,30 +106,30 @@
       <section class="steps-section" id="como-funciona" aria-labelledby="steps-title">
         <div class="container">
           <div class="section-heading">
-            <p class="eyebrow">ASÍ FUNCIONARÁ</p>
+            <p class="eyebrow">ASÍ FUNCIONA</p>
             <h2 id="steps-title">Tu viaje, paso a paso.</h2>
-            <p>Estas funciones estarán disponibles en una próxima etapa.</p>
+            <p>Tres pasos desde la búsqueda hasta tu boleto.</p>
           </div>
           <ol class="row g-4 list-unstyled mb-0">
             <li class="col-md-4">
               <div class="step-card">
                 <span class="step-number" aria-hidden="true">01</span>
                 <h3>Encuentra tu ruta</h3>
-                <p>Podrás consultar viajes entre ciudades y conocer sus horarios y tarifas.</p>
+                <p>Consulta viajes entre ciudades con sus horarios y tarifas.</p>
               </div>
             </li>
             <li class="col-md-4">
               <div class="step-card">
                 <span class="step-number" aria-hidden="true">02</span>
                 <h3>Elige tu asiento</h3>
-                <p>Verás la distribución del bus y seleccionarás los asientos disponibles.</p>
+                <p>Mira la distribución del bus y selecciona los asientos disponibles.</p>
               </div>
             </li>
             <li class="col-md-4">
               <div class="step-card">
                 <span class="step-number" aria-hidden="true">03</span>
                 <h3>Lleva tu boleto</h3>
-                <p>Una vez aprobado el pago, recibirás tu boleto digital con código QR.</p>
+                <p>Cuando se apruebe tu comprobante de pago, recibirás tu boleto digital con código QR.</p>
               </div>
             </li>
           </ol>
@@ -141,21 +141,21 @@
           <div class="col-lg-5">
             <p class="eyebrow">ANTES DE EMPEZAR</p>
             <h2 id="questions-title">¿Tienes preguntas?</h2>
-            <p>Conoce qué podrás hacer y el estado actual de la plataforma.</p>
+            <p>Lo esencial para comprar tu pasaje.</p>
           </div>
           <div class="col-lg-7">
             <details class="question" open>
               <summary>¿Ya puedo comprar un pasaje?</summary>
               <p>
-                Todavía no. Esta página presenta la plataforma; la consulta de viajes, las reservas
-                y los pagos aún no están habilitados.
+                Sí. Busca tu viaje, inicia sesión como cliente, elige tus asientos y sube el
+                comprobante de pago. La cooperativa revisa el comprobante y emite tu boleto.
               </p>
             </details>
             <details class="question">
-              <summary>¿Necesitaré crear una cuenta?</summary>
+              <summary>¿Necesito crear una cuenta?</summary>
               <p>
-                La plataforma contemplará compras como cliente registrado o como invitado. Los
-                formularios de acceso y compra estarán disponibles más adelante.
+                Sí, para comprar en línea necesitas una cuenta de cliente. Puedes
+                <a href="./pages/registro.html">crearla aquí</a> en un minuto.
               </p>
             </details>
           </div>
@@ -169,5 +169,6 @@
         <a href="#inicio">Volver al inicio <span aria-hidden="true">↑</span></a>
       </div>
     </footer>
+    <script type="module" src="./src/auth/session-link-page.js"></script>
   </body>
 </html>

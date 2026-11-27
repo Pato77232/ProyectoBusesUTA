@@ -17,7 +17,7 @@
     <a class="skip-link" href="#contenido">Saltar al contenido</a>
     <header class="site-header">
       <div
-        class="container d-flex align-items-center justify-content-between gap-3"
+        class="container d-flex flex-wrap align-items-center justify-content-between gap-3"
       >
         <a class="brand" href="/" aria-label="transViaje, inicio">
           <span class="brand-logo-frame" aria-hidden="true">
@@ -30,9 +30,14 @@
             />
           </span>
         </a>
-        <a class="btn btn-outline-dark" href="/pages/registrar-bus.html"
-          >Registrar un bus</a
-        >
+        <div class="d-flex flex-wrap align-items-center gap-3">
+          <a class="btn btn-outline-dark" href="/pages/registrar-bus.html"
+            >Registrar un bus</a
+          >
+          <button type="button" class="btn btn-outline-dark btn-sm" data-logout>
+            Cerrar sesión
+          </button>
+        </div>
       </div>
     </header>
     <main id="contenido" class="container py-4" tabindex="-1">
@@ -62,5 +67,6 @@
       <div id="bus-inventory" aria-live="polite"></div>
     </main>
     <script type="module" src="/src/fleet/bus-inventory-page.js"></script>
+    <script type="module" src="/src/auth/logout-page.js"></script>
   </body>
 </html>

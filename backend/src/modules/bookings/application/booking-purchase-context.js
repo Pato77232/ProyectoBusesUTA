@@ -164,18 +164,31 @@ function verifiedBenefits(entries, preliminary) {
     preliminary.passengers.map((passenger) => {
       const verified = bySeat.get(passenger.seatId);
       if (!verified) throw new BookingValidationError();
-      const ageDiscount = passenger.quote.eligibleCategories.some((category) =>
-        ['MINOR', 'SENIOR'].includes(category),
-      );
-      if ((ageDiscount || preliminary.schemaVersion === 2) && !verified.birthDateVerified) {
-        throw new BookingPurchaseError('BOOKING_BENEFIT_REVIEW_REQUIRED');
-      }
+      // BOOK-BENEF-02: la edad sale de la fecha de nacimiento declarada y se comprueba con la
+      // cédula al embarcar; solo la discapacidad necesita la acreditación de la cooperativa.
       return Object.freeze({
         seatId: passenger.seatId,
         disabilityVerified: verified.disabilityVerified,
       });
     }),
   );
+}
+
+/**
+ * BOOK-BENEF-02: sin una revisión vigente, la compra sigue sin descuento por discapacidad.
+ * Otros errores (servicio caído, viaje de otra cooperativa) se propagan igual que antes.
+ */
+async function optionalVerification(verifier, passengers, input) {
+  try {
+    return await verifier.verify(input);
+  } catch (error) {
+    if (error?.code !== 'BOOKING_BENEFIT_REVIEW_REQUIRED') throw error;
+    return passengers.map(({ seatId }) => ({
+      seatId,
+      birthDateVerified: false,
+      disabilityVerified: false,
+    }));
+  }
 }
 
 async function resolveSummary(request, ownerId, dependencies, trip) {
@@ -189,7 +202,9 @@ async function resolveSummary(request, ownerId, dependencies, trip) {
     trip,
     passengerBenefits: passengers.map(({ seatId }) => ({ seatId, disabilityVerified: false })),
   });
-  const verification = await dependencies.passengerVerifier.verify(
+  const verification = await optionalVerification(
+    dependencies.passengerVerifier,
+    passengers,
     Object.freeze({
       ownerId,
       passengers,

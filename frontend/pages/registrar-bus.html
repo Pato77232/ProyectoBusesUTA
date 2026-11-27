@@ -17,7 +17,7 @@
     <a class="skip-link" href="#contenido">Saltar al contenido</a>
 
     <header class="site-header">
-      <div class="container">
+      <div class="container d-flex flex-wrap align-items-center justify-content-between gap-3">
         <a class="brand" href="/" aria-label="transViaje, inicio">
           <span class="brand-logo-frame" aria-hidden="true">
             <img
@@ -29,6 +29,9 @@
             />
           </span>
         </a>
+        <div class="d-flex flex-wrap align-items-center gap-3">
+          <button type="button" class="btn btn-outline-dark btn-sm" data-logout>Cerrar sesión</button>
+        </div>
       </div>
     </header>
 
@@ -199,5 +202,6 @@
       </div>
     </footer>
     <script type="module" src="/src/fleet/bus-page.js"></script>
+    <script type="module" src="/src/auth/logout-page.js"></script>
   </body>
 </html>

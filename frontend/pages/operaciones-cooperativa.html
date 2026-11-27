@@ -18,7 +18,7 @@
     <a class="skip-link" href="#contenido">Saltar al contenido</a>
     <header class="site-header">
       <div
-        class="container d-flex align-items-center justify-content-between gap-3"
+        class="container d-flex flex-wrap align-items-center justify-content-between gap-3"
       >
         <a class="brand" href="/" aria-label="transViaje, inicio">
           <span class="brand-logo-frame" aria-hidden="true">
@@ -31,7 +31,11 @@
             />
           </span>
         </a>
-        <a href="/pages/login.html">Mi cuenta</a>
+        <div class="d-flex flex-wrap align-items-center gap-3">
+          <button type="button" class="btn btn-outline-dark btn-sm" data-logout>
+            Cerrar sesión
+          </button>
+        </div>
       </div>
     </header>
     <main id="contenido" class="container admin-layout" tabindex="-1">
@@ -61,27 +65,29 @@
           <section class="admin-card" aria-labelledby="fleet-title">
             <h2 id="fleet-title">Flota</h2>
             <p>
-              Registra un bus para tu cooperativa. Debes elegir un grupo de
-              buses existente.
+              Crea los grupos de buses de tu cooperativa y registra cada bus en
+              uno de ellos.
             </p>
-            <p class="admin-notice">
-              La pantalla para crear grupos todavía no está disponible. Si la
-              lista de grupos está vacía, no podrás completar el registro desde
-              aquí.
-            </p>
-            <a class="btn btn-dark" href="/pages/registrar-bus.html">
-              Registrar bus
-            </a>
+            <div class="d-flex flex-wrap gap-2">
+              <a class="btn btn-outline-dark" href="/pages/grupos-buses.html">
+                Grupos de buses
+              </a>
+              <a class="btn btn-dark" href="/pages/registrar-bus.html">
+                Registrar bus
+              </a>
+            </div>
           </section>
           <section class="admin-card" aria-labelledby="frequency-title">
             <h2 id="frequency-title">Frecuencias</h2>
             <p>Registra recorridos autorizados y consulta sus estados.</p>
-            <p class="admin-list">
-              <a href="/pages/crear-frecuencia.html">Crear frecuencia</a>
-            </p>
-            <a class="btn btn-outline-dark" href="/pages/frecuencias.html">
-              Consultar frecuencias
-            </a>
+            <div class="d-flex flex-wrap gap-2">
+              <a class="btn btn-dark" href="/pages/crear-frecuencia.html">
+                Crear frecuencia
+              </a>
+              <a class="btn btn-outline-dark" href="/pages/frecuencias.html">
+                Consultar frecuencias
+              </a>
+            </div>
           </section>
           <section class="admin-card" aria-labelledby="sheets-title">
             <h2 id="sheets-title">Hojas de ruta</h2>
@@ -96,7 +102,7 @@
           <section class="admin-card" aria-labelledby="clerks-title">
             <h2 id="clerks-title">Personal</h2>
             <p>Registra una cuenta de oficinista vinculada a tu cooperativa.</p>
-            <a class="btn btn-outline-dark" href="/pages/oficinistas.html">
+            <a class="btn btn-dark" href="/pages/oficinistas.html">
               Crear oficinista
             </a>
           </section>
@@ -109,5 +115,6 @@
       </noscript>
     </main>
     <script type="module" src="/src/admin/operations-page.js"></script>
+    <script type="module" src="/src/auth/logout-page.js"></script>
   </body>
 </html>

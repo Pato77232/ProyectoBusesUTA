@@ -28,6 +28,9 @@ export function createBookingsApi(fetchImpl) {
       const query = new URLSearchParams(context);
       return send("/api/v1/bookings/availability?" + query);
     },
+    seatMap(context) {
+      return send("/api/v1/bookings/seat-map?" + new URLSearchParams(context));
+    },
     accessibleAvailability(context) {
       return send(
         "/api/v1/bookings/accessible-availability?" +
@@ -52,6 +55,13 @@ export function createBookingsApi(fetchImpl) {
       return withKey("/api/v1/bookings", {
         method: "POST",
         data,
+        csrfToken: await csrf(),
+      });
+    },
+    async uploadPaymentProof(formData) {
+      return send("/api/v1/payment-proofs", {
+        method: "POST",
+        formData,
         csrfToken: await csrf(),
       });
     },
